@@ -160,3 +160,11 @@ export const createDefaultShapeSequence = () => [
   },
   createShapeStop(DEFAULT_WIPE_PAIR[1], 4.0, "shape-default-disabled"),
 ]
+
+export const createBlankShapeSequence = () => [
+  {
+    ...createShapeStop(DEFAULT_WIPE_PAIR[0], 0, createEditorId("shape")),
+    transitionType: "cut" as const,
+    wipeDirection: { x: 0, y: 0 },
+  },
+]

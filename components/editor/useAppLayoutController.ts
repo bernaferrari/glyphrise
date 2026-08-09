@@ -20,6 +20,14 @@ export function useAppLayoutController(): AppLayoutViewProps {
       saveProjectFile,
       projectStatus,
       projectStatusMessage,
+      project,
+      renameProject,
+      createNewProject,
+      finalizeProjectBaseline,
+      newProjectDialogOpen,
+      setNewProjectDialogOpen,
+      recentProjects,
+      openRecentProject,
     },
     historyActions: { undo, redo, canUndo, canRedo },
     recipeActions: { applyRecipe },
@@ -183,14 +191,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
   } = editor
 
-  const { openGuide, quickStartProps } = useQuickStartGuideController({
-    selectedShapeId,
-    setOpenShapePicker,
-    isPlaying,
-    togglePlayback: handlePlayToggle,
-    applyRecipe,
-  })
-
   const {
     sortedShapes,
     morph,
@@ -350,6 +350,29 @@ export function useAppLayoutController(): AppLayoutViewProps {
     svgPathA: iconAContent,
     svgPathB: iconBContent,
     markCustom,
+  })
+
+  const { openGuide, quickStartProps } = useQuickStartGuideController({
+    selectedShapeId,
+    setOpenShapePicker,
+    isPlaying,
+    togglePlayback: handlePlayToggle,
+    applyRecipe,
+    hasCustomizedIcon: shapes.some(
+      (shape) => !shape.id.startsWith("shape-default")
+    ),
+    hasStyle:
+      Boolean(editor.shapes.activeRecipeId) ||
+      materialPreset !== "chrome" ||
+      fillMode !== "gradient" ||
+      fillColor !== "#4285F4" ||
+      fillColorSecondary !== "#00C796",
+    hasMotion:
+      shapes.length > 1 ||
+      tracks.some((track) => track.keyframes.length > 0) ||
+      rotationAxisKeyframes.length > 0 ||
+      moveKeyframes.length > 0,
+    onExport: openExport,
   })
 
   const {
@@ -621,12 +644,14 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onProjectSave: saveProjectFile,
       projectStatus,
       projectStatusMessage,
+      projectName: project.name,
+      onProjectNameChange: renameProject,
       onUndo: undo,
       onRedo: redo,
       canUndo,
       canRedo,
       onGuideOpen: openGuide,
-      onExportOpen: openExport,
+      onExportOpen: quickStartProps.onExport,
     },
     viewportProps: {
       zenMode,
@@ -649,6 +674,21 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
     timelineProps: { zenMode, timelineProps },
     exportModalProps,
+    newProjectDialogProps: {
+      open: newProjectDialogOpen,
+      currentProjectName: project.name,
+      recentProjects,
+      templates: quickStartProps.templates,
+      onOpenChange: setNewProjectDialogOpen,
+      onCreate: createNewProject,
+      onCreateFromTemplate: (templateId, name) => {
+        createNewProject("blank", name)
+        quickStartProps.onTemplateChoose(templateId)
+        finalizeProjectBaseline()
+      },
+      onOpenRecent: openRecentProject,
+      onDownloadCurrent: saveProjectFile,
+    },
     uploadFileRef,
     canvas3DRef,
     onUploadInputChange: handleUploadInputChange,

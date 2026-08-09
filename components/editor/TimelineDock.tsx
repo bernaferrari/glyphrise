@@ -16,7 +16,7 @@ export function TimelineDock({ zenMode, timelineProps }: TimelineDockProps) {
       className={`shrink-0 overflow-hidden ${
         zenMode
           ? "h-0 border-t-0"
-          : "h-[184px] border-t border-border bg-background"
+          : "h-[clamp(152px,24dvh,184px)] border-t border-border bg-background"
       }`}
     >
       <Timeline {...timelineProps} />

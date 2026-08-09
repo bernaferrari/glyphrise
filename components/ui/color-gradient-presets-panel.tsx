@@ -21,7 +21,7 @@ export function ColorGradientPresetsPanel({
   return (
     <div className="space-y-1.5 px-2">
       <div className="flex h-6 items-center justify-between">
-        <div className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <div className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
           Presets
         </div>
         {gradientType === "mesh" && (
@@ -30,7 +30,7 @@ export function ColorGradientPresetsPanel({
               type="button"
               title="Shuffle mesh point positions"
               aria-label="Shuffle mesh point positions"
-              className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
               onClick={(event) => {
                 event.stopPropagation()
                 onShuffleMeshPoints()
@@ -42,7 +42,7 @@ export function ColorGradientPresetsPanel({
               type="button"
               title="Shuffle mesh colors"
               aria-label="Shuffle mesh colors"
-              className="grid size-6 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
               onClick={(event) => {
                 event.stopPropagation()
                 onShuffleMeshColors()

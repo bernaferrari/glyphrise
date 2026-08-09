@@ -7,6 +7,7 @@ import { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
 import { TimelineDock } from "./TimelineDock"
 import { ViewportStage } from "./ViewportStage"
+import { NewProjectDialog } from "./NewProjectDialog"
 
 export type AppLayoutViewProps = {
   topBarProps: ComponentProps<typeof AppTopBar>
@@ -14,6 +15,7 @@ export type AppLayoutViewProps = {
   inspectorProps: ComponentProps<typeof InspectorSidebar>
   timelineProps: ComponentProps<typeof TimelineDock>
   exportModalProps: ComponentProps<typeof ExportModal>
+  newProjectDialogProps: ComponentProps<typeof NewProjectDialog>
   uploadFileRef: RefObject<HTMLInputElement | null>
   canvas3DRef: RefObject<SvgCanvasRef | null>
   onUploadInputChange: ComponentProps<"input">["onChange"]
@@ -25,15 +27,16 @@ export function AppLayoutView({
   inspectorProps,
   timelineProps,
   exportModalProps,
+  newProjectDialogProps,
   uploadFileRef,
   canvas3DRef,
   onUploadInputChange,
 }: AppLayoutViewProps) {
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background font-sans text-foreground antialiased select-none">
+    <div className="flex h-dvh w-screen flex-col overflow-hidden bg-background font-sans text-foreground antialiased select-none">
       <AppTopBar {...topBarProps} />
 
-      <div className="flex min-h-0 flex-1 bg-muted/40">
+      <div className="relative flex min-h-0 flex-1 bg-muted/40">
         <ViewportStage ref={canvas3DRef} {...viewportProps} />
         <InspectorSidebar {...inspectorProps} />
       </div>
@@ -50,6 +53,7 @@ export function AppLayoutView({
       />
 
       <ExportModal {...exportModalProps} />
+      <NewProjectDialog {...newProjectDialogProps} />
     </div>
   )
 }

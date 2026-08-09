@@ -26,11 +26,16 @@ import {
   Vector3Keyframe,
 } from "./EditorModel"
 import {
+  createProjectMetadata,
   downloadProjectSnapshot,
+  type EditorProjectMetadata,
+  listPersistedEditorProjects,
   MAX_PROJECT_FILE_BYTES,
-  parseEditorDocumentSnapshot,
-  readPersistedEditorSnapshot,
-  writePersistedEditorSnapshot,
+  normalizeProjectName,
+  parseEditorDocument,
+  readPersistedEditorDocument,
+  readPersistedEditorProject,
+  writePersistedEditorDocument,
 } from "./EditorDocumentModel"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import type {
@@ -41,6 +46,7 @@ import type {
   TimelineTrack,
 } from "./TimelineModel"
 import { useEditorHistory } from "./useEditorHistory"
+import { createBlankEditorSnapshot } from "./EditorProjectModel"
 
 interface EditorSnapshotHistoryOptions {
   activeRecipeId: string | null
@@ -201,6 +207,15 @@ export function useEditorSnapshotHistory({
   const [projectStatusMessage, setProjectStatusMessage] = useState(
     "Restoring your last local edit…"
   )
+  const [project, setProject] = useState<EditorProjectMetadata>(() =>
+    createProjectMetadata()
+  )
+  const [recentProjects, setRecentProjects] = useState<EditorProjectMetadata[]>(
+    []
+  )
+  const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false)
+  const projectRef = useRef(project)
+  projectRef.current = project
   const snapshot = useMemo<EditorSnapshot>(
     () => ({
       activeRecipeId,
@@ -278,6 +293,8 @@ export function useEditorSnapshotHistory({
     ]
   )
   const initialSnapshotRef = useRef(snapshot)
+  const snapshotRef = useRef(snapshot)
+  snapshotRef.current = snapshot
 
   const restoreSnapshot = (nextSnapshot: EditorSnapshot) => {
     setActiveRecipeId(nextSnapshot.activeRecipeId)
@@ -306,10 +323,35 @@ export function useEditorSnapshotHistory({
     setIsPlaying(false)
   }
 
+  const history = useEditorHistory({
+    snapshot,
+    canRecord: shapes.length > 0,
+    maxSize: MAX_UNDO_STEPS,
+    isInputDragActive,
+    onRestore: restoreSnapshot,
+  })
+
+  const activateProject = (
+    nextSnapshot: EditorSnapshot,
+    nextProject: EditorProjectMetadata,
+    statusMessage: string
+  ) => {
+    restoreSnapshot(nextSnapshot)
+    history.resetHistory(nextSnapshot, true)
+    const persistedProject = writePersistedEditorDocument(
+      nextSnapshot,
+      nextProject
+    )
+    setProject(persistedProject)
+    setRecentProjects(listPersistedEditorProjects())
+    setProjectStatus("saved")
+    setProjectStatusMessage(statusMessage)
+  }
+
   const saveProjectFile = () => {
     if (typeof window === "undefined") return
     try {
-      downloadProjectSnapshot(snapshot)
+      downloadProjectSnapshot(snapshot, project)
       setProjectStatus("saved")
       setProjectStatusMessage(
         "Project downloaded. Changes also autosave locally."
@@ -324,19 +366,28 @@ export function useEditorSnapshotHistory({
     }
   }
 
-  const newProject = () => {
-    if (typeof window === "undefined") return
-    const shouldReset = window.confirm(
-      "Start a new project? Your current version stays in undo history, but the local autosave will be replaced."
+  const createNewProject = (
+    kind: "blank" | "example",
+    requestedName: string
+  ) => {
+    const baseSnapshot = initialSnapshotRef.current
+    const nextSnapshot: EditorSnapshot =
+      kind === "example"
+        ? baseSnapshot
+        : createBlankEditorSnapshot(baseSnapshot)
+    const nextProject = createProjectMetadata(
+      normalizeProjectName(
+        requestedName ||
+          (kind === "example" ? "Example project" : "Untitled project")
+      )
     )
-    if (!shouldReset) return
-
-    const nextSnapshot = initialSnapshotRef.current
-    restoreSnapshot(nextSnapshot)
     try {
-      writePersistedEditorSnapshot(nextSnapshot)
-      setProjectStatus("saved")
-      setProjectStatusMessage("New project created and saved locally.")
+      activateProject(
+        nextSnapshot,
+        nextProject,
+        `${nextProject.name} created and saved locally.`
+      )
+      setNewProjectDialogOpen(false)
     } catch (error) {
       setProjectStatus("error")
       setProjectStatusMessage(
@@ -345,6 +396,44 @@ export function useEditorSnapshotHistory({
           : "New project created, but autosave failed."
       )
     }
+  }
+
+  const renameProject = (name: string) => {
+    const normalizedName = normalizeProjectName(name)
+    if (normalizedName === project.name) return
+    try {
+      const nextProject = writePersistedEditorDocument(snapshot, {
+        ...project,
+        name: normalizedName,
+      })
+      setProject(nextProject)
+      setRecentProjects(listPersistedEditorProjects())
+      setProjectStatus("saved")
+      setProjectStatusMessage(`Renamed to ${normalizedName}.`)
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error ? error.message : "Could not rename the project."
+      )
+    }
+  }
+
+  const openRecentProject = (projectId: string) => {
+    const documentFile = readPersistedEditorProject(projectId)
+    if (!documentFile) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        "That recent project is no longer available locally."
+      )
+      setRecentProjects(listPersistedEditorProjects())
+      return
+    }
+    activateProject(
+      documentFile.snapshot,
+      documentFile.project,
+      `${documentFile.project.name} opened.`
+    )
+    setNewProjectDialogOpen(false)
   }
 
   const openProjectFile = () => {
@@ -369,14 +458,15 @@ export function useEditorSnapshotHistory({
       void file
         .text()
         .then((text) => {
-          const nextSnapshot = parseEditorDocumentSnapshot(JSON.parse(text))
-          if (!nextSnapshot) {
+          const nextDocument = parseEditorDocument(JSON.parse(text))
+          if (!nextDocument) {
             throw new Error("Invalid VectorForge project file.")
           }
-          restoreSnapshot(nextSnapshot)
-          writePersistedEditorSnapshot(nextSnapshot)
-          setProjectStatus("saved")
-          setProjectStatusMessage(`${file.name} opened and saved locally.`)
+          activateProject(
+            nextDocument.snapshot,
+            nextDocument.project,
+            `${nextDocument.project.name} opened and saved locally.`
+          )
         })
         .catch((error) => {
           console.error("Could not open project file:", error)
@@ -392,21 +482,37 @@ export function useEditorSnapshotHistory({
     input.click()
   }
 
+  const finalizeProjectBaseline = () => {
+    window.requestAnimationFrame(() => {
+      const finalSnapshot = snapshotRef.current
+      history.resetHistory(finalSnapshot)
+      const persistedProject = writePersistedEditorDocument(
+        finalSnapshot,
+        projectRef.current
+      )
+      setProject(persistedProject)
+      setRecentProjects(listPersistedEditorProjects())
+    })
+  }
+
   const persistenceReadyRef = useRef(false)
   const skipNextPersistRef = useRef(false)
   const canRecord = shapes.length > 0
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    const persistedSnapshot = readPersistedEditorSnapshot()
-    if (persistedSnapshot) {
+    const persistedDocument = readPersistedEditorDocument()
+    if (persistedDocument) {
       skipNextPersistRef.current = true
-      restoreSnapshot(persistedSnapshot)
+      restoreSnapshot(persistedDocument.snapshot)
+      history.resetHistory(persistedDocument.snapshot, true)
+      setProject(persistedDocument.project)
     }
+    setRecentProjects(listPersistedEditorProjects())
     persistenceReadyRef.current = true
     setProjectStatus("saved")
     setProjectStatusMessage(
-      persistedSnapshot
+      persistedDocument
         ? "Last local edit restored."
         : "Changes autosave locally on this device."
     )
@@ -433,7 +539,12 @@ export function useEditorSnapshotHistory({
     setProjectStatusMessage("Saving changes locally…")
     const timeout = window.setTimeout(() => {
       try {
-        writePersistedEditorSnapshot(snapshot)
+        const persistedProject = writePersistedEditorDocument(
+          snapshot,
+          projectRef.current
+        )
+        setProject(persistedProject)
+        setRecentProjects(listPersistedEditorProjects())
         setProjectStatus("saved")
         setProjectStatusMessage("All changes saved locally.")
       } catch (error) {
@@ -449,19 +560,19 @@ export function useEditorSnapshotHistory({
     return () => window.clearTimeout(timeout)
   }, [canRecord, snapshot])
 
-  const history = useEditorHistory({
-    snapshot,
-    canRecord,
-    maxSize: MAX_UNDO_STEPS,
-    isInputDragActive,
-    onRestore: restoreSnapshot,
-  })
-
   return {
     ...history,
-    newProject,
+    newProject: () => setNewProjectDialogOpen(true),
+    createNewProject,
+    finalizeProjectBaseline,
+    newProjectDialogOpen,
+    setNewProjectDialogOpen,
+    openRecentProject,
+    recentProjects,
     openProjectFile,
     saveProjectFile,
+    project,
+    renameProject,
     projectStatus,
     projectStatusMessage,
   }

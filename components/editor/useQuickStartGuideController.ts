@@ -6,6 +6,7 @@ import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
 import type { QuickStartGuideProps } from "./QuickStartGuide"
 
 const QUICK_START_STORAGE_KEY = "vectorforge:quick-start:v1"
+const QUICK_START_EXPORT_KEY = "vectorforge:quick-start:exported:v1"
 
 export function useQuickStartGuideController({
   selectedShapeId,
@@ -13,21 +14,33 @@ export function useQuickStartGuideController({
   isPlaying,
   togglePlayback,
   applyRecipe,
+  hasCustomizedIcon,
+  hasStyle,
+  hasMotion,
+  onExport,
 }: {
   selectedShapeId: string | null
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   isPlaying: boolean
   togglePlayback: () => void
   applyRecipe: (recipe: MotionRecipe) => void
+  hasCustomizedIcon: boolean
+  hasStyle: boolean
+  hasMotion: boolean
+  onExport: () => void
 }): {
   openGuide: () => void
   quickStartProps: QuickStartGuideProps
 } {
   const [open, setOpen] = useState(false)
+  const [exportVisited, setExportVisited] = useState(false)
 
   useEffect(() => {
     setOpen(
       window.localStorage.getItem(QUICK_START_STORAGE_KEY) !== "dismissed"
+    )
+    setExportVisited(
+      window.localStorage.getItem(QUICK_START_EXPORT_KEY) === "visited"
     )
   }, [])
 
@@ -46,18 +59,32 @@ export function useQuickStartGuideController({
       })),
     []
   )
+  const completedStepIds = useMemo(
+    () =>
+      [
+        hasCustomizedIcon ? "icon" : null,
+        hasStyle ? "style" : null,
+        hasMotion ? "motion" : null,
+        exportVisited ? "export" : null,
+      ].filter((value): value is string => value !== null),
+    [exportVisited, hasCustomizedIcon, hasMotion, hasStyle]
+  )
 
   return {
     openGuide: () => setOpen(true),
     quickStartProps: {
       open,
+      completedStepIds,
       onChooseIcon: () => {
-        dismiss()
         if (selectedShapeId) setOpenShapePicker(selectedShapeId)
       },
       onPlayExample: () => {
-        dismiss()
         if (!isPlaying) togglePlayback()
+      },
+      onExport: () => {
+        window.localStorage.setItem(QUICK_START_EXPORT_KEY, "visited")
+        setExportVisited(true)
+        onExport()
       },
       templates,
       onTemplateChoose: (recipeId) => {
@@ -66,7 +93,6 @@ export function useQuickStartGuideController({
         )
         if (!recipe) return
         applyRecipe(recipe)
-        dismiss()
       },
       onDismiss: dismiss,
     },

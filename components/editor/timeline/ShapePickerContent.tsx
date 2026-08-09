@@ -1,4 +1,4 @@
-import type { RefObject } from "react"
+import { useState, type RefObject } from "react"
 import { Trash2, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -91,6 +91,7 @@ export function ShapePickerContent({
 }) {
   const materialSymbolClass = `material-symbols-${materialSymbolStyle}`
   const symbolStyle = shapePickerSymbolStyle(materialSymbolSettings)
+  const [activeTab, setActiveTab] = useState("symbols")
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -122,19 +123,6 @@ export function ShapePickerContent({
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8"
-                onClick={() => {
-                  onUploadShape(stop.id)
-                  onOpenShapePicker(null)
-                }}
-              >
-                <Upload className="size-3.5" />
-                <span className="hidden sm:inline">Upload SVG</span>
-              </Button>
               {shapeCount > 1 && (
                 <Button
                   type="button"
@@ -155,32 +143,38 @@ export function ShapePickerContent({
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background p-3">
-          <SymbolSearchRow
-            stop={stop}
-            materialSymbolClass={materialSymbolClass}
-            symbolStyle={symbolStyle}
-            materialSymbolStyle={materialSymbolStyle}
-            materialSymbolSettings={materialSymbolSettings}
-            materialSymbolOptionsOpen={materialSymbolOptionsOpen}
-            materialSymbolStatus={materialSymbolStatus}
-            normalizedShapeQuery={normalizedShapeQuery}
-            shapeSearchQuery={shapeSearchQuery}
-            onMaterialSymbolOptionsOpenChange={
-              onMaterialSymbolOptionsOpenChange
-            }
-            onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
-            onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
-            onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
-            onShapeSearchQueryChange={onShapeSearchQueryChange}
-            onImportMaterialSymbol={onImportMaterialSymbol}
-          />
+          {activeTab !== "upload" ? (
+            <SymbolSearchRow
+              stop={stop}
+              materialSymbolClass={materialSymbolClass}
+              symbolStyle={symbolStyle}
+              materialSymbolStyle={materialSymbolStyle}
+              materialSymbolSettings={materialSymbolSettings}
+              materialSymbolOptionsOpen={materialSymbolOptionsOpen}
+              materialSymbolStatus={materialSymbolStatus}
+              normalizedShapeQuery={normalizedShapeQuery}
+              shapeSearchQuery={shapeSearchQuery}
+              onMaterialSymbolOptionsOpenChange={
+                onMaterialSymbolOptionsOpenChange
+              }
+              onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
+              onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
+              onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
+              onShapeSearchQueryChange={onShapeSearchQueryChange}
+              onImportMaterialSymbol={onImportMaterialSymbol}
+            />
+          ) : null}
 
-          <Tabs defaultValue="symbols" className="min-h-0 flex-1 gap-2">
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="min-h-0 flex-1 gap-2"
+          >
             <TabsList className="grid h-8 w-full grid-cols-4">
               <TabsTrigger value="symbols">Symbols</TabsTrigger>
               <TabsTrigger value="wipe">Wipe pairs</TabsTrigger>
               <TabsTrigger value="presets">Presets</TabsTrigger>
-              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="upload">Upload SVG</TabsTrigger>
             </TabsList>
 
             <TabsContent

@@ -6,6 +6,10 @@ import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
 import { InspectorSlider } from "./InspectorSlider"
 import { MAX_BEVEL_SEGMENTS } from "./EditorModel"
 import type { TimelineTrack } from "./TimelineModel"
+import {
+  curveDetailFromGeometryQuality,
+  geometryQualityFromCurveDetail,
+} from "./GeometryControlModel"
 
 export type GeometryInspectorSectionProps = {
   extrusionRef: RefObject<HTMLDivElement | null>
@@ -65,6 +69,7 @@ export function GeometryInspectorSection({
         )
       )
     : 0
+  const curveDetail = curveDetailFromGeometryQuality(activeGeometryQuality)
 
   return (
     <InspectorSection title="GEOMETRY" action={keyframeControl}>
@@ -91,7 +96,7 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Crown">
+      <InspectorRow label="Edge roundness">
         <InspectorSlider
           value={crownValue}
           min={0}
@@ -99,7 +104,7 @@ export function GeometryInspectorSection({
           sliderMax={1}
           step={0.02}
           precision={2}
-          ariaLabel="Crown"
+          ariaLabel="Edge roundness"
           onChange={(value) => {
             const next = Math.max(0, Math.min(1, value))
             onBevelEnabledChange(next > 0)
@@ -113,7 +118,7 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Bevel">
+      <InspectorRow label="Bevel detail">
         <InspectorSlider
           value={bevelEnabled ? bevelSegments : 0}
           min={0}
@@ -133,17 +138,19 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Quality">
+      <InspectorRow label="Curve detail">
         <InspectorSlider
-          value={activeGeometryQuality}
-          min={0.015}
-          max={0.12}
-          sliderMin={0.015}
-          sliderMax={0.08}
-          step={0.005}
-          precision={3}
-          ariaLabel="Geometry quality"
-          onChange={onQualityChange}
+          value={curveDetail}
+          min={0}
+          max={100}
+          sliderMin={0}
+          sliderMax={100}
+          step={1}
+          precision={0}
+          ariaLabel="Curve detail percent"
+          onChange={(value) =>
+            onQualityChange(geometryQualityFromCurveDetail(value))
+          }
         />
       </InspectorRow>
     </InspectorSection>

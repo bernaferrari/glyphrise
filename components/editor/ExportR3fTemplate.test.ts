@@ -81,4 +81,50 @@ describe("ExportR3fTemplate", () => {
       })
     ).not.toThrow()
   })
+
+  it("carries authored wipes, path overrides, and animated light position into the starter", () => {
+    const code = generateR3fCode({
+      ...scene,
+      shapes: [
+        {
+          id: "shape-a",
+          time: 0,
+          iconId: "heart",
+          iconName: "Heart",
+          svgContent: scene.svgPathA,
+          color: "#ff0000",
+          colorSecondary: "#00ff00",
+          fillStops: [
+            { id: "stop-1", color: "#ff0000", position: 0 },
+            { id: "stop-2", color: "#00ff00", position: 1 },
+          ],
+          pathOverrides: [
+            {
+              id: "0:0",
+              visible: true,
+              color: "#123456",
+              depthMultiplier: 1.5,
+              scale: { x: 0.9, y: 1.1, z: 1 },
+            },
+          ],
+          easing: "ease-in-out",
+          transitionType: "wipe",
+          wipeDirection: { x: 0.707, y: -0.707 },
+        },
+      ],
+      keyLightPositionKeyframes: [
+        {
+          id: "light-1",
+          time: 1,
+          value: { x: 2, y: 3, z: 4 },
+          easing: "ease-in-out",
+        },
+      ],
+    })
+
+    expect(code).toContain('"transitionType": "wipe"')
+    expect(code).toContain('"pathOverrides"')
+    expect(code).toContain("materialA.clippingPlanes = [clipPlaneA]")
+    expect(code).toContain("ANIMATION.keyLightPositionKeyframes")
+  })
 })

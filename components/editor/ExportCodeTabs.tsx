@@ -1,5 +1,6 @@
 "use client"
 
+import { Info } from "lucide-react"
 import { ExportCodeBlock } from "./ExportCodeBlock"
 import { ExportCopyButton } from "./ExportCopyButton"
 
@@ -18,6 +19,14 @@ export function ExportReactCodeTab({
     <div className="relative min-w-0 p-4 outline-none">
       <div className="absolute top-6 right-6 z-10">
         <ExportCopyButton copied={copied} onCopy={() => onCopy(code)} />
+      </div>
+      <div className="mb-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 pr-24 text-xs leading-5 text-muted-foreground">
+        <Info className="mt-0.5 size-4 shrink-0" />
+        <p>
+          Starter code preserves timing, transforms, wipes, path visibility and
+          depth, plus animated lighting. Mesh gradients, custom finish shaders,
+          crown roofs, and per-path colors are simplified.
+        </p>
       </div>
       <ExportCodeBlock code={code} lang="tsx" />
     </div>
@@ -46,7 +55,8 @@ export function ExportAndroidCodeTab({
         />
       </div>
       <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
-        Place the exported GLB at{" "}
+        This is a static Filament viewer, not the editor timeline. Place the
+        exported GLB at{" "}
         <span className="font-mono text-foreground">
           app/src/main/assets/exports/icon.glb
         </span>

@@ -76,6 +76,7 @@ export function TimelineShapeClip({
       <button
         ref={triggerRef}
         type="button"
+        aria-label={`${shapeLabel(stop)} icon clip`}
         title={
           isOnly
             ? `${shapeLabel(stop)} icon clip - click to edit · add another clip to animate`

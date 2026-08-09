@@ -1,9 +1,18 @@
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import type { EditorSnapshot } from "./EditorModel"
 import {
+  createEditorDocumentFile,
+  createProjectMetadata,
   isPersistedEditorSnapshot,
+  listPersistedEditorProjects,
+  normalizeProjectName,
+  parseEditorDocument,
   parseEditorDocumentSnapshot,
+  readPersistedEditorDocument,
+  readPersistedEditorProject,
+  writePersistedEditorDocument,
 } from "./EditorDocumentModel"
+import { createBlankEditorSnapshot } from "./EditorProjectModel"
 
 const validSnapshot = (): EditorSnapshot => ({
   activeRecipeId: null,
@@ -65,6 +74,22 @@ const validSnapshot = (): EditorSnapshot => ({
   tracks: [],
 })
 
+const createMemoryStorage = (): Storage => {
+  const values = new Map<string, string>()
+  return {
+    get length() {
+      return values.size
+    },
+    clear: () => values.clear(),
+    getItem: (key) => values.get(key) ?? null,
+    key: (index) => [...values.keys()][index] ?? null,
+    removeItem: (key) => values.delete(key),
+    setItem: (key, value) => values.set(key, String(value)),
+  }
+}
+
+afterEach(() => vi.unstubAllGlobals())
+
 describe("EditorDocumentModel", () => {
   it("accepts and normalizes a complete version-one project", () => {
     const snapshot = validSnapshot()
@@ -74,6 +99,72 @@ describe("EditorDocumentModel", () => {
       parseEditorDocumentSnapshot({ version: 1, snapshot })?.shapes[0]
         .transitionType
     ).toBe("fade")
+  })
+
+  it("preserves named version-two project metadata", () => {
+    const project = createProjectMetadata(
+      "Launch icon",
+      "2026-08-09T12:00:00.000Z"
+    )
+    const documentFile = createEditorDocumentFile(validSnapshot(), project)
+    const parsed = parseEditorDocument(documentFile)
+
+    expect(parsed?.project.id).toBe(project.id)
+    expect(parsed?.project.name).toBe("Launch icon")
+    expect(parsed?.snapshot.shapes[0].iconName).toBe("Heart")
+  })
+
+  it("keeps recent projects isolated and restores the active project", () => {
+    vi.stubGlobal("window", { localStorage: createMemoryStorage() })
+    const first = createProjectMetadata("First project")
+    const second = createProjectMetadata("Second project")
+    const firstSnapshot = validSnapshot()
+    const secondSnapshot = validSnapshot()
+    secondSnapshot.fillColor = "#ff0066"
+
+    writePersistedEditorDocument(firstSnapshot, first)
+    writePersistedEditorDocument(secondSnapshot, second)
+
+    expect(readPersistedEditorProject(first.id)?.snapshot.fillColor).toBe(
+      "#ffffff"
+    )
+    expect(readPersistedEditorProject(second.id)?.snapshot.fillColor).toBe(
+      "#ff0066"
+    )
+    expect(readPersistedEditorDocument()?.project.id).toBe(second.id)
+    expect(
+      listPersistedEditorProjects().map((project) => project.name)
+    ).toEqual(["Second project", "First project"])
+  })
+
+  it("creates a genuinely blank project from the example snapshot", () => {
+    const base = validSnapshot()
+    base.shapes.push({ ...base.shapes[0], id: "clip-2", time: 4 })
+    base.tracks = [
+      {
+        id: "scale",
+        name: "Scale",
+        color: "#fff",
+        min: 0,
+        max: 2,
+        defaultValue: 1,
+        keyframes: [
+          { id: "scale-1", time: 1, value: 1.5, easing: "ease-in-out" },
+        ],
+      },
+    ]
+
+    const blank = createBlankEditorSnapshot(base)
+    expect(blank.shapes).toHaveLength(1)
+    expect(blank.shapes[0].time).toBe(0)
+    expect(blank.shapes[0].transitionType).toBe("cut")
+    expect(blank.tracks[0].keyframes).toEqual([])
+  })
+
+  it("normalizes empty and overly long project names", () => {
+    expect(normalizeProjectName("   ")).toBe("Untitled project")
+    expect(normalizeProjectName(`  My   icon  `)).toBe("My icon")
+    expect(normalizeProjectName("a".repeat(100))).toHaveLength(80)
   })
 
   it("normalizes legacy clips that omitted a transition type", () => {
@@ -88,7 +179,7 @@ describe("EditorDocumentModel", () => {
 
   it("rejects unsupported file versions and incomplete snapshots", () => {
     expect(
-      parseEditorDocumentSnapshot({ version: 2, snapshot: validSnapshot() })
+      parseEditorDocumentSnapshot({ version: 3, snapshot: validSnapshot() })
     ).toBeNull()
     expect(
       parseEditorDocumentSnapshot({ ...validSnapshot(), materialSettings: {} })

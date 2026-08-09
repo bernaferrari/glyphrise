@@ -107,7 +107,7 @@ export function SymbolOptionsPopover({
               key={control.key}
               className="flex h-8 items-center rounded-lg bg-muted/50 ring-1 ring-white/[0.07]"
             >
-              <span className="px-2 text-[10px] font-medium text-muted-foreground">
+              <span className="px-2 text-[11px] font-medium text-muted-foreground">
                 {control.label}
               </span>
               <input

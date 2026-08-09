@@ -86,8 +86,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           <div className="border-b border-border px-4 py-3">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="options">Assets</TabsTrigger>
-              <TabsTrigger value="r3f">React</TabsTrigger>
-              <TabsTrigger value="android">Android</TabsTrigger>
+              <TabsTrigger value="r3f">React starter</TabsTrigger>
+              <TabsTrigger value="android">Android viewer</TabsTrigger>
             </TabsList>
           </div>
 

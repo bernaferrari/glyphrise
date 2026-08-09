@@ -214,7 +214,7 @@ export function SolidColorEditor({
         <div className="flex items-center gap-2">
           {formatSelect}
           <div className="flex h-8 min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-muted/45 px-2.5">
-            <span className="font-mono text-[10px] font-bold text-muted-foreground">
+            <span className="font-mono text-[11px] font-bold text-muted-foreground">
               #
             </span>
             <input

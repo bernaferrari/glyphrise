@@ -23,13 +23,14 @@ type LayerChipProps = {
   active: boolean
   label: string
   title?: string
+  color?: string
   onClick: () => void
 }
 
 const layerChipClass =
-  "flex h-6 min-w-6 shrink-0 items-center justify-center rounded-[6px] px-2 text-[11px] font-medium tabular-nums transition-colors focus-visible:outline-none"
+  "flex min-h-8 min-w-8 max-w-28 shrink-0 items-center justify-center gap-1.5 rounded-md px-2 text-[11px] font-medium tabular-nums transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
 
-function LayerChip({ active, label, title, onClick }: LayerChipProps) {
+function LayerChip({ active, label, title, color, onClick }: LayerChipProps) {
   return (
     <button
       type="button"
@@ -43,7 +44,14 @@ function LayerChip({ active, label, title, onClick }: LayerChipProps) {
           : "text-muted-foreground hover:text-foreground"
       )}
     >
-      {label}
+      {color ? (
+        <span
+          className="size-2.5 shrink-0 rounded-sm border border-black/10"
+          style={{ backgroundColor: color }}
+          aria-hidden="true"
+        />
+      ) : null}
+      <span className="truncate">{label}</span>
     </button>
   )
 }
@@ -71,7 +79,7 @@ function LayerSwitcherComponent({
           SVG paths
         </span>
 
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+        <div className="ml-auto flex max-h-20 flex-wrap items-center justify-end gap-1 overflow-y-auto">
           <LayerChip
             active={isAllLayers}
             label="All paths"
@@ -81,8 +89,9 @@ function LayerSwitcherComponent({
             <LayerChip
               key={layer.id}
               active={layer.id === selectedLayerId}
-              label={`${index + 1}`}
+              label={layer.name}
               title={`SVG path ${index + 1}: ${layer.name}`}
+              color={layer.color}
               onClick={() => onSelectLayer(layer.id)}
             />
           ))}

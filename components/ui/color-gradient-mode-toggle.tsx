@@ -43,7 +43,7 @@ export function ColorGradientModeToggle({
         type="button"
         onClick={() => onGradientToggle?.(false)}
         className={cn(
-          "h-7 flex-1 rounded-md text-[10px] font-medium transition-colors",
+          "h-8 flex-1 rounded-md text-[11px] font-medium transition-colors",
           !isGradient
             ? "bg-foreground text-background shadow-sm"
             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -60,7 +60,7 @@ export function ColorGradientModeToggle({
             onGradientTypeChange?.(type.id)
           }}
           className={cn(
-            "h-7 flex-1 rounded-md text-[10px] font-medium transition-colors",
+            "h-8 flex-1 rounded-md text-[11px] font-medium transition-colors",
             isGradient && gradientType === type.id
               ? "bg-foreground text-background shadow-sm"
               : "text-muted-foreground hover:bg-muted hover:text-foreground"

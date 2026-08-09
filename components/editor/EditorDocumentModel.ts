@@ -1,13 +1,31 @@
-import type { EditorSnapshot } from "./EditorModel"
+import { createEditorId, type EditorSnapshot } from "./EditorModel"
 import { shapeTransitionType } from "./TimelineModel"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
 
 export const EDITOR_AUTOSAVE_KEY = "vectorforge.editor.autosave.v1"
+export const EDITOR_CURRENT_PROJECT_KEY =
+  "vectorforge.editor.current-project.v2"
+export const EDITOR_RECENT_PROJECTS_KEY =
+  "vectorforge.editor.recent-projects.v2"
+export const EDITOR_PROJECT_KEY_PREFIX = "vectorforge.editor.project.v2."
 export const MAX_PROJECT_FILE_BYTES = 5_000_000
 
+export type EditorProjectMetadata = {
+  id: string
+  name: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type EditorDocumentFile = {
-  version: 1
+  version: 2
   savedAt: string
+  project: EditorProjectMetadata
+  snapshot: EditorSnapshot
+}
+
+export type ParsedEditorDocument = {
+  project: EditorProjectMetadata
   snapshot: EditorSnapshot
 }
 
@@ -47,6 +65,15 @@ const isFiniteEditorNumber = (value: unknown): value is number =>
 
 const isShortString = (value: unknown): value is string =>
   typeof value === "string" && value.length <= MAX_STRING_LENGTH
+
+const isProjectMetadata = (value: unknown): value is EditorProjectMetadata =>
+  isObjectRecord(value) &&
+  isShortString(value.id) &&
+  value.id.length > 0 &&
+  isShortString(value.name) &&
+  value.name.trim().length > 0 &&
+  isShortString(value.createdAt) &&
+  isShortString(value.updatedAt)
 
 const isBoundedArray = (
   value: unknown,
@@ -258,46 +285,178 @@ export const normalizeEditorSnapshot = (
   })),
 })
 
-export const parseEditorDocumentSnapshot = (value: unknown) => {
-  if (isObjectRecord(value) && "version" in value && value.version !== 1) {
-    return null
-  }
-  const snapshot =
-    isObjectRecord(value) && "snapshot" in value ? value.snapshot : value
-  return isPersistedEditorSnapshot(snapshot)
-    ? normalizeEditorSnapshot(snapshot)
-    : null
+export const normalizeProjectName = (value: string) =>
+  value.replace(/\s+/g, " ").trim().slice(0, 80) || "Untitled project"
+
+export const createProjectMetadata = (
+  name = "Untitled project",
+  now = new Date().toISOString()
+): EditorProjectMetadata => ({
+  id: createEditorId("project"),
+  name: normalizeProjectName(name),
+  createdAt: now,
+  updatedAt: now,
+})
+
+const legacyProjectMetadata = (savedAt?: unknown) => {
+  const timestamp =
+    typeof savedAt === "string" ? savedAt : new Date().toISOString()
+  return createProjectMetadata("Imported project", timestamp)
 }
 
-export const readPersistedEditorSnapshot = () => {
+export const parseEditorDocument = (
+  value: unknown
+): ParsedEditorDocument | null => {
+  if (isObjectRecord(value) && "version" in value) {
+    if (value.version === 2) {
+      if (!isProjectMetadata(value.project)) return null
+      return isPersistedEditorSnapshot(value.snapshot)
+        ? {
+            project: {
+              ...value.project,
+              name: normalizeProjectName(value.project.name),
+            },
+            snapshot: normalizeEditorSnapshot(value.snapshot),
+          }
+        : null
+    }
+
+    if (value.version !== 1) return null
+    if (!isPersistedEditorSnapshot(value.snapshot)) return null
+    return {
+      project: legacyProjectMetadata(value.savedAt),
+      snapshot: normalizeEditorSnapshot(value.snapshot),
+    }
+  }
+
+  if (!isPersistedEditorSnapshot(value)) return null
+  return {
+    project: legacyProjectMetadata(),
+    snapshot: normalizeEditorSnapshot(value),
+  }
+}
+
+export const parseEditorDocumentSnapshot = (value: unknown) =>
+  parseEditorDocument(value)?.snapshot ?? null
+
+const parseStoredDocument = (raw: string | null) => {
+  if (!raw) return null
+  if (new TextEncoder().encode(raw).length > MAX_PROJECT_FILE_BYTES) return null
+  return parseEditorDocument(JSON.parse(raw))
+}
+
+const projectStorageKey = (projectId: string) =>
+  `${EDITOR_PROJECT_KEY_PREFIX}${projectId}`
+
+export const listPersistedEditorProjects = (): EditorProjectMetadata[] => {
   try {
-    const raw = window.localStorage.getItem(EDITOR_AUTOSAVE_KEY)
-    if (!raw) return null
-    if (new TextEncoder().encode(raw).length > MAX_PROJECT_FILE_BYTES)
-      return null
-    return parseEditorDocumentSnapshot(JSON.parse(raw))
+    const raw = window.localStorage.getItem(EDITOR_RECENT_PROJECTS_KEY)
+    if (!raw) return []
+    const value: unknown = JSON.parse(raw)
+    if (!Array.isArray(value)) return []
+    return value.filter(isProjectMetadata).slice(0, 8)
+  } catch {
+    return []
+  }
+}
+
+const updateRecentProjects = (project: EditorProjectMetadata) => {
+  const next = [
+    project,
+    ...listPersistedEditorProjects().filter((item) => item.id !== project.id),
+  ].slice(0, 8)
+  window.localStorage.setItem(EDITOR_RECENT_PROJECTS_KEY, JSON.stringify(next))
+}
+
+export const readPersistedEditorProject = (projectId: string) => {
+  try {
+    return parseStoredDocument(
+      window.localStorage.getItem(projectStorageKey(projectId))
+    )
   } catch {
     return null
   }
 }
 
-export const writePersistedEditorSnapshot = (snapshot: EditorSnapshot) => {
+export const readPersistedEditorDocument = (): ParsedEditorDocument | null => {
+  try {
+    const projectId = window.localStorage.getItem(EDITOR_CURRENT_PROJECT_KEY)
+    if (projectId) {
+      const current = readPersistedEditorProject(projectId)
+      if (current) return current
+    }
+
+    const legacy = parseStoredDocument(
+      window.localStorage.getItem(EDITOR_AUTOSAVE_KEY)
+    )
+    if (legacy) {
+      writePersistedEditorDocument(legacy.snapshot, legacy.project)
+      window.localStorage.removeItem(EDITOR_AUTOSAVE_KEY)
+      return legacy
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
+export const readPersistedEditorSnapshot = () =>
+  readPersistedEditorDocument()?.snapshot ?? null
+
+export const createEditorDocumentFile = (
+  snapshot: EditorSnapshot,
+  project: EditorProjectMetadata
+): EditorDocumentFile => {
+  const savedAt = new Date().toISOString()
+  return {
+    version: 2,
+    savedAt,
+    project: {
+      ...project,
+      name: normalizeProjectName(project.name),
+      updatedAt: savedAt,
+    },
+    snapshot: normalizeEditorSnapshot(snapshot),
+  }
+}
+
+export const writePersistedEditorDocument = (
+  snapshot: EditorSnapshot,
+  project: EditorProjectMetadata
+) => {
+  const documentFile = createEditorDocumentFile(snapshot, project)
   window.localStorage.setItem(
-    EDITOR_AUTOSAVE_KEY,
-    JSON.stringify(createEditorDocumentFile(snapshot))
+    projectStorageKey(project.id),
+    JSON.stringify(documentFile)
+  )
+  window.localStorage.setItem(EDITOR_CURRENT_PROJECT_KEY, project.id)
+  updateRecentProjects(documentFile.project)
+  return documentFile.project
+}
+
+export const writePersistedEditorSnapshot = (snapshot: EditorSnapshot) => {
+  const current = readPersistedEditorDocument()
+  return writePersistedEditorDocument(
+    snapshot,
+    current?.project ?? createProjectMetadata()
   )
 }
 
-export const createEditorDocumentFile = (
-  snapshot: EditorSnapshot
-): EditorDocumentFile => ({
-  version: 1,
-  savedAt: new Date().toISOString(),
-  snapshot: normalizeEditorSnapshot(snapshot),
-})
+const projectFilename = (project: EditorProjectMetadata, savedAt: string) => {
+  const slug = normalizeProjectName(project.name)
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 56)
+  return `${slug || "vectorforge-project"}-${savedAt.slice(0, 10)}.json`
+}
 
-export const downloadProjectSnapshot = (snapshot: EditorSnapshot) => {
-  const documentFile = createEditorDocumentFile(snapshot)
+export const downloadProjectSnapshot = (
+  snapshot: EditorSnapshot,
+  project: EditorProjectMetadata
+) => {
+  const documentFile = createEditorDocumentFile(snapshot, project)
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(documentFile, null, 2)], {
       type: "application/json",
@@ -305,7 +464,7 @@ export const downloadProjectSnapshot = (snapshot: EditorSnapshot) => {
   )
   const link = document.createElement("a")
   link.href = url
-  link.download = `vectorforge-project-${documentFile.savedAt.slice(0, 10)}.json`
+  link.download = projectFilename(documentFile.project, documentFile.savedAt)
   document.body.appendChild(link)
   link.click()
   link.remove()

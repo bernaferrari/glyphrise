@@ -39,6 +39,8 @@ export const generateR3fCode = ({
   layerSpacing,
   ambientIntensity,
   keyLightIntensity,
+  keyLightPosition,
+  keyLightPositionKeyframes,
   rimLightIntensity,
   svgPathA,
   svgPathB,
@@ -52,8 +54,14 @@ export const generateR3fCode = ({
           svgContent: shape.svgContent,
           easing: shape.easing,
           transitionType: shapeTransitionType(shape),
+          wipeDirection: shape.wipeDirection,
           transitionStart: shape.transitionStart ?? 0.25,
           transitionEnd: shape.transitionEnd ?? 0.75,
+          color: shape.color,
+          colorSecondary: shape.colorSecondary,
+          fillGradientType: shape.fillGradientType,
+          fillStops: shape.fillStops,
+          pathOverrides: shape.pathOverrides,
         }))
       : [
           {
@@ -63,8 +71,11 @@ export const generateR3fCode = ({
             svgContent: escapeTemplateSvg(svgPathA),
             easing: "ease-in-out",
             transitionType: "fade",
+            wipeDirection: { x: 0, y: 0 },
             transitionStart: 0.25,
             transitionEnd: 0.75,
+            color: colorA,
+            colorSecondary: colorB,
           },
           {
             id: "shape-b",
@@ -73,8 +84,11 @@ export const generateR3fCode = ({
             svgContent: escapeTemplateSvg(svgPathB),
             easing: "ease-in-out",
             transitionType: "fade",
+            wipeDirection: { x: 0, y: 0 },
             transitionStart: 0.25,
             transitionEnd: 0.75,
+            color: colorB,
+            colorSecondary: colorA,
           },
         ]
 
@@ -89,6 +103,8 @@ export const generateR3fCode = ({
     moveOffset,
     moveKeyframes,
     keyLightIntensity,
+    keyLightPosition,
+    keyLightPositionKeyframes,
   }
 
   const baseFill = { color: colorA, colorSecondary: colorB }
@@ -131,8 +147,20 @@ type ShapeStop = {
   svgContent: string;
   easing: EasingType;
   transitionType: 'cut' | 'fade' | 'wipe';
+  wipeDirection: { x: number; y: number };
   transitionStart?: number;
   transitionEnd?: number;
+  color: string;
+  colorSecondary: string;
+  fillGradientType?: string;
+  fillStops?: Array<{ color: string; position: number }>;
+  pathOverrides?: Array<{
+    id: string;
+    visible: boolean;
+    color: string;
+    depthMultiplier: number;
+    scale?: Vec3;
+  }>;
 };
 type MaterialSettings = {
   roughness: number;
@@ -161,6 +189,9 @@ type MotionState = {
   scale: number;
   scaleAxes: Vec3;
   keyLightIntensity: number;
+  keyLightPosition: Vec3;
+  transitionType: 'cut' | 'fade' | 'wipe';
+  wipeDirection: { x: number; y: number };
   fill: { color: string; colorSecondary: string };
   material: MaterialSettings;
 };
@@ -181,9 +212,12 @@ const ANIMATION: {
   moveOffset: Vec3;
   moveKeyframes: VectorKeyframe[];
   keyLightIntensity: number;
+  keyLightPosition: Vec3;
+  keyLightPositionKeyframes: VectorKeyframe[];
 } = ${safeJson(animation)};
 const ICON_VIEWBOX_SIZE = 24;
 const MODEL_SCALE = 0.12;
+const WIPE_SEAM_OVERLAP = 0.02;
 
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -354,14 +388,16 @@ const interpolateMaterial = (time: number) => {
 
 const deriveShapePair = (time: number) => {
   const sorted = [...SHAPES].sort((a, b) => a.time - b.time);
-  if (sorted.length === 0) return { fromId: '', toId: '', progress: 0 };
-  if (sorted.length === 1) return { fromId: sorted[0].id, toId: sorted[0].id, progress: 0 };
-  if (time <= sorted[0].time) return { fromId: sorted[0].id, toId: sorted[1].id, progress: 0 };
+  if (sorted.length === 0) return { fromId: '', toId: '', progress: 0, transitionType: 'cut' as const, wipeDirection: { x: 0, y: 0 } };
+  if (sorted.length === 1) return { fromId: sorted[0].id, toId: sorted[0].id, progress: 0, transitionType: sorted[0].transitionType, wipeDirection: sorted[0].wipeDirection };
+  if (time <= sorted[0].time) return { fromId: sorted[0].id, toId: sorted[1].id, progress: 0, transitionType: sorted[0].transitionType, wipeDirection: sorted[0].wipeDirection };
   if (time >= sorted[sorted.length - 1].time) {
     return {
       fromId: sorted[sorted.length - 2].id,
       toId: sorted[sorted.length - 1].id,
       progress: 1,
+      transitionType: sorted[sorted.length - 2].transitionType,
+      wipeDirection: sorted[sorted.length - 2].wipeDirection,
     };
   }
 
@@ -385,11 +421,14 @@ const deriveShapePair = (time: number) => {
     from.transitionType === 'cut'
       ? gapProgress < start ? 0 : 1
       : clamp01(applyEasing(from.easing, windowProgress));
-  return { fromId: from.id, toId: to.id, progress };
+  return { fromId: from.id, toId: to.id, progress, transitionType: from.transitionType, wipeDirection: from.wipeDirection };
 };
 
 const evaluateMotion = (time: number): MotionState => {
   const shapePair = deriveShapePair(time);
+  const fromShape = SHAPES.find((shape) => shape.id === shapePair.fromId);
+  const toShape = SHAPES.find((shape) => shape.id === shapePair.toId);
+  const timelineFill = interpolateFill(time);
   return {
     time,
     ...shapePair,
@@ -399,7 +438,15 @@ const evaluateMotion = (time: number): MotionState => {
     scale: interpolateTrack(time, 'scale', ANIMATION.objectScale),
     scaleAxes: ANIMATION.objectScaleAxes ?? { x: 1, y: 1, z: 1 },
     keyLightIntensity: interpolateTrack(time, 'lighting', ANIMATION.keyLightIntensity),
-    fill: interpolateFill(time),
+    keyLightPosition: interpolateVector(
+      time,
+      ANIMATION.keyLightPosition,
+      ANIMATION.keyLightPositionKeyframes
+    ),
+    fill: {
+      color: fromShape?.fillStops?.[0]?.color ?? fromShape?.color ?? timelineFill.color,
+      colorSecondary: toShape?.fillStops?.[0]?.color ?? toShape?.color ?? timelineFill.colorSecondary,
+    },
     material: interpolateMaterial(time),
   };
 };
@@ -426,7 +473,7 @@ function AnimatedScene() {
       <ambientLight intensity={${ambientIntensity}} />
       <directionalLight
         ref={keyLightRef}
-        position={[5, 5, 4]}
+        position={[ANIMATION.keyLightPosition.x, ANIMATION.keyLightPosition.y, ANIMATION.keyLightPosition.z]}
         intensity={ANIMATION.keyLightIntensity}
         castShadow
       />
@@ -438,14 +485,20 @@ function AnimatedScene() {
   );
 }
 
-function buildGeometries(svgContent: string) {
+type BuiltGeometry = { geometry: THREE.ExtrudeGeometry; color?: string };
+
+function buildGeometries(shapeStop: ShapeStop): BuiltGeometry[] {
   const loader = new SVGLoader();
-  const parsed = loader.parse(normalizeSvgToIconViewBox(svgContent));
+  const parsed = loader.parse(normalizeSvgToIconViewBox(shapeStop.svgContent));
   return parsed.paths.flatMap((path, pathIndex) => {
     const shapes = path.toShapes(true);
-    return shapes.map((shape) => {
+    return shapes.flatMap((shape, shapeIndex) => {
+      const override = shapeStop.pathOverrides?.find(
+        (candidate) => candidate.id === \`\${pathIndex}:\${shapeIndex}\`
+      );
+      if (override?.visible === false) return [];
       const geometry = new THREE.ExtrudeGeometry(shape, {
-          depth: ${extrusionDepth} + pathIndex * ${layerSpacing} * 0.1,
+          depth: ${extrusionDepth} * Math.max(0.02, override?.depthMultiplier ?? 1) + pathIndex * ${layerSpacing} * 0.1,
           bevelEnabled: ${bevelEnabled},
           bevelThickness: ${bevelThickness},
           bevelSize: ${bevelSize},
@@ -453,7 +506,10 @@ function buildGeometries(svgContent: string) {
           curveSegments: 16,
       });
       geometry.translate(-ICON_VIEWBOX_SIZE / 2, -ICON_VIEWBOX_SIZE / 2, 0);
-      return geometry;
+      if (override?.scale) {
+        geometry.scale(override.scale.x, override.scale.y, override.scale.z);
+      }
+      return [{ geometry, color: override?.color }];
     });
   });
 }
@@ -487,10 +543,12 @@ function ExtrudedIcon({
   const rootRef = useRef<THREE.Group>(null);
   const fromGroupsRef = useRef(new Map<string, THREE.Group>());
   const toGroupsRef = useRef(new Map<string, THREE.Group>());
+  const clipPlaneA = useMemo(() => new THREE.Plane(), []);
+  const clipPlaneB = useMemo(() => new THREE.Plane(), []);
   const geometryByShape = useMemo(() => {
-    const map = new Map<string, THREE.ExtrudeGeometry[]>();
+    const map = new Map<string, BuiltGeometry[]>();
     for (const shape of SHAPES) {
-      map.set(shape.id, buildGeometries(shape.svgContent));
+      map.set(shape.id, buildGeometries(shape));
     }
     return map;
   }, []);
@@ -534,7 +592,7 @@ function ExtrudedIcon({
   useEffect(() => {
     return () => {
       geometryByShape.forEach((geometries) => {
-        geometries.forEach((geometry) => geometry.dispose());
+        geometries.forEach(({ geometry }) => geometry.dispose());
       });
       materialA.dispose();
       materialB.dispose();
@@ -574,9 +632,48 @@ function ExtrudedIcon({
     if (fromGroup) fromGroup.visible = motion.progress < 1 || motion.fromId === motion.toId;
     if (toGroup) toGroup.visible = motion.fromId !== motion.toId && motion.progress > 0;
 
-    updateMaterial(materialA, motion.fill.color, motion.material, 1 - motion.progress);
-    updateMaterial(materialB, motion.fill.colorSecondary, motion.material, motion.progress);
-    if (keyLightRef.current) keyLightRef.current.intensity = motion.keyLightIntensity;
+    const wipeIsActive =
+      motion.transitionType === 'wipe' &&
+      motion.progress > 0 &&
+      motion.progress < 1 &&
+      (motion.wipeDirection.x !== 0 || motion.wipeDirection.y !== 0);
+    const clippingStateChanged =
+      Boolean(materialA.clippingPlanes?.length) !== wipeIsActive;
+    if (wipeIsActive) {
+      root.updateMatrixWorld(true);
+      const direction = new THREE.Vector3(
+        motion.wipeDirection.x,
+        -motion.wipeDirection.y,
+        0
+      ).normalize();
+      const span = ICON_VIEWBOX_SIZE;
+      const offset = -span / 2 + motion.progress * span;
+      clipPlaneA.set(direction, -offset).applyMatrix4(root.matrixWorld);
+      clipPlaneB
+        .set(direction.clone().negate(), offset + WIPE_SEAM_OVERLAP)
+        .applyMatrix4(root.matrixWorld);
+      materialA.clippingPlanes = [clipPlaneA];
+      materialB.clippingPlanes = [clipPlaneB];
+      updateMaterial(materialA, motion.fill.color, motion.material, 1);
+      updateMaterial(materialB, motion.fill.colorSecondary, motion.material, 1);
+    } else {
+      materialA.clippingPlanes = null;
+      materialB.clippingPlanes = null;
+      updateMaterial(materialA, motion.fill.color, motion.material, 1 - motion.progress);
+      updateMaterial(materialB, motion.fill.colorSecondary, motion.material, motion.progress);
+    }
+    if (clippingStateChanged) {
+      materialA.needsUpdate = true;
+      materialB.needsUpdate = true;
+    }
+    if (keyLightRef.current) {
+      keyLightRef.current.intensity = motion.keyLightIntensity;
+      keyLightRef.current.position.set(
+        motion.keyLightPosition.x,
+        motion.keyLightPosition.y,
+        motion.keyLightPosition.z
+      );
+    }
   });
 
   return (
@@ -590,7 +687,7 @@ function ExtrudedIcon({
           }}
           visible={shapeIndex === 0}
         >
-          {(geometryByShape.get(shape.id) ?? []).map((geometry, index) => (
+          {(geometryByShape.get(shape.id) ?? []).map(({ geometry }, index) => (
             <mesh key={index} geometry={geometry} material={materialA} castShadow receiveShadow />
           ))}
         </group>
@@ -604,7 +701,7 @@ function ExtrudedIcon({
           }}
           visible={false}
         >
-          {(geometryByShape.get(shape.id) ?? []).map((geometry, index) => (
+          {(geometryByShape.get(shape.id) ?? []).map(({ geometry }, index) => (
             <mesh key={index} geometry={geometry} material={materialB} castShadow receiveShadow />
           ))}
         </group>

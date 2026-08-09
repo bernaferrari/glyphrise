@@ -110,9 +110,22 @@ export const useEditorHistory = ({
     if (next) restoreSnapshot(next)
   }, [maxSize, restoreSnapshot, syncAvailability])
 
+  const resetHistory = useCallback(
+    (nextSnapshot: EditorSnapshot, expectStateChange = false) => {
+      undoStackRef.current = [nextSnapshot]
+      redoStackRef.current = []
+      rememberRestoredSnapshot(nextSnapshot, lastUndoSnapshotKeyRef)
+      pendingDragSnapshotRef.current = false
+      isRestoringUndoRef.current = expectStateChange
+      syncAvailability()
+    },
+    [syncAvailability]
+  )
+
   return {
     undo,
     redo,
+    resetHistory,
     ...availability,
   }
 }

@@ -19,9 +19,10 @@ the core workflow in three synchronized surfaces:
 - **Timeline** - build shape sequences, transitions, property tracks,
   keyframes, easing, and playback.
 
-Everything runs locally in a Next.js app. The editor state is plain React and
-Three.js data, and exports target web handoff, GLB assets, WebM recordings, and
-Android Filament reference code.
+Everything runs locally in a Next.js app. Named projects autosave separately on
+the device and can be downloaded as portable JSON files. Exports include exact
+GLB assets and WebM recordings, plus clearly labeled React Three Fiber starter
+code and a static Android Filament viewer reference.
 
 ## Why VectorForge
 
@@ -47,10 +48,13 @@ asset and implementation reference without rebuilding the motion from scratch.
   animation data; add keyframes only when a property should animate.
 - **Color and finish tools** - Use solid colors, mesh gradients, lighting, and
   finish presets such as glass, gel, metal, and cut styles.
-- **Layer editing** - Select icon layers, override visibility, and tune
-  per-layer behavior for multi-path symbols.
+- **SVG path editing** - Select visibly named SVG paths, override visibility,
+  and tune per-path depth and scale for multi-path symbols.
+- **Project workflow** - Create blank, example, or style-based projects, rename
+  them, reopen recent local work, and download portable project files.
 - **Export workflow** - Record WebM, export GLB-oriented assets, and copy React
-  Three Fiber or Android Filament starter code.
+  Three Fiber starter code or a static Android Filament viewer. Code exports
+  disclose the finish and gradient effects they simplify.
 
 ## Get Started
 
@@ -64,6 +68,20 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+Run the quality checks before shipping changes:
+
+```bash
+pnpm test
+pnpm typecheck
+pnpm lint
+pnpm format:check
+pnpm build
+pnpm test:e2e
+```
+
+The end-to-end smoke tests use the installed Google Chrome browser and cover
+blank-project creation, compact workspace navigation, and export labeling.
 
 ## Architecture
 

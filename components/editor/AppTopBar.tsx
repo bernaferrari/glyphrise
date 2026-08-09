@@ -1,7 +1,10 @@
 "use client"
 
+import { useState } from "react"
+import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
+  Check,
   CircleDot,
   CircleHelp,
   Download,
@@ -9,6 +12,8 @@ import {
   FilePlus2,
   FolderOpen,
   Moon,
+  LoaderCircle,
+  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Redo2,
@@ -16,6 +21,12 @@ import {
   Undo2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ProjectNameField } from "./ProjectNameField"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface AppTopBarProps {
   zenMode: boolean
@@ -31,12 +42,99 @@ interface AppTopBarProps {
   onProjectSave: () => void
   projectStatus: "restoring" | "saving" | "saved" | "error"
   projectStatusMessage: string
+  projectName: string
+  onProjectNameChange: (name: string) => void
   onUndo: () => void
   onRedo: () => void
   canUndo: boolean
   canRedo: boolean
   onGuideOpen: () => void
   onExportOpen: () => void
+}
+
+function CompactWorkspaceMenu({
+  onProjectNew,
+  onProjectOpen,
+  onProjectSave,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  onGuideOpen,
+}: Pick<
+  AppTopBarProps,
+  | "onProjectNew"
+  | "onProjectOpen"
+  | "onProjectSave"
+  | "onUndo"
+  | "onRedo"
+  | "canUndo"
+  | "canRedo"
+  | "onGuideOpen"
+>) {
+  const [open, setOpen] = useState(false)
+  const action = (callback: () => void) => () => {
+    setOpen(false)
+    callback()
+  }
+  const items: Array<{
+    label: string
+    Icon: LucideIcon
+    onClick: () => void
+    disabled: boolean
+  }> = [
+    {
+      label: "New project",
+      Icon: FilePlus2,
+      onClick: action(onProjectNew),
+      disabled: false,
+    },
+    {
+      label: "Open project file",
+      Icon: FolderOpen,
+      onClick: action(onProjectOpen),
+      disabled: false,
+    },
+    {
+      label: "Download project",
+      Icon: FileDown,
+      onClick: action(onProjectSave),
+      disabled: false,
+    },
+    { label: "Undo", Icon: Undo2, onClick: action(onUndo), disabled: !canUndo },
+    { label: "Redo", Icon: Redo2, onClick: action(onRedo), disabled: !canRedo },
+    {
+      label: "Quick start",
+      Icon: CircleHelp,
+      onClick: action(onGuideOpen),
+      disabled: false,
+    },
+  ]
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        aria-label="Workspace actions"
+        title="Workspace actions"
+        className="grid size-9 place-items-center rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+      >
+        <MoreHorizontal className="size-4" />
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-52 p-1.5 md:hidden">
+        {items.map(({ label, Icon, onClick, disabled }) => (
+          <button
+            key={label}
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:text-muted-foreground disabled:opacity-50"
+          >
+            <Icon className="size-4 text-muted-foreground" />
+            {label}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 export function AppTopBar({
@@ -53,6 +151,8 @@ export function AppTopBar({
   onProjectSave,
   projectStatus,
   projectStatusMessage,
+  projectName,
+  onProjectNameChange,
   onUndo,
   onRedo,
   canUndo,
@@ -61,7 +161,7 @@ export function AppTopBar({
   onExportOpen,
 }: AppTopBarProps) {
   return (
-    <div className="relative z-30 flex h-14 shrink-0 items-center justify-between border-b border-border bg-background/95 px-3 backdrop-blur-xl">
+    <div className="relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 backdrop-blur-xl sm:px-3">
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
@@ -75,8 +175,8 @@ export function AppTopBar({
             <PanelLeftClose className="mx-auto size-4" />
           )}
         </button>
-        <div className="flex min-w-0 items-center gap-2.5">
-          <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="hidden min-w-0 lg:block">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold tracking-tight text-foreground">
                 VectorForge
@@ -86,6 +186,11 @@ export function AppTopBar({
               </span>
             </div>
           </div>
+          <span className="hidden h-5 w-px bg-border md:block" />
+          <ProjectNameField
+            value={projectName}
+            onCommit={onProjectNameChange}
+          />
         </div>
       </div>
 
@@ -95,19 +200,31 @@ export function AppTopBar({
         <span
           aria-live="polite"
           title={projectStatusMessage}
-          className={`hidden max-w-44 truncate px-2 text-xs xl:inline ${
+          className={`flex min-w-7 items-center justify-center gap-1.5 rounded-md px-1.5 text-xs ${
             projectStatus === "error"
               ? "text-destructive"
               : "text-muted-foreground"
           }`}
         >
-          {projectStatus === "restoring"
-            ? "Restoring…"
-            : projectStatus === "saving"
-              ? "Saving locally…"
-              : projectStatus === "error"
-                ? "Autosave needs attention"
-                : "Saved locally"}
+          {projectStatus === "restoring" || projectStatus === "saving" ? (
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-3.5 animate-spin motion-reduce:animate-none"
+            />
+          ) : projectStatus === "error" ? (
+            <AlertTriangle aria-hidden="true" className="size-3.5" />
+          ) : (
+            <Check aria-hidden="true" className="size-3.5" />
+          )}
+          <span className="hidden max-w-36 truncate 2xl:inline">
+            {projectStatus === "restoring"
+              ? "Restoring…"
+              : projectStatus === "saving"
+                ? "Saving locally…"
+                : projectStatus === "error"
+                  ? "Autosave needs attention"
+                  : "Saved locally"}
+          </span>
         </span>
         <Button
           size="sm"
@@ -115,10 +232,10 @@ export function AppTopBar({
           aria-label="Start a new project"
           title="Start a new project"
           onClick={onProjectNew}
-          className="h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
+          className="hidden h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
         >
           <FilePlus2 className="size-3.5" />
-          <span className="hidden lg:inline">New</span>
+          <span className="hidden xl:inline">New</span>
         </Button>
         <Button
           size="sm"
@@ -126,10 +243,10 @@ export function AppTopBar({
           aria-label="Open project"
           title="Open project"
           onClick={onProjectOpen}
-          className="h-8 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
+          className="hidden h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
         >
           <FolderOpen className="size-3.5" />
-          <span className="hidden lg:inline">Open</span>
+          <span className="hidden xl:inline">Open</span>
         </Button>
         <Button
           size="sm"
@@ -137,12 +254,12 @@ export function AppTopBar({
           aria-label="Download project file"
           title="Download project file"
           onClick={onProjectSave}
-          className="h-8 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
+          className="hidden h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
         >
           <FileDown className="size-3.5" />
-          <span className="hidden lg:inline">Download</span>
+          <span className="hidden xl:inline">Download</span>
         </Button>
-        <div className="flex items-center rounded-lg border border-border bg-muted/35 p-0.5">
+        <div className="hidden items-center rounded-lg border border-border bg-muted/35 p-0.5 sm:flex">
           <Button
             size="icon"
             variant="ghost"
@@ -177,10 +294,10 @@ export function AppTopBar({
               : "Auto-key is off: edits stay static unless a keyframe is selected"
           }
           onClick={() => onAutoKeyChange(!autoKeyEnabled)}
-          className="h-8 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
+          className="h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
         >
           <CircleDot className="size-3.5" />
-          Auto-key
+          <span className="hidden lg:inline">Auto-key</span>
         </Button>
         <Button
           size="icon"
@@ -188,7 +305,7 @@ export function AppTopBar({
           aria-label="Open quick start"
           title="Quick start"
           onClick={onGuideOpen}
-          className="size-8 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="hidden size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
         >
           <CircleHelp className="size-3.5" />
         </Button>
@@ -201,7 +318,7 @@ export function AppTopBar({
             if (!themeMounted) return
             onThemeChange(isLightTheme ? "dark" : "light")
           }}
-          className="size-8 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
         >
           {isLightTheme ? (
             <Moon className="size-3.5" />
@@ -211,12 +328,22 @@ export function AppTopBar({
         </Button>
         <Button
           size="sm"
-          className="h-8 gap-1.5 rounded-lg bg-primary text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="h-9 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           onClick={onExportOpen}
         >
           <Download className="size-3.5" />
-          Export
+          <span className="hidden sm:inline">Export</span>
         </Button>
+        <CompactWorkspaceMenu
+          onProjectNew={onProjectNew}
+          onProjectOpen={onProjectOpen}
+          onProjectSave={onProjectSave}
+          onUndo={onUndo}
+          onRedo={onRedo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onGuideOpen={onGuideOpen}
+        />
       </div>
       {projectStatus === "error" ? (
         <div

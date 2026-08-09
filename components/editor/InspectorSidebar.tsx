@@ -1,6 +1,8 @@
 "use client"
 
+import { useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, Shapes } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { LayerSwitcher } from "./LayerSwitcher"
 import {
   GeometryInspectorSection,
@@ -139,18 +141,44 @@ export function InspectorSidebar({
   transformProps,
   lightProps,
 }: InspectorSidebarProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeSectionId, setActiveSectionId] = useState("inspector-style")
   const scrollToSection = (id: string) => {
+    setActiveSectionId(id)
     document.getElementById(id)?.scrollIntoView({ block: "start" })
+  }
+  const updateActiveSection = () => {
+    const rootTop = scrollRef.current?.getBoundingClientRect().top ?? 0
+    const sections = [
+      "inspector-style",
+      "inspector-geometry",
+      "inspector-transform",
+      "inspector-light",
+    ]
+    const active = sections.reduce(
+      (closest, id) => {
+        const top =
+          document.getElementById(id)?.getBoundingClientRect().top ?? Infinity
+        return Math.abs(top - rootTop - 48) <
+          Math.abs(closest.top - rootTop - 48)
+          ? { id, top }
+          : closest
+      },
+      { id: sections[0], top: Infinity }
+    )
+    setActiveSectionId(active.id)
   }
 
   return (
     <div
+      ref={scrollRef}
+      onScroll={updateActiveSection}
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`flex shrink-0 flex-col overflow-y-auto bg-background ${
+      className={`flex shrink-0 flex-col overflow-y-auto bg-background max-[719px]:absolute max-[719px]:inset-y-0 max-[719px]:right-0 max-[719px]:z-20 max-[719px]:shadow-2xl ${
         zenMode
           ? "pointer-events-none w-0 border-l-0 p-0 opacity-0"
-          : "w-[328px] border-l border-border/40 px-3 py-3"
+          : "w-[clamp(280px,28vw,328px)] border-l border-border/40 px-3 py-3"
       }`}
     >
       <InspectorContextHeader transformProps={transformProps} />
@@ -168,8 +196,14 @@ export function InspectorSidebar({
           <button
             key={id}
             type="button"
+            aria-current={activeSectionId === id ? "location" : undefined}
             onClick={() => scrollToSection(id)}
-            className="min-h-9 rounded-md px-1 text-[11px] font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.98]"
+            className={cn(
+              "min-h-9 rounded-md px-1 text-[11px] font-medium transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.98]",
+              activeSectionId === id
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground"
+            )}
           >
             {label}
           </button>
