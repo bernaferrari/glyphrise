@@ -486,6 +486,11 @@ function AnimatedScene() {
 }
 
 type BuiltGeometry = { geometry: THREE.ExtrudeGeometry; color?: string };
+type MaterialPair = {
+  from: THREE.MeshPhysicalMaterial;
+  to: THREE.MeshPhysicalMaterial;
+  color?: string;
+};
 
 function buildGeometries(shapeStop: ShapeStop): BuiltGeometry[] {
   const loader = new SVGLoader();
@@ -509,7 +514,10 @@ function buildGeometries(shapeStop: ShapeStop): BuiltGeometry[] {
       if (override?.scale) {
         geometry.scale(override.scale.x, override.scale.y, override.scale.z);
       }
-      return [{ geometry, color: override?.color }];
+      return [{
+        geometry,
+        color: override?.color ?? '#' + path.color.getHexString(),
+      }];
     });
   });
 }
@@ -535,6 +543,21 @@ const updateMaterial = (
   material.depthWrite = opacity >= 0.999;
 };
 
+const createMaterial = (color: string, opacity: number) =>
+  new THREE.MeshPhysicalMaterial({
+    color,
+    roughness: BASE_MATERIAL.roughness,
+    metalness: BASE_MATERIAL.metalness,
+    reflectivity: BASE_MATERIAL.reflectance,
+    envMapIntensity: BASE_MATERIAL.reflectance,
+    clearcoat: BASE_MATERIAL.clearcoat,
+    clearcoatRoughness: BASE_MATERIAL.clearcoatRoughness,
+    transmission: BASE_MATERIAL.transmission,
+    thickness: BASE_MATERIAL.thickness,
+    transparent: true,
+    opacity,
+  });
+
 function ExtrudedIcon({
   keyLightRef,
 }: {
@@ -552,52 +575,34 @@ function ExtrudedIcon({
     }
     return map;
   }, []);
-
-  const materialA = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: BASE_FILL.color,
-        roughness: BASE_MATERIAL.roughness,
-        metalness: BASE_MATERIAL.metalness,
-        reflectivity: BASE_MATERIAL.reflectance,
-        envMapIntensity: BASE_MATERIAL.reflectance,
-        clearcoat: BASE_MATERIAL.clearcoat,
-        clearcoatRoughness: BASE_MATERIAL.clearcoatRoughness,
-        transmission: BASE_MATERIAL.transmission,
-        thickness: BASE_MATERIAL.thickness,
-        transparent: true,
-        opacity: 1,
-      }),
-    []
-  );
-
-  const materialB = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: BASE_FILL.colorSecondary,
-        roughness: BASE_MATERIAL.roughness,
-        metalness: BASE_MATERIAL.metalness,
-        reflectivity: BASE_MATERIAL.reflectance,
-        envMapIntensity: BASE_MATERIAL.reflectance,
-        clearcoat: BASE_MATERIAL.clearcoat,
-        clearcoatRoughness: BASE_MATERIAL.clearcoatRoughness,
-        transmission: BASE_MATERIAL.transmission,
-        thickness: BASE_MATERIAL.thickness,
-        transparent: true,
-        opacity: 0,
-      }),
-    []
-  );
+  const materialsByShape = useMemo(() => {
+    const map = new Map<string, MaterialPair[]>();
+    geometryByShape.forEach((geometries, shapeId) => {
+      map.set(
+        shapeId,
+        geometries.map(({ color }) => ({
+          from: createMaterial(color ?? BASE_FILL.color, 1),
+          to: createMaterial(color ?? BASE_FILL.colorSecondary, 0),
+          color,
+        }))
+      );
+    });
+    return map;
+  }, [geometryByShape]);
 
   useEffect(() => {
     return () => {
       geometryByShape.forEach((geometries) => {
         geometries.forEach(({ geometry }) => geometry.dispose());
       });
-      materialA.dispose();
-      materialB.dispose();
+      materialsByShape.forEach((pairs) => {
+        pairs.forEach(({ from, to }) => {
+          from.dispose();
+          to.dispose();
+        });
+      });
     };
-  }, [geometryByShape, materialA, materialB]);
+  }, [geometryByShape, materialsByShape]);
 
   useFrame(({ clock }) => {
     const duration = Math.max(0.001, ANIMATION.duration);
@@ -637,8 +642,7 @@ function ExtrudedIcon({
       motion.progress > 0 &&
       motion.progress < 1 &&
       (motion.wipeDirection.x !== 0 || motion.wipeDirection.y !== 0);
-    const clippingStateChanged =
-      Boolean(materialA.clippingPlanes?.length) !== wipeIsActive;
+    let clippingStateChanged = false;
     if (wipeIsActive) {
       root.updateMatrixWorld(true);
       const direction = new THREE.Vector3(
@@ -652,20 +656,32 @@ function ExtrudedIcon({
       clipPlaneB
         .set(direction.clone().negate(), offset + WIPE_SEAM_OVERLAP)
         .applyMatrix4(root.matrixWorld);
-      materialA.clippingPlanes = [clipPlaneA];
-      materialB.clippingPlanes = [clipPlaneB];
-      updateMaterial(materialA, motion.fill.color, motion.material, 1);
-      updateMaterial(materialB, motion.fill.colorSecondary, motion.material, 1);
-    } else {
-      materialA.clippingPlanes = null;
-      materialB.clippingPlanes = null;
-      updateMaterial(materialA, motion.fill.color, motion.material, 1 - motion.progress);
-      updateMaterial(materialB, motion.fill.colorSecondary, motion.material, motion.progress);
     }
-    if (clippingStateChanged) {
-      materialA.needsUpdate = true;
-      materialB.needsUpdate = true;
-    }
+    materialsByShape.forEach((pairs) => {
+      pairs.forEach(({ from, to, color }) => {
+        if (Boolean(from.clippingPlanes?.length) !== wipeIsActive) {
+          clippingStateChanged = true;
+        }
+        from.clippingPlanes = wipeIsActive ? [clipPlaneA] : null;
+        to.clippingPlanes = wipeIsActive ? [clipPlaneB] : null;
+        updateMaterial(
+          from,
+          color ?? motion.fill.color,
+          motion.material,
+          wipeIsActive ? 1 : 1 - motion.progress
+        );
+        updateMaterial(
+          to,
+          color ?? motion.fill.colorSecondary,
+          motion.material,
+          wipeIsActive ? 1 : motion.progress
+        );
+        if (clippingStateChanged) {
+          from.needsUpdate = true;
+          to.needsUpdate = true;
+        }
+      });
+    });
     if (keyLightRef.current) {
       keyLightRef.current.intensity = motion.keyLightIntensity;
       keyLightRef.current.position.set(
@@ -688,7 +704,13 @@ function ExtrudedIcon({
           visible={shapeIndex === 0}
         >
           {(geometryByShape.get(shape.id) ?? []).map(({ geometry }, index) => (
-            <mesh key={index} geometry={geometry} material={materialA} castShadow receiveShadow />
+            <mesh
+              key={index}
+              geometry={geometry}
+              material={materialsByShape.get(shape.id)?.[index]?.from}
+              castShadow
+              receiveShadow
+            />
           ))}
         </group>
       ))}
@@ -702,7 +724,13 @@ function ExtrudedIcon({
           visible={false}
         >
           {(geometryByShape.get(shape.id) ?? []).map(({ geometry }, index) => (
-            <mesh key={index} geometry={geometry} material={materialB} castShadow receiveShadow />
+            <mesh
+              key={index}
+              geometry={geometry}
+              material={materialsByShape.get(shape.id)?.[index]?.to}
+              castShadow
+              receiveShadow
+            />
           ))}
         </group>
       ))}

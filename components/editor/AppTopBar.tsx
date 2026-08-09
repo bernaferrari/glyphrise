@@ -9,7 +9,7 @@ import {
   CircleHelp,
   Download,
   FileDown,
-  FilePlus2,
+  FolderClock,
   FolderOpen,
   Moon,
   LoaderCircle,
@@ -84,8 +84,8 @@ function CompactWorkspaceMenu({
     disabled: boolean
   }> = [
     {
-      label: "New project",
-      Icon: FilePlus2,
+      label: "Projects",
+      Icon: FolderClock,
       onClick: action(onProjectNew),
       disabled: false,
     },
@@ -229,13 +229,13 @@ export function AppTopBar({
         <Button
           size="sm"
           variant="ghost"
-          aria-label="Start a new project"
-          title="Start a new project"
+          aria-label="Open projects"
+          title="Projects"
           onClick={onProjectNew}
           className="hidden h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
         >
-          <FilePlus2 className="size-3.5" />
-          <span className="hidden xl:inline">New</span>
+          <FolderClock className="size-3.5" />
+          <span className="hidden xl:inline">Projects</span>
         </Button>
         <Button
           size="sm"

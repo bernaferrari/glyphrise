@@ -120,6 +120,8 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
       setNewProjectDialogOpen: historySurface.setNewProjectDialogOpen,
       recentProjects: historySurface.recentProjects,
       openRecentProject: historySurface.openRecentProject,
+      duplicateRecentProject: historySurface.duplicateRecentProject,
+      deleteRecentProject: historySurface.deleteRecentProject,
     },
     recipeActions: { applyRecipe },
   }

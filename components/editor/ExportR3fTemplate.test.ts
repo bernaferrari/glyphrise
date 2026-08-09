@@ -66,7 +66,8 @@ describe("ExportR3fTemplate", () => {
 
     expect(code).toContain("useFrame(({ clock }) =>")
     expect(code).toContain("root.position.set(")
-    expect(code).toContain("materialA.dispose()")
+    expect(code).toContain("from.dispose()")
+    expect(code).toContain("to.dispose()")
     expect(code).toContain("geometry.dispose()")
     expect(code).not.toContain("useState")
     expect(code).not.toContain("setMotion")
@@ -124,7 +125,11 @@ describe("ExportR3fTemplate", () => {
 
     expect(code).toContain('"transitionType": "wipe"')
     expect(code).toContain('"pathOverrides"')
-    expect(code).toContain("materialA.clippingPlanes = [clipPlaneA]")
+    expect(code).toContain(
+      "from.clippingPlanes = wipeIsActive ? [clipPlaneA] : null"
+    )
+    expect(code).toContain("color ?? motion.fill.color")
+    expect(code).toContain("materialsByShape.get(shape.id)?.[index]?.from")
     expect(code).toContain("ANIMATION.keyLightPositionKeyframes")
   })
 })

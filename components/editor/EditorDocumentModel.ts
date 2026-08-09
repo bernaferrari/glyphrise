@@ -354,7 +354,12 @@ export const listPersistedEditorProjects = (): EditorProjectMetadata[] => {
     if (!raw) return []
     const value: unknown = JSON.parse(raw)
     if (!Array.isArray(value)) return []
-    return value.filter(isProjectMetadata).slice(0, 8)
+    return value
+      .filter(isProjectMetadata)
+      .filter((project) =>
+        window.localStorage.getItem(projectStorageKey(project.id))
+      )
+      .slice(0, 8)
   } catch {
     return []
   }
@@ -376,6 +381,25 @@ export const readPersistedEditorProject = (projectId: string) => {
   } catch {
     return null
   }
+}
+
+export const deletePersistedEditorProject = (projectId: string) => {
+  window.localStorage.removeItem(projectStorageKey(projectId))
+  const nextRecent = listPersistedEditorProjects().filter(
+    (project) => project.id !== projectId
+  )
+  if (nextRecent.length > 0) {
+    window.localStorage.setItem(
+      EDITOR_RECENT_PROJECTS_KEY,
+      JSON.stringify(nextRecent)
+    )
+  } else {
+    window.localStorage.removeItem(EDITOR_RECENT_PROJECTS_KEY)
+  }
+  if (window.localStorage.getItem(EDITOR_CURRENT_PROJECT_KEY) === projectId) {
+    window.localStorage.removeItem(EDITOR_CURRENT_PROJECT_KEY)
+  }
+  return nextRecent
 }
 
 export const readPersistedEditorDocument = (): ParsedEditorDocument | null => {

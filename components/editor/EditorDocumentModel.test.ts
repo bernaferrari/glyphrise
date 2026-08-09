@@ -3,6 +3,7 @@ import type { EditorSnapshot } from "./EditorModel"
 import {
   createEditorDocumentFile,
   createProjectMetadata,
+  deletePersistedEditorProject,
   isPersistedEditorSnapshot,
   listPersistedEditorProjects,
   normalizeProjectName,
@@ -135,6 +136,13 @@ describe("EditorDocumentModel", () => {
     expect(
       listPersistedEditorProjects().map((project) => project.name)
     ).toEqual(["Second project", "First project"])
+
+    deletePersistedEditorProject(second.id)
+    expect(readPersistedEditorProject(second.id)).toBeNull()
+    expect(readPersistedEditorDocument()).toBeNull()
+    expect(
+      listPersistedEditorProjects().map((project) => project.name)
+    ).toEqual(["First project"])
   })
 
   it("creates a genuinely blank project from the example snapshot", () => {

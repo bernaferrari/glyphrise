@@ -27,6 +27,7 @@ import {
 } from "./EditorModel"
 import {
   createProjectMetadata,
+  deletePersistedEditorProject,
   downloadProjectSnapshot,
   type EditorProjectMetadata,
   listPersistedEditorProjects,
@@ -208,7 +209,7 @@ export function useEditorSnapshotHistory({
     "Restoring your last local edit…"
   )
   const [project, setProject] = useState<EditorProjectMetadata>(() =>
-    createProjectMetadata()
+    createProjectMetadata("Example project")
   )
   const [recentProjects, setRecentProjects] = useState<EditorProjectMetadata[]>(
     []
@@ -331,6 +332,29 @@ export function useEditorSnapshotHistory({
     onRestore: restoreSnapshot,
   })
 
+  const persistCurrentProjectNow = () => {
+    const persistedProject = writePersistedEditorDocument(snapshot, project)
+    setProject(persistedProject)
+    setRecentProjects(listPersistedEditorProjects())
+    return persistedProject
+  }
+
+  const openProjects = () => {
+    try {
+      persistCurrentProjectNow()
+      setProjectStatus("saved")
+      setProjectStatusMessage("All changes saved locally.")
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Autosave failed: ${error.message}`
+          : "Autosave failed. Download the current project for a backup."
+      )
+    }
+    setNewProjectDialogOpen(true)
+  }
+
   const activateProject = (
     nextSnapshot: EditorSnapshot,
     nextProject: EditorProjectMetadata,
@@ -419,6 +443,11 @@ export function useEditorSnapshotHistory({
   }
 
   const openRecentProject = (projectId: string) => {
+    if (projectId === project.id) {
+      setNewProjectDialogOpen(false)
+      setProjectStatusMessage(`${project.name} is already open.`)
+      return
+    }
     const documentFile = readPersistedEditorProject(projectId)
     if (!documentFile) {
       setProjectStatus("error")
@@ -436,8 +465,100 @@ export function useEditorSnapshotHistory({
     setNewProjectDialogOpen(false)
   }
 
+  const duplicateRecentProject = (projectId: string) => {
+    const documentFile =
+      projectId === project.id
+        ? { project, snapshot }
+        : readPersistedEditorProject(projectId)
+    if (!documentFile) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        "That project is no longer available to duplicate."
+      )
+      setRecentProjects(listPersistedEditorProjects())
+      return
+    }
+    const duplicatedProject = createProjectMetadata(
+      `${documentFile.project.name} copy`
+    )
+    try {
+      activateProject(
+        documentFile.snapshot,
+        duplicatedProject,
+        `${duplicatedProject.name} created and opened.`
+      )
+      setNewProjectDialogOpen(false)
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Could not duplicate the project: ${error.message}`
+          : "Could not duplicate the project."
+      )
+    }
+  }
+
+  const deleteRecentProject = (projectId: string) => {
+    const deleting = recentProjects.find(
+      (candidate) => candidate.id === projectId
+    )
+    if (!deleting) return
+
+    try {
+      const deletingCurrentProject = project.id === projectId
+      const remaining = deletePersistedEditorProject(projectId)
+      if (!deletingCurrentProject) {
+        setRecentProjects(remaining)
+        setProjectStatus("saved")
+        setProjectStatusMessage(`${deleting.name} deleted from this device.`)
+        return
+      }
+
+      const fallback = remaining
+        .map((candidate) => readPersistedEditorProject(candidate.id))
+        .find((candidate) => candidate !== null)
+      if (fallback) {
+        activateProject(
+          fallback.snapshot,
+          fallback.project,
+          `${deleting.name} deleted. ${fallback.project.name} opened.`
+        )
+        return
+      }
+
+      const blankSnapshot = createBlankEditorSnapshot(
+        initialSnapshotRef.current
+      )
+      const blankProject = createProjectMetadata()
+      activateProject(
+        blankSnapshot,
+        blankProject,
+        `${deleting.name} deleted. A new blank project is ready.`
+      )
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Could not delete the project: ${error.message}`
+          : "Could not delete the project."
+      )
+    }
+  }
+
   const openProjectFile = () => {
     if (typeof window === "undefined") return
+
+    try {
+      persistCurrentProjectNow()
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Could not secure the current project: ${error.message}`
+          : "Could not secure the current project. Download it before opening another file."
+      )
+      return
+    }
 
     const input = document.createElement("input")
     input.type = "file"
@@ -562,12 +683,14 @@ export function useEditorSnapshotHistory({
 
   return {
     ...history,
-    newProject: () => setNewProjectDialogOpen(true),
+    newProject: openProjects,
     createNewProject,
     finalizeProjectBaseline,
     newProjectDialogOpen,
     setNewProjectDialogOpen,
     openRecentProject,
+    duplicateRecentProject,
+    deleteRecentProject,
     recentProjects,
     openProjectFile,
     saveProjectFile,

@@ -24,8 +24,8 @@ export function ExportReactCodeTab({
         <Info className="mt-0.5 size-4 shrink-0" />
         <p>
           Starter code preserves timing, transforms, wipes, path visibility and
-          depth, plus animated lighting. Mesh gradients, custom finish shaders,
-          crown roofs, and per-path colors are simplified.
+          depth, per-path colors, plus animated lighting. Mesh gradients, custom
+          finish shaders, and crown roofs are simplified.
         </p>
       </div>
       <ExportCodeBlock code={code} lang="tsx" />

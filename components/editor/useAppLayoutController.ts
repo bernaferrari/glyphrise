@@ -28,6 +28,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       setNewProjectDialogOpen,
       recentProjects,
       openRecentProject,
+      duplicateRecentProject,
+      deleteRecentProject,
     },
     historyActions: { undo, redo, canUndo, canRedo },
     recipeActions: { applyRecipe },
@@ -677,6 +679,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     newProjectDialogProps: {
       open: newProjectDialogOpen,
       currentProjectName: project.name,
+      currentProjectId: project.id,
       recentProjects,
       templates: quickStartProps.templates,
       onOpenChange: setNewProjectDialogOpen,
@@ -687,6 +690,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
         finalizeProjectBaseline()
       },
       onOpenRecent: openRecentProject,
+      onDuplicateRecent: duplicateRecentProject,
+      onDeleteRecent: deleteRecentProject,
       onDownloadCurrent: saveProjectFile,
     },
     uploadFileRef,

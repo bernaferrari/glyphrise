@@ -51,10 +51,12 @@ asset and implementation reference without rebuilding the motion from scratch.
 - **SVG path editing** - Select visibly named SVG paths, override visibility,
   and tune per-path depth and scale for multi-path symbols.
 - **Project workflow** - Create blank, example, or style-based projects, rename
-  them, reopen recent local work, and download portable project files.
+  them, reopen or duplicate recent local work, safely delete local projects,
+  and download portable project files.
 - **Export workflow** - Record WebM, export GLB-oriented assets, and copy React
   Three Fiber starter code or a static Android Filament viewer. Code exports
-  disclose the finish and gradient effects they simplify.
+  preserve SVG path colors and disclose the finish and gradient effects they
+  simplify.
 
 ## Get Started
 
