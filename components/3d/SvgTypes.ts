@@ -128,7 +128,7 @@ export interface SvgCanvasProps {
 }
 
 export interface SvgCanvasRef {
-  exportGltf: () => void
+  exportGltf: () => Promise<void>
   startRecording: (options?: {
     frameRate?: number
     manualFrames?: boolean

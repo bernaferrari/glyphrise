@@ -1,6 +1,6 @@
 "use client"
 
-import { Magnet, RotateCw } from "lucide-react"
+import { CircleHelp, Diamond, Magnet, MoveRight, RotateCw } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -42,7 +42,7 @@ export function TimelineHeader({
 }: TimelineHeaderProps) {
   return (
     <div
-      className="relative flex h-7 shrink-0 items-center gap-2 border-b border-border bg-background py-0 pr-1 pl-2 font-mono text-[10px] tabular-nums"
+      className="relative flex h-7 shrink-0 items-center gap-2 border-b border-border bg-background py-0 pr-1 pl-2 font-mono text-[11px] tabular-nums"
       style={{ zIndex: TIMELINE_LAYER.ruler }}
     >
       <Popover
@@ -67,16 +67,17 @@ export function TimelineHeader({
           className="w-52 border-border bg-popover p-3 text-popover-foreground shadow-2xl"
         >
           <div className="mb-2 flex items-center justify-between">
-            <span className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
               Duration
             </span>
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-mono text-[11px] text-muted-foreground">
               0.5-30s
             </span>
           </div>
           <div className="flex h-9 items-center rounded-lg border border-border bg-muted/55 focus-within:border-ring/50">
             <input
               autoFocus
+              aria-label="Timeline duration in seconds"
               value={durationEditor ?? duration.toFixed(1)}
               onChange={(event) =>
                 onDurationEditorChange(event.currentTarget.value)
@@ -129,7 +130,79 @@ export function TimelineHeader({
         >
           <RotateCw className="size-3" />
         </TimelineToggle>
+        <Popover>
+          <PopoverTrigger
+            render={
+              <button
+                type="button"
+                aria-label="How the timeline works"
+                title="Timeline guide"
+                className="flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+              />
+            }
+          >
+            <CircleHelp className="size-3" />
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            side="top"
+            sideOffset={8}
+            className="w-64 border-border bg-popover p-3 font-sans text-popover-foreground shadow-2xl"
+          >
+            <div className="text-[12px] font-semibold">
+              Timeline at a glance
+            </div>
+            <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+              Arrange icon clips first, then animate only the properties that
+              need to change.
+            </p>
+            <div className="mt-3 grid gap-2.5 text-[11px]">
+              <TimelineGuideRow
+                icon={
+                  <span className="h-3 w-5 rounded-sm bg-blue-400/35 ring-1 ring-blue-400/70" />
+                }
+                label="Icon clips"
+                description="Which icon appears over time"
+              />
+              <TimelineGuideRow
+                icon={<MoveRight className="size-4 text-muted-foreground" />}
+                label="Transition band"
+                description="How one icon becomes the next"
+              />
+              <TimelineGuideRow
+                icon={<span className="size-2.5 rounded-full bg-amber-400" />}
+                label="Property rows"
+                description="Values that animate"
+              />
+              <TimelineGuideRow
+                icon={
+                  <Diamond className="size-3.5 fill-amber-400 text-amber-500" />
+                }
+                label="Diamonds"
+                description="Keyframes at an exact time"
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
+    </div>
+  )
+}
+
+function TimelineGuideRow({
+  icon,
+  label,
+  description,
+}: {
+  icon: React.ReactNode
+  label: string
+  description: string
+}) {
+  return (
+    <div className="grid grid-cols-[20px_78px_1fr] items-center gap-2">
+      <span className="flex items-center justify-center">{icon}</span>
+      <span className="font-medium text-foreground">{label}</span>
+      <span className="text-muted-foreground">{description}</span>
     </div>
   )
 }

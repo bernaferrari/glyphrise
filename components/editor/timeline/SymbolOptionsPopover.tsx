@@ -65,7 +65,7 @@ export function SymbolOptionsPopover({
         className="w-64 border-border bg-popover p-2.5 text-foreground shadow-2xl"
         {...stopPopoverPropagation}
       >
-        <div className="mb-2 text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+        <div className="mb-2 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
           Symbol options
         </div>
         <div className="mb-2 grid grid-cols-3 rounded-lg bg-muted/50 p-0.5">
@@ -74,7 +74,7 @@ export function SymbolOptionsPopover({
               key={style}
               type="button"
               onClick={() => onMaterialSymbolStyleChange(style)}
-              className={`h-7 rounded-md text-[10px] capitalize transition-colors ${
+              className={`h-7 rounded-md text-[11px] capitalize transition-colors ${
                 materialSymbolStyle === style
                   ? "bg-foreground text-background"
                   : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
@@ -94,7 +94,7 @@ export function SymbolOptionsPopover({
                 materialSymbolSettings.fill ? 0 : 1
               )
             }
-            className={`h-8 rounded-lg px-2 text-[10px] font-medium transition-colors ${
+            className={`h-8 rounded-lg px-2 text-[11px] font-medium transition-colors ${
               materialSymbolSettings.fill
                 ? "bg-foreground text-background"
                 : "bg-muted/50 text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -107,7 +107,7 @@ export function SymbolOptionsPopover({
               key={control.key}
               className="flex h-8 items-center rounded-lg bg-muted/50 ring-1 ring-white/[0.07]"
             >
-              <span className="px-2 text-[9px] font-medium text-muted-foreground">
+              <span className="px-2 text-[10px] font-medium text-muted-foreground">
                 {control.label}
               </span>
               <input
@@ -126,7 +126,7 @@ export function SymbolOptionsPopover({
                   )
                   onMaterialSymbolSettingChange(control.key, next)
                 }}
-                className="min-w-0 flex-1 bg-transparent pr-2 text-right font-mono text-[10px] text-foreground outline-none"
+                className="min-w-0 flex-1 bg-transparent pr-2 text-right font-mono text-[11px] text-foreground outline-none"
               />
             </label>
           ))}

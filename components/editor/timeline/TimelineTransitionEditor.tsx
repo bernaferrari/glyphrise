@@ -68,7 +68,7 @@ export function TimelineTransitionEditor({
   return (
     <>
       <div className="flex items-center justify-between px-0.5 pb-2.5">
-        <span className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
           Transition
         </span>
         {mode !== "cut" && (
@@ -86,7 +86,7 @@ export function TimelineTransitionEditor({
             key={option.id}
             type="button"
             onClick={() => selectMode(option.id)}
-            className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[10px] font-medium transition-colors ${
+            className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[11px] font-medium transition-colors ${
               mode === option.id
                 ? "border-ring/60 bg-accent text-foreground"
                 : "border-border bg-muted/45 text-muted-foreground hover:border-border hover:text-foreground"

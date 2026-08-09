@@ -1,6 +1,13 @@
 "use client"
 
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef } from "react"
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import {
   clampNumber,
   DEFAULT_GEOMETRY_SETTINGS,
@@ -20,6 +27,7 @@ import {
 } from "./EditorModel"
 import {
   downloadProjectSnapshot,
+  MAX_PROJECT_FILE_BYTES,
   parseEditorDocumentSnapshot,
   readPersistedEditorSnapshot,
   writePersistedEditorSnapshot,
@@ -187,6 +195,12 @@ export function useEditorSnapshotHistory({
   setIsPlaying,
   isInputDragActive,
 }: EditorSnapshotHistoryOptions) {
+  const [projectStatus, setProjectStatus] = useState<
+    "restoring" | "saving" | "saved" | "error"
+  >("restoring")
+  const [projectStatusMessage, setProjectStatusMessage] = useState(
+    "Restoring your last local edit…"
+  )
   const snapshot = useMemo<EditorSnapshot>(
     () => ({
       activeRecipeId,
@@ -263,6 +277,7 @@ export function useEditorSnapshotHistory({
       tracks,
     ]
   )
+  const initialSnapshotRef = useRef(snapshot)
 
   const restoreSnapshot = (nextSnapshot: EditorSnapshot) => {
     setActiveRecipeId(nextSnapshot.activeRecipeId)
@@ -293,7 +308,43 @@ export function useEditorSnapshotHistory({
 
   const saveProjectFile = () => {
     if (typeof window === "undefined") return
-    downloadProjectSnapshot(snapshot)
+    try {
+      downloadProjectSnapshot(snapshot)
+      setProjectStatus("saved")
+      setProjectStatusMessage(
+        "Project downloaded. Changes also autosave locally."
+      )
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Download failed: ${error.message}`
+          : "Project download failed. Try again."
+      )
+    }
+  }
+
+  const newProject = () => {
+    if (typeof window === "undefined") return
+    const shouldReset = window.confirm(
+      "Start a new project? Your current version stays in undo history, but the local autosave will be replaced."
+    )
+    if (!shouldReset) return
+
+    const nextSnapshot = initialSnapshotRef.current
+    restoreSnapshot(nextSnapshot)
+    try {
+      writePersistedEditorSnapshot(nextSnapshot)
+      setProjectStatus("saved")
+      setProjectStatusMessage("New project created and saved locally.")
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `New project created, but autosave failed: ${error.message}`
+          : "New project created, but autosave failed."
+      )
+    }
   }
 
   const openProjectFile = () => {
@@ -307,6 +358,13 @@ export function useEditorSnapshotHistory({
       const file = input.files?.[0]
       input.remove()
       if (!file) return
+      if (file.size > MAX_PROJECT_FILE_BYTES) {
+        setProjectStatus("error")
+        setProjectStatusMessage(
+          "That project is larger than the 5 MB file limit."
+        )
+        return
+      }
 
       void file
         .text()
@@ -317,10 +375,17 @@ export function useEditorSnapshotHistory({
           }
           restoreSnapshot(nextSnapshot)
           writePersistedEditorSnapshot(nextSnapshot)
+          setProjectStatus("saved")
+          setProjectStatusMessage(`${file.name} opened and saved locally.`)
         })
         .catch((error) => {
           console.error("Could not open project file:", error)
-          window.alert("Could not open that project file.")
+          setProjectStatus("error")
+          setProjectStatusMessage(
+            error instanceof Error
+              ? error.message
+              : "Could not open that project file."
+          )
         })
     }
     document.body.appendChild(input)
@@ -339,6 +404,12 @@ export function useEditorSnapshotHistory({
       restoreSnapshot(persistedSnapshot)
     }
     persistenceReadyRef.current = true
+    setProjectStatus("saved")
+    setProjectStatusMessage(
+      persistedSnapshot
+        ? "Last local edit restored."
+        : "Changes autosave locally on this device."
+    )
     // Restore should run once during editor boot. State setters are stable here,
     // and repeated restores would overwrite the user's current document.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -358,8 +429,21 @@ export function useEditorSnapshotHistory({
       return
     }
 
+    setProjectStatus("saving")
+    setProjectStatusMessage("Saving changes locally…")
     const timeout = window.setTimeout(() => {
-      writePersistedEditorSnapshot(snapshot)
+      try {
+        writePersistedEditorSnapshot(snapshot)
+        setProjectStatus("saved")
+        setProjectStatusMessage("All changes saved locally.")
+      } catch (error) {
+        setProjectStatus("error")
+        setProjectStatusMessage(
+          error instanceof Error
+            ? `Autosave failed: ${error.message}`
+            : "Autosave failed. Download the project to keep a backup."
+        )
+      }
     }, 350)
 
     return () => window.clearTimeout(timeout)
@@ -373,5 +457,12 @@ export function useEditorSnapshotHistory({
     onRestore: restoreSnapshot,
   })
 
-  return { ...history, openProjectFile, saveProjectFile }
+  return {
+    ...history,
+    newProject,
+    openProjectFile,
+    saveProjectFile,
+    projectStatus,
+    projectStatusMessage,
+  }
 }

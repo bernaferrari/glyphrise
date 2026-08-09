@@ -38,7 +38,9 @@ export function ShapePresetGrid({
   const filteredOptions =
     activeCategory === "All"
       ? visibleShapeOptions
-      : visibleShapeOptions.filter((option) => option.category === activeCategory)
+      : visibleShapeOptions.filter(
+          (option) => option.category === activeCategory
+        )
 
   if (visibleShapeOptions.length === 0) return null
 

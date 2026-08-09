@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import type {
   ChangeEvent,
   Dispatch,
@@ -7,22 +7,36 @@ import type {
   SetStateAction,
 } from "react"
 import type { ShapeStop } from "./TimelineModel"
-
-const isSvgFile = (file: File | undefined | null) =>
-  Boolean(file && (!file.type || file.type === "image/svg+xml"))
+import {
+  isSvgFile,
+  svgImportMessage,
+  validateAndSanitizeSvg,
+} from "./SvgImportModel"
 
 const readSvgFile = (
   file: File,
   onLoad: (content: string) => void,
+  onError: (message: string) => void,
   onDone?: () => void
 ) => {
   const reader = new FileReader()
   reader.onload = (event) => {
     const content = event.target?.result
-    if (typeof content === "string" && content) onLoad(content)
+    if (typeof content === "string" && content) {
+      try {
+        onLoad(validateAndSanitizeSvg(content))
+      } catch (error) {
+        onError(svgImportMessage(error))
+      }
+    } else {
+      onError("VectorForge could not read this SVG file.")
+    }
     onDone?.()
   }
-  reader.onerror = () => onDone?.()
+  reader.onerror = () => {
+    onError("VectorForge could not read this SVG file.")
+    onDone?.()
+  }
   reader.readAsText(file)
 }
 
@@ -43,11 +57,16 @@ export const useSvgUpload = ({
     shapeId: string
   ) => void
   handleDropSvg: (event: DragEvent) => void
+  svgImportError: string | null
+  clearSvgImportError: () => void
 } => {
   const uploadFileRef = useRef<HTMLInputElement>(null)
   const uploadTargetRef = useRef<string | null>(null)
+  const [svgImportError, setSvgImportError] = useState<string | null>(null)
 
   const applyCustomSvg = (shapeId: string, svgContent: string) => {
+    setSvgImportError(null)
+    markCustom()
     setShapes((prev) =>
       prev.map((shape) =>
         shape.id === shapeId
@@ -64,14 +83,19 @@ export const useSvgUpload = ({
     const input = event.currentTarget
     const file = input.files?.[0]
     if (!isSvgFile(file)) {
+      setSvgImportError(
+        file?.size && file.size > 1_000_000
+          ? "This SVG is larger than the 1 MB import limit."
+          : "Choose a plain .svg file. Other image formats are not supported."
+      )
       input.value = ""
       return
     }
 
-    markCustom()
     readSvgFile(
       file!,
       (content) => applyCustomSvg(shapeId, content),
+      setSvgImportError,
       () => {
         input.value = ""
       }
@@ -89,10 +113,21 @@ export const useSvgUpload = ({
 
   const handleDropSvg = (event: DragEvent) => {
     const file = event.dataTransfer.files[0]
-    if (!isSvgFile(file) || !selectedShapeId) return
+    if (!selectedShapeId) return
+    if (!isSvgFile(file)) {
+      setSvgImportError(
+        file?.size && file.size > 1_000_000
+          ? "This SVG is larger than the 1 MB import limit."
+          : "Drop a plain .svg file. Other image formats are not supported."
+      )
+      return
+    }
 
-    markCustom()
-    readSvgFile(file!, (content) => applyCustomSvg(selectedShapeId, content))
+    readSvgFile(
+      file!,
+      (content) => applyCustomSvg(selectedShapeId, content),
+      setSvgImportError
+    )
   }
 
   const triggerShapeUpload = (shapeId: string) => {
@@ -106,5 +141,7 @@ export const useSvgUpload = ({
     handleUploadInputChange,
     uploadSvgToShape,
     handleDropSvg,
+    svgImportError,
+    clearSvgImportError: () => setSvgImportError(null),
   }
 }

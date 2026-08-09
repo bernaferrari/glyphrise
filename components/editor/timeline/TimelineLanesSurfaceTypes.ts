@@ -100,6 +100,8 @@ export type TimelinePropertyLaneProps = {
 
 export type TimelineTrackLaneProps = {
   tracks: TimelineTrack[]
+  /** Match left-rail "Add property" row height so grid/playhead span the full rail. */
+  showAddPropertyRow: boolean
   revealedRowId: string | null
   activeTrackId?: string | null
   selectedKeyframe: SelectedTimelineKeyframe

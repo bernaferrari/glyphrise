@@ -106,7 +106,7 @@ export const generateR3fCode = ({
 
   return `'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Center } from '@react-three/drei';
 import * as THREE from 'three';
@@ -419,20 +419,20 @@ export default function App() {
 }
 
 function AnimatedScene() {
-  const [motion, setMotion] = useState<MotionState>(() => evaluateMotion(0));
-
-  useFrame(({ clock }) => {
-    const duration = Math.max(0.001, ANIMATION.duration);
-    setMotion(evaluateMotion(clock.elapsedTime % duration));
-  });
+  const keyLightRef = useRef<THREE.DirectionalLight>(null);
 
   return (
     <>
       <ambientLight intensity={${ambientIntensity}} />
-      <directionalLight position={[5, 5, 4]} intensity={motion.keyLightIntensity} castShadow />
+      <directionalLight
+        ref={keyLightRef}
+        position={[5, 5, 4]}
+        intensity={ANIMATION.keyLightIntensity}
+        castShadow
+      />
       <directionalLight position={[-6, -3, 3]} intensity={${rimLightIntensity}} />
       <Center>
-        <ExtrudedIcon motion={motion} />
+        <ExtrudedIcon keyLightRef={keyLightRef} />
       </Center>
     </>
   );
@@ -442,7 +442,7 @@ function buildGeometries(svgContent: string) {
   const loader = new SVGLoader();
   const parsed = loader.parse(normalizeSvgToIconViewBox(svgContent));
   return parsed.paths.flatMap((path, pathIndex) => {
-    const shapes = SVGLoader.createShapes(path);
+    const shapes = path.toShapes(true);
     return shapes.map((shape) => {
       const geometry = new THREE.ExtrudeGeometry(shape, {
           depth: ${extrusionDepth} + pathIndex * ${layerSpacing} * 0.1,
@@ -458,7 +458,35 @@ function buildGeometries(svgContent: string) {
   });
 }
 
-function ExtrudedIcon({ motion }: { motion: MotionState }) {
+const updateMaterial = (
+  material: THREE.MeshPhysicalMaterial,
+  color: string,
+  settings: MaterialSettings,
+  opacity: number
+) => {
+  material.color.set(color);
+  material.roughness = settings.roughness;
+  material.metalness = settings.metalness;
+  material.reflectivity = settings.reflectance;
+  material.envMapIntensity = settings.reflectance;
+  material.clearcoat = settings.clearcoat;
+  material.clearcoatRoughness = settings.clearcoatRoughness;
+  material.transmission = settings.transmission;
+  material.thickness = settings.thickness;
+  material.emissive.set(settings.emissiveIntensity > 0 ? color : '#000000');
+  material.emissiveIntensity = settings.emissiveIntensity;
+  material.opacity = opacity;
+  material.depthWrite = opacity >= 0.999;
+};
+
+function ExtrudedIcon({
+  keyLightRef,
+}: {
+  keyLightRef: React.RefObject<THREE.DirectionalLight | null>;
+}) {
+  const rootRef = useRef<THREE.Group>(null);
+  const fromGroupsRef = useRef(new Map<string, THREE.Group>());
+  const toGroupsRef = useRef(new Map<string, THREE.Group>());
   const geometryByShape = useMemo(() => {
     const map = new Map<string, THREE.ExtrudeGeometry[]>();
     for (const shape of SHAPES) {
@@ -470,76 +498,117 @@ function ExtrudedIcon({ motion }: { motion: MotionState }) {
   const materialA = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: motion.fill.color,
-        roughness: motion.material.roughness,
-        metalness: motion.material.metalness,
-        reflectivity: motion.material.reflectance,
-        envMapIntensity: motion.material.reflectance,
-        clearcoat: motion.material.clearcoat,
-        clearcoatRoughness: motion.material.clearcoatRoughness,
-        transmission: motion.material.transmission,
-        thickness: motion.material.thickness,
-        emissive:
-          motion.material.emissiveIntensity > 0
-            ? new THREE.Color(motion.fill.color)
-            : new THREE.Color('#000000'),
-        emissiveIntensity: motion.material.emissiveIntensity,
+        color: BASE_FILL.color,
+        roughness: BASE_MATERIAL.roughness,
+        metalness: BASE_MATERIAL.metalness,
+        reflectivity: BASE_MATERIAL.reflectance,
+        envMapIntensity: BASE_MATERIAL.reflectance,
+        clearcoat: BASE_MATERIAL.clearcoat,
+        clearcoatRoughness: BASE_MATERIAL.clearcoatRoughness,
+        transmission: BASE_MATERIAL.transmission,
+        thickness: BASE_MATERIAL.thickness,
         transparent: true,
-        opacity: 1 - motion.progress,
+        opacity: 1,
       }),
-    [motion]
+    []
   );
 
   const materialB = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: motion.fill.colorSecondary,
-        roughness: motion.material.roughness,
-        metalness: motion.material.metalness,
-        reflectivity: motion.material.reflectance,
-        envMapIntensity: motion.material.reflectance,
-        clearcoat: motion.material.clearcoat,
-        clearcoatRoughness: motion.material.clearcoatRoughness,
-        transmission: motion.material.transmission,
-        thickness: motion.material.thickness,
-        emissive:
-          motion.material.emissiveIntensity > 0
-            ? new THREE.Color(motion.fill.colorSecondary)
-            : new THREE.Color('#000000'),
-        emissiveIntensity: motion.material.emissiveIntensity,
+        color: BASE_FILL.colorSecondary,
+        roughness: BASE_MATERIAL.roughness,
+        metalness: BASE_MATERIAL.metalness,
+        reflectivity: BASE_MATERIAL.reflectance,
+        envMapIntensity: BASE_MATERIAL.reflectance,
+        clearcoat: BASE_MATERIAL.clearcoat,
+        clearcoatRoughness: BASE_MATERIAL.clearcoatRoughness,
+        transmission: BASE_MATERIAL.transmission,
+        thickness: BASE_MATERIAL.thickness,
         transparent: true,
-        opacity: motion.progress,
+        opacity: 0,
       }),
-    [motion]
+    []
   );
 
-  const fromGeometries = geometryByShape.get(motion.fromId) ?? [];
-  const toGeometries = geometryByShape.get(motion.toId) ?? fromGeometries;
-  const renderIncoming = motion.fromId !== motion.toId && motion.progress > 0;
-  const scale = Math.max(0.05, motion.scale);
-  const depthScale = Math.max(0.001, motion.extrusionDepth) / Math.max(0.001, ANIMATION.extrusionDepth);
+  useEffect(() => {
+    return () => {
+      geometryByShape.forEach((geometries) => {
+        geometries.forEach((geometry) => geometry.dispose());
+      });
+      materialA.dispose();
+      materialB.dispose();
+    };
+  }, [geometryByShape, materialA, materialB]);
+
+  useFrame(({ clock }) => {
+    const duration = Math.max(0.001, ANIMATION.duration);
+    const motion = evaluateMotion(clock.elapsedTime % duration);
+    const root = rootRef.current;
+    if (!root) return;
+
+    root.position.set(motion.move.x * 0.02, motion.move.y * 0.02, motion.move.z * 0.02);
+    root.rotation.set(
+      THREE.MathUtils.degToRad(motion.rotation.x),
+      THREE.MathUtils.degToRad(motion.rotation.y),
+      THREE.MathUtils.degToRad(motion.rotation.z)
+    );
+    const scale = Math.max(0.05, motion.scale);
+    const depthScale =
+      Math.max(0.001, motion.extrusionDepth) /
+      Math.max(0.001, ANIMATION.extrusionDepth);
+    root.scale.set(
+      MODEL_SCALE * scale * motion.scaleAxes.x,
+      -MODEL_SCALE * scale * motion.scaleAxes.y,
+      MODEL_SCALE * scale * motion.scaleAxes.z * depthScale
+    );
+
+    fromGroupsRef.current.forEach((group) => {
+      group.visible = false;
+    });
+    toGroupsRef.current.forEach((group) => {
+      group.visible = false;
+    });
+    const fromGroup = fromGroupsRef.current.get(motion.fromId);
+    const toGroup = toGroupsRef.current.get(motion.toId);
+    if (fromGroup) fromGroup.visible = motion.progress < 1 || motion.fromId === motion.toId;
+    if (toGroup) toGroup.visible = motion.fromId !== motion.toId && motion.progress > 0;
+
+    updateMaterial(materialA, motion.fill.color, motion.material, 1 - motion.progress);
+    updateMaterial(materialB, motion.fill.colorSecondary, motion.material, motion.progress);
+    if (keyLightRef.current) keyLightRef.current.intensity = motion.keyLightIntensity;
+  });
 
   return (
-    <group
-      position={[motion.move.x * 0.02, motion.move.y * 0.02, motion.move.z * 0.02]}
-      rotation={[
-        THREE.MathUtils.degToRad(motion.rotation.x),
-        THREE.MathUtils.degToRad(motion.rotation.y),
-        THREE.MathUtils.degToRad(motion.rotation.z),
-      ]}
-      scale={[
-        MODEL_SCALE * scale * motion.scaleAxes.x,
-        -MODEL_SCALE * scale * motion.scaleAxes.y,
-        MODEL_SCALE * scale * motion.scaleAxes.z * depthScale,
-      ]}
-    >
-      {fromGeometries.map((geometry, index) => (
-        <mesh key={\`from-\${index}\`} geometry={geometry} material={materialA} castShadow receiveShadow />
+    <group ref={rootRef} dispose={null}>
+      {SHAPES.map((shape, shapeIndex) => (
+        <group
+          key={\`from-\${shape.id}\`}
+          ref={(group) => {
+            if (group) fromGroupsRef.current.set(shape.id, group);
+            else fromGroupsRef.current.delete(shape.id);
+          }}
+          visible={shapeIndex === 0}
+        >
+          {(geometryByShape.get(shape.id) ?? []).map((geometry, index) => (
+            <mesh key={index} geometry={geometry} material={materialA} castShadow receiveShadow />
+          ))}
+        </group>
       ))}
-      {renderIncoming &&
-        toGeometries.map((geometry, index) => (
-          <mesh key={\`to-\${index}\`} geometry={geometry} material={materialB} castShadow receiveShadow />
-        ))}
+      {SHAPES.map((shape) => (
+        <group
+          key={\`to-\${shape.id}\`}
+          ref={(group) => {
+            if (group) toGroupsRef.current.set(shape.id, group);
+            else toGroupsRef.current.delete(shape.id);
+          }}
+          visible={false}
+        >
+          {(geometryByShape.get(shape.id) ?? []).map((geometry, index) => (
+            <mesh key={index} geometry={geometry} material={materialB} castShadow receiveShadow />
+          ))}
+        </group>
+      ))}
     </group>
   );
 }

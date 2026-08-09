@@ -34,5 +34,8 @@ export const normalizeSvgToIconViewBox = (svgContent: string) => {
 
 export const appendVectorForgeSlash = (svgContent: string) => {
   const normalized = normalizeSvgToIconViewBox(svgContent)
-  return `<svg viewBox="0 0 24 24">${extractSvgInner(normalized)}<path data-vectorforge-slash="true" d="M1.98 3.92 2.92 1.98 21.92 20.98 21.08 22.02z"/></svg>`
+  // Parallelogram on the 24×24 grid with square ends (perpendicular to the
+  // diagonal, length ≈ 2). Keeps both the top and bottom of the bar closed;
+  // a skewed trapezoid made one end look open.
+  return `<svg viewBox="0 0 24 24">${extractSvgInner(normalized)}<path data-vectorforge-slash="true" d="M1.29 2.71 2.71 1.29 22.71 21.29 21.29 22.71z"/></svg>`
 }

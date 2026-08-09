@@ -1,10 +1,11 @@
 "use client"
 
-import { Box, Download, Video } from "lucide-react"
+import { Box, Download, LoaderCircle, Video } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type ExportAssetOptionsProps = {
   isRecording: boolean
+  isGltfExporting: boolean
   progress: number
   onExportGltf: () => void
   onExportVideo: () => void
@@ -12,6 +13,7 @@ type ExportAssetOptionsProps = {
 
 export function ExportAssetOptions({
   isRecording,
+  isGltfExporting,
   progress,
   onExportGltf,
   onExportVideo,
@@ -34,10 +36,15 @@ export function ExportAssetOptions({
         <Button
           variant="secondary"
           className="shrink-0 gap-1.5"
+          disabled={isGltfExporting}
           onClick={onExportGltf}
         >
-          <Download className="size-3.5" />
-          GLB
+          {isGltfExporting ? (
+            <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+          ) : (
+            <Download className="size-3.5" />
+          )}
+          {isGltfExporting ? "Preparing…" : "GLB"}
         </Button>
       </div>
 
@@ -49,7 +56,9 @@ export function ExportAssetOptions({
               : "border-border bg-background text-muted-foreground"
           }`}
         >
-          <Video className={`size-4 ${isRecording ? "animate-pulse" : ""}`} />
+          <Video
+            className={`size-4 ${isRecording ? "animate-pulse motion-reduce:animate-none" : ""}`}
+          />
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-medium text-foreground">Video</h3>
@@ -65,8 +74,8 @@ export function ExportAssetOptions({
         >
           {isRecording ? (
             <span
-              className="absolute inset-y-0 left-0 bg-primary/20 transition-[width] duration-150 ease-out"
-              style={{ width: `${safeProgress * 100}%` }}
+              className="absolute inset-0 origin-left bg-primary/20 transition-transform duration-150 ease-out"
+              style={{ transform: `scaleX(${safeProgress})` }}
             />
           ) : null}
           <span className="relative flex items-center gap-1.5">

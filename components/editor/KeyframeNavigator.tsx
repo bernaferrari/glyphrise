@@ -4,7 +4,7 @@ import { TimeKeyframe, clampNumber } from "./EditorModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 
 const keyframeNavButtonClass =
-  "flex size-3.5 shrink-0 items-center justify-center rounded text-muted-foreground/45 transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:outline-none"
+  "flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground/55 transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
 
 const getAdjacentKeyframeTimes = (
   keyframes: TimeKeyframe[],
@@ -67,7 +67,7 @@ const PropertyKeyframeNavButton = ({
         time === undefined ? "invisible" : "opacity-60 hover:opacity-100"
       }`}
     >
-      <Icon className="size-2.5" />
+      <Icon className="size-3" />
     </button>
   )
 }
@@ -93,7 +93,7 @@ export const KeyframeNavigator = ({
       : getAdjacentKeyframeTimes(keyframes, currentTime, duration)
 
   return (
-    <div className="-mr-2.5 flex w-[44px] shrink-0 items-center justify-end gap-0">
+    <div className="-mr-1 flex w-[64px] shrink-0 items-center justify-end gap-0">
       <PropertyKeyframeNavButton
         direction="previous"
         time={previous}

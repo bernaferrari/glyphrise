@@ -41,8 +41,8 @@ export function InspectorSection({
       <div className="flex h-6 items-center justify-between px-1.5">
         <span
           className={cn(
-            "text-[10px] font-semibold tracking-[0.14em] transition-colors",
-            active ? "text-foreground/80" : "text-muted-foreground/55"
+            "text-[11px] font-semibold tracking-[0.12em] transition-colors",
+            active ? "text-foreground/85" : "text-muted-foreground/70"
           )}
         >
           {title}
@@ -92,7 +92,7 @@ export function InspectorRow({
     >
       <div
         className={cn(
-          "flex shrink-0 items-center gap-1 text-[11px] transition-colors duration-100",
+          "flex shrink-0 items-center gap-1 text-[11px] font-medium transition-colors duration-100",
           INSPECTOR_LABEL_WIDTH,
           active ? "text-foreground" : "text-muted-foreground"
         )}
@@ -131,7 +131,7 @@ export function InspectorDisclosure({
         type="button"
         aria-expanded={open}
         onClick={() => onOpenChange(!open)}
-        className="flex h-6 items-center gap-1 rounded-lg px-1.5 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground/65 transition-colors hover:text-foreground focus-visible:outline-none"
+        className="flex h-7 items-center gap-1 rounded-lg px-1.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground/75 transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         <ChevronRight
           className={cn(

@@ -18,6 +18,7 @@ export function InspectorSlider({
   className = "flex-1",
   inputClassName = "w-[58px]",
   sliderClassName = "flex-1",
+  ariaLabel,
   onChange,
 }: {
   value: number
@@ -31,6 +32,7 @@ export function InspectorSlider({
   className?: string
   inputClassName?: string
   sliderClassName?: string
+  ariaLabel: string
   onChange: (value: number) => void
 }) {
   const { flush: flushSliderChange, schedule: scheduleSliderChange } =
@@ -56,6 +58,7 @@ export function InspectorSlider({
         step={step}
         scrubStep={scrubStep}
         precision={precision}
+        ariaLabel={ariaLabel}
         className={inputClassName}
         onChange={onChange}
       />
@@ -76,6 +79,7 @@ export function InspectorSlider({
           max={sliderMax}
           step={step}
           value={sliderValue}
+          aria-label={`${ariaLabel} slider`}
           aria-valuemin={min}
           aria-valuemax={max}
           aria-valuenow={value}
@@ -83,7 +87,7 @@ export function InspectorSlider({
           onPointerUp={flushSliderChange}
           onKeyUp={flushSliderChange}
           onBlur={flushSliderChange}
-          className="absolute inset-y-0 right-3 left-3 h-full w-auto cursor-ew-resize appearance-none opacity-0"
+          className="absolute inset-y-0 right-3 left-3 h-full w-auto cursor-ew-resize touch-none appearance-none opacity-0"
         />
       </label>
     </div>

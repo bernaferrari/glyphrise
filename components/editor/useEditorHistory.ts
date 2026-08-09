@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useLatestRef } from "@/lib/use-latest-ref"
 import type { EditorSnapshot } from "./EditorModel"
 import {
@@ -31,6 +31,10 @@ export const useEditorHistory = ({
   const snapshotRef = useRef(snapshot)
   const onRestoreRef = useLatestRef(onRestore)
   const isInputDragActiveRef = useLatestRef(isInputDragActive)
+  const [availability, setAvailability] = useState({
+    canUndo: false,
+    canRedo: false,
+  })
 
   snapshotRef.current = snapshot
 
@@ -38,6 +42,18 @@ export const useEditorHistory = ({
     isRestoringUndoRef.current = true
     rememberRestoredSnapshot(nextSnapshot, lastUndoSnapshotKeyRef)
     onRestoreRef.current(nextSnapshot)
+  }, [])
+
+  const syncAvailability = useCallback(() => {
+    const next = {
+      canUndo: undoStackRef.current.length > 1,
+      canRedo: redoStackRef.current.length > 0,
+    }
+    setAvailability((current) =>
+      current.canUndo === next.canUndo && current.canRedo === next.canRedo
+        ? current
+        : next
+    )
   }, [])
 
   useEffect(() => {
@@ -53,45 +69,50 @@ export const useEditorHistory = ({
       return
     }
 
-    pushEditorSnapshot({
+    const recorded = pushEditorSnapshot({
       snapshot,
       undoStackRef,
       redoStackRef,
       lastSnapshotKeyRef: lastUndoSnapshotKeyRef,
       maxSize,
     })
+    if (recorded) syncAvailability()
     pendingDragSnapshotRef.current = false
-  }, [canRecord, maxSize, snapshot])
+  }, [canRecord, maxSize, snapshot, syncAvailability])
 
   useEffect(() => {
     const flush = () => {
       if (pendingDragSnapshotRef.current && !isInputDragActiveRef.current()) {
         pendingDragSnapshotRef.current = false
-        pushEditorSnapshot({
+        const recorded = pushEditorSnapshot({
           snapshot: snapshotRef.current,
           undoStackRef,
           redoStackRef,
           lastSnapshotKeyRef: lastUndoSnapshotKeyRef,
           maxSize,
         })
+        if (recorded) syncAvailability()
       }
     }
     window.addEventListener("pointerup", flush)
     return () => window.removeEventListener("pointerup", flush)
-  }, [maxSize])
+  }, [maxSize, syncAvailability])
+
+  const undo = useCallback(() => {
+    const previous = stepEditorHistoryBack(undoStackRef, redoStackRef, maxSize)
+    syncAvailability()
+    if (previous) restoreSnapshot(previous)
+  }, [maxSize, restoreSnapshot, syncAvailability])
+
+  const redo = useCallback(() => {
+    const next = stepEditorHistoryForward(undoStackRef, redoStackRef, maxSize)
+    syncAvailability()
+    if (next) restoreSnapshot(next)
+  }, [maxSize, restoreSnapshot, syncAvailability])
 
   return {
-    undo: useCallback(() => {
-      const previous = stepEditorHistoryBack(
-        undoStackRef,
-        redoStackRef,
-        maxSize
-      )
-      if (previous) restoreSnapshot(previous)
-    }, [maxSize, restoreSnapshot]),
-    redo: useCallback(() => {
-      const next = stepEditorHistoryForward(undoStackRef, redoStackRef, maxSize)
-      if (next) restoreSnapshot(next)
-    }, [maxSize, restoreSnapshot]),
+    undo,
+    redo,
+    ...availability,
   }
 }

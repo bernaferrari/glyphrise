@@ -64,8 +64,12 @@ export function useSvgCanvasImperativeHandle({
 }: SvgCanvasImperativeHandleOptions) {
   useImperativeHandle(ref, () => ({
     exportGltf() {
-      if (!pivotGroupRef.current) return
-      exportFilamentGltf({
+      if (!pivotGroupRef.current) {
+        return Promise.reject(
+          new Error("The 3D preview is not ready to export yet.")
+        )
+      }
+      return exportFilamentGltf({
         pivotGroup: pivotGroupRef.current,
         props,
         sourceGroups: [iconAGroupRef.current, iconBGroupRef.current],

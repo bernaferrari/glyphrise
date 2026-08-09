@@ -11,7 +11,9 @@ type TimelineDockProps = {
 export function TimelineDock({ zenMode, timelineProps }: TimelineDockProps) {
   return (
     <div
-      className={`shrink-0 overflow-hidden transition-[height,background-color,border-color] duration-500 ease-in-out ${
+      inert={zenMode}
+      aria-hidden={zenMode}
+      className={`shrink-0 overflow-hidden ${
         zenMode
           ? "h-0 border-t-0"
           : "h-[184px] border-t border-border bg-background"

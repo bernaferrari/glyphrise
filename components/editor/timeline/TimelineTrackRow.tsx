@@ -162,10 +162,10 @@ export function TimelineTrackRow({
 
       {!animated && (
         <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center gap-1.5">
-          <span className="rounded-md border border-border/55 bg-background/85 px-1.5 py-0.5 font-mono text-[10px] text-foreground tabular-nums">
+          <span className="rounded-md border border-border/55 bg-background/85 px-1.5 py-0.5 font-mono text-[11px] text-foreground tabular-nums">
             {formatValueLabel(track, track.defaultValue)}
           </span>
-          <span className="rounded-md bg-muted/65 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+          <span className="rounded-md bg-muted/65 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
             static
           </span>
         </div>
@@ -178,7 +178,7 @@ export function TimelineTrackRow({
             style={{ backgroundColor: track.color }}
           />
           {firstEasing ? (
-            <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+            <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] text-muted-foreground">
               {firstEasing}
             </span>
           ) : null}

@@ -1,3 +1,4 @@
+import type { RefObject } from "react"
 import { Trash2, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +27,7 @@ import { WipePairsSection } from "./WipePairsSection"
 
 export function ShapePickerContent({
   open,
+  finalFocusRef,
   onOpenChange,
   stop,
   shapeCount,
@@ -55,6 +57,7 @@ export function ShapePickerContent({
   onRemoveShape,
 }: {
   open: boolean
+  finalFocusRef: RefObject<HTMLElement | null>
   onOpenChange: (open: boolean) => void
   stop: ShapeStop
   shapeCount: number
@@ -92,7 +95,8 @@ export function ShapePickerContent({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="!flex !w-[min(720px,calc(100vw-32px))] !max-w-[min(720px,calc(100vw-32px))] max-h-[min(78vh,620px)] flex-col gap-0 overflow-hidden p-0 shadow-2xl"
+        finalFocus={finalFocusRef}
+        className="!flex max-h-[min(78vh,620px)] !w-[min(720px,calc(100vw-32px))] !max-w-[min(720px,calc(100vw-32px))] flex-col gap-0 overflow-hidden p-0 shadow-2xl"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -107,10 +111,11 @@ export function ShapePickerContent({
             />
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-sm font-semibold text-foreground">
-                Shape
+                Choose icon
               </DialogTitle>
               <DialogDescription className="sr-only">
-                Choose the symbol, wipe pair, or preset for this timeline shape.
+                Choose the symbol, wipe pair, preset, or uploaded SVG for this
+                icon clip.
               </DialogDescription>
               <div className="mt-1 truncate text-[11px] text-muted-foreground">
                 {stop.iconName ?? stop.iconId}
@@ -135,8 +140,8 @@ export function ShapePickerContent({
                   type="button"
                   variant="destructive"
                   size="icon-sm"
-                  aria-label="Remove shape"
-                  title="Remove shape"
+                  aria-label="Remove icon clip"
+                  title="Remove icon clip"
                   onClick={() => {
                     onRemoveShape(stop.id)
                     onOpenShapePicker(null)
@@ -160,7 +165,9 @@ export function ShapePickerContent({
             materialSymbolStatus={materialSymbolStatus}
             normalizedShapeQuery={normalizedShapeQuery}
             shapeSearchQuery={shapeSearchQuery}
-            onMaterialSymbolOptionsOpenChange={onMaterialSymbolOptionsOpenChange}
+            onMaterialSymbolOptionsOpenChange={
+              onMaterialSymbolOptionsOpenChange
+            }
             onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
             onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
             onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
@@ -182,7 +189,7 @@ export function ShapePickerContent({
             >
               {favoriteMaterialSymbols.length > 0 && (
                 <section className="mb-3">
-                  <div className="mb-1.5 px-0.5 text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                  <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                     Favorites
                   </div>
                   <MaterialSymbolGrid
@@ -205,7 +212,7 @@ export function ShapePickerContent({
 
               {recentMaterialSymbols.length > 0 && (
                 <section className="mb-3">
-                  <div className="mb-1.5 px-0.5 text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                  <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                     Recent
                   </div>
                   <MaterialSymbolGrid

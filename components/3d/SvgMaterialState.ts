@@ -187,7 +187,11 @@ export const updateGroupFillColors = (
   if (!group) return
   const forceGraphiteCut = isGraphiteCutPreset(materialPreset)
   const useVertexColors = Boolean(enableGradient && !forceGraphiteCut)
-  const stops = gradientStopsFromFill(colorStops, color, colorSecondary ?? color)
+  const stops = gradientStopsFromFill(
+    colorStops,
+    color,
+    colorSecondary ?? color
+  )
   const iconBounds = new THREE.Box2(
     new THREE.Vector2(0, 0),
     new THREE.Vector2(ICON_VIEWBOX_SIZE, ICON_VIEWBOX_SIZE)
@@ -219,12 +223,17 @@ export const updateGroupFillColors = (
         vertexColors?: boolean
       }
       let needsUpdate = false
-      if (writable.vertexColors !== undefined && writable.vertexColors !== useVertexColors) {
+      if (
+        writable.vertexColors !== undefined &&
+        writable.vertexColors !== useVertexColors
+      ) {
         writable.vertexColors = useVertexColors
         needsUpdate = true
       }
       if (writable.color) {
-        writable.color.set(forceGraphiteCut ? "#2f3031" : useVertexColors ? "#ffffff" : color)
+        writable.color.set(
+          forceGraphiteCut ? "#2f3031" : useVertexColors ? "#ffffff" : color
+        )
       }
       if (writable.emissive && emissiveIntensity > 0 && !useVertexColors) {
         writable.emissive.set(color)

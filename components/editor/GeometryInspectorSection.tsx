@@ -67,7 +67,7 @@ export function GeometryInspectorSection({
     : 0
 
   return (
-    <InspectorSection title="SHAPE" action={keyframeControl}>
+    <InspectorSection title="GEOMETRY" action={keyframeControl}>
       <InspectorRow
         label="Extrude"
         rowRef={extrusionRef}
@@ -83,6 +83,7 @@ export function GeometryInspectorSection({
           step={0.25}
           scrubStep={1}
           precision={2}
+          ariaLabel="Extrusion depth"
           onChange={(value) => {
             onDepthChange(value)
             onCustomEdit()
@@ -98,6 +99,7 @@ export function GeometryInspectorSection({
           sliderMax={1}
           step={0.02}
           precision={2}
+          ariaLabel="Crown"
           onChange={(value) => {
             const next = Math.max(0, Math.min(1, value))
             onBevelEnabledChange(next > 0)
@@ -119,6 +121,7 @@ export function GeometryInspectorSection({
           sliderMax={12}
           step={1}
           precision={0}
+          ariaLabel="Bevel segments"
           onChange={(value) => {
             const nextSegments = Math.max(0, Math.round(value))
             onBevelEnabledChange(nextSegments > 0)
@@ -139,6 +142,7 @@ export function GeometryInspectorSection({
           sliderMax={0.08}
           step={0.005}
           precision={3}
+          ariaLabel="Geometry quality"
           onChange={onQualityChange}
         />
       </InspectorRow>

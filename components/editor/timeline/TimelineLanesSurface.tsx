@@ -2,7 +2,7 @@
 
 import React from "react"
 import { TimelineLaneBackground } from "./TimelineLaneBackground"
-import { TimelineEndCap, TimelinePlayheadLine } from "./TimelineLaneOverlays"
+import { TimelinePlayheadLine } from "./TimelineLaneOverlays"
 import { TimelinePropertyRows } from "./TimelinePropertyRows"
 import { TimelineRuler } from "./TimelineRuler"
 import { TimelineShapeLane } from "./TimelineShapeLane"
@@ -25,9 +25,11 @@ export function TimelineLanesSurface({
         viewport.syncLeftRailScroll(event.currentTarget.scrollTop)
       }
     >
-      <div className="flex min-w-full">
+      {/* min-h-full so lanes fill the dock when there are few rows — otherwise a
+          blank bg-background slab shows under "Add property". */}
+      <div className="flex min-h-full min-w-full">
         <div
-          className="relative shrink-0"
+          className="relative flex min-h-full shrink-0 flex-col"
           style={{
             width: `${viewport.timelineZoom * 100}%`,
             minWidth: "100%",
@@ -49,7 +51,7 @@ export function TimelineLanesSurface({
             }}
           />
 
-          <div className="relative">
+          <div className="relative min-h-0 flex-1">
             <TimelineLaneBackground
               duration={viewport.duration}
               secondGridTicks={viewport.secondGridTicks}
@@ -128,9 +130,13 @@ export function TimelineLanesSurface({
               onOpenContextMenu={menu.onOpenContextMenu}
               createGoToMenuItem={menu.createGoToMenuItem}
             />
+            {/* Keep lane height in sync with the left-rail "Add property" row so
+                second-grid lines and the playhead are not cut short by empty bg. */}
+            {trackLane.showAddPropertyRow && (
+              <div className="h-9 border-b border-border" aria-hidden="true" />
+            )}
           </div>
           <TimelinePlayheadLine playheadX={viewport.playheadX} />
-          <TimelineEndCap />
         </div>
         <TimelineZoomControls
           zoom={viewport.timelineZoom}

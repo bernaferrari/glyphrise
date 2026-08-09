@@ -106,6 +106,7 @@ export function TransformInspectorSection({
             sliderMax={2}
             step={0.05}
             precision={2}
+            ariaLabel="Scale"
             onChange={(value) => {
               onScaleChange(value)
               onCustomEdit()
@@ -118,6 +119,7 @@ export function TransformInspectorSection({
             max={SCALE_MAX}
             step={0.05}
             precision={2}
+            ariaLabel="Scale"
             onChange={onScaleAxisChange}
           />
         )}
@@ -138,6 +140,7 @@ export function TransformInspectorSection({
           scrubStep={3}
           suffix="°"
           precision={0}
+          ariaLabel="Rotation"
           onChange={(axis, value) =>
             onRotationAxisChange(
               axis,
@@ -160,6 +163,7 @@ export function TransformInspectorSection({
           max={100}
           step={1}
           precision={0}
+          ariaLabel="Position"
           onChange={onMoveAxisChange}
         />
       </InspectorRow>

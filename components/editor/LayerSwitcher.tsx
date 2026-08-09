@@ -68,13 +68,13 @@ function LayerSwitcherComponent({
       <div className="flex min-h-9 items-start gap-2 px-2.5 py-1.5">
         <span className="flex h-6 shrink-0 items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
           <Layers className="size-3.5" />
-          Layers
+          SVG paths
         </span>
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-1">
           <LayerChip
             active={isAllLayers}
-            label="All"
+            label="All paths"
             onClick={() => onSelectLayer(ALL_LAYERS_ID)}
           />
           {layers.map((layer, index) => (
@@ -82,7 +82,7 @@ function LayerSwitcherComponent({
               key={layer.id}
               active={layer.id === selectedLayerId}
               label={`${index + 1}`}
-              title={`Layer ${index + 1}`}
+              title={`SVG path ${index + 1}: ${layer.name}`}
               onClick={() => onSelectLayer(layer.id)}
             />
           ))}
@@ -100,6 +100,7 @@ function LayerSwitcherComponent({
               step={0.01}
               scrubStep={0.03}
               precision={2}
+              ariaLabel="SVG path scale"
               onChange={onScaleChange}
             />
           </InspectorRow>
@@ -111,6 +112,7 @@ function LayerSwitcherComponent({
               sliderMax={1.8}
               step={0.05}
               precision={2}
+              ariaLabel="SVG path depth"
               onChange={onDepthChange}
             />
           </InspectorRow>
@@ -120,7 +122,7 @@ function LayerSwitcherComponent({
                 checked={visible}
                 onCheckedChange={onToggleVisibility}
                 size="sm"
-                aria-label={visible ? "Hide layer" : "Show layer"}
+                aria-label={visible ? "Hide SVG path" : "Show SVG path"}
               />
             </div>
           </InspectorRow>

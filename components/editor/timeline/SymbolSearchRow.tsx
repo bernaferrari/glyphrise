@@ -56,6 +56,8 @@ export function SymbolSearchRow({
         onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
       />
       <input
+        type="search"
+        aria-label="Search Material Symbols"
         value={shapeSearchQuery}
         onChange={(event) => {
           onShapeSearchQueryChange(event.currentTarget.value)

@@ -132,11 +132,11 @@ export const safeShapeExtrudeSettings = ({
   // aggressive crown bevel; a large 1-segment bevel relative to their short dimension
   // collapses the top face at the curved ends/joints and produces the visible "holes"
   // and broken joints under cut finishes.
-  const aspect = Math.max(shapeSize.x, shapeSize.y) / Math.max(0.001, Math.min(shapeSize.x, shapeSize.y))
+  const aspect =
+    Math.max(shapeSize.x, shapeSize.y) /
+    Math.max(0.001, Math.min(shapeSize.x, shapeSize.y))
   const isElongated = aspect > 1.7
-  const crownBevelFactor = useCrownBevel
-    ? (isElongated ? 0.22 : 0.49)
-    : 0.49
+  const crownBevelFactor = useCrownBevel ? (isElongated ? 0.22 : 0.49) : 0.49
   const medialContourLimit = Math.max(0.001, contourMinDim * crownBevelFactor)
   const medialShapeLimit = Math.max(0.001, shapeMinDim * crownBevelFactor)
   const bevelContourLimit = useCrownBevel

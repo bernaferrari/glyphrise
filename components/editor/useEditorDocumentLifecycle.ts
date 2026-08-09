@@ -18,7 +18,7 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
     timelineTracks,
   } = editor
 
-  useEditorRecipeSurface({
+  const applyRecipe = useEditorRecipeSurface({
     duration: playback.duration,
     setActiveRecipeId: shapes.setActiveRecipeId,
     setMaterialPreset: material.setMaterialPreset,
@@ -100,9 +100,19 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
   })
 
   return {
+    historyActions: {
+      undo: historySurface.undo,
+      redo: historySurface.redo,
+      canUndo: historySurface.canUndo,
+      canRedo: historySurface.canRedo,
+    },
     projectFiles: {
+      newProject: historySurface.newProject,
       openProjectFile: historySurface.openProjectFile,
       saveProjectFile: historySurface.saveProjectFile,
+      projectStatus: historySurface.projectStatus,
+      projectStatusMessage: historySurface.projectStatusMessage,
     },
+    recipeActions: { applyRecipe },
   }
 }

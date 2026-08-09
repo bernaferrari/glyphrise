@@ -239,14 +239,19 @@ export function useTimelineController({
     previousVisibleRowIdsRef.current = visibleRowIds
     if (!previousRowIds) return
 
-    const newRowId = visibleRowIds.find((rowId) => !previousRowIds.includes(rowId))
+    const newRowId = visibleRowIds.find(
+      (rowId) => !previousRowIds.includes(rowId)
+    )
     if (!newRowId) return
 
     const rowIndex = 1 + visibleRowIds.indexOf(newRowId)
     const targetScrollTop = Math.max(0, rowIndex * 36 - 12)
     const scroller = timelineScrollRef.current
     if (scroller) {
-      const maxScrollTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+      const maxScrollTop = Math.max(
+        0,
+        scroller.scrollHeight - scroller.clientHeight
+      )
       const nextScrollTop = Math.min(targetScrollTop, maxScrollTop)
       scroller.scrollTo({ top: nextScrollTop, behavior: "auto" })
       syncLeftRailScroll(nextScrollTop)
@@ -370,6 +375,7 @@ export function useTimelineController({
       },
       trackLane: {
         tracks: visibleTracks,
+        showAddPropertyRow: hiddenTracks.length > 0,
         revealedRowId,
         activeTrackId,
         selectedKeyframe,

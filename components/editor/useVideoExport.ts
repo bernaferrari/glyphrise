@@ -92,7 +92,9 @@ export const useVideoExport = ({
     clearExportTimeout()
     clearExportFrame()
     if (!recordingStartedRef.current) {
-      failVideoExport(new Error("Video export stopped before recording started."))
+      failVideoExport(
+        new Error("Video export stopped before recording started.")
+      )
       return
     }
     try {

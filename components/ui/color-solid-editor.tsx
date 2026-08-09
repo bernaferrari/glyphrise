@@ -180,6 +180,7 @@ export function SolidColorEditor({
               <input
                 key={`${format}-${index}`}
                 type="text"
+                aria-label={`${format} channel ${index + 1}`}
                 value={Math.round(value)}
                 onChange={(event) =>
                   updateFormatValue(index, event.target.value)
@@ -197,6 +198,7 @@ export function SolidColorEditor({
               <div className="flex h-8 min-w-0 items-center rounded-r-lg border border-border bg-muted/45 px-1 font-mono text-foreground">
                 <input
                   type="text"
+                  aria-label="Alpha percentage"
                   value={Math.round(alpha * 100)}
                   onChange={(event) => handleAlphaChange(event.target.value)}
                   className="min-w-0 flex-1 border-0 bg-transparent p-0 text-center font-mono text-foreground outline-none"
@@ -217,6 +219,7 @@ export function SolidColorEditor({
             </span>
             <input
               type="text"
+              aria-label="Hex color"
               value={inputText.replace(/^#/, "")}
               onChange={(e) => handleTextChange(e.target.value)}
               onKeyDown={handleKeyDown}

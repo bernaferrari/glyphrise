@@ -298,10 +298,10 @@ const distanceToContour = (point: THREE.Vector2, contour: THREE.Vector2[]) => {
   return best
 }
 
-// The medial roof may rebuild its contours with light decimation (worst near
-// zero-width pinch points, ~0.6% of a 20-unit icon), so samples are allowed
-// to sit within a small boundary tolerance; the check still catches roof
-// sheets bridging across holes (those land far inside a hole).
+// The medial roof may rebuild its contours with light rescue decimation
+// (worst near zero-width pinch points, ~0.6% of a 20-unit icon), so samples
+// are allowed to sit within a small boundary tolerance; the check still
+// catches roof sheets bridging across holes (those land far inside a hole).
 const elevatedRoofTrianglesStayInsideFill = (
   geometry: THREE.BufferGeometry,
   shape: THREE.Shape,

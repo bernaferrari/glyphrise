@@ -1,7 +1,7 @@
 "use client"
 
 import React, { type DragEvent } from "react"
-import { Upload } from "lucide-react"
+import { AlertTriangle, Upload, X } from "lucide-react"
 import {
   SvgCanvas,
   type SvgCanvasProps,
@@ -13,6 +13,7 @@ import {
   ViewOptionsPopover,
   type ViewOptionsPopoverProps,
 } from "./ViewportControls"
+import { QuickStartGuide, type QuickStartGuideProps } from "./QuickStartGuide"
 
 type ViewportStageProps = {
   zenMode: boolean
@@ -20,6 +21,9 @@ type ViewportStageProps = {
   canvasProps: SvgCanvasProps
   viewOptionsProps: ViewOptionsPopoverProps
   playbackProps: PlaybackControlsProps
+  quickStartProps: QuickStartGuideProps
+  svgImportError: string | null
+  onSvgImportErrorDismiss: () => void
   onDragStateChange: (isDragging: boolean) => void
   onDropSvg: (event: DragEvent<HTMLElement>) => void
 }
@@ -32,6 +36,9 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
       canvasProps,
       viewOptionsProps,
       playbackProps,
+      quickStartProps,
+      svgImportError,
+      onSvgImportErrorDismiss,
       onDragStateChange,
       onDropSvg,
     },
@@ -63,7 +70,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
 
     return (
       <div
-        className={`flex min-w-0 flex-1 flex-col transition-[gap,padding] duration-300 ease-out ${
+        className={`flex min-w-0 flex-1 flex-col ${
           zenMode ? "gap-0 p-0" : "gap-2 p-4"
         }`}
       >
@@ -79,6 +86,31 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
         >
           <SvgCanvas ref={ref} {...canvasProps} />
 
+          <QuickStartGuide {...quickStartProps} />
+
+          {svgImportError ? (
+            <div
+              role="alert"
+              className="absolute top-4 left-1/2 z-40 flex w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-2xl backdrop-blur-md"
+            >
+              <AlertTriangle
+                aria-hidden="true"
+                className="size-4 shrink-0 text-destructive"
+              />
+              <span className="min-w-0 flex-1 text-pretty">
+                {svgImportError}
+              </span>
+              <button
+                type="button"
+                aria-label="Dismiss SVG import error"
+                onClick={onSvgImportErrorDismiss}
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            </div>
+          ) : null}
+
           {isDragging && (
             <div className="animate-fade-in absolute inset-0 z-30 flex items-center justify-center bg-black/75 backdrop-blur-md">
               <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-white/25 p-8">
@@ -87,7 +119,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
                   <span className="block text-sm font-semibold text-white">
                     Drop SVG here
                   </span>
-                  <span className="mt-1 block text-[10px] tracking-wider text-muted-foreground uppercase">
+                  <span className="mt-1 block text-[11px] tracking-wider text-muted-foreground uppercase">
                     Replaces the selected shape
                   </span>
                 </div>

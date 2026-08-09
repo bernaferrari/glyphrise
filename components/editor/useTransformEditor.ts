@@ -54,11 +54,12 @@ export function useTransformEditor() {
       (value) => setTransformSetting("rotationOffset", value),
       [setTransformSetting]
     )
-  const setPreviewRotationOffset: Dispatch<SetStateAction<LightPosition | null>> =
-    useCallback(
-      (value) => setTransformSetting("previewRotationOffset", value),
-      [setTransformSetting]
-    )
+  const setPreviewRotationOffset: Dispatch<
+    SetStateAction<LightPosition | null>
+  > = useCallback(
+    (value) => setTransformSetting("previewRotationOffset", value),
+    [setTransformSetting]
+  )
   const setIsScaleLocked: Dispatch<SetStateAction<boolean>> = useCallback(
     (value) => setTransformSetting("isScaleLocked", value),
     [setTransformSetting]

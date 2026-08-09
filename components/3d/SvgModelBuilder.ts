@@ -20,6 +20,7 @@ import {
   cacheInnerGeometryElements,
 } from "./SvgGeometryScale"
 import { svgExtrudeBaseSettings } from "./SvgExtrudeSettings"
+import { unionOverlappingSvgShapes } from "./SvgShapeUnion"
 import { createSvgPathMaterial } from "./SvgPathMaterial"
 import {
   collectRoofRidgeHeights,
@@ -29,8 +30,19 @@ import {
   type MedialRoofPitch,
 } from "./SvgShapeGeometry"
 import type { SkeletonRoofResult } from "./StraightSkeleton"
-import { parseSvgShapes, type ParsedSvgShapes } from "./SvgParsing"
+import {
+  parseSvgShapes,
+  type ParsedSvgPath,
+  type ParsedSvgShapes,
+} from "./SvgParsing"
 import type { SvgCanvasProps } from "./SvgTypes"
+
+const isVectorForgeSlashPath = (path: ParsedSvgPath) =>
+  (
+    path.userData?.node as
+      | { getAttribute?: (name: string) => string | null }
+      | undefined
+  )?.getAttribute?.("data-vectorforge-slash") === "true"
 
 export const buildSvgIconGroup = ({
   svgContent,
@@ -52,8 +64,8 @@ export const buildSvgIconGroup = ({
   try {
     parsedSvg = parseSvgShapes(svgContent)
   } catch (error) {
-    console.error("Failed to parse SVG content:", error)
-    return group
+    const detail = error instanceof Error ? ` ${error.message}` : ""
+    throw new Error(`Could not parse the SVG geometry.${detail}`)
   }
 
   const { paths, shapesByPath } = parsedSvg
@@ -119,27 +131,46 @@ export const buildSvgIconGroup = ({
   )
   const useGradientVertexColors = Boolean(props.enableGradient)
 
-  // Precompute every shape's skeleton roof so the chisel pitch can be derived
-  // from the combined ridge statistics. One shared pitch keeps all strokes of
-  // the icon (and every glyph of a multi-shape text) meeting their medial
-  // ridge lines at the same angle, like the reference chiseled numbers.
+  // Under cut finishes every visible shape across all paths is welded into
+  // one region before roofing: overlapping or abutting strokes then share a
+  // single skeleton roof whose ridges meet in real junction gables, instead
+  // of two finished solids interpenetrating ("pillars glued together, no
+  // concrete"). The union also removes the need for any per-layer z gap.
   const wantsMedialRoof =
     baseExtrude.crownEnabled && baseExtrude.crownMode === "medial"
-  const medialRoofByShape = new Map<THREE.Shape, SkeletonRoofResult | null>()
-  let sharedRoofPitch: MedialRoofPitch | null = null
+  const cutSourcePaths: ParsedSvgPath[] = []
+  let cutBodyShapes: THREE.Shape[] | null = null
   if (wantsMedialRoof) {
-    const ridgeHeightsByShape: number[][] = []
+    const collected: THREE.Shape[] = []
     paths.forEach((path, pathIndex) => {
-      const isSlashOverlay =
-        path.userData?.node?.getAttribute?.("data-vectorforge-slash") === "true"
+      const isSlashOverlay = isVectorForgeSlashPath(path)
       if (isSlashOverlay) return
       shapesByPath[pathIndex].forEach((shape, shapeIndex) => {
         const override = overrideByLayerId.get(`${pathIndex}:${shapeIndex}`)
         if (override && !override.visible) return
-        const roof = computeShapeMedialRoof(shape, baseExtrude.curveSegments)
-        medialRoofByShape.set(shape, roof)
-        if (roof) ridgeHeightsByShape.push(collectRoofRidgeHeights(roof))
+        cutSourcePaths.push(path)
+        collected.push(shape)
       })
+    })
+    if (collected.length > 0) {
+      cutBodyShapes =
+        collected.length > 1 ? unionOverlappingSvgShapes(collected) : collected
+    }
+  }
+  const cutBodyPath = cutSourcePaths.length > 0 ? cutSourcePaths[0] : null
+
+  // Precompute every welded shape's skeleton roof so the chisel pitch can be
+  // derived from the combined ridge statistics. One shared pitch keeps all
+  // strokes of the icon (and every glyph of a multi-shape text) meeting
+  // their medial ridge lines at the same angle, like the reference numbers.
+  const medialRoofByShape = new Map<THREE.Shape, SkeletonRoofResult | null>()
+  let sharedRoofPitch: MedialRoofPitch | null = null
+  if (cutBodyShapes) {
+    const ridgeHeightsByShape: number[][] = []
+    cutBodyShapes.forEach((shape) => {
+      const roof = computeShapeMedialRoof(shape, baseExtrude.curveSegments)
+      medialRoofByShape.set(shape, roof)
+      if (roof) ridgeHeightsByShape.push(collectRoofRidgeHeights(roof))
     })
     sharedRoofPitch = medialRoofPitchFromHeights(
       ridgeHeightsByShape,
@@ -148,11 +179,95 @@ export const buildSvgIconGroup = ({
     )
   }
 
+  const applyGradient = (geometry: THREE.BufferGeometry) => {
+    if (!useGradientVertexColors) return
+    const stops =
+      gradientStops.length > 0
+        ? gradientStops
+        : gradientStopsFromFill(
+            fallbackGoogleMeshStops,
+            props.colorA,
+            props.colorB
+          )
+    applyGradientVertexColors(geometry, gradientType, stops, iconBounds)
+  }
+
+  // The welded cut body renders as one solid: every piece at z = 0 with one
+  // material. Per-layer color/scale overrides do not apply here (visibility
+  // already filtered the union input); the slash overlay still renders via
+  // the regular path loop below.
+  if (cutBodyShapes && cutBodyPath) {
+    const bodyColor = cutBodyPath.color
+      ? `#${cutBodyPath.color.getHexString()}`
+      : isIconA
+        ? props.colorA
+        : props.colorB
+    cutBodyShapes.forEach((shape, shapeIndex) => {
+      const shapePts = shape.getPoints(12)
+      if (
+        shapePts.length < 2 ||
+        shapePts.some((pt) => !Number.isFinite(pt.x) || !Number.isFinite(pt.y))
+      ) {
+        return
+      }
+      const shapeBox = new THREE.Box2().setFromPoints(shapePts)
+      const shapeSize = new THREE.Vector2()
+      shapeBox.getSize(shapeSize)
+      if (!Number.isFinite(shapeSize.x) || !Number.isFinite(shapeSize.y)) {
+        return
+      }
+
+      const shapeGeometry = createSvgShapeGeometry({
+        shape,
+        shapeSize,
+        baseExtrude,
+        depthMultiplier: 1,
+        bevelEnabled: props.bevelEnabled,
+        slashDepthRatio: VECTORFORGE_SLASH_DEPTH_RATIO,
+        isSlashOverlay: false,
+        medialRoofPlan: {
+          roof: medialRoofByShape.get(shape) ?? null,
+          pitch: sharedRoofPitch,
+        },
+      })
+      if (!shapeGeometry) return
+
+      const { geometry } = shapeGeometry
+      applyGradient(geometry)
+
+      const mesh = new THREE.Mesh(
+        geometry,
+        createSvgPathMaterial({
+          props,
+          color: bodyColor,
+          isIconA,
+          isCrossfade,
+          useGradientVertexColors,
+          layerOrder,
+          isSlashOverlay: false,
+          clippingPlanes,
+        })
+      )
+      mesh.userData.pathLayerId = `cut:${shapeIndex}`
+      mesh.userData.iconColorRole = isIconA ? "a" : "b"
+      mesh.position.z = 0
+      mesh.renderOrder = layerOrder
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      group.add(mesh)
+      layerOrder += 1
+    })
+  }
+
   paths.forEach((path, pathIndex) => {
-    const isSlashOverlay =
-      path.userData?.node?.getAttribute?.("data-vectorforge-slash") === "true"
+    const isSlashOverlay = isVectorForgeSlashPath(path)
 
     shapesByPath[pathIndex].forEach((shape, shapeIndex) => {
+      // The welded cut body already rendered every non-slash shape.
+      if (cutBodyShapes && !isSlashOverlay) {
+        layerOrder += 1
+        return
+      }
       const layerId = `${pathIndex}:${shapeIndex}`
       const override = overrideByLayerId.get(layerId)
 
@@ -222,18 +337,7 @@ export const buildSvgIconGroup = ({
       }
 
       const { geometry, extrude } = shapeGeometry
-
-      if (useGradientVertexColors) {
-        const stops =
-          gradientStops.length > 0
-            ? gradientStops
-            : gradientStopsFromFill(
-                fallbackGoogleMeshStops,
-                props.colorA,
-                props.colorB
-              )
-        applyGradientVertexColors(geometry, gradientType, stops, iconBounds)
-      }
+      applyGradient(geometry)
 
       const mesh = new THREE.Mesh(geometry, pathMaterial)
       mesh.userData.pathLayerId = layerId

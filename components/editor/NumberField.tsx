@@ -16,6 +16,7 @@ export function NumberField({
   scrubStep,
   prefix,
   prefixColor,
+  ariaLabel,
   suffix = "",
   precision = 1,
   className = "w-[62px]",
@@ -29,6 +30,7 @@ export function NumberField({
   scrubStep?: number
   prefix?: string
   prefixColor?: string
+  ariaLabel: string
   suffix?: string
   precision?: number
   className?: string
@@ -97,7 +99,7 @@ export function NumberField({
     >
       {prefix && (
         <span
-          className={`mr-1 text-[10px] leading-none ${prefixColor ? "font-medium" : "font-medium text-muted-foreground/70"}`}
+          className={`mr-1 text-[11px] leading-none ${prefixColor ? "font-medium" : "font-medium text-muted-foreground/70"}`}
           style={prefixColor ? { color: prefixColor } : undefined}
         >
           {prefix}
@@ -107,6 +109,7 @@ export function NumberField({
         ref={inputRef}
         type="text"
         value={displayValue}
+        aria-label={ariaLabel}
         inputMode="decimal"
         aria-valuemin={min}
         aria-valuemax={max}
@@ -128,10 +131,10 @@ export function NumberField({
             onChange(clampInspectorValue(value + step * direction, min, max))
           }
         }}
-        className={`min-w-0 flex-1 cursor-ew-resize bg-transparent text-[12px] text-foreground tabular-nums outline-none focus:cursor-text ${inputClassName}`}
+        className={`min-w-0 flex-1 cursor-ew-resize bg-transparent text-base text-foreground tabular-nums outline-none focus:cursor-text md:text-[12px] ${inputClassName}`}
       />
       {suffix && (
-        <span className="pl-0.5 text-[10px] text-muted-foreground">
+        <span className="pl-0.5 text-[11px] text-muted-foreground">
           {suffix}
         </span>
       )}

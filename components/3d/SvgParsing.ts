@@ -32,7 +32,7 @@ export const parseSvgShapes = (svgContent: string) => {
   return rememberParsedSvgShapes(normalizedSvg, {
     paths: svgData.paths,
     shapesByPath: svgData.paths.map((path) =>
-      unionOverlappingSvgShapes(SVGLoader.createShapes(path))
+      unionOverlappingSvgShapes(path.toShapes())
     ),
   })
 }

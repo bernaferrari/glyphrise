@@ -9,11 +9,20 @@ import { useEditorInspectorSurface } from "./useEditorInspectorSurface"
 import { useEditorRenderState } from "./useEditorRenderState"
 import { useEditorMotionSurface } from "./useEditorMotionSurface"
 import type { AppLayoutViewProps } from "./AppLayoutView"
+import { useQuickStartGuideController } from "./useQuickStartGuideController"
 
 export function useAppLayoutController(): AppLayoutViewProps {
   const editor = useEditorBaseState()
   const {
-    projectFiles: { openProjectFile, saveProjectFile },
+    projectFiles: {
+      newProject,
+      openProjectFile,
+      saveProjectFile,
+      projectStatus,
+      projectStatusMessage,
+    },
+    historyActions: { undo, redo, canUndo, canRedo },
+    recipeActions: { applyRecipe },
   } = useEditorDocumentLifecycle(editor)
 
   const {
@@ -174,6 +183,14 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
   } = editor
 
+  const { openGuide, quickStartProps } = useQuickStartGuideController({
+    selectedShapeId,
+    setOpenShapePicker,
+    isPlaying,
+    togglePlayback: handlePlayToggle,
+    applyRecipe,
+  })
+
   const {
     sortedShapes,
     morph,
@@ -214,6 +231,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     setShapes,
     selectedShapeId,
     setSelectedShapeId,
+    setOpenShapePicker,
     currentTime,
     fillColor,
     fillColorSecondary,
@@ -285,6 +303,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
     handleUploadInputChange,
     handleDropSvg,
     triggerShapeUpload,
+    svgImportError,
+    clearSvgImportError,
     exportModalProps,
   } = useEditorExportSurface({
     selectedShapeId,
@@ -596,8 +616,16 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onZenModeChange: setZenMode,
       onThemeChange: setTheme,
       onAutoKeyChange: setAutoKeyEnabled,
+      onProjectNew: newProject,
       onProjectOpen: openProjectFile,
       onProjectSave: saveProjectFile,
+      projectStatus,
+      projectStatusMessage,
+      onUndo: undo,
+      onRedo: redo,
+      canUndo,
+      canRedo,
+      onGuideOpen: openGuide,
       onExportOpen: openExport,
     },
     viewportProps: {
@@ -605,9 +633,12 @@ export function useAppLayoutController(): AppLayoutViewProps {
       isDragging,
       onDragStateChange: setIsDragging,
       onDropSvg: handleDropSvg,
+      svgImportError,
+      onSvgImportErrorDismiss: clearSvgImportError,
       canvasProps,
       viewOptionsProps,
       playbackProps,
+      quickStartProps,
     },
     inspectorProps: {
       zenMode,

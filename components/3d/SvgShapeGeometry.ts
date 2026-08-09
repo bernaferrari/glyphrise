@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js"
 import { containsInvalidPositions } from "./SvgGeometry"
 import {
   safeShapeExtrudeSettings,
@@ -265,8 +266,19 @@ const createSkeletonRoofCaps = (
   baseExtrude: SvgExtrudeBaseSettings
 ): THREE.BufferGeometry | null => {
   const profileSign = baseExtrude.crownProfile === "inset" ? -1 : 1
-  const elevationOf = (h: number) =>
-    pitch.slope * Math.min(h, pitch.clipH)
+  const elevationOf = (h: number) => pitch.slope * Math.min(h, pitch.clipH)
+
+  // Ridge nodes of a reference-width stroke oscillate a hair around the clip
+  // height (curve-sampling noise), so the clip line would slice back and
+  // forth across the ridge and shred it into flickering plateau/peak
+  // slivers. Snap anything within the band onto the clip plane so the ridge
+  // reads as one continuous line; vertices far above the clip keep their
+  // height so the plateau boundary of genuinely wide pockets stays exact.
+  const snapBand = pitch.clipH * 0.06
+  const snapVertex = (vertex: RoofVertex): RoofVertex =>
+    Math.abs(vertex.h - pitch.clipH) < snapBand && vertex.h !== pitch.clipH
+      ? { x: vertex.x, y: vertex.y, h: pitch.clipH }
+      : vertex
 
   const positions: number[] = []
   const pushTriangle = (a: RoofVertex, b: RoofVertex, c: RoofVertex) => {
@@ -289,7 +301,8 @@ const createSkeletonRoofCaps = (
     }
   }
 
-  roof.faces.forEach((face) => {
+  roof.faces.forEach((rawFace) => {
+    const face = rawFace.map(snapVertex)
     const oriented = faceSignedArea(face) < 0 ? [...face].reverse() : face
     const contour = oriented.map(
       (vertex) => new THREE.Vector2(vertex.x, vertex.y)
@@ -446,7 +459,17 @@ export const createSvgShapeGeometry = ({
     geometry.dispose()
     sides.dispose()
     roofCaps.dispose()
-    geometry = merged
+    // The chamfer band emits one planar facet per curve sample; flat shading
+    // renders that as visible banding around curves. Crease-angle normals
+    // shade the band continuously along curved runs (tiny dihedral between
+    // neighboring facets) while ridges, plateau edges, gables, and the
+    // outline keep their hard creases — the chiseled-type look where curves
+    // flow and corners stay crisp.
+    const creased = toCreasedNormals(merged, Math.PI / 6)
+    merged.dispose()
+    creased.computeBoundingBox()
+    creased.computeBoundingSphere()
+    geometry = creased
   }
 
   geometry.translate(0, 0, -extrude.shapeDepth / 2)

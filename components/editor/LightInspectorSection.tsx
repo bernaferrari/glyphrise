@@ -71,6 +71,7 @@ export function LightInspectorSection({
           sliderMax={12}
           step={0.1}
           precision={1}
+          ariaLabel="Light brightness"
           onChange={(value) => {
             onBrightnessChange(value)
             onCustomEdit()

@@ -35,6 +35,8 @@ export function useEditorExportSurface({
     handleUploadInputChange,
     handleDropSvg,
     triggerShapeUpload,
+    svgImportError,
+    clearSvgImportError,
   } = useEditorFileSurface({
     selectedShapeId,
     setShapes,
@@ -49,10 +51,14 @@ export function useEditorExportSurface({
     handleUploadInputChange,
     handleDropSvg,
     triggerShapeUpload,
+    svgImportError,
+    clearSvgImportError,
     exportModalProps: {
       isOpen: isExportOpen,
       onClose: closeExport,
-      onExportGltf: () => canvasRef.current?.exportGltf(),
+      onExportGltf: () =>
+        canvasRef.current?.exportGltf() ??
+        Promise.reject(new Error("The 3D preview is not ready to export yet.")),
       onExportVideo: exportTimelineVideo,
       isVideoExporting,
       videoExportProgress,

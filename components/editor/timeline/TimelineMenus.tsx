@@ -42,7 +42,7 @@ export const TimelineContextMenu = ({
       onClick={(event) => event.stopPropagation()}
     >
       {menu.title && (
-        <div className="px-2 pt-0.5 pb-1 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
           {menu.title}
         </div>
       )}
@@ -62,7 +62,7 @@ export const TimelineContextMenu = ({
               <ContextMenuSubTrigger className="h-7 gap-5 rounded-lg px-2 text-[11px]">
                 <span className="truncate">{item.label}</span>
                 {item.shortcut && (
-                  <ContextMenuShortcut className="text-[10px] tracking-normal">
+                  <ContextMenuShortcut className="text-[11px] tracking-normal">
                     {item.shortcut}
                   </ContextMenuShortcut>
                 )}
@@ -148,7 +148,7 @@ export const TimelineContextMenu = ({
               <span className="truncate">{item.label}</span>
             </span>
             {item.shortcut && (
-              <ContextMenuShortcut className="font-mono text-[10px] tracking-normal">
+              <ContextMenuShortcut className="font-mono text-[11px] tracking-normal">
                 {item.shortcut}
               </ContextMenuShortcut>
             )}

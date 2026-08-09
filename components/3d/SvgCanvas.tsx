@@ -74,6 +74,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       [props.pathOverridesB]
     )
     const [modelReady, setModelReady] = useState(false)
+    const [modelError, setModelError] = useState<string | null>(null)
     const colorAStopsKey = useMemo(
       () => gradientStopsSignature(props.colorAStops),
       [props.colorAStops]
@@ -261,6 +262,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       clipPlaneARef,
       clipPlaneBRef,
       setModelReady,
+      setModelError,
       pathOverridesASignature,
       pathOverridesBSignature,
       colorAStopsKey,
@@ -323,10 +325,11 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       >
         <canvas
           ref={canvasRef}
-          className="block h-full w-full cursor-grab active:cursor-grabbing"
+          className="block h-full w-full cursor-grab touch-none active:cursor-grabbing"
         />
         <SvgCanvasOverlays
           modelReady={modelReady}
+          modelError={modelError}
           orientationGizmoRefs={orientationGizmoRefs}
           rotationDragTooltipRef={rotationDragTooltipRef}
           onNudgeViewRotation={nudgeViewRotation}

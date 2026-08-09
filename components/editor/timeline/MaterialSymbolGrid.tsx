@@ -97,7 +97,10 @@ export function MaterialSymbolGrid({
   )
   const visibleSymbols = filteredMaterialSymbols.slice(
     visibleStartRow * gridMetrics.columns,
-    Math.min(filteredMaterialSymbols.length, visibleEndRow * gridMetrics.columns)
+    Math.min(
+      filteredMaterialSymbols.length,
+      visibleEndRow * gridMetrics.columns
+    )
   )
   const topSpacerHeight = Math.max(
     0,
@@ -156,7 +159,7 @@ export function MaterialSymbolGrid({
                 event.stopPropagation()
                 onToggleMaterialSymbolFavorite(symbolName)
               }}
-              className={`absolute top-1 right-1 grid size-5 place-items-center rounded-md border text-[10px] opacity-0 transition-[background-color,border-color,color,opacity] group-hover/symbol:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
+              className={`absolute top-1 right-1 grid size-5 place-items-center rounded-md border text-[11px] opacity-0 transition-[background-color,border-color,color,opacity] group-hover/symbol:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
                 favorites.has(symbolName)
                   ? "border-primary/40 bg-primary/15 text-primary opacity-100"
                   : "border-border bg-background/90 text-muted-foreground hover:text-foreground"
@@ -187,7 +190,7 @@ export function MaterialSymbolGrid({
           <span className="truncate">
             {normalizedShapeQuery.replace(/_/g, " ")}
           </span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             Use typed name
           </span>
         </button>

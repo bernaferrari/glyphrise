@@ -24,8 +24,7 @@ export const materialPlayheadTime = (currentTime: number, duration: number) =>
 export const findMaterialKeyframeAtTime = (
   keyframes: MaterialKeyframe[],
   time: number
-) =>
-  keyframes.find((keyframe) => keyframeTimeMatches(keyframe.time, time))
+) => keyframes.find((keyframe) => keyframeTimeMatches(keyframe.time, time))
 
 export const upsertMaterialKeyframe = ({
   keyframes,

@@ -14,8 +14,7 @@ import { useMaterialSymbolCatalogLoader } from "./useMaterialSymbolCatalogLoader
 import { useMaterialSymbolImportActions } from "./useMaterialSymbolImportActions"
 
 const RECENT_MATERIAL_SYMBOLS_KEY = "vectorforge.recent-material-symbols.v1"
-const FAVORITE_MATERIAL_SYMBOLS_KEY =
-  "vectorforge.favorite-material-symbols.v1"
+const FAVORITE_MATERIAL_SYMBOLS_KEY = "vectorforge.favorite-material-symbols.v1"
 const MAX_RECENT_MATERIAL_SYMBOLS = 18
 const MAX_FAVORITE_MATERIAL_SYMBOLS = 48
 
@@ -79,7 +78,9 @@ export function useShapePickerCatalog({
   )
 
   useEffect(() => {
-    setRecentMaterialSymbolNames(readStoredSymbolList(RECENT_MATERIAL_SYMBOLS_KEY))
+    setRecentMaterialSymbolNames(
+      readStoredSymbolList(RECENT_MATERIAL_SYMBOLS_KEY)
+    )
     setFavoriteMaterialSymbolNames(
       readStoredSymbolList(FAVORITE_MATERIAL_SYMBOLS_KEY)
     )
@@ -154,7 +155,10 @@ export function useShapePickerCatalog({
   const recentMaterialSymbols = useMemo(
     () =>
       recentMaterialSymbolNames.length
-        ? visibleMaterialSymbols(recentMaterialSymbolNames, shapeSearchQuery).filter(
+        ? visibleMaterialSymbols(
+            recentMaterialSymbolNames,
+            shapeSearchQuery
+          ).filter(
             (symbolName) => !favoriteMaterialSymbols.includes(symbolName)
           )
         : [],

@@ -16,10 +16,7 @@ type EasedTimeKeyframe = TimeKeyframe & {
 
 export const KEYFRAME_TIME_EPSILON = 0.0005
 
-export const keyframeTimeMatches = (
-  keyframeTime: number,
-  time: number
-) =>
+export const keyframeTimeMatches = (keyframeTime: number, time: number) =>
   Math.abs(quantizeTimeToFrame(keyframeTime) - quantizeTimeToFrame(time)) <=
   KEYFRAME_TIME_EPSILON
 

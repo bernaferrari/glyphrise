@@ -78,9 +78,10 @@ export const setShapeTransitionFraction = ({
       ? {
           ...shape,
           transitionStart: Number(
-            Math.min(nextFraction, currentEnd - TRANSITION_MIN_FRACTION).toFixed(
-              3
-            )
+            Math.min(
+              nextFraction,
+              currentEnd - TRANSITION_MIN_FRACTION
+            ).toFixed(3)
           ),
         }
       : {

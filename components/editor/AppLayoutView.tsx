@@ -43,6 +43,7 @@ export function AppLayoutView({
       <input
         ref={uploadFileRef}
         type="file"
+        aria-label="Upload SVG"
         accept=".svg"
         className="hidden"
         onChange={onUploadInputChange}

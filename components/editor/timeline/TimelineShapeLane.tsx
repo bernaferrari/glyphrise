@@ -107,7 +107,9 @@ export function TimelineShapeLane({
         const time = timeFromClientX(event.clientX, {
           bypass: event.altKey,
         })
-        onOpenContextMenu(event, "Shape", [createGoToMenuItem(event, time)])
+        onOpenContextMenu(event, "Icon clips", [
+          createGoToMenuItem(event, time),
+        ])
       }}
     >
       <TimelineMorphWindows

@@ -13,17 +13,20 @@ export type ShapeNavigationModel = {
   canNavigate: boolean
   onPrevious: () => void
   onNext: () => void
+  onChangeIcon: () => void
 }
 
 export function useShapeNavigation({
   sortedShapes,
   selectedShapeId,
   setSelectedShapeId,
+  setOpenShapePicker,
   setSelectedLayerId,
 }: {
   sortedShapes: ShapeStop[]
   selectedShapeId: string | null
   setSelectedShapeId: Dispatch<SetStateAction<string | null>>
+  setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   setSelectedLayerId: Dispatch<SetStateAction<string>>
 }): ShapeNavigationModel | undefined {
   return useMemo(() => {
@@ -33,6 +36,7 @@ export function useShapeNavigation({
       (shape) => shape.id === selectedShapeId
     )
     const selectedIndex = explicitSelectedIndex >= 0 ? explicitSelectedIndex : 0
+    const selectedShape = sortedShapes[selectedIndex]
 
     const selectShapeAt = (index: number) => {
       if (sortedShapes.length <= 1) return
@@ -52,6 +56,13 @@ export function useShapeNavigation({
       canNavigate: sortedShapes.length > 1,
       onPrevious: () => selectShapeAt(selectedIndex - 1),
       onNext: () => selectShapeAt(selectedIndex + 1),
+      onChangeIcon: () => setOpenShapePicker(selectedShape.id),
     }
-  }, [selectedShapeId, setSelectedLayerId, setSelectedShapeId, sortedShapes])
+  }, [
+    selectedShapeId,
+    setOpenShapePicker,
+    setSelectedLayerId,
+    setSelectedShapeId,
+    sortedShapes,
+  ])
 }

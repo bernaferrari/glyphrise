@@ -24,6 +24,7 @@ type UseEditorRenderStateArgs = {
   setShapes: Dispatch<SetStateAction<ShapeStop[]>>
   selectedShapeId: string | null
   setSelectedShapeId: Dispatch<SetStateAction<string | null>>
+  setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   currentTime: number
   fillColor: string
   fillColorSecondary: string
@@ -55,6 +56,7 @@ export function useEditorRenderState({
   setShapes,
   selectedShapeId,
   setSelectedShapeId,
+  setOpenShapePicker,
   currentTime,
   fillColor,
   fillColorSecondary,
@@ -103,6 +105,7 @@ export function useEditorRenderState({
     sortedShapes: morphState.sortedShapes,
     selectedShapeId,
     setSelectedShapeId,
+    setOpenShapePicker,
     setSelectedLayerId: layerState.setSelectedLayerId,
   })
 

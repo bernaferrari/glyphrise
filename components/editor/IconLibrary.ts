@@ -4,6 +4,7 @@ import {
   normalizeSvgToIconViewBox,
 } from "../3d/SvgText"
 import { MATERIAL_WIPE_READY_PAIRS } from "./MaterialWipePairs"
+import { validateAndSanitizeSvg } from "./SvgImportModel"
 
 export interface PresetIcon {
   id: string
@@ -103,8 +104,8 @@ export async function fetchMaterialSymbolIcon(
     const baseResponse = await fetch(materialSymbolUrl(baseName, style))
     if (!baseResponse.ok)
       throw new Error(`Material Symbol "${baseName}" was not found.`)
-    const svgContent = appendVectorForgeSlash(
-      (await baseResponse.text()).trim()
+    const svgContent = validateAndSanitizeSvg(
+      appendVectorForgeSlash((await baseResponse.text()).trim())
     )
     const icon: PresetIcon = {
       id: `material-symbol-${style}-${symbolName}-slash`,
@@ -122,7 +123,9 @@ export async function fetchMaterialSymbolIcon(
   if (!response.ok)
     throw new Error(`Material Symbol "${symbolName}" was not found.`)
 
-  const svgContent = normalizeSvgToIconViewBox((await response.text()).trim())
+  const svgContent = validateAndSanitizeSvg(
+    normalizeSvgToIconViewBox((await response.text()).trim())
+  )
   if (!svgContent.startsWith("<svg") || !svgContent.includes("<path")) {
     throw new Error(
       `Material Symbol "${symbolName}" did not return a usable SVG.`

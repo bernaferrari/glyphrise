@@ -39,7 +39,7 @@ export function TimelineZoomControls({
         aria-label="Fit timeline"
         title="Fit timeline (0)"
         onClick={onFitTimeline}
-        className="flex h-6 min-w-10 shrink-0 items-center justify-center rounded-full px-2 font-mono text-[10px] text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        className="flex h-6 min-w-10 shrink-0 items-center justify-center rounded-full px-2 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         {Math.round(zoom * 100)}%
       </button>

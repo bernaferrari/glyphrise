@@ -5,6 +5,7 @@ import { OrientationGizmo, type OrientationGizmoRefs } from "./OrientationGizmo"
 
 type SvgCanvasOverlaysProps = {
   modelReady: boolean
+  modelError: string | null
   orientationGizmoRefs: OrientationGizmoRefs
   rotationDragTooltipRef: React.RefObject<HTMLDivElement | null>
   onNudgeViewRotation: (axis: "x" | "y", direction: -1 | 1) => void
@@ -12,20 +13,32 @@ type SvgCanvasOverlaysProps = {
 
 export function SvgCanvasOverlays({
   modelReady,
+  modelError,
   orientationGizmoRefs,
   rotationDragTooltipRef,
   onNudgeViewRotation,
 }: SvgCanvasOverlaysProps) {
   return (
     <>
-      {!modelReady && (
+      {!modelReady && !modelError ? (
         <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-background/5 backdrop-blur-[1px]">
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-[11px] font-medium text-white/75 shadow-2xl">
-            <span className="size-2 animate-pulse rounded-full bg-white/70" />
+          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-xs font-medium text-white/75 shadow-2xl">
+            <span className="size-2 animate-pulse rounded-full bg-white/70 motion-reduce:animate-none" />
             Preparing 3D icon
           </div>
         </div>
-      )}
+      ) : null}
+      {modelError ? (
+        <div
+          role="alert"
+          className="pointer-events-none absolute top-4 left-1/2 z-30 w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 rounded-xl border border-red-400/35 bg-black/80 px-4 py-3 text-center text-xs leading-5 text-white shadow-2xl backdrop-blur-md"
+        >
+          <span className="font-semibold text-red-200">
+            3D preview unavailable.
+          </span>{" "}
+          {modelError} Choose another SVG or simplify its paths.
+        </div>
+      ) : null}
       <div
         ref={rotationDragTooltipRef}
         className="pointer-events-none fixed top-0 left-0 z-50 rounded-md border border-white/10 bg-black/75 px-2 py-1 text-[11px] font-medium text-white tabular-nums opacity-0 shadow-xl transition-opacity duration-75"

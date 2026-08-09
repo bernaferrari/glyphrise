@@ -380,9 +380,7 @@ class SLAV {
     if (index >= 0) this.lavs.splice(index, 1)
   }
 
-  handleEdgeEvent(
-    event: EdgeEvent
-  ): [SkeletonSubtree | null, SkeletonEvent[]] {
+  handleEdgeEvent(event: EdgeEvent): [SkeletonSubtree | null, SkeletonEvent[]] {
     const sinks: V[] = []
     const events: SkeletonEvent[] = []
     const lav = event.vertexA.lav
@@ -402,10 +400,7 @@ class SLAV {
       if (nextEvent) events.push(nextEvent)
     }
 
-    return [
-      { source: event.point, height: event.distance, sinks },
-      events,
-    ]
+    return [{ source: event.point, height: event.distance, sinks }, events]
   }
 
   handleSplitEvent(
@@ -519,10 +514,7 @@ class SLAV {
       if (nextEvent) events.push(nextEvent)
     }
 
-    return [
-      { source: event.point, height: event.distance, sinks },
-      events,
-    ]
+    return [{ source: event.point, height: event.distance, sinks }, events]
   }
 }
 
@@ -610,6 +602,159 @@ const dedupeContour = (points: V[], minDistance: number): V[] => {
 
 // Only exact turnbacks count as cusps by default; retry rungs loosen this.
 const EXACT_CUSP_DOT = -0.9999995
+
+/**
+ * Replaces small-radius CONVEX fillet runs with their sharp reconstruction:
+ * rounded corners become miter points, rounded stroke terminals (≈180° caps)
+ * become square caps — a chisel cuts outward-facing corners sharp.
+ *
+ * REFLEX features (junction notches, slot ends — anywhere material wraps
+ * around a void) are deliberately left round: there the chamfer boundary
+ * sweeps around the notch in a smooth arc and merges tangentially into the
+ * adjoining stroke's line, like a weld fillet. Sharpening those instead
+ * produces harsh T-junctions where crease lines dead-end into each other.
+ *
+ * Expects the skeleton orientation convention (material to the RIGHT of
+ * travel), so convex turns are negative. Large curves are untouched: only
+ * arcs with radius below ~6% of the shape size qualify, and runs covering
+ * most of a contour are skipped so genuinely circular features stay round.
+ */
+const unroundSmallFillets = (points: V[]): V[] => {
+  const count = points.length
+  if (count < 6) return points
+
+  const maxSegment = WORKING_SIZE * 0.045
+  const maxRadius = WORKING_SIZE * 0.06
+  const minRunTurn = Math.PI / 4
+  const maxRunTurn = (Math.PI * 4) / 3
+  const minVertexTurn = 0.04
+
+  const edgeDir = (index: number) =>
+    normalize(sub(points[(index + 1) % count], points[index]))
+  const dirs = points.map((_, index) => edgeDir(index))
+  const turnAt = (index: number) => {
+    const incoming = dirs[(index - 1 + count) % count]
+    const outgoing = dirs[index]
+    return Math.atan2(cross(incoming, outgoing), dot(incoming, outgoing))
+  }
+  const segmentLength = (index: number) =>
+    pointDistance(points[index], points[(index + 1) % count])
+
+  const turns = points.map((_, index) => turnAt(index))
+  const isFilletVertex = (index: number) => {
+    // Convex only (right turns under material-right orientation): reflex
+    // notch fillets stay round so joints merge fluidly.
+    if (turns[index] >= 0) return false
+    const turn = Math.abs(turns[index])
+    if (turn < minVertexTurn || turn > Math.PI * 0.6) return false
+    return (
+      segmentLength(index) <= maxSegment &&
+      segmentLength((index - 1 + count) % count) <= maxSegment
+    )
+  }
+
+  type Replacement = { start: number; length: number; vertices: V[] }
+  const replacements: Replacement[] = []
+  const consumed = Array.from({ length: count }, () => false)
+
+  for (let start = 0; start < count; start += 1) {
+    if (consumed[start] || !isFilletVertex(start)) continue
+    // Runs are walked forward from an unconsumed fillet vertex; same-sign
+    // turning keeps one fillet from swallowing an S-curve.
+    const sign = Math.sign(turns[start])
+    const run: number[] = [start]
+    for (let step = 1; step < count - 2; step += 1) {
+      const index = (start + step) % count
+      if (consumed[index] || !isFilletVertex(index)) break
+      if (Math.sign(turns[index]) !== sign) break
+      run.push(index)
+    }
+
+    let totalTurn = 0
+    let arcLength = 0
+    run.forEach((index, position) => {
+      totalTurn += turns[index]
+      if (position + 1 < run.length) arcLength += segmentLength(index)
+    })
+    const absTurn = Math.abs(totalTurn)
+    if (absTurn < minRunTurn || absTurn > maxRunTurn) continue
+    // The run needs anchor vertices on both sides for tangent construction;
+    // full closed loops (circles) are already rejected by maxRunTurn.
+    if (run.length > count - 2) continue
+    const radius = arcLength > 0 ? arcLength / absTurn : 0
+    if (radius > maxRadius) continue
+
+    const first = run[0]
+    const last = run[run.length - 1]
+    const entryPoint = points[(first - 1 + count) % count]
+    const entryDir = dirs[(first - 1 + count) % count]
+    const exitPoint = points[(last + 1) % count]
+    const exitDir = dirs[last]
+    const runSpan = Math.max(
+      arcLength,
+      pointDistance(entryPoint, exitPoint),
+      maxSegment
+    )
+
+    let vertices: V[] | null = null
+    if (absTurn <= Math.PI * 0.78) {
+      // Rounded corner → single miter point where the tangents intersect.
+      const miter = lineLineIntersect(entryPoint, entryDir, exitPoint, exitDir)
+      if (
+        miter &&
+        pointDistance(miter, points[run[Math.floor(run.length / 2)]]) <=
+          runSpan * 2
+      ) {
+        vertices = [miter]
+      }
+    } else {
+      // Rounded terminal (≈180° cap) → square cap through the apex,
+      // perpendicular to the stroke direction.
+      const forward = normalize(sub(entryDir, exitDir))
+      let apex = points[run[0]]
+      let apexProjection = -Infinity
+      for (const index of run) {
+        const projection = dot(points[index], forward)
+        if (projection > apexProjection) {
+          apexProjection = projection
+          apex = points[index]
+        }
+      }
+      const capDir: V = { x: -forward.y, y: forward.x }
+      const c1 = lineLineIntersect(entryPoint, entryDir, apex, capDir)
+      const c2 = lineLineIntersect(exitPoint, exitDir, apex, capDir)
+      if (
+        c1 &&
+        c2 &&
+        pointDistance(c1, apex) <= runSpan * 2 &&
+        pointDistance(c2, apex) <= runSpan * 2
+      ) {
+        vertices = [c1, c2]
+      }
+    }
+    if (!vertices) continue
+
+    run.forEach((index) => {
+      consumed[index] = true
+    })
+    replacements.push({ start: first, length: run.length, vertices })
+  }
+  if (!replacements.length) return points
+
+  const replacementByStart = new Map(
+    replacements.map((replacement) => [replacement.start, replacement])
+  )
+  const result: V[] = []
+  for (let index = 0; index < count; index += 1) {
+    const replacement = replacementByStart.get(index)
+    if (replacement) {
+      result.push(...replacement.vertices)
+    } else if (!consumed[index]) {
+      result.push(points[index])
+    }
+  }
+  return result.length >= 3 ? result : points
+}
 
 const removeDegenerateVertices = (points: V[], cuspDot: number): V[] => {
   const result: V[] = []
@@ -763,7 +908,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
   } catch {
     return null
   }
-  if (!subtrees.length) { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #6"); return null }
+  if (!subtrees.length) {
+    if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #6")
+    return null
+  }
 
   // Build the planar graph: boundary vertices (height 0) + skeleton nodes
   // (height = arrival time), connected by boundary edges and skeleton arcs.
@@ -779,7 +927,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
   }
   for (const subtree of subtrees) {
     if (!Number.isFinite(subtree.height) || subtree.height < -EPSILON) {
-      { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #7"); return null }
+      {
+        if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #7")
+        return null
+      }
     }
     const key = keyOf(subtree.source)
     if (!nodes.has(key)) {
@@ -816,7 +967,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
     const sourceKey = keyOf(subtree.source)
     for (const sink of subtree.sinks) {
       const sinkKey = keyOf(sink)
-      if (!nodes.has(sinkKey)) { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #8"); return null }
+      if (!nodes.has(sinkKey)) {
+        if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #8")
+        return null
+      }
       addEdge(sourceKey, sinkKey)
     }
   }
@@ -840,7 +994,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
 
   const nextNeighbor = (currentKey: string, fromKey: string): string | null => {
     const entries = sortedNeighbors.get(currentKey)
-    if (!entries || entries.length === 0) { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #9"); return null }
+    if (!entries || entries.length === 0) {
+      if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #9")
+      return null
+    }
     const current = nodes.get(currentKey)!
     const from = nodes.get(fromKey)!
     const backAngle = Math.atan2(from.y - current.y, from.x - current.x)
@@ -856,7 +1013,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
     let current = secondKey
     for (let step = 0; step < 512; step += 1) {
       const next = nextNeighbor(current, prev)
-      if (!next) { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #10"); return null }
+      if (!next) {
+        if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #10")
+        return null
+      }
       if (current === startKey && next === secondKey) {
         cycle.pop()
         return cycle.length >= 3 ? cycle : null
@@ -865,7 +1025,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
       prev = current
       current = next
     }
-    { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #11"); return null }
+    {
+      if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #11")
+      return null
+    }
   }
 
   const minFaceArea = (quantum * 10) ** 2
@@ -880,7 +1043,14 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
         if ((globalThis as any).__SKEL_DEBUG) {
           const a = nodes.get(fromKey)!
           const b = nodes.get(toKey)!
-          console.log("skel null #12 walk fail edge", (a.x).toFixed(3), (a.y).toFixed(3), "->", (b.x).toFixed(3), (b.y).toFixed(3))
+          console.log(
+            "skel null #12 walk fail edge",
+            a.x.toFixed(3),
+            a.y.toFixed(3),
+            "->",
+            b.x.toFixed(3),
+            b.y.toFixed(3)
+          )
         }
         return null
       }
@@ -894,7 +1064,10 @@ const buildRoofFacesFromContours = (contours: V[][]): RoofVertex[][] | null => {
       faces.push(face.map((node) => ({ x: node.x, y: node.y, h: node.h })))
     }
   }
-  if (!faces.length) { if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #13"); return null }
+  if (!faces.length) {
+    if ((globalThis as any).__SKEL_DEBUG) console.log("skel null #13")
+    return null
+  }
 
   return faces
 }
@@ -1015,10 +1188,7 @@ const roofNodesStayInsideFill = (
       }
     }
     const centroid = { x: centroidX / face.length, y: centroidY / face.length }
-    if (
-      !insideOrNearBoundary(centroid) &&
-      !reject("centroid", centroid, 0)
-    )
+    if (!insideOrNearBoundary(centroid) && !reject("centroid", centroid, 0))
       return false
   }
   return valid
@@ -1061,10 +1231,18 @@ export const computeSkeletonRoof = (
   })
   const minEdge = WORKING_SIZE * 1e-6
 
-  const baseOuter = normalizeContour(outerInput.map(scalePoint), minEdge)
+  // Orient before unrounding so convex/reflex classification is meaningful
+  // (outer clockwise, holes counter-clockwise: material to the right).
+  const baseOuter = unroundSmallFillets(
+    orientContour(normalizeContour(outerInput.map(scalePoint), minEdge), true)
+  )
   if (baseOuter.length < 3) return null
   const baseHoles = holesInput
-    .map((hole) => normalizeContour(hole.map(scalePoint), minEdge))
+    .map((hole) =>
+      unroundSmallFillets(
+        orientContour(normalizeContour(hole.map(scalePoint), minEdge), false)
+      )
+    )
     .filter((hole) => hole.length >= 3)
 
   // Deterministic micro-perturbation. Perfectly symmetric icons fire exactly

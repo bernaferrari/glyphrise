@@ -46,6 +46,7 @@ export function AdvancedMaterialControls({
               sliderMax={sliderMax}
               step={step}
               precision={precision}
+              ariaLabel={label}
               onChange={(next) => onSettingChange(key, next, min, max)}
             />
           </InspectorRow>

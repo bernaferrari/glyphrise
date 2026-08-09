@@ -1,4 +1,9 @@
-import { useEffect, type Dispatch, type MutableRefObject } from "react"
+import {
+  useEffect,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction,
+} from "react"
 import * as THREE from "three"
 import { buildSvgIconGroup } from "./SvgModelBuilder"
 import { updateGroupFillColors } from "./SvgMaterialState"
@@ -13,6 +18,7 @@ export const useSvgModelGroups = ({
   clipPlaneARef,
   clipPlaneBRef,
   setModelReady,
+  setModelError,
   pathOverridesASignature,
   pathOverridesBSignature,
   colorAStopsKey,
@@ -25,6 +31,7 @@ export const useSvgModelGroups = ({
   clipPlaneARef: MutableRefObject<THREE.Plane | null>
   clipPlaneBRef: MutableRefObject<THREE.Plane | null>
   setModelReady: Dispatch<boolean>
+  setModelError: Dispatch<SetStateAction<string | null>>
   pathOverridesASignature: string
   pathOverridesBSignature: string
   colorAStopsKey: string
@@ -41,6 +48,39 @@ export const useSvgModelGroups = ({
     const previousB = iconBGroupRef.current
     const hadModel = Boolean(previousA || previousB)
     if (!hadModel) setModelReady(false)
+    setModelError(null)
+
+    let groupA: THREE.Group | null = null
+    let groupB: THREE.Group | null = null
+    try {
+      groupA = buildSvgIconGroup({
+        svgContent: props.iconAContent,
+        isIconA: true,
+        props,
+        clipPlaneA: clipPlaneARef.current,
+        clipPlaneB: clipPlaneBRef.current,
+      })
+      groupB = buildSvgIconGroup({
+        svgContent: props.iconBContent,
+        isIconA: false,
+        props,
+        clipPlaneA: clipPlaneARef.current,
+        clipPlaneB: clipPlaneBRef.current,
+      })
+      if (groupA.children.length === 0 && groupB.children.length === 0) {
+        throw new Error("The SVG has no filled shapes that can become 3D.")
+      }
+    } catch (error) {
+      if (groupA) disposeObjectTree(groupA)
+      if (groupB) disposeObjectTree(groupB)
+      setModelReady(hadModel)
+      setModelError(
+        error instanceof Error
+          ? error.message
+          : "VectorForge could not build this SVG as a 3D icon."
+      )
+      return
+    }
 
     if (previousA) {
       pivot.remove(previousA)
@@ -50,21 +90,6 @@ export const useSvgModelGroups = ({
       pivot.remove(previousB)
       disposeObjectTree(previousB)
     }
-
-    const groupA = buildSvgIconGroup({
-      svgContent: props.iconAContent,
-      isIconA: true,
-      props,
-      clipPlaneA: clipPlaneARef.current,
-      clipPlaneB: clipPlaneBRef.current,
-    })
-    const groupB = buildSvgIconGroup({
-      svgContent: props.iconBContent,
-      isIconA: false,
-      props,
-      clipPlaneA: clipPlaneARef.current,
-      clipPlaneB: clipPlaneBRef.current,
-    })
 
     pivot.add(groupA)
     pivot.add(groupB)
@@ -93,6 +118,7 @@ export const useSvgModelGroups = ({
     clipPlaneARef,
     clipPlaneBRef,
     setModelReady,
+    setModelError,
   ])
 
   useEffect(() => {

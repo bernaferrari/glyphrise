@@ -139,6 +139,12 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  button,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
   html {
     @apply font-sans;
   }
@@ -213,14 +219,43 @@
   );
 }
 
-.wipe-pair-option:hover .wipe-pair-preview-layer,
+@media (hover: hover) and (pointer: fine) {
+  .wipe-pair-option:hover .wipe-pair-preview-layer {
+    --wipe-pair-progress: 118%;
+  }
+}
+
 .wipe-pair-option:focus-visible .wipe-pair-preview-layer {
   --wipe-pair-progress: 118%;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
   .wipe-pair-preview-layer {
     transition: none;
+  }
+}
+
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  input[type="range"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  input:not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
 
@@ -239,12 +274,18 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: color-mix(in oklch, var(--muted-foreground) 38%, transparent);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
+}
+
+* {
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 42%, transparent)
+    transparent;
+  scrollbar-width: thin;
 }
 
 /* Glassmorphism panel styling */

@@ -58,7 +58,7 @@ export const TimelineRuler = React.forwardRef<
             />
           )}
           {tick.major && !isFinalTick && (
-            <span className="absolute top-[13px] pl-1 font-mono text-[9px] leading-none text-muted-foreground">
+            <span className="absolute top-[13px] pl-1 font-mono text-[10px] leading-none text-muted-foreground">
               {formatTimelineTick(tick.time)}
             </span>
           )}

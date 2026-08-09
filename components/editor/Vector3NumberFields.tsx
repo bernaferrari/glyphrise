@@ -19,6 +19,7 @@ export function Vector3NumberFields({
   scrubStep,
   suffix,
   precision,
+  ariaLabel,
   onChange,
 }: {
   values: LightPosition
@@ -28,11 +29,12 @@ export function Vector3NumberFields({
   scrubStep?: number
   suffix?: string
   precision: number
+  ariaLabel: string
   onChange: (axis: Axis, value: number) => void
 }) {
   return (
     <div className="flex min-w-0 flex-1 items-center gap-1">
-      {AXIS_ORDER.map(({ label, axis }) => (
+      {AXIS_ORDER.map(({ label: axisLabel, axis }) => (
         <NumberField
           key={axis}
           value={values[axis]}
@@ -40,10 +42,11 @@ export function Vector3NumberFields({
           max={max}
           step={step}
           scrubStep={scrubStep}
-          prefix={label}
-          prefixColor={AXIS_COLORS[label]}
+          prefix={axisLabel}
+          prefixColor={AXIS_COLORS[axisLabel]}
           suffix={suffix}
           precision={precision}
+          ariaLabel={`${ariaLabel} ${axisLabel}`}
           className="min-w-0 flex-1"
           inputClassName="text-right"
           onChange={(value) => onChange(axis, value)}

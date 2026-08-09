@@ -54,7 +54,7 @@ export function ExportAndroidCodeTab({
       </div>
       <div className="flex max-h-[52vh] min-w-0 flex-col gap-3 overflow-auto">
         <div className="min-w-0">
-          <div className="mb-1.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <div className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
             Gradle
           </div>
           <ExportCodeBlock
@@ -64,7 +64,7 @@ export function ExportAndroidCodeTab({
           />
         </div>
         <div className="min-w-0">
-          <div className="mb-1.5 text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <div className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
             Kotlin
           </div>
           <ExportCodeBlock

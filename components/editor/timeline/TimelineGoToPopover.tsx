@@ -50,12 +50,13 @@ export function TimelineGoToPopover({
         onClick={(event) => event.stopPropagation()}
         onContextMenu={(event) => event.preventDefault()}
       >
-        <label className="mb-1 block text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+        <label className="mb-1 block text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
           Go to
         </label>
         <div className="flex h-8 items-center rounded-md bg-muted/70 ring-1 ring-border">
           <input
             autoFocus
+            aria-label="Timeline time in seconds"
             value={editor.draft}
             onChange={(event) =>
               onEditorChange((current) =>
@@ -77,7 +78,7 @@ export function TimelineGoToPopover({
             onBlur={onCommit}
             className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[12px] text-foreground outline-none"
           />
-          <span className="pr-2 text-[10px] text-muted-foreground">s</span>
+          <span className="pr-2 text-[11px] text-muted-foreground">s</span>
         </div>
       </PopoverContent>
     </Popover>

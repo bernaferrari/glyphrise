@@ -98,7 +98,7 @@ export function LightDirectionPicker({
         className="w-[196px] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl backdrop-blur-xl"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
             Light Source
           </span>
           {keyframeControls ?? (
@@ -136,7 +136,7 @@ export function LightDirectionPicker({
             />
           </div>
         </div>
-        <p className="mt-2 text-center text-[10px] text-muted-foreground">
+        <p className="mt-2 text-center text-[11px] text-muted-foreground">
           Drag to move the light
         </p>
 
@@ -151,7 +151,7 @@ export function LightDirectionPicker({
           />
         </div>
         <div className="mt-2.5 flex items-center gap-2">
-          <span className="w-14 shrink-0 text-[10px] font-medium text-muted-foreground">
+          <span className="w-14 shrink-0 text-[11px] font-medium text-muted-foreground">
             Softbox
           </span>
           <span className="flex-1" />
@@ -161,6 +161,7 @@ export function LightDirectionPicker({
             max={1}
             step={0.05}
             precision={2}
+            ariaLabel="Light softness"
             onChange={onSoftnessChange}
           />
         </div>

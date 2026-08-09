@@ -10,12 +10,3 @@ export function TimelinePlayheadLine({ playheadX }: { playheadX: string }) {
     />
   )
 }
-
-export function TimelineEndCap() {
-  return (
-    <div
-      className="w-24 shrink-0 border-l border-border bg-muted/60 dark:bg-muted/25"
-      aria-hidden="true"
-    />
-  )
-}

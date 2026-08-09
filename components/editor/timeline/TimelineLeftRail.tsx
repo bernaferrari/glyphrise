@@ -148,7 +148,7 @@ export const TimelineLeftRail = React.forwardRef<
               onMouseDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="px-2 pt-0.5 pb-1 text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+              <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                 Add property
               </div>
               {hiddenTracks.map((track) => (

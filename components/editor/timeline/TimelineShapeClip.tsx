@@ -62,6 +62,7 @@ export function TimelineShapeClip({
   createGoToMenuItem,
   onAddShape,
 }: TimelineShapeClipProps) {
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
   const selected = stop.id === selectedShapeId
   const isOnly = bounds.isOnly
   const roundClass = isOnly
@@ -73,11 +74,12 @@ export function TimelineShapeClip({
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         title={
           isOnly
-            ? `${shapeLabel(stop)} - click to edit · add another shape to animate`
-            : `${shapeLabel(stop)} @ ${stop.time.toFixed(2)}s - drag to retime, click to edit`
+            ? `${shapeLabel(stop)} icon clip - click to edit · add another clip to animate`
+            : `${shapeLabel(stop)} icon clip at ${stop.time.toFixed(2)}s - drag to retime, click to edit`
         }
         onMouseDown={(event) => event.stopPropagation()}
         onClick={() => {
@@ -93,7 +95,7 @@ export function TimelineShapeClip({
             createGoToMenuItem(event, stop.time, () => onSelectShape(stop.id)),
             { type: "separator" },
             {
-              label: "Edit shape",
+              label: "Edit icon clip",
               onSelect: () => {
                 onSelectShape(stop.id)
                 onOpenShapePicker(stop.id)
@@ -105,11 +107,11 @@ export function TimelineShapeClip({
             },
             { type: "separator" },
             {
-              label: "Add shape at playhead",
+              label: "Add icon clip at playhead",
               onSelect: onAddShape,
             },
             {
-              label: "Remove shape",
+              label: "Remove icon clip",
               danger: true,
               disabled: shapeCount <= 1,
               onSelect: () => onRemoveShape(stop.id),
@@ -141,17 +143,18 @@ export function TimelineShapeClip({
           }}
           dangerouslySetInnerHTML={{ __html: stop.svgContent }}
         />
-        <span className="min-w-0 truncate text-[10px] font-medium text-foreground">
+        <span className="min-w-0 truncate text-[11px] font-medium text-foreground">
           {shapeLabel(stop)}
         </span>
         {isOnly && (
-          <span className="ml-auto shrink truncate pl-2 text-[10px] text-muted-foreground">
-            add another shape to animate
+          <span className="ml-auto shrink truncate pl-2 text-[11px] text-muted-foreground">
+            add another icon clip to animate
           </span>
         )}
       </button>
       <ShapePickerContent
         open={openShapePicker === stop.id}
+        finalFocusRef={triggerRef}
         onOpenChange={(open) => {
           if (!open) {
             onOpenShapePicker(null)
@@ -180,7 +183,9 @@ export function TimelineShapeClip({
         }
         materialSymbolStatus={shapePicker.materialSymbolStatus}
         onMaterialSymbolStatusChange={shapePicker.setMaterialSymbolStatus}
-        onToggleMaterialSymbolFavorite={shapePicker.toggleMaterialSymbolFavorite}
+        onToggleMaterialSymbolFavorite={
+          shapePicker.toggleMaterialSymbolFavorite
+        }
         onImportMaterialSymbol={shapePicker.importMaterialSymbol}
         onChooseMaterialSymbol={shapePicker.chooseMaterialSymbol}
         onChooseWipePair={shapePicker.chooseWipePair}

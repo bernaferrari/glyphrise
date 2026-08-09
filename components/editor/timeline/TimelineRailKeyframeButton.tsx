@@ -36,16 +36,16 @@ export function TimelineRailKeyframeButton({
         event.stopPropagation()
         onToggle()
       }}
-      className={`flex size-5 shrink-0 items-center justify-center rounded transition-colors ${
+      className={`flex size-6 shrink-0 items-center justify-center rounded-md transition-[color,opacity,background-color] focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
         isKeyedAtPlayhead
           ? "text-foreground opacity-100"
           : isAnimated
-            ? "text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground"
+            ? "text-muted-foreground opacity-40 group-hover:opacity-100 hover:bg-muted hover:text-foreground"
             : "text-muted-foreground hover:text-foreground"
       }`}
     >
       <Diamond
-        className="size-3"
+        className="size-3.5"
         style={{
           fill: isKeyedAtPlayhead ? color : "transparent",
           color: isKeyedAtPlayhead ? color : undefined,

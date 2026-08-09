@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js"
 import { containsInvalidPositions, finiteNumber } from "./SvgGeometry"
+import { disposeObjectTree } from "./SvgSceneUtils"
 import type {
   GradientType,
   SvgCanvasProps,
@@ -24,7 +25,8 @@ type FilamentExportProps = {
 const GEOMETRY_EXPORT_GROUP_NAME = "VectorForgeGeometry"
 
 const applyExportEasing = (easing: SvgExportEasing, t: number) => {
-  if (easing === "ease-in-out") return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  if (easing === "ease-in-out")
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
   if (easing === "spring") {
     if (t === 0 || t === 1) return t
     const c4 = (2 * Math.PI) / 3
@@ -60,7 +62,8 @@ const keyframePair = <T extends { time: number }>(
       return {
         previous,
         next,
-        progress: (time - previous.time) / Math.max(1e-6, next.time - previous.time),
+        progress:
+          (time - previous.time) / Math.max(1e-6, next.time - previous.time),
       }
     }
   }
@@ -120,7 +123,12 @@ const buildExportAnimationClips = (
   const hasExtrusionTrack = Boolean(
     animation.tracks.find((track) => track.id === "extrusion")?.keyframes.length
   )
-  if (!hasScaleTrack && !hasRotationTrack && !hasMoveTrack && !hasExtrusionTrack)
+  if (
+    !hasScaleTrack &&
+    !hasRotationTrack &&
+    !hasMoveTrack &&
+    !hasExtrusionTrack
+  )
     return []
 
   const frameRate = 30
@@ -158,11 +166,18 @@ const buildExportAnimationClips = (
     for (const time of times) {
       const scale = Math.max(
         0.05,
-        interpolateExportScalarTrack(animation, "scale", time, animation.objectScale)
+        interpolateExportScalarTrack(
+          animation,
+          "scale",
+          time,
+          animation.objectScale
+        )
       )
       values.push(scale * axes.x, scale * axes.y, scale * axes.z)
     }
-    tracks.push(new THREE.VectorKeyframeTrack(`${rootName}.scale`, times, values))
+    tracks.push(
+      new THREE.VectorKeyframeTrack(`${rootName}.scale`, times, values)
+    )
   }
 
   if (hasMoveTrack) {
@@ -175,7 +190,9 @@ const buildExportAnimationClips = (
       )
       values.push(move.x * 0.02, move.y * 0.02, move.z * 0.02)
     }
-    tracks.push(new THREE.VectorKeyframeTrack(`${rootName}.position`, times, values))
+    tracks.push(
+      new THREE.VectorKeyframeTrack(`${rootName}.position`, times, values)
+    )
   }
 
   if (hasExtrusionTrack) {
@@ -198,7 +215,9 @@ const buildExportAnimationClips = (
     )
   }
 
-  return [new THREE.AnimationClip("VectorForgeTimeline", animation.duration, tracks)]
+  return [
+    new THREE.AnimationClip("VectorForgeTimeline", animation.duration, tracks),
+  ]
 }
 
 const createFilamentSafeMaterial = (source: THREE.Material) => {
@@ -382,7 +401,7 @@ export const exportFilamentGltf = ({
   props: SvgCanvasProps
   sourceGroups: Array<THREE.Group | null>
   applyModelScale: (group: THREE.Group) => void
-}) => {
+}): Promise<void> => {
   const exporter = new GLTFExporter()
   const exportGroup = prepareFilamentExportObject(
     pivotGroup,
@@ -396,32 +415,46 @@ export const exportFilamentGltf = ({
     props.exportAnimation
   )
 
-  exporter.parse(
-    exportGroup,
-    (gltf) => {
-      if (gltf instanceof ArrayBuffer) {
-        downloadBlob(
-          new Blob([gltf], { type: "model/gltf-binary" }),
-          "vectorforge-icon.glb"
+  return new Promise((resolve, reject) => {
+    exporter.parse(
+      exportGroup,
+      (gltf) => {
+        try {
+          if (gltf instanceof ArrayBuffer) {
+            downloadBlob(
+              new Blob([gltf], { type: "model/gltf-binary" }),
+              "vectorforge-icon.glb"
+            )
+          } else {
+            const output = JSON.stringify(gltf)
+            downloadBlob(
+              new Blob([output], { type: "model/gltf+json" }),
+              "vectorforge-icon.gltf"
+            )
+          }
+          resolve()
+        } catch (error) {
+          reject(error)
+        } finally {
+          disposeObjectTree(exportGroup)
+        }
+      },
+      (error) => {
+        disposeObjectTree(exportGroup)
+        reject(
+          error instanceof Error
+            ? error
+            : new Error("The GLB exporter could not process this model.")
         )
-        return
+      },
+      {
+        binary: true,
+        onlyVisible: true,
+        trs: false,
+        truncateDrawRange: true,
+        maxTextureSize: 2048,
+        animations,
       }
-      const output = JSON.stringify(gltf)
-      downloadBlob(
-        new Blob([output], { type: "model/gltf+json" }),
-        "vectorforge-icon.gltf"
-      )
-    },
-    (error) => {
-      console.error("An error occurred during glTF export:", error)
-    },
-    {
-      binary: true,
-      onlyVisible: true,
-      trs: false,
-      truncateDrawRange: true,
-      maxTextureSize: 2048,
-      animations,
-    }
-  )
+    )
+  })
 }
