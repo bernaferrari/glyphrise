@@ -34,9 +34,9 @@ export type TimelineTrackRowProps = {
     keyframeId: string,
     easing: EasingType
   ) => void
-  onBlockDrag: (event: React.MouseEvent, trackId: string) => void
+  onBlockDrag: (event: React.PointerEvent<HTMLElement>, trackId: string) => void
   onKeyframeDrag: (
-    event: React.MouseEvent,
+    event: React.PointerEvent<HTMLElement>,
     trackId: string,
     keyframeId: string
   ) => void
@@ -96,8 +96,8 @@ export function TimelineTrackRow({
             ? "bg-muted/45"
             : "hover:bg-muted/35"
       }`}
-      onMouseDown={(event) => {
-        if (event.button !== 0) return
+      onPointerDown={(event) => {
+        if (!event.isPrimary || event.button !== 0) return
         onSelectKeyframe(null)
         onScrubStart?.()
         onSelectTrack(track.id)
@@ -148,7 +148,7 @@ export function TimelineTrackRow({
         lastKeyframe.time > firstKeyframe.time && (
           <div
             title="Drag to move - drag the diamonds to resize"
-            className="absolute top-1/2 h-2 -translate-y-1/2 cursor-grab rounded-full opacity-75 transition-opacity hover:opacity-95 active:cursor-grabbing"
+            className="absolute top-1/2 h-2 -translate-y-1/2 cursor-grab touch-none rounded-full opacity-75 transition-opacity select-none hover:opacity-95 active:cursor-grabbing"
             style={{
               left: xForFrac(firstKeyframe.time / duration),
               width: widthForSpan(
@@ -156,7 +156,10 @@ export function TimelineTrackRow({
               ),
               backgroundColor: track.color,
             }}
-            onMouseDown={(event) => onBlockDrag(event, track.id)}
+            onPointerDown={(event) => {
+              if (!event.isPrimary || event.button !== 0) return
+              onBlockDrag(event, track.id)
+            }}
           />
         )}
 

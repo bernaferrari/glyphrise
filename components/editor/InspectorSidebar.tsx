@@ -31,6 +31,7 @@ export type SidebarLightProps = LightInspectorSectionProps
 
 export type InspectorSidebarProps = {
   zenMode: boolean
+  compactOpen?: boolean
   styleProps: SidebarStyleProps
   geometryProps: SidebarGeometryProps
   transformProps: SidebarTransformProps
@@ -76,7 +77,7 @@ function ShapeNavRow({
               aria-label="Previous icon clip"
               title="Previous icon clip"
               onClick={shapeNavigation.onPrevious}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             >
               <ChevronLeft className="size-3.5" />
             </button>
@@ -88,7 +89,7 @@ function ShapeNavRow({
               aria-label="Next icon clip"
               title="Next icon clip"
               onClick={shapeNavigation.onNext}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             >
               <ChevronRight className="size-3.5" />
             </button>
@@ -136,6 +137,7 @@ function InspectorContextHeader({
 
 export function InspectorSidebar({
   zenMode,
+  compactOpen = false,
   styleProps,
   geometryProps,
   transformProps,
@@ -175,10 +177,12 @@ export function InspectorSidebar({
       onScroll={updateActiveSection}
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`flex shrink-0 flex-col overflow-y-auto bg-background max-[719px]:absolute max-[719px]:inset-y-0 max-[719px]:right-0 max-[719px]:z-20 max-[719px]:shadow-2xl ${
+      className={`flex shrink-0 flex-col overflow-y-auto bg-background max-[719px]:absolute max-[719px]:inset-0 max-[719px]:z-20 max-[719px]:w-full max-[719px]:border-l-0 max-[719px]:shadow-none ${
         zenMode
           ? "pointer-events-none w-0 border-l-0 p-0 opacity-0"
-          : "w-[clamp(280px,28vw,328px)] border-l border-border/40 px-3 py-3"
+          : `w-[clamp(280px,28vw,328px)] border-l border-border/40 px-3 py-3 ${
+              compactOpen ? "max-[719px]:flex" : "max-[719px]:hidden"
+            }`
       }`}
     >
       <InspectorContextHeader transformProps={transformProps} />

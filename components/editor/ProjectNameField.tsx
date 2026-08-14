@@ -44,7 +44,7 @@ export function ProjectNameField({
           event.currentTarget.blur()
         }
       }}
-      className="h-8 w-28 min-w-0 rounded-md border border-transparent bg-transparent px-2 text-sm font-medium text-foreground transition-[background-color,border-color,box-shadow] outline-none hover:bg-muted/60 focus:border-input focus:bg-background focus:ring-2 focus:ring-ring/20 sm:w-36 xl:w-44"
+      className="h-8 w-24 min-w-0 rounded-md border border-transparent bg-transparent px-2 text-sm font-medium text-foreground transition-[background-color,border-color,box-shadow] outline-none hover:bg-muted/60 focus:border-input focus:bg-background focus:ring-2 focus:ring-ring/20 min-[480px]:w-28 sm:w-36 xl:w-44"
     />
   )
 }

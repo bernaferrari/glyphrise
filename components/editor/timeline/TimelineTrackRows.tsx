@@ -31,9 +31,9 @@ type TimelineTrackRowsProps = {
     keyframeId: string,
     easing: EasingType
   ) => void
-  onBlockDrag: (event: React.MouseEvent, trackId: string) => void
+  onBlockDrag: (event: React.PointerEvent<HTMLElement>, trackId: string) => void
   onKeyframeDrag: (
-    event: React.MouseEvent,
+    event: React.PointerEvent<HTMLElement>,
     trackId: string,
     keyframeId: string
   ) => void

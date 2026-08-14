@@ -7,6 +7,16 @@ export const ZOOM_DAMPING = 0.08
 export const INERTIA_DECAY = 0.92
 export const INERTIA_STOP_THRESHOLD = 0.0007
 
+export const shouldScheduleSvgRenderFrame = ({
+  disposed,
+  documentHidden,
+  animationFrameId,
+}: {
+  disposed: boolean
+  documentHidden: boolean
+  animationFrameId: number | null
+}) => !disposed && !documentHidden && animationFrameId === null
+
 export const advanceInertiaVelocity = (
   velocity: RotationVelocity
 ): {

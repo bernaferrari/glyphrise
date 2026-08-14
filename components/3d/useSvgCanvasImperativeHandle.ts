@@ -21,6 +21,7 @@ type CanvasRecorder = {
   ) => void
   requestFrame: () => void
   stopRecording: (callback: (blob: Blob) => void) => void
+  cancelRecording: () => void
 }
 
 type SvgCanvasImperativeHandleOptions = {
@@ -78,7 +79,9 @@ export function useSvgCanvasImperativeHandle({
     },
 
     startRecording(options?: CanvasRecorderOptions) {
-      if (!rendererRef.current) return
+      if (!rendererRef.current || !canvasRef.current) {
+        throw new Error("The 3D preview canvas is not ready.")
+      }
       canvasRecorder.startRecording(canvasRef.current, options)
     },
 
@@ -88,6 +91,10 @@ export function useSvgCanvasImperativeHandle({
 
     stopRecording(callback: (blob: Blob) => void) {
       canvasRecorder.stopRecording(callback)
+    },
+
+    cancelRecording() {
+      canvasRecorder.cancelRecording()
     },
 
     resetRotation() {

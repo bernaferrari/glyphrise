@@ -76,9 +76,26 @@ export function useQuickStartGuideController({
       open,
       completedStepIds,
       onChooseIcon: () => {
-        if (selectedShapeId) setOpenShapePicker(selectedShapeId)
+        if (!selectedShapeId) return
+        setOpen(false)
+        setOpenShapePicker(selectedShapeId)
+      },
+      onStyle: () => {
+        setOpen(false)
+        requestAnimationFrame(() => {
+          document
+            .getElementById("inspector-style")
+            ?.scrollIntoView({ block: "start" })
+        })
+      },
+      onMotion: () => {
+        setOpen(false)
+        requestAnimationFrame(() => {
+          document.getElementById("timeline-add-property")?.focus()
+        })
       },
       onPlayExample: () => {
+        setOpen(false)
         if (!isPlaying) togglePlayback()
       },
       onExport: () => {

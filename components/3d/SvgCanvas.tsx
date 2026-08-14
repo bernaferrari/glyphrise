@@ -321,10 +321,18 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
     return (
       <div
         ref={containerRef}
-        className="relative h-full min-h-[400px] w-full overflow-hidden rounded-xl border border-border/10 bg-[oklch(0.13_0.012_280)] shadow-2xl"
+        role="region"
+        aria-label="3D preview"
+        aria-describedby="vectorforge-preview-instructions"
+        className="relative h-full min-h-0 w-full overflow-hidden rounded-xl border border-border/10 bg-[oklch(0.13_0.012_280)] shadow-2xl"
       >
+        <span id="vectorforge-preview-instructions" className="sr-only">
+          Drag the preview to rotate the icon. Use the view controls to reset or
+          adjust the camera.
+        </span>
         <canvas
           ref={canvasRef}
+          aria-hidden="true"
           className="block h-full w-full cursor-grab touch-none active:cursor-grabbing"
         />
         <SvgCanvasOverlays

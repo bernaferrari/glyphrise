@@ -34,7 +34,7 @@ export type TimelineViewportProps = {
   laneRef: React.RefObject<HTMLDivElement | null>
   timelineScrollRef: React.RefObject<HTMLDivElement | null>
   timeFromClientX: TimelineTimeFromClientX
-  handleScrubStart: (event: React.MouseEvent<HTMLElement>) => void
+  handleScrubStart: (event: React.PointerEvent<HTMLElement>) => void
   syncLeftRailScroll: (scrollTop: number) => void
   onAdjustTimelineZoom: (direction: number) => void
   onFitTimeline: () => void
@@ -124,9 +124,9 @@ export type TimelineTrackLaneProps = {
     keyframeId: string,
     easing: EasingType
   ) => void
-  onBlockDrag: (event: React.MouseEvent, trackId: string) => void
+  onBlockDrag: (event: React.PointerEvent<HTMLElement>, trackId: string) => void
   onKeyframeDrag: (
-    event: React.MouseEvent,
+    event: React.PointerEvent<HTMLElement>,
     trackId: string,
     keyframeId: string
   ) => void

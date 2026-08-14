@@ -13,19 +13,19 @@ type TimelineRulerProps = {
   duration: number
   ticks: TimelineTick[]
   playheadX: string
-  onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void
+  onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onContextMenu: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
 export const TimelineRuler = React.forwardRef<
   HTMLDivElement,
   TimelineRulerProps
->(({ duration, ticks, playheadX, onMouseDown, onContextMenu }, ref) => (
+>(({ duration, ticks, playheadX, onPointerDown, onContextMenu }, ref) => (
   <div
     ref={ref}
-    onMouseDown={onMouseDown}
+    onPointerDown={onPointerDown}
     onContextMenu={onContextMenu}
-    className="sticky top-0 h-7 cursor-col-resize bg-background"
+    className="sticky top-0 h-7 cursor-col-resize touch-none bg-background select-none"
     style={{ zIndex: TIMELINE_LAYER.ruler }}
   >
     <div

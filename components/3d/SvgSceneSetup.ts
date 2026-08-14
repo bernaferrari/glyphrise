@@ -18,7 +18,6 @@ export const createSvgRenderer = ({
     canvas,
     antialias: true,
     alpha: true,
-    preserveDrawingBuffer: true,
   })
   renderer.setSize(width, height)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))

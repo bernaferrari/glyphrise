@@ -8,6 +8,7 @@ type MouseDragOptions = {
 type PointerDragOptions = {
   onMove: (event: PointerEvent) => void
   onEnd?: (event?: EndEvent) => void
+  pointerId?: number
 }
 
 type TouchMouseDragOptions = {
@@ -63,6 +64,7 @@ export const bindWindowMouseDrag = ({ onMove, onEnd }: MouseDragOptions) => {
 export const bindWindowPointerDrag = ({
   onMove,
   onEnd,
+  pointerId,
 }: PointerDragOptions) => {
   let active = true
 
@@ -70,13 +72,14 @@ export const bindWindowPointerDrag = ({
     if (!active) return
     active = false
     window.removeEventListener("pointermove", move)
-    window.removeEventListener("pointerup", cleanup)
-    window.removeEventListener("pointercancel", cleanup)
+    window.removeEventListener("pointerup", end)
+    window.removeEventListener("pointercancel", end)
     window.removeEventListener("blur", cleanup)
     onEnd?.(event)
   }
 
   const move = (event: PointerEvent) => {
+    if (pointerId !== undefined && event.pointerId !== pointerId) return
     if (isPrimaryButtonReleased(event)) {
       cleanup(event)
       return
@@ -84,9 +87,14 @@ export const bindWindowPointerDrag = ({
     onMove(event)
   }
 
+  const end = (event: PointerEvent) => {
+    if (pointerId !== undefined && event.pointerId !== pointerId) return
+    cleanup(event)
+  }
+
   window.addEventListener("pointermove", move)
-  window.addEventListener("pointerup", cleanup)
-  window.addEventListener("pointercancel", cleanup)
+  window.addEventListener("pointerup", end)
+  window.addEventListener("pointercancel", end)
   window.addEventListener("blur", cleanup)
 
   return cleanup

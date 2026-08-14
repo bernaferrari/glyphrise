@@ -1,8 +1,12 @@
 "use client"
 
-import type { MouseEvent, RefObject } from "react"
+import type { PointerEvent, RefObject } from "react"
 import { useRef } from "react"
-import { bindWindowMouseDrag } from "@/lib/drag-events"
+import {
+  bindWindowPointerDrag,
+  safelyReleasePointerCapture,
+  safelySetPointerCapture,
+} from "@/lib/drag-events"
 import {
   EDGE_INSET,
   TIMELINE_EDGE_SCROLL_MAX,
@@ -228,7 +232,12 @@ export function useTimelineScrubbing({
     scrubEdgeRafRef.current = requestAnimationFrame(tick)
   }
 
-  const handleScrubStart = (event: MouseEvent) => {
+  const handleScrubStart = (event: PointerEvent<HTMLElement>) => {
+    if (!event.isPrimary || event.button !== 0) return
+    event.preventDefault()
+    const pointerTarget = event.currentTarget
+    const pointerId = event.pointerId
+    safelySetPointerCapture(pointerTarget, pointerId)
     onClearSelectedKeyframe()
     onScrubStart?.()
     const initialOptions = {
@@ -247,7 +256,8 @@ export function useTimelineScrubbing({
       { immediate: true }
     )
     startScrubEdgeScroll(initialOptions)
-    bindWindowMouseDrag({
+    bindWindowPointerDrag({
+      pointerId,
       onMove: (moveEvent) => {
         const options = {
           bypass: moveEvent.altKey,
@@ -262,7 +272,10 @@ export function useTimelineScrubbing({
           })
         )
       },
-      onEnd: stopScrubEdgeScroll,
+      onEnd: () => {
+        safelyReleasePointerCapture(pointerTarget, pointerId)
+        stopScrubEdgeScroll()
+      },
     })
   }
 

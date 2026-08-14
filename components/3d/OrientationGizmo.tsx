@@ -196,8 +196,16 @@ function GizmoNudgeButton({
 }) {
   return (
     <g
-      className={`cursor-pointer ${colorClass} transition-colors`}
+      role="button"
+      tabIndex={0}
+      aria-label={title}
+      className={`cursor-pointer ${colorClass} transition-colors focus:outline-none focus-visible:[&_rect]:stroke-white/70`}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return
+        event.preventDefault()
+        onClick()
+      }}
     >
       <title>{title}</title>
       <rect
@@ -206,7 +214,7 @@ function GizmoNudgeButton({
         width={hitbox.width}
         height={hitbox.height}
         rx="11"
-        className="fill-transparent"
+        className="fill-transparent stroke-transparent stroke-1"
       />
       <path d={path} className="fill-current opacity-90" />
     </g>

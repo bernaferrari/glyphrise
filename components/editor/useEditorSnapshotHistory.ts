@@ -3,6 +3,7 @@
 import {
   Dispatch,
   SetStateAction,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -33,7 +34,7 @@ import {
   listPersistedEditorProjects,
   MAX_PROJECT_FILE_BYTES,
   normalizeProjectName,
-  parseEditorDocument,
+  parseImportedEditorDocument,
   readPersistedEditorDocument,
   readPersistedEditorProject,
   writePersistedEditorDocument,
@@ -296,6 +297,63 @@ export function useEditorSnapshotHistory({
   const initialSnapshotRef = useRef(snapshot)
   const snapshotRef = useRef(snapshot)
   snapshotRef.current = snapshot
+  const persistenceReadyRef = useRef(false)
+  const skipNextPersistRef = useRef(false)
+  const autosaveTimeoutRef = useRef<number | null>(null)
+  const autosavePendingRef = useRef(false)
+
+  const clearAutosaveTimeout = useCallback(() => {
+    if (autosaveTimeoutRef.current === null) return
+    window.clearTimeout(autosaveTimeoutRef.current)
+    autosaveTimeoutRef.current = null
+  }, [])
+
+  const markSnapshotPersisted = useCallback(
+    (
+      persistedSnapshot: EditorSnapshot,
+      persistedProject: EditorProjectMetadata
+    ) => {
+      clearAutosaveTimeout()
+      autosavePendingRef.current = false
+      snapshotRef.current = persistedSnapshot
+      projectRef.current = persistedProject
+    },
+    [clearAutosaveTimeout]
+  )
+
+  const flushPendingAutosave = useCallback(
+    (force = false) => {
+      if (
+        (!force && !autosavePendingRef.current) ||
+        !persistenceReadyRef.current ||
+        typeof window === "undefined"
+      ) {
+        return
+      }
+
+      clearAutosaveTimeout()
+      try {
+        const latestSnapshot = snapshotRef.current
+        const persistedProject = writePersistedEditorDocument(
+          latestSnapshot,
+          projectRef.current
+        )
+        markSnapshotPersisted(latestSnapshot, persistedProject)
+        setProject(persistedProject)
+        setRecentProjects(listPersistedEditorProjects())
+        setProjectStatus("saved")
+        setProjectStatusMessage("All changes saved locally.")
+      } catch (error) {
+        setProjectStatus("error")
+        setProjectStatusMessage(
+          error instanceof Error
+            ? `Autosave failed: ${error.message}`
+            : "Autosave failed. Download the project to keep a backup."
+        )
+      }
+    },
+    [clearAutosaveTimeout, markSnapshotPersisted]
+  )
 
   const restoreSnapshot = (nextSnapshot: EditorSnapshot) => {
     setActiveRecipeId(nextSnapshot.activeRecipeId)
@@ -333,7 +391,12 @@ export function useEditorSnapshotHistory({
   })
 
   const persistCurrentProjectNow = () => {
-    const persistedProject = writePersistedEditorDocument(snapshot, project)
+    const latestSnapshot = snapshotRef.current
+    const persistedProject = writePersistedEditorDocument(
+      latestSnapshot,
+      projectRef.current
+    )
+    markSnapshotPersisted(latestSnapshot, persistedProject)
     setProject(persistedProject)
     setRecentProjects(listPersistedEditorProjects())
     return persistedProject
@@ -366,6 +429,7 @@ export function useEditorSnapshotHistory({
       nextSnapshot,
       nextProject
     )
+    markSnapshotPersisted(nextSnapshot, persistedProject)
     setProject(persistedProject)
     setRecentProjects(listPersistedEditorProjects())
     setProjectStatus("saved")
@@ -430,6 +494,7 @@ export function useEditorSnapshotHistory({
         ...project,
         name: normalizedName,
       })
+      markSnapshotPersisted(snapshot, nextProject)
       setProject(nextProject)
       setRecentProjects(listPersistedEditorProjects())
       setProjectStatus("saved")
@@ -579,14 +644,14 @@ export function useEditorSnapshotHistory({
       void file
         .text()
         .then((text) => {
-          const nextDocument = parseEditorDocument(JSON.parse(text))
+          const nextDocument = parseImportedEditorDocument(JSON.parse(text))
           if (!nextDocument) {
             throw new Error("Invalid VectorForge project file.")
           }
           activateProject(
             nextDocument.snapshot,
             nextDocument.project,
-            `${nextDocument.project.name} opened and saved locally.`
+            `${nextDocument.project.name} imported and saved locally.`
           )
         })
         .catch((error) => {
@@ -611,13 +676,12 @@ export function useEditorSnapshotHistory({
         finalSnapshot,
         projectRef.current
       )
+      markSnapshotPersisted(finalSnapshot, persistedProject)
       setProject(persistedProject)
       setRecentProjects(listPersistedEditorProjects())
     })
   }
 
-  const persistenceReadyRef = useRef(false)
-  const skipNextPersistRef = useRef(false)
   const canRecord = shapes.length > 0
 
   useEffect(() => {
@@ -627,6 +691,8 @@ export function useEditorSnapshotHistory({
       skipNextPersistRef.current = true
       restoreSnapshot(persistedDocument.snapshot)
       history.resetHistory(persistedDocument.snapshot, true)
+      snapshotRef.current = persistedDocument.snapshot
+      projectRef.current = persistedDocument.project
       setProject(persistedDocument.project)
     }
     setRecentProjects(listPersistedEditorProjects())
@@ -643,11 +709,29 @@ export function useEditorSnapshotHistory({
   }, [])
 
   useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !canRecord ||
-      !persistenceReadyRef.current
-    ) {
+    if (typeof window === "undefined") return
+
+    const handlePageHide = () => flushPendingAutosave(true)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flushPendingAutosave(true)
+    }
+
+    window.addEventListener("pagehide", handlePageHide)
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [flushPendingAutosave])
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !persistenceReadyRef.current) {
+      return
+    }
+
+    if (!canRecord) {
+      clearAutosaveTimeout()
+      autosavePendingRef.current = false
       return
     }
 
@@ -658,28 +742,15 @@ export function useEditorSnapshotHistory({
 
     setProjectStatus("saving")
     setProjectStatusMessage("Saving changes locally…")
-    const timeout = window.setTimeout(() => {
-      try {
-        const persistedProject = writePersistedEditorDocument(
-          snapshot,
-          projectRef.current
-        )
-        setProject(persistedProject)
-        setRecentProjects(listPersistedEditorProjects())
-        setProjectStatus("saved")
-        setProjectStatusMessage("All changes saved locally.")
-      } catch (error) {
-        setProjectStatus("error")
-        setProjectStatusMessage(
-          error instanceof Error
-            ? `Autosave failed: ${error.message}`
-            : "Autosave failed. Download the project to keep a backup."
-        )
-      }
+    autosavePendingRef.current = true
+    clearAutosaveTimeout()
+    autosaveTimeoutRef.current = window.setTimeout(() => {
+      autosaveTimeoutRef.current = null
+      flushPendingAutosave()
     }, 350)
 
-    return () => window.clearTimeout(timeout)
-  }, [canRecord, snapshot])
+    return clearAutosaveTimeout
+  }, [canRecord, clearAutosaveTimeout, flushPendingAutosave, snapshot])
 
   return {
     ...history,

@@ -40,7 +40,7 @@ export function TimelineLanesSurface({
             duration={viewport.duration}
             ticks={viewport.timelineTicks}
             playheadX={viewport.playheadX}
-            onMouseDown={viewport.handleScrubStart}
+            onPointerDown={viewport.handleScrubStart}
             onContextMenu={(event) => {
               const time = viewport.timeFromClientX(event.clientX, {
                 bypass: event.altKey,

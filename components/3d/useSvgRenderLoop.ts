@@ -19,6 +19,7 @@ import {
 import {
   ZOOM_DAMPING,
   advanceInertiaVelocity,
+  shouldScheduleSvgRenderFrame,
   type RotationVelocity,
 } from "./SvgRenderLoopModel"
 import { framedCameraDistance } from "./SvgSceneUtils"
@@ -83,14 +84,35 @@ export function useSvgRenderLoop({
   }, [updateTransformGizmo])
 
   useEffect(() => {
-    let animFrameId: number
+    let animFrameId: number | null = null
+    let disposed = false
+
+    const scheduleFrame = () => {
+      if (
+        !shouldScheduleSvgRenderFrame({
+          disposed,
+          documentHidden: document.hidden,
+          animationFrameId: animFrameId,
+        })
+      ) {
+        return
+      }
+
+      animFrameId = requestAnimationFrame(renderLoop)
+    }
 
     const renderLoop = () => {
+      animFrameId = null
+      if (disposed || document.hidden) return
+
       const scene = sceneRef.current
       const renderer = rendererRef.current
       const camera = cameraRef.current
 
-      if (!scene || !renderer || !camera) return
+      if (!scene || !renderer || !camera) {
+        scheduleFrame()
+        return
+      }
 
       const liveProps = liveRenderPropsRef.current
       const progress = liveProps.transitionProgress
@@ -163,13 +185,27 @@ export function useSvgRenderLoop({
         marker: centerMarkerRef.current,
         transformGizmo: transformGizmoGroupRef.current,
       })
-      animFrameId = requestAnimationFrame(renderLoop)
+      scheduleFrame()
     }
 
-    animFrameId = requestAnimationFrame(renderLoop)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (animFrameId !== null) cancelAnimationFrame(animFrameId)
+        animFrameId = null
+        return
+      }
+
+      scheduleFrame()
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    scheduleFrame()
 
     return () => {
-      cancelAnimationFrame(animFrameId)
+      disposed = true
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+      if (animFrameId !== null) cancelAnimationFrame(animFrameId)
+      animFrameId = null
     }
   }, [
     cameraRef,

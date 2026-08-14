@@ -1,9 +1,22 @@
-import { RefObject, useRef, useState } from "react"
+import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import { quantizeTimeToFrame } from "./EditorModel"
 
 const VIDEO_EXPORT_FRAME_RATE = 30
 const VIDEO_EXPORT_TIMEOUT_BUFFER_MS = 5000
+
+type PlaybackSnapshot = {
+  currentTime: number
+  isPlaying: boolean
+  loop: boolean
+}
+
+type ExportResult =
+  | { blob: Blob; error?: never }
+  | { blob?: never; error: Error }
+
+const toExportError = (error: unknown) =>
+  error instanceof Error ? error : new Error("Video export failed.")
 
 const downloadVideoBlob = (blob: Blob) => {
   const url = URL.createObjectURL(blob)
@@ -19,169 +32,311 @@ const downloadVideoBlob = (blob: Blob) => {
 export const useVideoExport = ({
   canvasRef,
   duration,
+  currentTime,
+  isPlaying,
+  loop,
   setLoop,
   setIsPlaying,
   setCurrentTime,
 }: {
   canvasRef: RefObject<SvgCanvasRef | null>
   duration: number
+  currentTime: number
+  isPlaying: boolean
+  loop: boolean
   setLoop: (loop: boolean) => void
   setIsPlaying: (isPlaying: boolean) => void
   setCurrentTime: (time: number) => void
 }) => {
   const resolveRef = useRef<(() => void) | null>(null)
   const rejectRef = useRef<((error: Error) => void) | null>(null)
+  const playbackSnapshotRef = useRef<PlaybackSnapshot | null>(null)
+  const recordingCanvasRef = useRef<SvgCanvasRef | null>(null)
   const timeoutRef = useRef<number | null>(null)
   const frameRef = useRef<number | null>(null)
+  const paintResolveRef = useRef<(() => void) | null>(null)
   const activeExportIdRef = useRef(0)
   const recordingStartedRef = useRef(false)
+  const recordingStopRequestedRef = useRef(false)
+  const mountedRef = useRef(true)
   const [videoExportProgress, setVideoExportProgress] = useState(0)
   const [isVideoExporting, setIsVideoExporting] = useState(false)
 
-  const clearExportTimeout = () => {
+  const clearExportTimeout = useCallback(() => {
     if (timeoutRef.current === null) return
     window.clearTimeout(timeoutRef.current)
     timeoutRef.current = null
-  }
+  }, [])
 
-  const clearExportFrame = () => {
-    if (frameRef.current === null) return
-    window.cancelAnimationFrame(frameRef.current)
-    frameRef.current = null
-  }
+  const clearExportFrame = useCallback(() => {
+    if (frameRef.current !== null) {
+      window.cancelAnimationFrame(frameRef.current)
+      frameRef.current = null
+    }
 
-  const waitForPaint = () =>
-    new Promise<void>((resolve) => {
-      frameRef.current = window.requestAnimationFrame(() => {
-        frameRef.current = window.requestAnimationFrame(() => {
-          frameRef.current = null
+    // Resolving the pending paint wait lets its async task observe the changed
+    // export id and exit instead of retaining a promise forever.
+    const resolvePaint = paintResolveRef.current
+    paintResolveRef.current = null
+    resolvePaint?.()
+  }, [])
+
+  const waitForPaint = useCallback(
+    () =>
+      new Promise<void>((resolve) => {
+        let complete = false
+        const resolveOnce = () => {
+          if (complete) return
+          complete = true
+          if (paintResolveRef.current === resolveOnce) {
+            paintResolveRef.current = null
+          }
           resolve()
+        }
+
+        paintResolveRef.current = resolveOnce
+        frameRef.current = window.requestAnimationFrame(() => {
+          frameRef.current = window.requestAnimationFrame(() => {
+            frameRef.current = null
+            resolveOnce()
+          })
         })
-      })
-    })
+      }),
+    []
+  )
 
-  const finishVideoExport = (blob: Blob) => {
-    activeExportIdRef.current += 1
-    clearExportTimeout()
-    clearExportFrame()
-    setCurrentTime(duration)
-    setVideoExportProgress(1)
-    setIsVideoExporting(false)
+  const cancelActiveRecorder = useCallback(() => {
+    const recordingCanvas = recordingCanvasRef.current
+    recordingCanvasRef.current = null
     recordingStartedRef.current = false
-    downloadVideoBlob(blob)
-    resolveRef.current?.()
-    resolveRef.current = null
-    rejectRef.current = null
-  }
+    recordingStopRequestedRef.current = false
+    if (!recordingCanvas) return
 
-  const failVideoExport = (error: unknown) => {
-    activeExportIdRef.current += 1
-    clearExportTimeout()
-    clearExportFrame()
-    setVideoExportProgress(0)
-    setIsVideoExporting(false)
-    recordingStartedRef.current = false
-    rejectRef.current?.(
-      error instanceof Error ? error : new Error("Video export failed.")
-    )
-    resolveRef.current = null
-    rejectRef.current = null
-  }
+    try {
+      recordingCanvas.cancelRecording()
+    } catch {
+      // Promise settlement and playback restoration must still finish even if
+      // a browser recorder throws while being torn down.
+    }
+  }, [])
 
-  const stopVideoExportRecording = () => {
-    clearExportTimeout()
+  const settleVideoExport = useCallback(
+    (result: ExportResult, exportId: number) => {
+      if (activeExportIdRef.current !== exportId) return
+
+      const resolve = resolveRef.current
+      const reject = rejectRef.current
+      if (!resolve || !reject) return
+
+      const playbackSnapshot = playbackSnapshotRef.current
+      let finalError = result.error ?? null
+
+      // Invalidate all asynchronous frame/error/stop callbacks before doing
+      // anything that can call into browser or user code.
+      activeExportIdRef.current += 1
+      clearExportTimeout()
+      clearExportFrame()
+      resolveRef.current = null
+      rejectRef.current = null
+      playbackSnapshotRef.current = null
+
+      if (finalError) {
+        cancelActiveRecorder()
+      } else {
+        recordingCanvasRef.current = null
+        recordingStartedRef.current = false
+        recordingStopRequestedRef.current = false
+      }
+
+      try {
+        if (!finalError && result.blob) downloadVideoBlob(result.blob)
+      } catch (error) {
+        finalError = toExportError(error)
+        cancelActiveRecorder()
+      } finally {
+        if (mountedRef.current) {
+          setVideoExportProgress(finalError ? 0 : 1)
+          setIsVideoExporting(false)
+          if (playbackSnapshot) {
+            setLoop(playbackSnapshot.loop)
+            setCurrentTime(playbackSnapshot.currentTime)
+            setIsPlaying(playbackSnapshot.isPlaying)
+          }
+        }
+
+        if (finalError) reject(finalError)
+        else resolve()
+      }
+    },
+    [
+      cancelActiveRecorder,
+      clearExportFrame,
+      clearExportTimeout,
+      setCurrentTime,
+      setIsPlaying,
+      setLoop,
+    ]
+  )
+
+  const failVideoExport = useCallback(
+    (error: unknown, exportId: number) => {
+      settleVideoExport({ error: toExportError(error) }, exportId)
+    },
+    [settleVideoExport]
+  )
+
+  const stopVideoExportRecording = useCallback(() => {
+    const exportId = activeExportIdRef.current
+    if (!resolveRef.current || recordingStopRequestedRef.current) return
+
     clearExportFrame()
-    if (!recordingStartedRef.current) {
+    if (!recordingStartedRef.current || !recordingCanvasRef.current) {
       failVideoExport(
-        new Error("Video export stopped before recording started.")
+        new Error("Video export stopped before recording started."),
+        exportId
       )
       return
     }
+
+    recordingStopRequestedRef.current = true
     try {
-      canvasRef.current?.stopRecording(finishVideoExport)
+      recordingCanvasRef.current.stopRecording((blob) => {
+        if (!blob) {
+          failVideoExport(
+            new Error("The browser returned an empty video recording."),
+            exportId
+          )
+          return
+        }
+        settleVideoExport({ blob }, exportId)
+      })
     } catch (error) {
-      failVideoExport(error)
+      failVideoExport(error, exportId)
     }
-  }
+  }, [clearExportFrame, failVideoExport, settleVideoExport])
 
-  const exportTimelineVideo = () =>
-    new Promise<void>((resolve, reject) => {
-      if (!canvasRef.current) {
-        reject(new Error("Canvas is not ready."))
-        return
-      }
-      if (resolveRef.current) {
-        reject(new Error("Video export is already running."))
-        return
-      }
-
-      resolveRef.current = resolve
-      rejectRef.current = reject
-      setLoop(false)
-      setIsPlaying(false)
-      setCurrentTime(0)
-      setVideoExportProgress(0)
-      setIsVideoExporting(true)
-      recordingStartedRef.current = false
-
-      const exportId = activeExportIdRef.current + 1
-      activeExportIdRef.current = exportId
-      const frameCount = Math.max(
-        1,
-        Math.round(Math.max(0, duration) * VIDEO_EXPORT_FRAME_RATE)
-      )
-      const lastFrameIndex = Math.max(0, frameCount - 1)
-
-      timeoutRef.current = window.setTimeout(
-        () => failVideoExport(new Error("Video export timed out.")),
-        Math.ceil((frameCount / VIDEO_EXPORT_FRAME_RATE) * 1000) * 4 +
-          VIDEO_EXPORT_TIMEOUT_BUFFER_MS
-      )
-
-      const renderFrame = async (frameIndex: number) => {
-        if (activeExportIdRef.current !== exportId) return
-
-        const progress =
-          lastFrameIndex === 0 ? 1 : frameIndex / Math.max(1, lastFrameIndex)
-        const nextTime = quantizeTimeToFrame(duration * progress)
-        setCurrentTime(nextTime)
-        setVideoExportProgress(progress)
-
-        await waitForPaint()
-        if (activeExportIdRef.current !== exportId) return
-
-        canvasRef.current?.requestRecordingFrame()
-
-        if (frameIndex >= lastFrameIndex) {
-          setCurrentTime(duration)
-          setVideoExportProgress(1)
-          frameRef.current = window.requestAnimationFrame(() => {
-            frameRef.current = null
-            stopVideoExportRecording()
-          })
+  const exportTimelineVideo = useCallback(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const recordingCanvas = canvasRef.current
+        if (!recordingCanvas) {
+          reject(new Error("Canvas is not ready."))
+          return
+        }
+        if (resolveRef.current) {
+          reject(new Error("Video export is already running."))
           return
         }
 
-        void renderFrame(frameIndex + 1).catch(failVideoExport)
-      }
+        const exportId = activeExportIdRef.current + 1
+        activeExportIdRef.current = exportId
+        resolveRef.current = resolve
+        rejectRef.current = reject
+        playbackSnapshotRef.current = { currentTime, isPlaying, loop }
+        recordingCanvasRef.current = recordingCanvas
+        recordingStartedRef.current = false
+        recordingStopRequestedRef.current = false
 
-      void (async () => {
-        try {
-          await waitForPaint()
-          if (activeExportIdRef.current !== exportId) return
-          canvasRef.current?.startRecording({
-            frameRate: VIDEO_EXPORT_FRAME_RATE,
-            manualFrames: true,
-          })
-          recordingStartedRef.current = true
-          setCurrentTime(0)
-          setIsPlaying(false)
-          await renderFrame(0)
-        } catch (error) {
-          failVideoExport(error)
-        }
-      })()
-    })
+        setLoop(false)
+        setIsPlaying(false)
+        setCurrentTime(0)
+        setVideoExportProgress(0)
+        setIsVideoExporting(true)
+
+        const frameCount = Math.max(
+          1,
+          Math.round(Math.max(0, duration) * VIDEO_EXPORT_FRAME_RATE)
+        )
+        const lastFrameIndex = Math.max(0, frameCount - 1)
+
+        timeoutRef.current = window.setTimeout(
+          () => failVideoExport(new Error("Video export timed out."), exportId),
+          Math.ceil((frameCount / VIDEO_EXPORT_FRAME_RATE) * 1000) * 4 +
+            VIDEO_EXPORT_TIMEOUT_BUFFER_MS
+        )
+
+        void (async () => {
+          try {
+            await waitForPaint()
+            if (activeExportIdRef.current !== exportId) return
+
+            recordingCanvas.startRecording({
+              frameRate: VIDEO_EXPORT_FRAME_RATE,
+              manualFrames: true,
+              onError: (error) => failVideoExport(error, exportId),
+            })
+            if (activeExportIdRef.current !== exportId) return
+            recordingStartedRef.current = true
+
+            for (
+              let frameIndex = 0;
+              frameIndex <= lastFrameIndex;
+              frameIndex++
+            ) {
+              if (activeExportIdRef.current !== exportId) return
+
+              const progress =
+                lastFrameIndex === 0
+                  ? 1
+                  : frameIndex / Math.max(1, lastFrameIndex)
+              setCurrentTime(quantizeTimeToFrame(duration * progress))
+              setVideoExportProgress(progress)
+
+              await waitForPaint()
+              if (activeExportIdRef.current !== exportId) return
+              recordingCanvas.requestRecordingFrame()
+            }
+
+            if (activeExportIdRef.current !== exportId) return
+            setCurrentTime(duration)
+            setVideoExportProgress(1)
+            stopVideoExportRecording()
+          } catch (error) {
+            failVideoExport(error, exportId)
+          }
+        })()
+      }),
+    [
+      canvasRef,
+      currentTime,
+      duration,
+      failVideoExport,
+      isPlaying,
+      loop,
+      setCurrentTime,
+      setIsPlaying,
+      setLoop,
+      stopVideoExportRecording,
+      waitForPaint,
+    ]
+  )
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      const exportId = activeExportIdRef.current
+      if (resolveRef.current) {
+        settleVideoExport(
+          {
+            error: new Error(
+              "Video export was canceled because the editor closed."
+            ),
+          },
+          exportId
+        )
+      } else {
+        clearExportTimeout()
+        clearExportFrame()
+        cancelActiveRecorder()
+      }
+    }
+  }, [
+    cancelActiveRecorder,
+    clearExportFrame,
+    clearExportTimeout,
+    settleVideoExport,
+  ])
 
   return {
     isVideoExportPendingRef: resolveRef,

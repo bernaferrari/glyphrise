@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import { bindWindowPointerDrag } from "@/lib/drag-events"
 import {
   clampInspectorValue,
@@ -47,11 +48,14 @@ export function NumberField({
     if (draft === null) return
 
     const parsed = Number.parseFloat(draft)
-    setDraft(null)
-    if (!Number.isFinite(parsed)) {
-      return
-    }
-    onChange(clampInspectorValue(parsed, min, max))
+    // A typed value is not authoritative until this commit boundary. Flush the
+    // parent update now so pagehide can persist it even on an immediate reload.
+    flushSync(() => {
+      setDraft(null)
+      if (Number.isFinite(parsed)) {
+        onChange(clampInspectorValue(parsed, min, max))
+      }
+    })
   }
 
   const startScrub = (e: React.PointerEvent) => {
@@ -116,7 +120,6 @@ export function NumberField({
         aria-valuenow={value}
         onChange={(event) => setDraft(event.target.value)}
         onFocus={(event) => {
-          setDraft(value.toFixed(precision))
           event.currentTarget.select()
         }}
         onBlur={commit}
@@ -128,7 +131,9 @@ export function NumberField({
           if (event.key === "ArrowUp" || event.key === "ArrowDown") {
             event.preventDefault()
             const direction = event.key === "ArrowUp" ? 1 : -1
-            onChange(clampInspectorValue(value + step * direction, min, max))
+            flushSync(() => {
+              onChange(clampInspectorValue(value + step * direction, min, max))
+            })
           }
         }}
         className={`min-w-0 flex-1 cursor-ew-resize bg-transparent text-base text-foreground tabular-nums outline-none focus:cursor-text md:text-[12px] ${inputClassName}`}

@@ -2,12 +2,16 @@
 
 import {
   MutableRefObject,
-  type MouseEvent,
+  type PointerEvent,
   RefObject,
   useRef,
   useState,
 } from "react"
-import { bindWindowMouseDrag } from "@/lib/drag-events"
+import {
+  bindWindowPointerDrag,
+  safelyReleasePointerCapture,
+  safelySetPointerCapture,
+} from "@/lib/drag-events"
 import type { EasingType, TimelineTrack } from "../TimelineModel"
 import { EDGE_INSET, quantizeTimeToFrame } from "./TimelineGeometry"
 import {
@@ -100,16 +104,24 @@ export function useTimelineTrackKeyframes({
     onTracksChange(removeTrackKeyframeById(tracks, trackId, kfId))
   }
 
-  const handleKeyframeDrag = (e: MouseEvent, trackId: string, kfId: string) => {
+  const handleKeyframeDrag = (
+    e: PointerEvent<HTMLElement>,
+    trackId: string,
+    kfId: string
+  ) => {
     e.stopPropagation()
     if (!laneRef.current) return
+    const pointerTarget = e.currentTarget
+    const pointerId = e.pointerId
+    safelySetPointerCapture(pointerTarget, pointerId)
     onScrubStart?.()
     keyframeDraggedRef.current = false
     const rect = laneRef.current.getBoundingClientRect()
     const usable = Math.max(1, rect.width - EDGE_INSET * 2)
     const startX = e.clientX
     const startY = e.clientY
-    bindWindowMouseDrag({
+    bindWindowPointerDrag({
+      pointerId,
       onMove: (ev) => {
         if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 3) {
           keyframeDraggedRef.current = true
@@ -135,6 +147,12 @@ export function useTimelineTrackKeyframes({
             time: newTime,
           })
         )
+      },
+      onEnd: (endEvent) => {
+        safelyReleasePointerCapture(pointerTarget, pointerId)
+        if (endEvent?.type !== "pointerup") {
+          keyframeDraggedRef.current = false
+        }
       },
     })
   }
@@ -165,9 +183,12 @@ export function useTimelineTrackKeyframes({
     setTimeEditor(null)
   }
 
-  const handleBlockDrag = (e: MouseEvent, trackId: string) => {
+  const handleBlockDrag = (e: PointerEvent<HTMLElement>, trackId: string) => {
     e.stopPropagation()
     if (!laneRef.current) return
+    const pointerTarget = e.currentTarget
+    const pointerId = e.pointerId
+    safelySetPointerCapture(pointerTarget, pointerId)
     onScrubStart?.()
     selectTrack(trackId)
     const rect = laneRef.current.getBoundingClientRect()
@@ -177,7 +198,8 @@ export function useTimelineTrackKeyframes({
     if (!track || track.keyframes.length === 0) return
     const initial = track.keyframes.map((k) => ({ id: k.id, time: k.time }))
 
-    bindWindowMouseDrag({
+    bindWindowPointerDrag({
+      pointerId,
       onMove: (ev) => {
         let delta = clampTrackKeyframeBlockDelta({
           initial,
@@ -212,6 +234,9 @@ export function useTimelineTrackKeyframes({
             frameSnapActive,
           })
         )
+      },
+      onEnd: () => {
+        safelyReleasePointerCapture(pointerTarget, pointerId)
       },
     })
   }

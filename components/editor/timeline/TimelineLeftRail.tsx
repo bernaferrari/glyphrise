@@ -132,6 +132,7 @@ export const TimelineLeftRail = React.forwardRef<
             <PopoverTrigger
               render={
                 <button
+                  id="timeline-add-property"
                   type="button"
                   className="flex h-9 w-full items-center gap-2 border-b border-border px-3 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
                 />

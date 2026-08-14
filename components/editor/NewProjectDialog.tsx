@@ -140,18 +140,24 @@ export function NewProjectDialog({
               >
                 Start with a style
               </h3>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid gap-1.5 sm:grid-cols-3">
                 {templates.map((template) => (
                   <button
                     key={template.id}
                     type="button"
-                    title={template.description}
                     onClick={() => onCreateFromTemplate(template.id, name)}
-                    className="flex min-h-12 min-w-0 items-center gap-2 rounded-lg border border-border bg-muted/25 px-2.5 text-left transition-[background-color,border-color,transform] duration-150 hover:border-ring/40 hover:bg-muted/55 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-[0.99]"
+                    className="flex min-h-14 min-w-0 items-start gap-2 rounded-lg border border-border bg-muted/25 px-2.5 py-2 text-left transition-[background-color,border-color,transform] duration-150 hover:border-ring/40 hover:bg-muted/55 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-[0.99]"
                   >
-                    <span aria-hidden="true">{template.emoji}</span>
-                    <span className="truncate text-xs font-medium text-foreground">
-                      {template.name}
+                    <span aria-hidden="true" className="mt-0.5 shrink-0">
+                      {template.emoji}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-xs leading-4 font-medium text-balance text-foreground">
+                        {template.name}
+                      </span>
+                      <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground sm:line-clamp-2">
+                        {template.description}
+                      </span>
                     </span>
                   </button>
                 ))}

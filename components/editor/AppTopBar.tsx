@@ -90,13 +90,13 @@ function CompactWorkspaceMenu({
       disabled: false,
     },
     {
-      label: "Open project file",
+      label: "Import project file",
       Icon: FolderOpen,
       onClick: action(onProjectOpen),
       disabled: false,
     },
     {
-      label: "Download project",
+      label: "Download project backup",
       Icon: FileDown,
       onClick: action(onProjectSave),
       disabled: false,
@@ -137,6 +137,113 @@ function CompactWorkspaceMenu({
   )
 }
 
+function ProjectMenu({
+  onProjectNew,
+  onProjectOpen,
+  onProjectSave,
+  projectStatus,
+  projectStatusMessage,
+}: Pick<
+  AppTopBarProps,
+  | "onProjectNew"
+  | "onProjectOpen"
+  | "onProjectSave"
+  | "projectStatus"
+  | "projectStatusMessage"
+>) {
+  const [open, setOpen] = useState(false)
+  const action = (callback: () => void) => () => {
+    setOpen(false)
+    callback()
+  }
+  const items = [
+    {
+      label: "Projects on this device",
+      accessibleLabel: "Open projects",
+      description: "Create, switch, duplicate, or delete",
+      Icon: FolderClock,
+      onClick: action(onProjectNew),
+    },
+    {
+      label: "Import project file",
+      accessibleLabel: "Import project file",
+      description: "Open a downloaded VectorForge backup",
+      Icon: FolderOpen,
+      onClick: action(onProjectOpen),
+    },
+    {
+      label: "Download backup",
+      accessibleLabel: "Download project backup",
+      description: "Save a portable copy of this project",
+      Icon: FileDown,
+      onClick: action(onProjectSave),
+    },
+  ]
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        render={
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="Open project menu"
+            title="Project"
+            className="hidden h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
+          />
+        }
+      >
+        <FolderClock className="size-3.5" />
+        <span className="hidden xl:inline">Project</span>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-72 p-1.5">
+        <div className="mb-1 flex items-start gap-2 rounded-lg bg-muted/45 px-2.5 py-2">
+          {projectStatus === "error" ? (
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+          ) : projectStatus === "restoring" || projectStatus === "saving" ? (
+            <LoaderCircle className="mt-0.5 size-4 shrink-0 animate-spin motion-reduce:animate-none" />
+          ) : (
+            <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+          )}
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-foreground">
+              {projectStatus === "restoring"
+                ? "Restoring project"
+                : projectStatus === "saving"
+                  ? "Saving locally"
+                  : projectStatus === "error"
+                    ? "Autosave needs attention"
+                    : "Saved locally"}
+            </div>
+            <div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+              {projectStatusMessage}
+            </div>
+          </div>
+        </div>
+        {items.map(({ label, accessibleLabel, description, Icon, onClick }) => (
+          <button
+            key={label}
+            type="button"
+            aria-label={accessibleLabel}
+            onClick={onClick}
+            className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+          >
+            <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <span className="min-w-0">
+              <span className="block text-xs font-medium text-foreground">
+                {label}
+              </span>
+              <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
+                {description}
+              </span>
+            </span>
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export function AppTopBar({
   zenMode,
   themeMounted,
@@ -161,13 +268,13 @@ export function AppTopBar({
   onExportOpen,
 }: AppTopBarProps) {
   return (
-    <div className="relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 backdrop-blur-xl sm:px-3">
+    <header className="relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 backdrop-blur-xl sm:px-3">
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
           aria-label={zenMode ? "Show panels" : "Hide panels"}
           onClick={() => onZenModeChange(!zenMode)}
-          className="size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+          className="size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {zenMode ? (
             <PanelLeftOpen className="mx-auto size-4" />
@@ -216,7 +323,7 @@ export function AppTopBar({
           ) : (
             <Check aria-hidden="true" className="size-3.5" />
           )}
-          <span className="hidden max-w-36 truncate 2xl:inline">
+          <span className="hidden max-w-28 truncate lg:inline">
             {projectStatus === "restoring"
               ? "Restoring…"
               : projectStatus === "saving"
@@ -226,39 +333,13 @@ export function AppTopBar({
                   : "Saved locally"}
           </span>
         </span>
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label="Open projects"
-          title="Projects"
-          onClick={onProjectNew}
-          className="hidden h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
-        >
-          <FolderClock className="size-3.5" />
-          <span className="hidden xl:inline">Projects</span>
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label="Open project"
-          title="Open project"
-          onClick={onProjectOpen}
-          className="hidden h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
-        >
-          <FolderOpen className="size-3.5" />
-          <span className="hidden xl:inline">Open</span>
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-label="Download project file"
-          title="Download project file"
-          onClick={onProjectSave}
-          className="hidden h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
-        >
-          <FileDown className="size-3.5" />
-          <span className="hidden xl:inline">Download</span>
-        </Button>
+        <ProjectMenu
+          onProjectNew={onProjectNew}
+          onProjectOpen={onProjectOpen}
+          onProjectSave={onProjectSave}
+          projectStatus={projectStatus}
+          projectStatusMessage={projectStatusMessage}
+        />
         <div className="hidden items-center rounded-lg border border-border bg-muted/35 p-0.5 sm:flex">
           <Button
             size="icon"
@@ -285,7 +366,7 @@ export function AppTopBar({
         </div>
         <Button
           size="sm"
-          variant={autoKeyEnabled ? "destructive" : "ghost"}
+          variant="ghost"
           aria-pressed={autoKeyEnabled}
           aria-label={autoKeyEnabled ? "Disable auto-key" : "Enable auto-key"}
           title={
@@ -294,7 +375,11 @@ export function AppTopBar({
               : "Auto-key is off: edits stay static unless a keyframe is selected"
           }
           onClick={() => onAutoKeyChange(!autoKeyEnabled)}
-          className="h-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium"
+          className={`h-9 gap-1.5 rounded-lg border px-2 text-xs font-medium ${
+            autoKeyEnabled
+              ? "border-destructive/35 bg-destructive/12 text-destructive hover:bg-destructive/18 hover:text-destructive"
+              : "border-border bg-muted/50"
+          }`}
         >
           <CircleDot className="size-3.5" />
           <span className="hidden lg:inline">Auto-key</span>
@@ -328,6 +413,7 @@ export function AppTopBar({
         </Button>
         <Button
           size="sm"
+          aria-label="Export"
           className="h-9 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           onClick={onExportOpen}
         >
@@ -357,6 +443,6 @@ export function AppTopBar({
           <span>{projectStatusMessage}</span>
         </div>
       ) : null}
-    </div>
+    </header>
   )
 }

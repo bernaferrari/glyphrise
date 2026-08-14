@@ -71,7 +71,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
     return (
       <div
         className={`flex min-w-0 flex-1 flex-col ${
-          zenMode ? "gap-0 p-0" : "gap-2 p-4"
+          zenMode ? "gap-0 p-0" : "gap-2 p-4 max-[719px]:p-2"
         }`}
       >
         <div

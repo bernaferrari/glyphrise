@@ -46,7 +46,7 @@ export function ViewOptionsPopover({
         <PopoverTrigger
           aria-label="View options"
           title="View options"
-          className="flex h-7 w-8 items-center justify-center rounded-lg border border-border bg-background/70 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex size-9 items-center justify-center rounded-lg border border-border bg-background/70 text-muted-foreground backdrop-blur-sm transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <MoreHorizontal className="size-4" />
         </PopoverTrigger>
@@ -59,7 +59,7 @@ export function ViewOptionsPopover({
           <button
             type="button"
             onClick={onResetView}
-            className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md px-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
           >
             <span className="text-[11px] text-foreground">Reset view</span>
           </button>
@@ -101,19 +101,15 @@ function ViewportToggleRow({
   onCheckedChange,
 }: ViewportToggleRowProps) {
   return (
-    <button
-      type="button"
-      onClick={() => onCheckedChange(!checked)}
-      className="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
-    >
+    <div className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md px-2 transition-colors hover:bg-muted/60">
       <span className="text-[11px] text-foreground">{label}</span>
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
-        onClick={(event) => event.stopPropagation()}
         size="sm"
+        aria-label={label}
       />
-    </button>
+    </div>
   )
 }
 

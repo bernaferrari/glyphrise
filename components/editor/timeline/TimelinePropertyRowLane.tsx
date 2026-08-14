@@ -1,7 +1,11 @@
 "use client"
 
 import React from "react"
-import { bindWindowMouseDrag } from "@/lib/drag-events"
+import {
+  bindWindowPointerDrag,
+  safelyReleasePointerCapture,
+  safelySetPointerCapture,
+} from "@/lib/drag-events"
 import type { EasingType, TimelinePropertyRow } from "../TimelineModel"
 import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
@@ -74,8 +78,8 @@ export function TimelinePropertyRowLane({
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
           : "hover:bg-muted/35"
       }`}
-      onMouseDown={(event) => {
-        if (event.button !== 0) return
+      onPointerDown={(event) => {
+        if (!event.isPrimary || event.button !== 0) return
         onSelectKeyframe(null)
         onScrubStart?.()
         onTimeChange(timeFromClientX(event.clientX))
@@ -143,22 +147,27 @@ export function TimelinePropertyRowLane({
             type="button"
             key={keyframe.id}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className="absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center transition-transform hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
             style={{
               left: xForFrac(keyframe.time / duration),
               zIndex: TIMELINE_LAYER.propertyKeyframe,
             }}
-            onMouseDown={(event) => {
+            onPointerDown={(event) => {
+              if (!event.isPrimary) return
               event.stopPropagation()
               onSelectKeyframe(nextSelection)
               onActivePropertyRowChange?.(row.id)
               onTimeChange(keyframe.time)
               if (event.button !== 0 || !onMovePropertyKeyframe) return
+              const pointerTarget = event.currentTarget
+              const pointerId = event.pointerId
+              safelySetPointerCapture(pointerTarget, pointerId)
               const startX = event.clientX
               const startY = event.clientY
               let activeKeyframeId = keyframe.id
               keyframeDraggedRef.current = false
-              bindWindowMouseDrag({
+              bindWindowPointerDrag({
+                pointerId,
                 onMove: (moveEvent) => {
                   const time = timeFromClientX(moveEvent.clientX, {
                     bypass: moveEvent.altKey,
@@ -176,6 +185,12 @@ export function TimelinePropertyRowLane({
                   onMovePropertyKeyframe(row.id, activeKeyframeId, time)
                   if (row.id === "style") {
                     activeKeyframeId = `style-${time.toFixed(3)}`
+                  }
+                },
+                onEnd: (endEvent) => {
+                  safelyReleasePointerCapture(pointerTarget, pointerId)
+                  if (endEvent?.type !== "pointerup") {
+                    keyframeDraggedRef.current = false
                   }
                 },
               })

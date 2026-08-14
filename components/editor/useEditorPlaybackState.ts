@@ -23,6 +23,9 @@ export function useEditorPlaybackState() {
   } = useVideoExport({
     canvasRef: canvas3DRef,
     duration,
+    currentTime,
+    isPlaying,
+    loop,
     setLoop,
     setIsPlaying,
     setCurrentTime,

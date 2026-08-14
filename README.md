@@ -1,45 +1,62 @@
-# VectorForge
+# Glyphrise 3D
 
 <p align="center">
-  <strong>Turn SVG icons into animated, extruded 3D assets—without leaving the browser.</strong>
+  <strong>A browser-based 3D icon motion editor.</strong>
 </p>
 
-![VectorForge editor with a 3D icon, property inspector, and animation timeline](docs/vectorforge-editor.png)
+![Glyphrise 3D editor with a 3D icon, property inspector, and animation timeline](docs/vectorforge-editor.png)
 
-VectorForge is a local-first 3D motion editor for SVG paths and Material
-Symbols. Shape an icon, style its material, animate it on a timeline, then
-export a GLB, a frame-rendered WebM, or starter implementation code.
+Glyphrise 3D turns flat SVG artwork and Material Symbols into animated 3D
+assets. Extrude a shape, give it a material, animate it with keyframes, and
+export the result—all in the browser.
 
-> **Project status:** VectorForge is a polished local prototype, not yet a
-> hosted collaborative product. Projects live in your browser and exports are
-> generated on your device.
+It is designed for product designers, motion designers, and developers who want
+to create polished 3D icons without moving between a vector editor, a full 3D
+suite, and an animation tool.
+
+> **Project status:** Glyphrise 3D is a polished local-first prototype. Projects
+> are stored in your browser and exports are generated on your device. Accounts,
+> cloud sync, and real-time collaboration are not part of the current release.
+
+## What you can make
+
+- Animated 3D product and interface icons
+- Extruded logos and SVG marks
+- Material and lighting studies
+- Short looping WebM motion assets
+- GLB assets for web and Android projects
+- React Three Fiber and Android Filament implementation starters
 
 ## The workflow
 
-1. **Choose a shape** — Search Material Symbols, use a preset, or upload an SVG.
-2. **Make it three-dimensional** — Tune extrusion, bevels, transforms, per-path
-   depth, materials, and lighting while inspecting the result live.
-3. **Add motion** — Arrange shape clips and animate properties with keyframes,
-   easing, snapping, and timeline playback.
-4. **Hand it off** — Download a GLB or WebM, or copy React Three Fiber and
-   Android Filament reference code.
+1. **Choose an icon** — Search Material Symbols, start from a preset, or upload
+   your own SVG.
+2. **Give it depth** — Adjust extrusion, bevels, transforms, per-path geometry,
+   materials, and lighting in the live 3D viewport.
+3. **Bring it to life** — Sequence icon clips and animate properties with
+   keyframes, easing, snapping, and timeline playback.
+4. **Export it** — Download a GLB or WebM, or copy starter code for React Three
+   Fiber and Android Filament.
 
 ## Highlights
 
-- **Purpose-built 3D viewport** with drag rotation, view nudges, reset controls,
-  and a direct transform gizmo.
-- **Timeline editor** with shape clips, transitions, property tracks,
-  keyframes, easing curves, snapping, zoom, and contextual actions.
-- **Material and color tools** for solid colors, mesh gradients, lighting, and
-  glass, gel, metal, and cut-style finishes.
-- **Per-path SVG control** for visibility, color, depth, and scale in multi-path
-  artwork.
-- **Safe animation editing** that keeps ordinary static changes separate from
-  intentional keyframes.
-- **Named local projects** with autosave, templates, recent projects,
-  duplication, safe deletion, and portable JSON downloads.
-- **Responsive workspace** with compact navigation plus keyboard, touch, and
-  reduced-motion considerations.
+- **Live 3D viewport** — Rotate the scene, nudge the view, manipulate transforms,
+  and inspect every change immediately.
+- **Motion timeline** — Arrange icon clips and animate properties with
+  keyframes, easing curves, snapping, zoom, and contextual controls.
+- **Materials and lighting** — Build solid and mesh-gradient fills with glass,
+  gel, metal, and cut-style finishes.
+- **Per-path SVG styling** — Control visibility, color, depth, and scale for
+  individual paths inside complex artwork.
+- **Predictable editing** — Keep static edits separate from animation with
+  explicit auto-key behavior and gesture-level undo.
+- **Local project management** — Create, duplicate, autosave, import, and export
+  named projects without an account.
+- **Desktop and compact workspaces** — Use the complete editor on desktop or
+  switch between dedicated Preview, Properties, and Timeline views on smaller
+  screens.
+- **Accessible interaction** — Navigate with a keyboard, edit with touch or a
+  pointer, and respect reduced-motion preferences.
 
 ## Quick start
 
@@ -58,25 +75,25 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Your first five minutes
+### Create your first animated 3D icon
 
-1. Open **Projects** and start with **Example project** to see a finished setup,
-   or choose **Blank project** for a clean canvas.
-2. Select the icon clip in the timeline and use **Change** to pick a Material
-   Symbol or upload your own SVG.
-3. Use the inspector tabs to adjust **Style**, **Geometry**, **Transform**, and
-   **Light**.
-4. Move the playhead, add a property, and create keyframes—or turn on
-   **Auto-key** when you want edits to become animation.
-5. Choose **Export** to download an asset or inspect the generated starter code.
+1. Open **Project** and choose **Projects**.
+2. Start with **Example project** to explore a finished composition, or choose
+   **Blank project** for a clean canvas.
+3. Select the icon clip and choose **Change** to search Material Symbols or
+   upload an SVG.
+4. Use **Style**, **Geometry**, **Transform**, and **Light** to shape the result.
+5. Move the playhead and add keyframes, or enable **Auto-key** before adjusting
+   animated properties.
+6. Choose **Export** to download the asset or inspect implementation code.
 
 ## Projects and persistence
 
-VectorForge stores named projects in browser storage and autosaves each one
+Glyphrise 3D stores named projects in browser storage and autosaves each one
 independently. Switching projects flushes pending edits first, and deleting the
 current project safely opens another project or creates a fresh fallback.
 
-Use **Download** in the top bar to keep a portable JSON backup. Clearing browser
+Use **Project → Download backup** to keep a portable JSON copy. Clearing browser
 site data removes projects that have not been downloaded, and local projects do
 not automatically sync between browsers or devices.
 
@@ -85,7 +102,7 @@ not automatically sync between browsers or devices.
 | Target                | Best for                              | Current fidelity                                                                                                                                                                                        |
 | --------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **GLB**               | 3D asset handoff                      | Exports the current icon as a Filament-ready binary glTF asset using compatible geometry and material fields.                                                                                           |
-| **WebM**              | Motion previews and rendered delivery | Renders fixed timeline frames from the beginning to the end of the composition.                                                                                                                         |
+| **WebM**              | Motion previews and rendered delivery | Records the canvas through one complete timeline pass and restores the prior playhead and playback state afterward.                                                                                     |
 | **React Three Fiber** | Web implementation starting point     | Preserves timing, transforms, wipes, path visibility/depth/scale, per-path colors, animated lighting, and standard PBR settings. Mesh gradients, custom finish shaders, and crown roofs are simplified. |
 | **Android Filament**  | Native Android 3D viewer reference    | Provides Gradle and Kotlin starter code for a static exported GLB. It does not reproduce editor timeline playback.                                                                                      |
 
@@ -108,9 +125,10 @@ pnpm format:check
 pnpm build
 ```
 
-The current automated suite includes 66 unit tests and six Playwright workflows
+The current automated suite includes 72 unit tests and nine Playwright workflows
 covering blank and template projects, project duplication/deletion recovery,
-custom SVG upload, compact workspace actions, and export messaging.
+custom SVG upload, phone-sized workspace views, immediate-reload persistence,
+gesture-level undo, and export messaging.
 
 ### Architecture
 
@@ -161,5 +179,5 @@ e2e/                          Playwright workflows
   replacement for every custom editor shader.
 - Android export is a static Filament viewer for the GLB, not an animation
   runtime.
-- The editor is optimized for desktop production work, with a compact layout
-  for smaller screens.
+- The editor is optimized for desktop production work, with dedicated Preview,
+  Properties, and Timeline views on smaller screens.

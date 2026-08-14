@@ -9,6 +9,7 @@ import {
   normalizeProjectName,
   parseEditorDocument,
   parseEditorDocumentSnapshot,
+  parseImportedEditorDocument,
   readPersistedEditorDocument,
   readPersistedEditorProject,
   writePersistedEditorDocument,
@@ -115,6 +116,32 @@ describe("EditorDocumentModel", () => {
     expect(parsed?.snapshot.shapes[0].iconName).toBe("Heart")
   })
 
+  it("parses imported documents as a fresh local copy", () => {
+    vi.stubGlobal("window", { localStorage: createMemoryStorage() })
+    const sourceProject = createProjectMetadata(
+      "Launch icon",
+      "2026-08-09T12:00:00.000Z"
+    )
+    const documentFile = createEditorDocumentFile(
+      validSnapshot(),
+      sourceProject
+    )
+    const imported = parseImportedEditorDocument(documentFile)
+
+    expect(imported?.project.id).not.toBe(sourceProject.id)
+    expect(imported?.project.name).toBe("Launch icon (imported copy)")
+    expect(imported?.snapshot).toEqual(
+      parseEditorDocument(documentFile)?.snapshot
+    )
+
+    writePersistedEditorDocument(validSnapshot(), sourceProject)
+    writePersistedEditorDocument(imported!.snapshot, imported!.project)
+    expect(readPersistedEditorProject(sourceProject.id)?.project.id).toBe(
+      sourceProject.id
+    )
+    expect(listPersistedEditorProjects()).toHaveLength(2)
+  })
+
   it("keeps recent projects isolated and restores the active project", () => {
     vi.stubGlobal("window", { localStorage: createMemoryStorage() })
     const first = createProjectMetadata("First project")
@@ -143,6 +170,28 @@ describe("EditorDocumentModel", () => {
     expect(
       listPersistedEditorProjects().map((project) => project.name)
     ).toEqual(["First project"])
+  })
+
+  it("keeps every saved project discoverable beyond eight entries", () => {
+    vi.stubGlobal("window", { localStorage: createMemoryStorage() })
+    const projects = Array.from({ length: 12 }, (_, index) =>
+      createProjectMetadata(`Project ${index + 1}`)
+    )
+
+    projects.forEach((project) =>
+      writePersistedEditorDocument(validSnapshot(), project)
+    )
+
+    const recentProjects = listPersistedEditorProjects()
+    expect(recentProjects).toHaveLength(12)
+    expect(recentProjects.map((project) => project.name)).toEqual(
+      projects.map((project) => project.name).reverse()
+    )
+    projects.forEach((project) =>
+      expect(readPersistedEditorProject(project.id)?.project.id).toBe(
+        project.id
+      )
+    )
   })
 
   it("creates a genuinely blank project from the example snapshot", () => {

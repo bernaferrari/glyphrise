@@ -1,14 +1,24 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
+
+const openProjects = async (page: Page) => {
+  await page.getByRole("button", { name: "Open project menu" }).click()
+  await page.getByRole("button", { name: "Open projects" }).click()
+}
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear())
+  await page.addInitScript(() => {
+    const isolationKey = "vectorforge.e2e.storage-cleared"
+    if (window.sessionStorage.getItem(isolationKey)) return
+    window.localStorage.clear()
+    window.sessionStorage.setItem(isolationKey, "true")
+  })
   await page.goto("/")
 })
 
 test("creates a named blank project without example animation", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Open projects" }).click()
+  await openProjects(page)
   await page.getByLabel("New project name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
@@ -30,7 +40,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
   page,
 }) => {
   const createBlankProject = async (name: string) => {
-    await page.getByRole("button", { name: "Open projects" }).click()
+    await openProjects(page)
     await page.getByLabel("New project name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
     await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
@@ -41,7 +51,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
   await createBlankProject("Original")
   await createBlankProject("Second project")
 
-  await page.getByRole("button", { name: "Open projects" }).click()
+  await openProjects(page)
   await page
     .getByRole("button", { name: "Duplicate Original", exact: true })
     .click()
@@ -49,7 +59,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
     "Original copy"
   )
 
-  await page.getByRole("button", { name: "Open projects" }).click()
+  await openProjects(page)
   await page
     .getByRole("button", { name: "Delete Original copy", exact: true })
     .click()
@@ -67,7 +77,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
 })
 
 test("starts style templates with a clean undo baseline", async ({ page }) => {
-  await page.getByRole("button", { name: "Open projects" }).click()
+  await openProjects(page)
   await page.getByLabel("New project name").fill("Styled project")
   await page.getByRole("button", { name: "Google Metal" }).click()
 
@@ -106,10 +116,10 @@ test("keeps essential workspace actions reachable at compact widths", async ({
 
   await expect(page.getByRole("button", { name: "Projects" })).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Open project file" })
+    page.getByRole("button", { name: "Import project file" })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Download project" })
+    page.getByRole("button", { name: "Download project backup" })
   ).toBeVisible()
   await expect(
     page.getByRole("button", { name: "Quick start", exact: true })
@@ -117,6 +127,78 @@ test("keeps essential workspace actions reachable at compact widths", async ({
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
     .toBeLessThanOrEqual(640)
+})
+
+test("uses dedicated workspace views on phone-sized screens", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 568 })
+  await page.getByRole("button", { name: "Dismiss quick start" }).click()
+
+  const preview = page.getByRole("region", { name: "3D preview" })
+  await expect(preview).toBeVisible()
+  await expect
+    .poll(() =>
+      preview.evaluate((element) => {
+        const rect = element.getBoundingClientRect()
+        return rect.bottom <= window.innerHeight && rect.height > 0
+      })
+    )
+    .toBe(true)
+
+  await page.getByRole("button", { name: "Properties" }).click()
+  await expect(
+    page.getByRole("navigation", { name: "Inspector sections" })
+  ).toBeVisible()
+
+  await page.getByRole("button", { name: "Timeline" }).click()
+  await expect(page.getByRole("button", { name: "Add property" })).toBeVisible()
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
+    .toBeLessThanOrEqual(390)
+})
+
+test("persists the latest edit during an immediate reload", async ({
+  page,
+}) => {
+  const extrusion = page.getByLabel("Extrusion depth", { exact: true })
+  await extrusion.fill("14")
+  await extrusion.press("Enter")
+  await page.reload()
+
+  await expect(page.getByLabel("Extrusion depth", { exact: true })).toHaveValue(
+    "14.00"
+  )
+})
+
+test("treats one canvas drag as one undo step", async ({ page }) => {
+  await page.getByRole("button", { name: "Dismiss quick start" }).click()
+  const canvas = page
+    .getByRole("region", { name: "3D preview" })
+    .locator("canvas")
+  const box = await canvas.boundingBox()
+  if (!box) throw new Error("3D preview canvas was not measurable.")
+
+  const startX = box.x + box.width * 0.28
+  const startY = box.y + box.height * 0.3
+  await page.mouse.move(startX, startY)
+  await page.mouse.down()
+  await page.mouse.move(startX + 90, startY + 55, { steps: 8 })
+  await page.mouse.up()
+
+  const rotationX = page.getByLabel("Rotation X", { exact: true })
+  const rotationY = page.getByLabel("Rotation Y", { exact: true })
+  await expect
+    .poll(async () => [
+      await rotationX.inputValue(),
+      await rotationY.inputValue(),
+    ])
+    .not.toEqual(["0", "0"])
+  await page.waitForTimeout(400)
+  await page.getByRole("button", { name: "Undo" }).click()
+
+  await expect(rotationX).toHaveValue("0")
+  await expect(rotationY).toHaveValue("0")
 })
 
 test("describes code exports as implementation starters", async ({ page }) => {

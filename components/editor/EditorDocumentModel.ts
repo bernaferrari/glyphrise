@@ -288,6 +288,15 @@ export const normalizeEditorSnapshot = (
 export const normalizeProjectName = (value: string) =>
   value.replace(/\s+/g, " ").trim().slice(0, 80) || "Untitled project"
 
+const IMPORTED_PROJECT_NAME_SUFFIX = " (imported copy)"
+
+const importedProjectCopyName = (value: string) => {
+  const normalizedName = normalizeProjectName(value)
+  const availableBaseLength = 80 - IMPORTED_PROJECT_NAME_SUFFIX.length
+  const baseName = normalizedName.slice(0, availableBaseLength).trimEnd()
+  return `${baseName}${IMPORTED_PROJECT_NAME_SUFFIX}`
+}
+
 export const createProjectMetadata = (
   name = "Untitled project",
   now = new Date().toISOString()
@@ -336,6 +345,22 @@ export const parseEditorDocument = (
   }
 }
 
+// External files become a new local project; stored documents still retain
+// their original identity through parseEditorDocument.
+export const parseImportedEditorDocument = (
+  value: unknown
+): ParsedEditorDocument | null => {
+  const document = parseEditorDocument(value)
+  if (!document) return null
+
+  return {
+    project: createProjectMetadata(
+      importedProjectCopyName(document.project.name)
+    ),
+    snapshot: document.snapshot,
+  }
+}
+
 export const parseEditorDocumentSnapshot = (value: unknown) =>
   parseEditorDocument(value)?.snapshot ?? null
 
@@ -359,7 +384,6 @@ export const listPersistedEditorProjects = (): EditorProjectMetadata[] => {
       .filter((project) =>
         window.localStorage.getItem(projectStorageKey(project.id))
       )
-      .slice(0, 8)
   } catch {
     return []
   }
@@ -369,7 +393,7 @@ const updateRecentProjects = (project: EditorProjectMetadata) => {
   const next = [
     project,
     ...listPersistedEditorProjects().filter((item) => item.id !== project.id),
-  ].slice(0, 8)
+  ]
   window.localStorage.setItem(EDITOR_RECENT_PROJECTS_KEY, JSON.stringify(next))
 }
 

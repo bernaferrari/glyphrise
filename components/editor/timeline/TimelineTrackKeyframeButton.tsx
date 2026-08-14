@@ -35,7 +35,7 @@ type TimelineTrackKeyframeButtonProps = {
     easing: EasingType
   ) => void
   onKeyframeDrag: (
-    event: React.MouseEvent,
+    event: React.PointerEvent<HTMLElement>,
     trackId: string,
     keyframeId: string
   ) => void
@@ -98,14 +98,15 @@ export function TimelineTrackKeyframeButton({
       <PopoverTrigger
         type="button"
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center transition-transform hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
+        className={`absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
         style={{
           left: xForFrac(keyframe.time / duration),
           zIndex: selected
             ? TIMELINE_LAYER.selectedKeyframe
             : TIMELINE_LAYER.trackKeyframe,
         }}
-        onMouseDown={(event) => {
+        onPointerDown={(event) => {
+          if (!event.isPrimary) return
           event.stopPropagation()
           selectKeyframe()
           if (event.button !== 0) return

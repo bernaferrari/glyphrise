@@ -132,8 +132,10 @@ export interface SvgCanvasRef {
   startRecording: (options?: {
     frameRate?: number
     manualFrames?: boolean
+    onError?: (error: Error) => void
   }) => void
   requestRecordingFrame: () => void
   stopRecording: (callback: (blob: Blob) => void) => void
+  cancelRecording: () => void
   resetRotation: () => void
 }
