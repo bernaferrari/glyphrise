@@ -25,6 +25,7 @@ type UseEditorRenderStateArgs = {
   selectedShapeId: string | null
   setSelectedShapeId: Dispatch<SetStateAction<string | null>>
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
+  addShapeAtPlayhead: () => void
   currentTime: number
   fillColor: string
   fillColorSecondary: string
@@ -57,6 +58,7 @@ export function useEditorRenderState({
   selectedShapeId,
   setSelectedShapeId,
   setOpenShapePicker,
+  addShapeAtPlayhead,
   currentTime,
   fillColor,
   fillColorSecondary,
@@ -107,6 +109,7 @@ export function useEditorRenderState({
     setSelectedShapeId,
     setOpenShapePicker,
     setSelectedLayerId: layerState.setSelectedLayerId,
+    addShapeAtPlayhead,
   })
 
   const activeValues = useActiveTimelineValues({

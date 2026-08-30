@@ -55,11 +55,18 @@ export const EasingPicker: React.FC<{
 }> = ({ value, onChange, color = "#a1a1aa", scopeLabel }) => (
   <Popover>
     <PopoverTrigger
+      aria-label={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
       title={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
       className="flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       onClick={(event) => event.stopPropagation()}
     >
-      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <svg
+        aria-hidden="true"
+        width="15"
+        height="15"
+        viewBox="0 0 16 16"
+        fill="none"
+      >
         <path
           d={easingCurvePath(value)}
           stroke={color}
@@ -81,6 +88,7 @@ export const EasingPicker: React.FC<{
           <button
             key={option.value}
             type="button"
+            aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors ${active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
           >
@@ -93,7 +101,7 @@ export const EasingPicker: React.FC<{
             >
               <path
                 d={easingCurvePath(option.value)}
-                stroke={active ? "#fff" : "#71717a"}
+                stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"

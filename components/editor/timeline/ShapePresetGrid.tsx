@@ -66,7 +66,7 @@ export function ShapePresetGrid({
       )}
       <div
         className={cn(
-          "grid max-h-72 grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
+          "editor-scrollbar grid max-h-72 grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
           className
         )}
       >
@@ -76,6 +76,8 @@ export function ShapePresetGrid({
             <button
               key={`pick-${stop.id}-${option.id}`}
               type="button"
+              aria-label={`Choose ${option.name}${active ? ", selected" : ""}`}
+              aria-pressed={active}
               title={option.name}
               onClick={() => {
                 onShapeIconChange(stop.id, option)

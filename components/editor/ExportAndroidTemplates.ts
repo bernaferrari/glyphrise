@@ -1,9 +1,9 @@
 import type { ExportCodeTemplateParams } from "./ExportCodeTemplateModel"
 
 export const generateAndroidGradleCode = () => `dependencies {
-    implementation("com.google.android.filament:filament-android:<filament-version>")
-    implementation("com.google.android.filament:gltfio-android:<filament-version>")
-    implementation("com.google.android.filament:filament-utils-android:<filament-version>")
+    implementation("com.google.android.filament:filament-android:1.54.0")
+    implementation("com.google.android.filament:gltfio-android:1.54.0")
+    implementation("com.google.android.filament:filament-utils-android:1.54.0")
 }`
 
 export const generateAndroidFilamentCode = ({

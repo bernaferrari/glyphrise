@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
+
 import { useEditorBaseState } from "./useEditorBaseState"
 import { useEditorDocumentLifecycle } from "./useEditorDocumentLifecycle"
 import { useEditorTimelineSurface } from "./useEditorTimelineSurface"
@@ -8,6 +10,8 @@ import { useEditorExportSurface } from "./useEditorExportSurface"
 import { useEditorInspectorSurface } from "./useEditorInspectorSurface"
 import { useEditorRenderState } from "./useEditorRenderState"
 import { useEditorMotionSurface } from "./useEditorMotionSurface"
+import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
+import { ALL_LAYERS_ID } from "./SvgLayerModel"
 import type { AppLayoutViewProps } from "./AppLayoutView"
 import { useQuickStartGuideController } from "./useQuickStartGuideController"
 
@@ -52,6 +56,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       isVideoExporting,
       videoExportProgress,
       exportTimelineVideo,
+      stopVideoExportRecording,
+      cancelVideoExport,
       stopPlayback,
       togglePlayback: handlePlayToggle,
       resetPlayback: handleReset,
@@ -62,15 +68,16 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
     shapes: {
       shapes,
-      setShapes,
+      setShapes: setShapesRaw,
       selectedShapeId,
       setSelectedShapeId,
       openShapePicker,
+      setShapeIcon: setShapeIconRaw,
+      setShapeWipePair: setShapeWipePairRaw,
       setOpenShapePicker,
+      activeRecipeId,
       setActiveRecipeId,
       markCustom,
-      setShapeIcon,
-      setShapeWipePair,
       addShapeAtPlayhead,
       removeShape,
     },
@@ -79,21 +86,21 @@ export function useAppLayoutController(): AppLayoutViewProps {
       extrusionDepth,
       setExtrusionDepth,
       bevelEnabled,
-      setBevelEnabled,
+      setBevelEnabled: setBevelEnabledRaw,
       bevelThickness,
-      setBevelThickness,
+      setBevelThickness: setBevelThicknessRaw,
       bevelSize,
-      setBevelSize,
+      setBevelSize: setBevelSizeRaw,
       bevelSegments,
-      setBevelSegments,
+      setBevelSegments: setBevelSegmentsRaw,
       geometryQuality,
       setGeometryQuality,
       qualityKeyframes,
-      setQualityKeyframes,
+      setQualityKeyframes: setQualityKeyframesRaw,
       layerSpacing,
       innerElementScale,
       innerScaleKeyframes,
-      setInnerScaleKeyframes,
+      setInnerScaleKeyframes: setInnerScaleKeyframesRaw,
     },
     transform: {
       objectScale,
@@ -103,11 +110,11 @@ export function useAppLayoutController(): AppLayoutViewProps {
       moveOffset,
       setMoveOffset,
       moveKeyframes,
-      setMoveKeyframes,
+      setMoveKeyframes: setMoveKeyframesRaw,
       rotationOffset,
       setRotationOffset,
       rotationAxisKeyframes,
-      setRotationAxisKeyframes,
+      setRotationAxisKeyframes: setRotationAxisKeyframesRaw,
       previewRotationOffset,
       setPreviewRotationOffset,
       isScaleLocked,
@@ -121,11 +128,11 @@ export function useAppLayoutController(): AppLayoutViewProps {
       fillGradientType,
       fillStops,
       fillKeyframes,
-      setFillKeyframes,
+      setFillKeyframes: setFillKeyframesRaw,
       setGradientEnabled,
-      updateFillColor,
-      updateGradientType,
-      updateFillStops,
+      updateFillColor: updateFillColorRaw,
+      updateGradientType: updateGradientTypeRaw,
+      updateFillStops: updateFillStopsRaw,
     },
     viewport: {
       zoom,
@@ -152,27 +159,27 @@ export function useAppLayoutController(): AppLayoutViewProps {
       thickness,
       emissiveIntensity,
       materialKeyframes,
-      setMaterialKeyframes,
+      setMaterialKeyframes: setMaterialKeyframesRaw,
       isAdvancedMaterialOpen,
       setIsAdvancedMaterialOpen,
       activeMaterialSettings,
-      updateMaterialSetting,
-      applyMaterialPreset,
+      updateMaterialSetting: updateMaterialSettingRaw,
+      applyMaterialPreset: applyMaterialPresetRaw,
     },
     light: {
       ambientColor,
       ambientIntensity,
       keyLightColor,
-      setKeyLightColor,
+      setKeyLightColor: setKeyLightColorRaw,
       keyLightIntensity,
       setKeyLightIntensity,
       keyLightSoftness,
-      setKeyLightSoftness,
-      keyLightPositionKeyframes,
-      setKeyLightPositionKeyframes,
+      setKeyLightSoftness: setKeyLightSoftnessRaw,
       activeKeyLightPosition,
       lightPositionKeyframeAtPlayhead,
-      toggleLightPositionKeyframeAtPlayhead,
+      keyLightPositionKeyframes,
+      setKeyLightPositionKeyframes: setKeyLightPositionKeyframesRaw,
+      toggleLightPositionKeyframeAtPlayhead: toggleLightKeyframeRaw,
       updateLightPositionXY,
       rimLightColor,
       rimLightIntensity,
@@ -186,13 +193,179 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
     timelineTracks: {
       tracks,
-      setTracks,
+      setTracks: setTracksRaw,
       extrusionTrack,
       scaleTrack,
       lightingTrack,
     },
   } = editor
 
+  const keyframeCount =
+    tracks.reduce((count, track) => count + track.keyframes.length, 0) +
+    fillKeyframes.length +
+    materialKeyframes.length +
+    keyLightPositionKeyframes.length +
+    rotationAxisKeyframes.length +
+    moveKeyframes.length +
+    qualityKeyframes.length +
+    innerScaleKeyframes.length
+  const previousKeyframeCountRef = useRef(keyframeCount)
+  const previousKeyframeProjectIdRef = useRef(project.id)
+  const keyframeNoticeTimerRef = useRef<number | null>(null)
+  const [keyframeNotice, setKeyframeNotice] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (previousKeyframeProjectIdRef.current !== project.id) {
+      previousKeyframeProjectIdRef.current = project.id
+      previousKeyframeCountRef.current = keyframeCount
+      setKeyframeNotice(null)
+      return
+    }
+
+    const previousCount = previousKeyframeCountRef.current
+    previousKeyframeCountRef.current = keyframeCount
+    if (keyframeCount <= previousCount) return
+
+    const createdCount = keyframeCount - previousCount
+    setKeyframeNotice(
+      createdCount === 1
+        ? `Keyframe created at ${currentTime.toFixed(2)}s`
+        : `${createdCount} keyframes created`
+    )
+    if (keyframeNoticeTimerRef.current !== null) {
+      window.clearTimeout(keyframeNoticeTimerRef.current)
+    }
+    keyframeNoticeTimerRef.current = window.setTimeout(() => {
+      setKeyframeNotice(null)
+      keyframeNoticeTimerRef.current = null
+    }, 1800)
+  }, [currentTime, keyframeCount, project.id])
+
+  useEffect(
+    () => () => {
+      if (keyframeNoticeTimerRef.current !== null) {
+        window.clearTimeout(keyframeNoticeTimerRef.current)
+      }
+    },
+    []
+  )
+
+  const [sessionIconChanged, setSessionIconChanged] = useState(false)
+  const [sessionStyleChanged, setSessionStyleChanged] = useState(false)
+  const [sessionMotionAdded, setSessionMotionAdded] = useState(false)
+
+  const setShapeIcon: typeof setShapeIconRaw = (...args) => {
+    setSessionIconChanged(true)
+    return setShapeIconRaw(...args)
+  }
+  const setShapeWipePair: typeof setShapeWipePairRaw = (...args) => {
+    setSessionIconChanged(true)
+    return setShapeWipePairRaw(...args)
+  }
+  const updateFillColor: typeof updateFillColorRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return updateFillColorRaw(...args)
+  }
+  const updateGradientType: typeof updateGradientTypeRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return updateGradientTypeRaw(...args)
+  }
+  const updateFillStops: typeof updateFillStopsRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return updateFillStopsRaw(...args)
+  }
+  const applyMaterialPreset: typeof applyMaterialPresetRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return applyMaterialPresetRaw(...args)
+  }
+  const updateMaterialSetting: typeof updateMaterialSettingRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return updateMaterialSettingRaw(...args)
+  }
+  const handleDepthChange: typeof handleDepthChangeRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return handleDepthChangeRaw(...args)
+  }
+  const handleBrightnessChange: typeof handleBrightnessChangeRaw = (
+    ...args
+  ) => {
+    setSessionStyleChanged(true)
+    return handleBrightnessChangeRaw(...args)
+  }
+  const setBevelEnabled: typeof setBevelEnabledRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setBevelEnabledRaw(...args)
+  }
+  const setBevelThickness: typeof setBevelThicknessRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setBevelThicknessRaw(...args)
+  }
+  const setBevelSize: typeof setBevelSizeRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setBevelSizeRaw(...args)
+  }
+  const setBevelSegments: typeof setBevelSegmentsRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setBevelSegmentsRaw(...args)
+  }
+  const setKeyLightColor: typeof setKeyLightColorRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setKeyLightColorRaw(...args)
+  }
+  const setKeyLightSoftness: typeof setKeyLightSoftnessRaw = (...args) => {
+    setSessionStyleChanged(true)
+    return setKeyLightSoftnessRaw(...args)
+  }
+  // Track any keyframe mutation this session so the guide's motion step
+  // completes only on genuine user action.
+  const setFillKeyframes: typeof setFillKeyframesRaw = (...args) => {
+    setSessionMotionAdded(true)
+    return setFillKeyframesRaw(...args)
+  }
+  const setMaterialKeyframes: typeof setMaterialKeyframesRaw = (...args) => {
+    setSessionMotionAdded(true)
+    return setMaterialKeyframesRaw(...args)
+  }
+  const setKeyLightPositionKeyframes: typeof setKeyLightPositionKeyframesRaw = (
+    ...args
+  ) => {
+    setSessionMotionAdded(true)
+    return setKeyLightPositionKeyframesRaw(...args)
+  }
+  const setRotationAxisKeyframes: typeof setRotationAxisKeyframesRaw = (
+    ...args
+  ) => {
+    setSessionMotionAdded(true)
+    return setRotationAxisKeyframesRaw(...args)
+  }
+  const setMoveKeyframes: typeof setMoveKeyframesRaw = (...args) => {
+    setSessionMotionAdded(true)
+    return setMoveKeyframesRaw(...args)
+  }
+  const setQualityKeyframes: typeof setQualityKeyframesRaw = (...args) => {
+    setSessionMotionAdded(true)
+    return setQualityKeyframesRaw(...args)
+  }
+  const setInnerScaleKeyframes: typeof setInnerScaleKeyframesRaw = (
+    ...args
+  ) => {
+    setSessionMotionAdded(true)
+    return setInnerScaleKeyframesRaw(...args)
+  }
+  const setShapes: typeof setShapesRaw = (...args) => {
+    // Icon picker/upload flows mutate shapes via setShapes; mark the
+    // guide's icon step done on any shape mutation this session.
+    setSessionIconChanged(true)
+    return setShapesRaw(...args)
+  }
+  const setTracks: typeof setTracksRaw = (...args) => {
+    setSessionMotionAdded(true)
+    return setTracksRaw(...args)
+  }
+  const toggleLightPositionKeyframeAtPlayhead = () => {
+    setSessionMotionAdded(true)
+    toggleLightKeyframeRaw()
+  }
   const {
     sortedShapes,
     morph,
@@ -234,6 +407,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     selectedShapeId,
     setSelectedShapeId,
     setOpenShapePicker,
+    addShapeAtPlayhead,
     currentTime,
     fillColor,
     fillColorSecondary,
@@ -261,13 +435,13 @@ export function useAppLayoutController(): AppLayoutViewProps {
   })
 
   const {
-    handleDepthChange,
+    handleDepthChange: handleDepthChangeRaw,
     handleRotationAxisChange,
     handleScaleChange,
     handleScaleAxisChange,
     handleViewRotationCommit,
     handleViewRotationSet,
-    handleBrightnessChange,
+    handleBrightnessChange: handleBrightnessChangeRaw,
     updateMoveAxis,
     updateQuality,
     resetView,
@@ -313,6 +487,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
     setShapes,
     canvasRef: canvas3DRef,
     exportTimelineVideo,
+    stopVideoExportRecording,
+    cancelVideoExport,
     isVideoExporting,
     videoExportProgress,
     duration,
@@ -354,38 +530,37 @@ export function useAppLayoutController(): AppLayoutViewProps {
     markCustom,
   })
 
-  const { openGuide, quickStartProps } = useQuickStartGuideController({
-    selectedShapeId,
-    setOpenShapePicker,
-    isPlaying,
-    togglePlayback: handlePlayToggle,
-    applyRecipe,
-    hasCustomizedIcon: shapes.some(
-      (shape) => !shape.id.startsWith("shape-default")
-    ),
-    hasStyle:
-      Boolean(editor.shapes.activeRecipeId) ||
-      materialPreset !== "chrome" ||
-      fillMode !== "gradient" ||
-      fillColor !== "#4285F4" ||
-      fillColorSecondary !== "#00C796",
-    hasMotion:
-      shapes.length > 1 ||
-      tracks.some((track) => track.keyframes.length > 0) ||
-      rotationAxisKeyframes.length > 0 ||
-      moveKeyframes.length > 0,
-    onExport: openExport,
-  })
+  const applyRecipeFromGuide = (recipe: MotionRecipe) => {
+    // Guide template buttons mutate style and motion at once; mark both
+    // session flags so the corresponding steps complete.
+    setSessionStyleChanged(true)
+    setSessionMotionAdded(true)
+    applyRecipe(recipe)
+  }
+
+  const { openGuide, dismissedRecently, markExportComplete, quickStartProps } =
+    useQuickStartGuideController({
+      selectedShapeId,
+      fallbackShapeId: shapes[0]?.id ?? null,
+      setOpenShapePicker,
+      isPlaying,
+      togglePlayback: handlePlayToggle,
+      applyRecipe: applyRecipeFromGuide,
+      hasCustomizedIcon: sessionIconChanged,
+      hasStyle: sessionStyleChanged,
+      hasMotion: sessionMotionAdded,
+      onExport: openExport,
+    })
 
   const {
     timelineProps,
-    previousBreakpoint,
-    nextBreakpoint,
+    previousKeyMoment,
+    nextKeyMoment,
     atTimelineStart,
     atTimelineEnd,
     playbackProgress,
-    goToPreviousBreakpoint,
-    goToNextBreakpoint,
+    goToPreviousKeyMoment,
+    goToNextKeyMoment,
     goToEnd,
   } = useEditorTimelineSurface({
     playback: {
@@ -493,6 +668,11 @@ export function useAppLayoutController(): AppLayoutViewProps {
       showCenterPoint,
       showTransformGizmo,
       selectedLayerId,
+      selectedIconColorRole: (() => {
+        const shape = shapes.find((item) => item.id === selectedShapeId)
+        if (!shape) return undefined
+        return morph.from.id === shape.id ? "a" : "b"
+      })(),
       pathOverridesA: morph.from.pathOverrides,
       pathOverridesB: morph.to.pathOverrides,
       exportAnimation: {
@@ -509,8 +689,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       playbackProgress,
       atTimelineStart,
       atTimelineEnd,
-      hasPreviousBreakpoint: previousBreakpoint !== undefined,
-      hasNextBreakpoint: nextBreakpoint !== undefined,
+      hasPreviousKeyMoment: previousKeyMoment !== undefined,
+      hasNextKeyMoment: nextKeyMoment !== undefined,
       zenMode,
       animatedSeekEnabled,
       setZoom,
@@ -519,6 +699,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       handleScaleChange,
       handleScaleAxisChange,
       updateMoveAxis,
+      onSelectLayer: setSelectedLayerId,
+      onDeselectLayers: () => setSelectedLayerId(ALL_LAYERS_ID),
       handleRotationAxisChange,
       setIsPreviewModelReady,
       resetView,
@@ -527,9 +709,9 @@ export function useAppLayoutController(): AppLayoutViewProps {
       setShowTransformGizmo,
       setAnimatedSeekEnabled,
       handleReset,
-      goToPreviousBreakpoint,
+      goToPreviousKeyMoment,
       handlePlayToggle,
-      goToNextBreakpoint,
+      goToNextKeyMoment,
       goToEnd,
       setZenMode,
       markCustom,
@@ -632,6 +814,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     })
 
   return {
+    keyframeNotice,
     topBarProps: {
       zenMode,
       themeMounted,
@@ -665,7 +848,12 @@ export function useAppLayoutController(): AppLayoutViewProps {
       canvasProps,
       viewOptionsProps,
       playbackProps,
-      quickStartProps,
+      quickStartController: {
+        openGuide,
+        dismissedRecently,
+        markExportComplete,
+        quickStartProps,
+      },
     },
     inspectorProps: {
       zenMode,
@@ -674,7 +862,15 @@ export function useAppLayoutController(): AppLayoutViewProps {
       transformProps,
       lightProps,
     },
-    timelineProps: { zenMode, timelineProps },
+    timelineProps: {
+      zenMode,
+      timelineProps: {
+        ...timelineProps,
+        motionRecipes: MOTION_RECIPES,
+        activeRecipeId,
+        onApplyMotionRecipe: applyRecipeFromGuide,
+      },
+    },
     exportModalProps,
     newProjectDialogProps: {
       open: newProjectDialogOpen,

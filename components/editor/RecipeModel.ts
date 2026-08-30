@@ -32,7 +32,8 @@ export const recolorShapesForRecipe = (
     colorSecondary:
       index % 2 === 0 ? recipe.colorASecondary : recipe.colorBSecondary,
     fillGradientType: recipe.fillGradientType ?? "linear",
-    fillStops: recipe.id === "google-metal" ? googleMeshFillStops() : undefined,
+    fillStops:
+      recipe.id === "spectrum-chrome" ? googleMeshFillStops() : undefined,
     fillKeyframes: [],
     transitionType: recipe.transitionType,
     wipeDirection: recipe.wipeDirection,

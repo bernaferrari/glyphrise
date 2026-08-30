@@ -77,7 +77,7 @@ export const useSvgModelGroups = ({
       setModelError(
         error instanceof Error
           ? error.message
-          : "VectorForge could not build this SVG as a 3D icon."
+          : "Glyphrise could not build this SVG as a 3D icon."
       )
       return
     }

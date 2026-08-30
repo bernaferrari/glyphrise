@@ -105,11 +105,13 @@ export const bindSvgSceneResize = ({
   cameraRef,
   rendererRef,
   currentZoomRef,
+  requestRender,
 }: {
   container: HTMLDivElement
   cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
   rendererRef: MutableRefObject<THREE.WebGLRenderer | null>
   currentZoomRef: MutableRefObject<number>
+  requestRender?: () => void
 }) => {
   const handleResize = () => {
     const camera = cameraRef.current
@@ -124,6 +126,7 @@ export const bindSvgSceneResize = ({
     camera.updateProjectionMatrix()
     renderer.setSize(width, height)
     camera.position.z = framedCameraDistance(camera) / currentZoomRef.current
+    requestRender?.()
   }
 
   window.addEventListener("resize", handleResize)

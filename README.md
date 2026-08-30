@@ -1,20 +1,20 @@
-# Glyphrise 3D
+# Glyphrise
 
 <p align="center">
-  <strong>A browser-based 3D icon motion editor.</strong>
+  <strong>Turn SVG icons into polished 3D motion.</strong>
 </p>
 
-![Glyphrise 3D editor with a 3D icon, property inspector, and animation timeline](docs/vectorforge-editor.png)
+![Glyphrise editor with a 3D icon, property inspector, and animation timeline](docs/glyphrise-editor.png)
 
-Glyphrise 3D turns flat SVG artwork and Material Symbols into animated 3D
-assets. Extrude a shape, give it a material, animate it with keyframes, and
-export the result—all in the browser.
+Glyphrise turns flat SVG artwork and Material Symbols into polished 3D motion.
+Choose an icon or upload your own, apply a finish, animate it, and export the
+result—all in the browser.
 
 It is designed for product designers, motion designers, and developers who want
-to create polished 3D icons without moving between a vector editor, a full 3D
-suite, and an animation tool.
+the speed of a generator with the control of an editor—without learning a full
+3D suite.
 
-> **Project status:** Glyphrise 3D is a polished local-first prototype. Projects
+> **Project status:** Glyphrise is a polished local-first prototype. Projects
 > are stored in your browser and exports are generated on your device. Accounts,
 > cloud sync, and real-time collaboration are not part of the current release.
 
@@ -23,7 +23,8 @@ suite, and an animation tool.
 - Animated 3D product and interface icons
 - Extruded logos and SVG marks
 - Material and lighting studies
-- Short looping WebM motion assets
+- Transparent or solid-background PNG stills
+- Short WebM or MP4 motion assets when the browser supports the codec
 - GLB assets for web and Android projects
 - React Three Fiber and Android Filament implementation starters
 
@@ -35,8 +36,9 @@ suite, and an animation tool.
    materials, and lighting in the live 3D viewport.
 3. **Bring it to life** — Sequence icon clips and animate properties with
    keyframes, easing, snapping, and timeline playback.
-4. **Export it** — Download a GLB or WebM, or copy starter code for React Three
-   Fiber and Android Filament.
+4. **Export it** — Render a PNG, WebM, or MP4 at a stable size and frame rate;
+   download a GLB; or copy starter code for React Three Fiber and Android
+   Filament.
 
 ## Highlights
 
@@ -67,8 +69,8 @@ suite, and an animation tool.
 - Google Chrome, if you want to run the end-to-end tests
 
 ```bash
-git clone https://github.com/bernaferrari/vectorforge.git
-cd vectorforge
+git clone <your-glyphrise-repository-url> glyphrise
+cd glyphrise
 pnpm install
 pnpm dev
 ```
@@ -77,9 +79,9 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Create your first animated 3D icon
 
-1. Open **Project** and choose **Projects**.
-2. Start with **Example project** to explore a finished composition, or choose
-   **Blank project** for a clean canvas.
+1. Open the top bar and choose **Projects on this device**.
+2. Start with **Use example** to explore a finished composition, or choose
+   **Start blank** for a clean canvas.
 3. Select the icon clip and choose **Change** to search Material Symbols or
    upload an SVG.
 4. Use **Style**, **Geometry**, **Transform**, and **Light** to shape the result.
@@ -89,7 +91,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Projects and persistence
 
-Glyphrise 3D stores named projects in browser storage and autosaves each one
+Glyphrise stores named projects in browser storage and autosaves each one
 independently. Switching projects flushes pending edits first, and deleting the
 current project safely opens another project or creates a fresh fallback.
 
@@ -101,8 +103,9 @@ not automatically sync between browsers or devices.
 
 | Target                | Best for                              | Current fidelity                                                                                                                                                                                        |
 | --------------------- | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **GLB**               | 3D asset handoff                      | Exports the current icon as a Filament-ready binary glTF asset using compatible geometry and material fields.                                                                                           |
-| **WebM**              | Motion previews and rendered delivery | Records the canvas through one complete timeline pass and restores the prior playhead and playback state afterward.                                                                                     |
+| **PNG**               | Still artwork and product graphics    | Renders at an explicit size up to 4096 px per side with a transparent or solid background. Editor guides and selection outlines are excluded.                                                           |
+| **WebM / MP4**        | Motion previews and rendered delivery | Renders the full timeline at 24, 30, or 60 fps with explicit dimensions, quality, and background. Only formats verified by the current browser are offered.                                             |
+| **GLB**               | 3D asset handoff                      | Exports the current icon as a Filament-ready glTF asset with supported transform and depth animation. Wipes and custom editor shaders are not encoded.                                                  |
 | **React Three Fiber** | Web implementation starting point     | Preserves timing, transforms, wipes, path visibility/depth/scale, per-path colors, animated lighting, and standard PBR settings. Mesh gradients, custom finish shaders, and crown roofs are simplified. |
 | **Android Filament**  | Native Android 3D viewer reference    | Provides Gradle and Kotlin starter code for a static exported GLB. It does not reproduce editor timeline playback.                                                                                      |
 
@@ -125,7 +128,7 @@ pnpm format:check
 pnpm build
 ```
 
-The current automated suite includes 72 unit tests and nine Playwright workflows
+The current automated suite includes more than 75 unit tests and nine Playwright workflows
 covering blank and template projects, project duplication/deletion recovery,
 custom SVG upload, phone-sized workspace views, immediate-reload persistence,
 gesture-level undo, and export messaging.
@@ -181,3 +184,47 @@ e2e/                          Playwright workflows
   runtime.
 - The editor is optimized for desktop production work, with dedicated Preview,
   Properties, and Timeline views on smaller screens.
+
+## Positioning
+
+> **Choose an icon or upload your own. Apply a finish, animate it, and export it.**
+
+Glyphrise is focused on the icon-to-3D-motion workflow: fast enough to generate,
+flexible enough to edit. It is not a general-purpose modeller, character
+animation tool, or collaborative design suite.
+
+## SVG compatibility
+
+Glyphrise accepts sanitized SVG files and converts supported paths into extruded
+3D geometry. For the most predictable result, export a plain SVG with explicit
+`path` elements, a `viewBox`, and fills/strokes converted to paths.
+
+Supported workflows include Material Symbols, ordinary SVG paths, groups, fills,
+and common transforms. Unsupported or unreliable constructs include embedded
+HTML/`foreignObject`, text that has not been outlined, external image or font
+references, CSS-dependent effects, filters, masks, and complex clip paths.
+
+If an import fails, outline text, expand strokes, remove external references,
+flatten filters/masks, and re-export as a plain SVG. Imported content is
+sanitized locally; scripts and unsafe external references are not executed.
+
+## Browser support
+
+Glyphrise targets current desktop Chrome, Edge, Firefox, and Safari releases
+with WebGL2, pointer events, and MediaRecorder support. Desktop is the intended
+precision environment. Current mobile Safari and Chrome support Preview,
+Properties, finishing, simple edits, and playback; advanced timeline editing is
+more comfortable on a larger screen. Glyphrise checks WebM and MP4 codec
+support before offering either video format.
+
+## Export fidelity
+
+| Output            | Fidelity                                                         | Important limitations                                                    |
+| ----------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| PNG               | Exact still render at explicit dimensions                        | Not editable after export                                                |
+| WebM / MP4        | Full timeline render at explicit dimensions and frame rate       | Codec and alpha-channel support vary by browser                          |
+| GLB               | High for compatible extruded geometry and standard PBR materials | Wipes, custom shaders, and some appearance animation are omitted         |
+| React Three Fiber | Strong implementation starter                                    | Requires project-side shader/material tuning for pixel-identical results |
+| Android Filament  | Static GLB viewer starter                                        | Does not include timeline playback or editor-only effects                |
+
+Generated code is a starting point; verify final output in the target runtime.

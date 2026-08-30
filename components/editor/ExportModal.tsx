@@ -12,24 +12,31 @@ import {
 import { ExportAssetOptions } from "./ExportAssetOptions"
 import { ExportAndroidCodeTab, ExportReactCodeTab } from "./ExportCodeTabs"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
+import type { ExportSettings } from "./ExportSettingsModel"
 import { useExportModalController } from "./useExportModalController"
 
 interface ExportModalProps {
   isOpen: boolean
   onClose: () => void
   onExportGltf: () => Promise<void>
-  onExportVideo: () => Promise<void>
+  onExportPng: (settings: ExportSettings) => Promise<void>
+  onExportVideo: (settings: ExportSettings) => Promise<void>
+  onCancelVideoExport: () => void
   isVideoExporting: boolean
   videoExportProgress: number
   scene: ExportSceneSnapshot
+  onCodeCopied?: () => void
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({
   isOpen,
   onClose,
   onExportGltf,
+  onExportPng,
   onExportVideo,
+  onCancelVideoExport,
   isVideoExporting,
+  onCodeCopied,
   videoExportProgress,
   scene,
 }) => {
@@ -50,15 +57,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     handleVideoExport,
     isCopied,
     isGltfExporting,
+    isPngExporting,
     isRecording,
+    justExported,
+    videoExportCanceled,
     exportError,
     clearExportError,
     r3fCode,
+    settings,
+    supportedVideoContainers,
+    updateSettings,
+    handlePngExport,
   } = useExportModalController({
     scene,
     onExportGltf,
+    onExportPng,
     onExportVideo,
     isVideoExporting,
+    onCodeCopied,
   })
 
   return (
@@ -75,6 +91,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         <DialogHeader className="border-b border-border px-4 py-3 pr-11">
           <DialogTitle className="text-sm font-semibold text-foreground">
             Export
+            {isRecording ? (
+              <span className="ml-2 inline-flex items-center gap-1.5 align-middle text-xs font-normal text-muted-foreground">
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 animate-pulse rounded-full bg-red-500 motion-reduce:animate-none"
+                />
+                Recording {Math.round(videoExportProgress * 100)}%
+              </span>
+            ) : null}
           </DialogTitle>
         </DialogHeader>
 
@@ -85,9 +110,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         >
           <div className="border-b border-border px-4 py-3">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="options">Assets</TabsTrigger>
-              <TabsTrigger value="r3f">React starter</TabsTrigger>
-              <TabsTrigger value="android">Android viewer</TabsTrigger>
+              <TabsTrigger value="options" className="gap-1.5">
+                {isRecording ? (
+                  <>
+                    <span
+                      aria-hidden="true"
+                      className="size-1.5 animate-pulse rounded-full bg-red-500 motion-reduce:animate-none"
+                    />
+                    Assets · {Math.round(videoExportProgress * 100)}%
+                  </>
+                ) : (
+                  "Assets"
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="r3f" disabled={isRecording}>
+                React starter
+              </TabsTrigger>
+              <TabsTrigger value="android" disabled={isRecording}>
+                Android viewer
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -112,13 +153,27 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 </button>
               </div>
             ) : null}
-            <TabsContent value="options" className="min-w-0 p-4 outline-none">
+            <TabsContent
+              value="options"
+              className="editor-scrollbar max-h-[calc(100dvh-180px)] min-w-0 overflow-y-auto p-4 outline-none"
+            >
               <ExportAssetOptions
                 isRecording={isRecording}
                 isGltfExporting={isGltfExporting}
+                isPngExporting={isPngExporting}
+                exportedGltf={justExported.gltf ?? false}
+                exportedPng={justExported.png ?? false}
+                exportedVideo={justExported.video ?? false}
                 progress={videoExportProgress}
+                durationSeconds={scene.duration}
                 onExportGltf={handleGltfExport}
+                onExportPng={handlePngExport}
                 onExportVideo={handleVideoExport}
+                onCancelVideoExport={onCancelVideoExport}
+                videoExportCanceled={videoExportCanceled}
+                settings={settings}
+                supportedVideoContainers={supportedVideoContainers}
+                onSettingsChange={updateSettings}
               />
             </TabsContent>
 

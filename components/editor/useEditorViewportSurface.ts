@@ -4,7 +4,6 @@ import type { Dispatch, SetStateAction } from "react"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import type { PathOverride } from "../3d/SvgTypes"
 import type { LightPosition, MaterialSettings } from "./EditorModel"
-import { ALL_LAYERS_ID } from "./SvgLayerModel"
 import { useViewportStageProps } from "./useViewportStageProps"
 import type { FillGradientType, FillStop } from "./TimelineModel"
 import type { SvgCanvasProps } from "../3d/SvgCanvas"
@@ -52,14 +51,15 @@ type UseEditorViewportSurfaceArgs = {
   showCenterPoint: boolean
   showTransformGizmo: boolean
   selectedLayerId: string
+  selectedIconColorRole?: "a" | "b"
   pathOverridesA?: PathOverride[]
   pathOverridesB?: PathOverride[]
   exportAnimation?: SvgCanvasProps["exportAnimation"]
   playbackProgress: number
   atTimelineStart: boolean
   atTimelineEnd: boolean
-  hasPreviousBreakpoint: boolean
-  hasNextBreakpoint: boolean
+  hasPreviousKeyMoment: boolean
+  hasNextKeyMoment: boolean
   zenMode: boolean
   animatedSeekEnabled: boolean
   setZoom: Dispatch<SetStateAction<number>>
@@ -68,6 +68,8 @@ type UseEditorViewportSurfaceArgs = {
   handleScaleChange: (scale: number) => void
   handleScaleAxisChange: NonNullable<SvgCanvasProps["onObjectScaleAxisChange"]>
   updateMoveAxis: NonNullable<SvgCanvasProps["onMoveOffsetChange"]>
+  onSelectLayer: NonNullable<SvgCanvasProps["onSelectLayer"]>
+  onDeselectLayers: NonNullable<SvgCanvasProps["onDeselectLayers"]>
   handleRotationAxisChange: NonNullable<SvgCanvasProps["onRotationAxisChange"]>
   setIsPreviewModelReady: Dispatch<SetStateAction<boolean>>
   resetView: () => void
@@ -76,9 +78,9 @@ type UseEditorViewportSurfaceArgs = {
   setShowTransformGizmo: Dispatch<SetStateAction<boolean>>
   setAnimatedSeekEnabled: (enabled: boolean) => void
   handleReset: () => void
-  goToPreviousBreakpoint: () => void
+  goToPreviousKeyMoment: () => void
   handlePlayToggle: () => void
-  goToNextBreakpoint: () => void
+  goToNextKeyMoment: () => void
   goToEnd: () => void
   setZenMode: Dispatch<SetStateAction<boolean>>
   markCustom: () => void
@@ -127,14 +129,15 @@ export function useEditorViewportSurface({
   showCenterPoint,
   showTransformGizmo,
   selectedLayerId,
+  selectedIconColorRole,
   pathOverridesA,
   pathOverridesB,
   exportAnimation,
   playbackProgress,
   atTimelineStart,
   atTimelineEnd,
-  hasPreviousBreakpoint,
-  hasNextBreakpoint,
+  hasPreviousKeyMoment,
+  hasNextKeyMoment,
   zenMode,
   animatedSeekEnabled,
   setZoom,
@@ -142,6 +145,8 @@ export function useEditorViewportSurface({
   handleViewRotationSet,
   handleScaleChange,
   handleScaleAxisChange,
+  onSelectLayer,
+  onDeselectLayers,
   updateMoveAxis,
   handleRotationAxisChange,
   setIsPreviewModelReady,
@@ -151,9 +156,9 @@ export function useEditorViewportSurface({
   setShowTransformGizmo,
   setAnimatedSeekEnabled,
   handleReset,
-  goToPreviousBreakpoint,
+  goToPreviousKeyMoment,
   handlePlayToggle,
-  goToNextBreakpoint,
+  goToNextKeyMoment,
   goToEnd,
   setZenMode,
   markCustom,
@@ -200,15 +205,16 @@ export function useEditorViewportSurface({
     viewInertiaEnabled,
     showCenterPoint,
     showTransformGizmo,
-    selectedLayerId: selectedLayerId === ALL_LAYERS_ID ? null : selectedLayerId,
+    selectedLayerId,
+    selectedIconColorRole,
     pathOverridesA,
     pathOverridesB,
     exportAnimation,
     playbackProgress,
     atTimelineStart,
     atTimelineEnd,
-    hasPreviousBreakpoint,
-    hasNextBreakpoint,
+    hasPreviousKeyMoment,
+    hasNextKeyMoment,
     zenMode,
     onZoomChange: setZoom,
     onViewRotationCommit: handleViewRotationCommit,
@@ -217,6 +223,8 @@ export function useEditorViewportSurface({
     onObjectScaleAxisChange: handleScaleAxisChange,
     onMoveOffsetChange: updateMoveAxis,
     onRotationAxisChange: handleRotationAxisChange,
+    onDeselectLayers,
+    onSelectLayer,
     onModelReadyChange: setIsPreviewModelReady,
     onResetView: resetView,
     onViewInertiaChange: setViewInertiaEnabled,
@@ -225,9 +233,9 @@ export function useEditorViewportSurface({
     animatedSeekEnabled,
     onAnimatedSeekChange: setAnimatedSeekEnabled,
     onResetPlayback: handleReset,
-    onPreviousBreakpoint: goToPreviousBreakpoint,
+    onPreviousKeyMoment: goToPreviousKeyMoment,
     onPlayToggle: handlePlayToggle,
-    onNextBreakpoint: goToNextBreakpoint,
+    onNextKeyMoment: goToNextKeyMoment,
     onGoToEnd: goToEnd,
     onExitZenMode: () => setZenMode(false),
     markCustom,

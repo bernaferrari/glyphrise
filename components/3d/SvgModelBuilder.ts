@@ -8,8 +8,8 @@ import {
   ICON_VIEWBOX_SIZE,
   SVG_PATH_LAYER_GAP_MIN,
   SVG_PATH_LAYER_GAP_RATIO,
-  VECTORFORGE_SLASH_DEPTH_RATIO,
-  VECTORFORGE_SLASH_FORWARD_RATIO,
+  GLYPHRISE_SLASH_DEPTH_RATIO,
+  GLYPHRISE_SLASH_FORWARD_RATIO,
   applySvgModelScale,
 } from "./SvgSceneUtils"
 import { cacheGroupGeometryAnalysis } from "./SvgGeometryAnalysis"
@@ -37,12 +37,12 @@ import {
 } from "./SvgParsing"
 import type { SvgCanvasProps } from "./SvgTypes"
 
-const isVectorForgeSlashPath = (path: ParsedSvgPath) =>
+const isGlyphriseSlashPath = (path: ParsedSvgPath) =>
   (
     path.userData?.node as
       | { getAttribute?: (name: string) => string | null }
       | undefined
-  )?.getAttribute?.("data-vectorforge-slash") === "true"
+  )?.getAttribute?.("data-glyphrise-slash") === "true"
 
 export const buildSvgIconGroup = ({
   svgContent,
@@ -139,16 +139,19 @@ export const buildSvgIconGroup = ({
   const wantsMedialRoof =
     baseExtrude.crownEnabled && baseExtrude.crownMode === "medial"
   const cutSourcePaths: ParsedSvgPath[] = []
+  const cutSourceLayerIds: string[] = []
   let cutBodyShapes: THREE.Shape[] | null = null
   if (wantsMedialRoof) {
     const collected: THREE.Shape[] = []
     paths.forEach((path, pathIndex) => {
-      const isSlashOverlay = isVectorForgeSlashPath(path)
+      const isSlashOverlay = isGlyphriseSlashPath(path)
       if (isSlashOverlay) return
       shapesByPath[pathIndex].forEach((shape, shapeIndex) => {
-        const override = overrideByLayerId.get(`${pathIndex}:${shapeIndex}`)
+        const layerId = `${pathIndex}:${shapeIndex}`
+        const override = overrideByLayerId.get(layerId)
         if (override && !override.visible) return
         cutSourcePaths.push(path)
+        cutSourceLayerIds.push(layerId)
         collected.push(shape)
       })
     })
@@ -223,7 +226,7 @@ export const buildSvgIconGroup = ({
         baseExtrude,
         depthMultiplier: 1,
         bevelEnabled: props.bevelEnabled,
-        slashDepthRatio: VECTORFORGE_SLASH_DEPTH_RATIO,
+        slashDepthRatio: GLYPHRISE_SLASH_DEPTH_RATIO,
         isSlashOverlay: false,
         medialRoofPlan: {
           roof: medialRoofByShape.get(shape) ?? null,
@@ -248,6 +251,7 @@ export const buildSvgIconGroup = ({
           clippingPlanes,
         })
       )
+      mesh.userData.cutSourceLayerIds = cutSourceLayerIds
       mesh.userData.pathLayerId = `cut:${shapeIndex}`
       mesh.userData.iconColorRole = isIconA ? "a" : "b"
       mesh.position.z = 0
@@ -260,7 +264,7 @@ export const buildSvgIconGroup = ({
   }
 
   paths.forEach((path, pathIndex) => {
-    const isSlashOverlay = isVectorForgeSlashPath(path)
+    const isSlashOverlay = isGlyphriseSlashPath(path)
 
     shapesByPath[pathIndex].forEach((shape, shapeIndex) => {
       // The welded cut body already rendered every non-slash shape.
@@ -322,7 +326,7 @@ export const buildSvgIconGroup = ({
         baseExtrude,
         depthMultiplier,
         bevelEnabled: props.bevelEnabled,
-        slashDepthRatio: VECTORFORGE_SLASH_DEPTH_RATIO,
+        slashDepthRatio: GLYPHRISE_SLASH_DEPTH_RATIO,
         isSlashOverlay,
         medialRoofPlan: wantsMedialRoof
           ? {
@@ -346,7 +350,7 @@ export const buildSvgIconGroup = ({
         ? baseExtrude.depth / 2 +
           extrude.shapeDepth / 2 +
           pathLayerGap +
-          baseExtrude.depth * VECTORFORGE_SLASH_FORWARD_RATIO
+          baseExtrude.depth * GLYPHRISE_SLASH_FORWARD_RATIO
         : layerOrder * pathLayerGap
       mesh.renderOrder = isSlashOverlay ? 100 + layerOrder : layerOrder
       mesh.castShadow = true

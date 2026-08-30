@@ -11,7 +11,6 @@ import {
   ShapeStop,
   applyEasing,
   interpolateFillKeyframes,
-  shapeTransitionType,
 } from "./TimelineModel"
 
 type FillRenderValue = {
@@ -107,7 +106,7 @@ const deriveMorph = (
         ? 1
         : (gapProgress - start) / Math.max(1e-6, end - start)
 
-  const transitionType = shapeTransitionType(from)
+  const transitionType = from.transitionType
   const progress =
     transitionType === "cut"
       ? gapProgress < start
@@ -224,7 +223,7 @@ export const useMorphRenderState = ({
   })
   const renderA = getRenderFill(fillA, fillMode, fillGradientType)
   const renderB = getRenderFill(fillB, fillMode, fillGradientType)
-  const transitionType = shapeTransitionType(morph.from)
+  const transitionType = morph.from.transitionType
   const shareOutgoingFillDuringWipe =
     transitionType === "wipe" && morph.from.id !== morph.to.id
   const renderColorB = shareOutgoingFillDuringWipe

@@ -1,5 +1,5 @@
 {
-  "name": "vectorforge",
+  "name": "glyphrise",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -51,10 +51,10 @@
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
-      "version": "^11.0.0"
+      "version": "11.22.0"
     }
   },
   "engines": {
-    "node": "24.x"
+    "node": ">=22"
   }
 }

@@ -13,15 +13,14 @@ import {
   ViewOptionsPopover,
   type ViewOptionsPopoverProps,
 } from "./ViewportControls"
-import { QuickStartGuide, type QuickStartGuideProps } from "./QuickStartGuide"
 
 type ViewportStageProps = {
   zenMode: boolean
+  workspaceActive?: boolean
   isDragging: boolean
   canvasProps: SvgCanvasProps
   viewOptionsProps: ViewOptionsPopoverProps
   playbackProps: PlaybackControlsProps
-  quickStartProps: QuickStartGuideProps
   svgImportError: string | null
   onSvgImportErrorDismiss: () => void
   onDragStateChange: (isDragging: boolean) => void
@@ -32,11 +31,11 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
   (
     {
       zenMode,
+      workspaceActive = true,
       isDragging,
       canvasProps,
       viewOptionsProps,
       playbackProps,
-      quickStartProps,
       svgImportError,
       onSvgImportErrorDismiss,
       onDragStateChange,
@@ -70,28 +69,29 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
 
     return (
       <div
+        id="glyphrise-preview-pane"
+        inert={workspaceActive ? undefined : true}
+        aria-hidden={workspaceActive ? undefined : true}
         className={`flex min-w-0 flex-1 flex-col ${
-          zenMode ? "gap-0 p-0" : "gap-2 p-4 max-[719px]:p-2"
+          zenMode ? "gap-0 p-0" : "gap-2 p-4 max-[720px]:p-2"
         }`}
       >
         <div
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative min-h-0 flex-1 transition-[background-color,border-color,border-radius] duration-300 ease-out ${
+          className={`relative min-h-0 flex-1 transition-[background-color,border-color] duration-150 ${
             zenMode
               ? "rounded-none border-0"
-              : "overflow-hidden rounded-lg border border-border bg-muted/40"
+              : "overflow-hidden rounded-xl border border-border/70 bg-muted/40 shadow-sm"
           }`}
         >
           <SvgCanvas ref={ref} {...canvasProps} />
 
-          <QuickStartGuide {...quickStartProps} />
-
           {svgImportError ? (
             <div
               role="alert"
-              className="absolute top-4 left-1/2 z-40 flex w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-2xl backdrop-blur-md"
+              className="absolute top-16 left-1/2 z-40 flex w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-xl backdrop-blur-md"
             >
               <AlertTriangle
                 aria-hidden="true"

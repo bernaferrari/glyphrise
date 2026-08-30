@@ -43,68 +43,84 @@ export function ColorGradientRail({
   onCaptureStopOutsidePointer,
 }: ColorGradientRailProps) {
   return (
-    <div
-      ref={railRef}
-      className="relative mx-5 mt-7 h-9 rounded-md border border-border bg-muted/35"
-      onPointerDown={(event) => {
-        if (event.button !== 0) return
-        event.preventDefault()
-        onAddStopAtRailPosition(event.clientX, event.clientY)
-      }}
-    >
+    <div className="relative">
       <div
-        className="absolute inset-px rounded-[5px]"
-        style={{ background: gradientCss }}
-      />
-      {stops.map((stopItem, stop) => (
-        <Popover
-          key={`gradient-stop-${stopItem.id}`}
-          open={openStopEditor === stop && openStopEditorAnchor === "rail"}
-          onOpenChange={(open, eventDetails) => {
-            if (!open && eventDetails.reason === "outside-press") {
-              const event = eventDetails.event
-              if ("clientX" in event && "clientY" in event) {
-                onCaptureStopOutsidePointer(event)
-                eventDetails.cancel()
-                return
-              }
-            }
-            onOpenStopEditorChange(open ? stop : null, open ? "rail" : null)
-            if (open) onActiveStopChange(stop)
+        ref={railRef}
+        title="Click the bar to add a color stop"
+        className="relative mx-5 mt-7 h-9 rounded-md border border-border bg-muted/35"
+        onPointerDown={(event) => {
+          if (event.button !== 0) return
+          event.preventDefault()
+          onAddStopAtRailPosition(event.clientX, event.clientY)
+        }}
+      >
+        <div
+          className="absolute inset-px rounded-[5px]"
+          style={{ background: gradientCss }}
+        />
+        <button
+          type="button"
+          aria-label="Add gradient stop in the middle"
+          title="Add a color stop in the middle"
+          className="absolute top-1/2 -right-3 z-10 flex size-5 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-[13px] leading-none font-light text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={() => {
+            const rect = railRef.current?.getBoundingClientRect()
+            if (!rect || rect.width === 0) return
+            onAddStopAtRailPosition(
+              rect.left + rect.width / 2,
+              rect.top + rect.height / 2
+            )
           }}
         >
-          <PopoverTrigger
-            type="button"
-            aria-label={
-              stop === 0
-                ? "Edit first gradient stop"
-                : "Edit second gradient stop"
-            }
-            onPointerDown={(event) => {
-              onStopEditorOpenIntent()
-              onStopPointerDown(stop, event)
+          +
+        </button>
+        {stops.map((stopItem, stop) => (
+          <Popover
+            key={`gradient-stop-${stopItem.id}`}
+            open={openStopEditor === stop && openStopEditorAnchor === "rail"}
+            onOpenChange={(open, eventDetails) => {
+              if (!open && eventDetails.reason === "outside-press") {
+                const event = eventDetails.event
+                if ("clientX" in event && "clientY" in event) {
+                  onCaptureStopOutsidePointer(event)
+                  eventDetails.cancel()
+                  return
+                }
+              }
+              onOpenStopEditorChange(open ? stop : null, open ? "rail" : null)
+              if (open) onActiveStopChange(stop)
             }}
-            className={cn(
-              "absolute -top-5 flex size-7 -translate-x-1/2 touch-none items-center justify-center rounded-[7px] shadow-[0_2px_7px_rgba(0,0,0,0.35)] transition-colors after:absolute after:bottom-[-5px] after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[5px] after:border-t-[6px] after:border-x-transparent",
-              openStopEditor === stop
-                ? "bg-primary after:border-t-primary"
-                : "bg-muted after:border-t-muted hover:bg-muted/80 hover:after:border-t-muted/80"
-            )}
-            style={{ left: `${stopItem.position * 100}%` }}
           >
-            <span
-              className="relative z-10 size-4.5 rounded-[5px] border border-background/65 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
-              style={{ backgroundColor: stopItem.color }}
+            <PopoverTrigger
+              type="button"
+              aria-label={`Edit gradient stop ${stop + 1} of ${stops.length}`}
+              onPointerDown={(event) => {
+                onStopEditorOpenIntent()
+                onStopPointerDown(stop, event)
+              }}
+              className={cn(
+                "absolute -top-5 flex size-7 -translate-x-1/2 touch-none items-center justify-center rounded-[7px] shadow-[0_2px_7px_rgba(0,0,0,0.35)] transition-colors after:absolute after:bottom-[-5px] after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[5px] after:border-t-[6px] after:border-x-transparent",
+                openStopEditor === stop
+                  ? "bg-primary after:border-t-primary"
+                  : "bg-muted after:border-t-muted hover:bg-muted/80 hover:after:border-t-muted/80"
+              )}
+              style={{ left: `${stopItem.position * 100}%` }}
+            >
+              <span
+                className="relative z-10 size-4.5 rounded-[5px] border border-background/65 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]"
+                style={{ backgroundColor: stopItem.color }}
+              />
+            </PopoverTrigger>
+            <ColorStopEditorPopover
+              {...stopEditorProps}
+              contentRef={stopContentRef}
+              align="center"
+              side="top"
             />
-          </PopoverTrigger>
-          <ColorStopEditorPopover
-            {...stopEditorProps}
-            contentRef={stopContentRef}
-            align="center"
-            side="top"
-          />
-        </Popover>
-      ))}
+          </Popover>
+        ))}
+      </div>
     </div>
   )
 }

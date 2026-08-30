@@ -30,7 +30,7 @@ export const MATERIAL_METADATA: Record<
     name: "Aura",
     subtitle: "Luminous Glass",
     description:
-      "A soft Apple-like luminous glass finish with bright white body, blue rim, and gentle internal glow.",
+      "A soft luminous glass finish with a bright white body, blue rim, and gentle internal glow.",
     glowColor: "rgba(147, 197, 253, 0.34)",
   },
   chrome: {

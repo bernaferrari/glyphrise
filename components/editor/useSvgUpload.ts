@@ -29,12 +29,12 @@ const readSvgFile = (
         onError(svgImportMessage(error))
       }
     } else {
-      onError("VectorForge could not read this SVG file.")
+      onError("Glyphrise could not read this SVG file.")
     }
     onDone?.()
   }
   reader.onerror = () => {
-    onError("VectorForge could not read this SVG file.")
+    onError("Glyphrise could not read this SVG file.")
     onDone?.()
   }
   reader.readAsText(file)

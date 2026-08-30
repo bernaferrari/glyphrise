@@ -2,7 +2,6 @@ import {
   escapeTemplateSvg,
   type ExportCodeTemplateParams,
 } from "./ExportCodeTemplateModel"
-import { shapeTransitionType } from "./TimelineModel"
 
 const safeJson = (value: unknown) =>
   JSON.stringify(value, null, 2).replace(/</g, "\\u003c")
@@ -53,7 +52,7 @@ export const generateR3fCode = ({
           name: shape.iconName ?? shape.iconId,
           svgContent: shape.svgContent,
           easing: shape.easing,
-          transitionType: shapeTransitionType(shape),
+          transitionType: shape.transitionType,
           wipeDirection: shape.wipeDirection,
           transitionStart: shape.transitionStart ?? 0.25,
           transitionEnd: shape.transitionEnd ?? 0.75,

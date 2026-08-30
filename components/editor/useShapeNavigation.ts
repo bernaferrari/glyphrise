@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, type Dispatch, type SetStateAction } from "react"
-import { ALL_LAYERS_ID } from "./SvgLayerModel"
+import { ALL_LAYERS_ID, extractSvgLayers } from "./SvgLayerModel"
 import type { ShapeStop } from "./TimelineModel"
 
 export type ShapeNavigationModel = {
@@ -14,6 +14,9 @@ export type ShapeNavigationModel = {
   onPrevious: () => void
   onNext: () => void
   onChangeIcon: () => void
+  onAddIcon: () => void
+  pathCount: number
+  sourceLabel: string
 }
 
 export function useShapeNavigation({
@@ -22,12 +25,14 @@ export function useShapeNavigation({
   setSelectedShapeId,
   setOpenShapePicker,
   setSelectedLayerId,
+  addShapeAtPlayhead,
 }: {
   sortedShapes: ShapeStop[]
   selectedShapeId: string | null
   setSelectedShapeId: Dispatch<SetStateAction<string | null>>
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   setSelectedLayerId: Dispatch<SetStateAction<string>>
+  addShapeAtPlayhead: () => void
 }): ShapeNavigationModel | undefined {
   return useMemo(() => {
     if (sortedShapes.length === 0) return undefined
@@ -57,6 +62,10 @@ export function useShapeNavigation({
       onPrevious: () => selectShapeAt(selectedIndex - 1),
       onNext: () => selectShapeAt(selectedIndex + 1),
       onChangeIcon: () => setOpenShapePicker(selectedShape.id),
+      onAddIcon: addShapeAtPlayhead,
+      pathCount: extractSvgLayers(selectedShape.svgContent).length,
+      sourceLabel:
+        selectedShape.iconId === "custom" ? "Custom SVG" : "Preset icon",
     }
   }, [
     selectedShapeId,
@@ -64,5 +73,6 @@ export function useShapeNavigation({
     setSelectedLayerId,
     setSelectedShapeId,
     sortedShapes,
+    addShapeAtPlayhead,
   ])
 }

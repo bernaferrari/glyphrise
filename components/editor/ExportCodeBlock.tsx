@@ -43,7 +43,7 @@ export function ExportCodeBlock({
     }
   }, [code, lang, resolvedTheme])
 
-  const surfaceClass = `block max-h-[56vh] w-full max-w-full overflow-auto rounded-lg border border-border bg-muted/35 font-mono text-[11px] leading-relaxed text-muted-foreground ${className ?? ""}`
+  const surfaceClass = `editor-scrollbar block max-h-[56vh] w-full max-w-full overflow-auto rounded-lg border border-border bg-muted/35 font-mono text-[11px] leading-relaxed text-muted-foreground select-text ${className ?? ""}`
 
   if (!html) {
     return (

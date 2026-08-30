@@ -70,6 +70,9 @@ export function GeometryInspectorSection({
       )
     : 0
   const curveDetail = curveDetailFromGeometryQuality(activeGeometryQuality)
+  const qualityLabel =
+    curveDetail < 34 ? "Fast" : curveDetail < 75 ? "Balanced" : "Detailed"
+  const expensiveGeometry = curveDetail >= 75 || bevelSegments >= 9
 
   return (
     <InspectorSection title="GEOMETRY" action={keyframeControl}>
@@ -138,7 +141,7 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Curve detail">
+      <InspectorRow label="Curve smoothness">
         <InspectorSlider
           value={curveDetail}
           min={0}
@@ -147,12 +150,23 @@ export function GeometryInspectorSection({
           sliderMax={100}
           step={1}
           precision={0}
-          ariaLabel="Curve detail percent"
+          ariaLabel="Curve smoothness percent"
           onChange={(value) =>
             onQualityChange(geometryQualityFromCurveDetail(value))
           }
         />
       </InspectorRow>
+      <div className="flex items-start justify-between gap-3 px-1 pt-1 text-[10px] leading-4 text-muted-foreground">
+        <span>Preview quality</span>
+        <span className="text-right font-medium text-foreground">
+          {qualityLabel}
+          {expensiveGeometry ? (
+            <span className="block font-normal text-amber-600">
+              Complex icons may preview more slowly
+            </span>
+          ) : null}
+        </span>
+      </div>
     </InspectorSection>
   )
 }

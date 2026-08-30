@@ -22,23 +22,17 @@ type TimelineDeletionOptions = {
 
 export const useTimelineDeletion = ({
   selectedKeyframe,
-  selectedShapeId,
-  shapes,
   tracks,
   propertyRows,
   onClearSelection,
-  onRemoveShape,
   onRemoveTrackKeyframe,
   onRemovePropertyKeyframe,
 }: TimelineDeletionOptions) => {
   const optionsRef = useLatestRef({
     selectedKeyframe,
-    selectedShapeId,
-    shapes,
     tracks,
     propertyRows,
     onClearSelection,
-    onRemoveShape,
     onRemoveTrackKeyframe,
     onRemovePropertyKeyframe,
   })
@@ -51,22 +45,14 @@ export const useTimelineDeletion = ({
 
       const {
         selectedKeyframe,
-        selectedShapeId,
-        shapes,
         tracks,
         propertyRows,
         onClearSelection,
-        onRemoveShape,
         onRemoveTrackKeyframe,
         onRemovePropertyKeyframe,
       } = optionsRef.current
 
-      if (!selectedKeyframe) {
-        if (!selectedShapeId || shapes.length <= 1) return
-        event.preventDefault()
-        onRemoveShape(selectedShapeId)
-        return
-      }
+      if (!selectedKeyframe) return
 
       if (selectedKeyframe.type === "track") {
         const track = tracks.find(

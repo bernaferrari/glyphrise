@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { shouldScheduleSvgRenderFrame } from "./SvgRenderLoopModel"
+import {
+  shouldContinueSvgRenderLoop,
+  shouldScheduleSvgRenderFrame,
+} from "./SvgRenderLoopModel"
 
 describe("shouldScheduleSvgRenderFrame", () => {
   it("schedules the visible active loop when no frame is queued", () => {
@@ -37,5 +40,38 @@ describe("shouldScheduleSvgRenderFrame", () => {
         animationFrameId: 42,
       })
     ).toBe(false)
+  })
+})
+
+describe("shouldContinueSvgRenderLoop", () => {
+  it("stops once an idle scene is settled", () => {
+    expect(
+      shouldContinueSvgRenderLoop({
+        isPlaying: false,
+        isExporting: false,
+        isDragging: false,
+        isInertiaActive: false,
+        zoomDelta: 0,
+      })
+    ).toBe(false)
+  })
+
+  it.each([
+    ["playback", { isPlaying: true }],
+    ["export", { isExporting: true }],
+    ["drag", { isDragging: true }],
+    ["inertia", { isInertiaActive: true }],
+    ["zoom settling", { zoomDelta: 0.001 }],
+  ])("continues for %s", (_label, override) => {
+    expect(
+      shouldContinueSvgRenderLoop({
+        isPlaying: false,
+        isExporting: false,
+        isDragging: false,
+        isInertiaActive: false,
+        zoomDelta: 0,
+        ...override,
+      })
+    ).toBe(true)
   })
 })

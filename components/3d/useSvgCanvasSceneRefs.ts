@@ -3,6 +3,15 @@
 import { useMemo, useRef } from "react"
 import * as THREE from "three"
 import type { OrientationGizmoRefs } from "./OrientationGizmo"
+import type { ExportRenderOptions } from "./SvgTypes"
+
+export type ExportRenderSnapshot = {
+  size: THREE.Vector2
+  pixelRatio: number
+  cameraAspect: number
+  clearColor: THREE.Color
+  clearAlpha: number
+}
 
 export function useSvgCanvasSceneRefs(initialZoom: number) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -64,6 +73,12 @@ export function useSvgCanvasSceneRefs(initialZoom: number) {
   const rotationDragOverlayRef = useRef<THREE.Group | null>(null)
   const resetViewFrameRef = useRef<number | null>(null)
 
+  const selectionRaycasterRef = useRef(new THREE.Raycaster())
+  const selectionPointerRef = useRef(new THREE.Vector2())
+  const exportRenderOptionsRef = useRef<ExportRenderOptions | null>(null)
+  const exportRenderSnapshotRef = useRef<ExportRenderSnapshot | null>(null)
+  const requestRenderRef = useRef<() => void>(() => undefined)
+
   return {
     containerRef,
     canvasRef,
@@ -96,5 +111,10 @@ export function useSvgCanvasSceneRefs(initialZoom: number) {
     transformGizmoHitObjectsRef,
     rotationDragOverlayRef,
     resetViewFrameRef,
+    selectionRaycasterRef,
+    selectionPointerRef,
+    exportRenderOptionsRef,
+    exportRenderSnapshotRef,
+    requestRenderRef,
   }
 }

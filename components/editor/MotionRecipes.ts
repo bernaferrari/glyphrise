@@ -54,9 +54,9 @@ export interface MotionRecipe {
 
 export const MOTION_RECIPES: MotionRecipe[] = [
   {
-    id: "google-metal",
-    name: "Google Metal",
-    description: "Google-style mesh color with a bright studio metal finish.",
+    id: "spectrum-chrome",
+    name: "Spectrum Chrome",
+    description: "Prismatic mesh color with a bright studio metal finish.",
     emoji: "G",
     tag: "GOOGLE",
     materialPreset: "chrome",
@@ -208,19 +208,19 @@ export const MOTION_RECIPES: MotionRecipe[] = [
       {
         id: "kf-sg-r1",
         time: 0.6,
-        value: { x: 0, y: 0.3, z: 0 },
+        value: { x: 0, y: 17.2, z: 0 },
         easing: "ease-in-out",
       },
       {
         id: "kf-sg-r2",
         time: 2.4,
-        value: { x: 0, y: 1.4, z: 0 },
+        value: { x: 0, y: 80.2, z: 0 },
         easing: "ease-in-out",
       },
       {
         id: "kf-sg-r3",
         time: 4.2,
-        value: { x: 0, y: 0.3, z: 0 },
+        value: { x: 0, y: 17.2, z: 0 },
         easing: "ease-in-out",
       },
     ],
@@ -291,13 +291,13 @@ export const MOTION_RECIPES: MotionRecipe[] = [
       {
         id: "kf-cp-r1",
         time: 0.8,
-        value: { x: 0, y: 0.6, z: 0 },
+        value: { x: 0, y: 34.4, z: 0 },
         easing: "bounce",
       },
       {
         id: "kf-cp-r2",
         time: 3.8,
-        value: { x: 0, y: 1.8, z: 0 },
+        value: { x: 0, y: 103.1, z: 0 },
         easing: "bounce",
       },
     ],

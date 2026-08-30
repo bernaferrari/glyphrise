@@ -1,7 +1,6 @@
 import * as THREE from "three"
 import type { MutableRefObject } from "react"
 import type { TransformAxis, TransformGizmoHandle } from "./TransformGizmo"
-import type { SvgCanvasProps } from "./SvgTypes"
 import {
   hasViewDragExceededThreshold,
   nextWheelZoom,
@@ -14,6 +13,8 @@ import {
   safelyReleasePointerCapture,
   safelySetPointerCapture,
 } from "@/lib/drag-events"
+import { axisDragCursor } from "./TransformGizmoInteractionModel"
+import { ALL_LAYERS_ID } from "../editor/SvgLayerOverrideModel"
 
 type PointerPosition = { x: number; y: number }
 
@@ -38,10 +39,23 @@ export type SvgCanvasPointerBindings = {
   viewInertiaEnabledRef: MutableRefObject<boolean>
   targetZoomRef: MutableRefObject<number>
   currentZoomRef: MutableRefObject<number>
+  onZoomChange?: (zoom: number) => void
   animationStartRef: MutableRefObject<number>
   iconAGroupRef: MutableRefObject<THREE.Group | null>
   iconBGroupRef: MutableRefObject<THREE.Group | null>
-  onZoomChange?: SvgCanvasProps["onZoomChange"]
+  sceneRef: MutableRefObject<THREE.Scene | null>
+  cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
+  selectionRaycasterRef: MutableRefObject<THREE.Raycaster>
+  selectionPointerRef: MutableRefObject<THREE.Vector2>
+  onSelectLayer?: (layerId: string) => void
+  onDeselectLayers?: () => void
+  /**
+   * Resolves the color role ("a" | "b") of the currently selected shape.
+   * When provided, selection clicks only resolve against layers of that
+   * icon, ignoring hits on the other icon's meshes.
+   */
+  selectedIconColorRole?: () => "a" | "b" | undefined
+  requestRender: () => void
 }
 
 export const bindSvgCanvasPointerInteractions = ({
@@ -65,9 +79,21 @@ export const bindSvgCanvasPointerInteractions = ({
   animationStartRef,
   iconAGroupRef,
   iconBGroupRef,
+  sceneRef,
+  cameraRef,
+  selectionRaycasterRef,
+  onSelectLayer,
+  selectionPointerRef,
   onZoomChange,
+  selectedIconColorRole,
+  onDeselectLayers,
+  requestRender,
 }: SvgCanvasPointerBindings) => {
+  const setHoverSelectable = (selectable: boolean) => {
+    canvas.style.cursor = selectable ? "pointer" : ""
+  }
   const handlePointerDown = (event: PointerEvent) => {
+    requestRender()
     if (event.button !== 0) return
     const transformHandle = hitTransformGizmo(event)
     if (transformHandle) {
@@ -115,9 +141,110 @@ export const bindSvgCanvasPointerInteractions = ({
     safelyReleasePointerCapture(canvas, event.pointerId)
   }
 
+  const handlePointerUp = (event: PointerEvent) => {
+    requestRender()
+    const wasViewDrag = activePointerIdRef.current === event.pointerId
+    // endViewDrag resets hasViewDragMovedRef.current, so the sub-threshold
+    // "this release was a click" decision must be snapshotted first.
+    const wasClick = wasViewDrag && !hasViewDragMovedRef.current
+    endViewDrag(event)
+    if (wasClick) handleSelectClick(event)
+  }
+
+  const handleSelectClick = (event: PointerEvent) => {
+    if (!onSelectLayer) return
+    const camera = cameraRef.current
+    const scene = sceneRef.current
+    if (!camera || !scene) return
+
+    const rect = canvas.getBoundingClientRect()
+    selectionPointerRef.current.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+    )
+    selectionRaycasterRef.current.setFromCamera(
+      selectionPointerRef.current,
+      camera
+    )
+    const intersections = selectionRaycasterRef.current.intersectObjects(
+      [iconAGroupRef, iconBGroupRef]
+        .map((groupRef) => groupRef.current)
+        .filter((group): group is THREE.Group => group !== null),
+      true
+    )
+    if (intersections.length === 0) {
+      onDeselectLayers?.()
+      return
+    }
+    const selectedColorRole = selectedIconColorRole?.()
+    for (const intersection of intersections) {
+      const { userData } = intersection.object as THREE.Mesh
+      if (selectedColorRole && userData.iconColorRole !== selectedColorRole) {
+        continue
+      }
+      const cutSourceLayerIds = userData.cutSourceLayerIds as
+        | string[]
+        | undefined
+      if (Array.isArray(cutSourceLayerIds)) {
+        // The welded cut body has no single layer id: a hit stands for all
+        // contributing layers, so reset to the "All paths" chip.
+        onSelectLayer(
+          cutSourceLayerIds.length === 1 ? cutSourceLayerIds[0] : ALL_LAYERS_ID
+        )
+        return
+      }
+      const pathLayerId = userData.pathLayerId
+      if (typeof pathLayerId === "string") {
+        onSelectLayer(pathLayerId)
+        return
+      }
+    }
+  }
+  const raycastSelectableAt = (event: PointerEvent) => {
+    const camera = cameraRef.current
+    const scene = sceneRef.current
+    if (!camera || !scene) return false
+    const rect = canvas.getBoundingClientRect()
+    selectionPointerRef.current.set(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -(((event.clientY - rect.top) / rect.height) * 2 - 1)
+    )
+    selectionRaycasterRef.current.setFromCamera(
+      selectionPointerRef.current,
+      camera
+    )
+    const intersections = selectionRaycasterRef.current.intersectObjects(
+      [iconAGroupRef, iconBGroupRef]
+        .map((groupRef) => groupRef.current)
+        .filter((group): group is THREE.Group => group !== null),
+      true
+    )
+    const selectedColorRole = selectedIconColorRole?.()
+    return intersections.some((intersection) => {
+      const { userData } = intersection.object as THREE.Mesh
+      if (selectedColorRole && userData.iconColorRole !== selectedColorRole) {
+        return false
+      }
+      return (
+        Array.isArray(userData.cutSourceLayerIds) ||
+        typeof userData.pathLayerId === "string"
+      )
+    })
+  }
+
   const handlePointerMove = (event: PointerEvent) => {
+    requestRender()
     if (!isDraggingRef.current) {
-      setTransformGizmoHighlight(hitTransformGizmo(event))
+      const transformHandle = hitTransformGizmo(event)
+      setTransformGizmoHighlight(transformHandle)
+      if (transformHandle) {
+        canvas.style.cursor = transformHandle.axis
+          ? axisDragCursor(transformHandle.axis)
+          : "move"
+        return
+      }
+      canvas.style.cursor = ""
+      setHoverSelectable(raycastSelectableAt(event))
       return
     }
     if (activePointerIdRef.current !== event.pointerId) return
@@ -163,10 +290,14 @@ export const bindSvgCanvasPointerInteractions = ({
   }
 
   const handlePointerLeave = () => {
-    if (!isDraggingRef.current) setTransformGizmoHighlight(null)
+    if (!isDraggingRef.current) {
+      setTransformGizmoHighlight(null)
+      setHoverSelectable(false)
+    }
   }
 
   const handleWheel = (event: WheelEvent) => {
+    requestRender()
     event.preventDefault()
     if (!onZoomChange) return
     const newZoom = nextWheelZoom(targetZoomRef.current, event.deltaY)
@@ -185,7 +316,7 @@ export const bindSvgCanvasPointerInteractions = ({
 
   canvas.addEventListener("pointerdown", handlePointerDown)
   canvas.addEventListener("pointermove", handlePointerMove)
-  canvas.addEventListener("pointerup", endViewDrag)
+  canvas.addEventListener("pointerup", handlePointerUp)
   canvas.addEventListener("pointercancel", handlePointerCancel)
   canvas.addEventListener("pointerleave", handlePointerLeave)
   canvas.addEventListener("wheel", handleWheel, { passive: false })
@@ -194,7 +325,7 @@ export const bindSvgCanvasPointerInteractions = ({
   return () => {
     canvas.removeEventListener("pointerdown", handlePointerDown)
     canvas.removeEventListener("pointermove", handlePointerMove)
-    canvas.removeEventListener("pointerup", endViewDrag)
+    canvas.removeEventListener("pointerup", handlePointerUp)
     canvas.removeEventListener("pointercancel", handlePointerCancel)
     canvas.removeEventListener("pointerleave", handlePointerLeave)
     canvas.removeEventListener("wheel", handleWheel)

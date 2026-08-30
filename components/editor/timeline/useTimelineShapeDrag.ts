@@ -98,7 +98,7 @@ export function useTimelineShapeDrag({
     shapeId: string
   ) => retimeShapeByDrag(event, shapeId, shapeDraggedRef, { select: true })
 
-  const handleMorphEdgeDrag = (
+  const handleTransitionEdgeDrag = (
     event: React.PointerEvent<HTMLElement>,
     shapeId: string,
     edge: "start" | "end",
@@ -142,6 +142,6 @@ export function useTimelineShapeDrag({
   return {
     shapeDraggedRef,
     handleShapeDrag,
-    handleMorphEdgeDrag,
+    handleTransitionEdgeDrag,
   }
 }

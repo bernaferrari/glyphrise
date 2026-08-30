@@ -47,6 +47,7 @@ export type UseSvgCanvasPropsArgs = {
   showCenterPoint: boolean
   showTransformGizmo: boolean
   selectedLayerId?: string | null
+  selectedIconColorRole?: SvgCanvasProps["selectedIconColorRole"]
   pathOverridesA: SvgCanvasProps["pathOverridesA"]
   pathOverridesB: SvgCanvasProps["pathOverridesB"]
   exportAnimation?: SvgCanvasProps["exportAnimation"]
@@ -58,6 +59,8 @@ export type UseSvgCanvasPropsArgs = {
     SvgCanvasProps["onObjectScaleAxisChange"]
   >
   onMoveOffsetChange: NonNullable<SvgCanvasProps["onMoveOffsetChange"]>
+  onSelectLayer: SvgCanvasProps["onSelectLayer"]
+  onDeselectLayers: SvgCanvasProps["onDeselectLayers"]
   onRotationAxisChange: NonNullable<SvgCanvasProps["onRotationAxisChange"]>
   onModelReadyChange: (ready: boolean) => void
   markCustom: () => void
@@ -106,6 +109,7 @@ export function useSvgCanvasProps({
   showCenterPoint,
   showTransformGizmo,
   selectedLayerId,
+  selectedIconColorRole,
   pathOverridesA,
   pathOverridesB,
   exportAnimation,
@@ -115,6 +119,8 @@ export function useSvgCanvasProps({
   onObjectScaleChange,
   onObjectScaleAxisChange,
   onMoveOffsetChange,
+  onSelectLayer,
+  onDeselectLayers,
   onRotationAxisChange,
   onModelReadyChange,
   markCustom,
@@ -198,10 +204,13 @@ export function useSvgCanvasProps({
       showCenterPoint,
       showTransformGizmo,
       selectedLayerId,
+      selectedIconColorRole,
       pathOverridesA,
       pathOverridesB,
       exportAnimation,
       onZoomChange,
+      onDeselectLayers,
+      onSelectLayer,
       onViewRotationCommit,
       onViewRotationSet,
       onObjectScaleChange: (value) => {
@@ -280,6 +289,7 @@ export function useSvgCanvasProps({
       showCenterPoint,
       showTransformGizmo,
       selectedLayerId,
+      selectedIconColorRole,
       pathOverridesA,
       pathOverridesB,
       exportAnimation,
@@ -288,7 +298,9 @@ export function useSvgCanvasProps({
       onViewRotationSet,
       onObjectScaleChange,
       onObjectScaleAxisChange,
+      onDeselectLayers,
       onMoveOffsetChange,
+      onSelectLayer,
       onRotationAxisChange,
       onModelReadyChange,
       markCustom,

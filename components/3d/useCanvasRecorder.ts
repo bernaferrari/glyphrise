@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef } from "react"
 export type CanvasRecorderOptions = {
   frameRate?: number
   manualFrames?: boolean
+  mimeType?: string
+  videoBitsPerSecond?: number
   onError?: (error: Error) => void
 }
 
@@ -50,7 +52,9 @@ export const useCanvasRecorder = () => {
     stopStreamTracks(stream)
 
     if (deliverRecording && onComplete) {
-      onComplete(new Blob(chunks, { type: "video/webm" }))
+      const mimeType =
+        recorder?.mimeType || chunks.find((chunk) => chunk.type)?.type || ""
+      onComplete(new Blob(chunks, { type: mimeType }))
     }
   }, [])
 
@@ -81,6 +85,8 @@ export const useCanvasRecorder = () => {
       {
         frameRate = 30,
         manualFrames = false,
+        mimeType,
+        videoBitsPerSecond,
         onError,
       }: CanvasRecorderOptions = {}
     ) => {
@@ -101,25 +107,22 @@ export const useCanvasRecorder = () => {
           | undefined
 
         if (manualFrames && !canvasTrack?.requestFrame) {
-          stopStreamTracks(stream)
-          stream = createStream(frameRate)
-          canvasTrack = stream.getVideoTracks()[0] as
-            | CanvasVideoTrack
-            | undefined
+          throw new Error(
+            "This browser cannot render deterministic video frames. Try the latest Chrome or Edge."
+          )
         }
 
         if (!canvasTrack) {
           throw new Error("The browser did not create a video track.")
         }
 
-        const options = { mimeType: "video/webm;codecs=vp9" }
-        let recorder: MediaRecorder
-
-        try {
-          recorder = new MediaRecorder(stream, options)
-        } catch {
-          recorder = new MediaRecorder(stream)
+        if (mimeType && !MediaRecorder.isTypeSupported(mimeType)) {
+          throw new Error(`This browser cannot record ${mimeType}.`)
         }
+        const recorder = new MediaRecorder(stream, {
+          ...(mimeType ? { mimeType } : {}),
+          ...(videoBitsPerSecond ? { videoBitsPerSecond } : {}),
+        })
 
         recordedChunksRef.current = []
         mediaRecorderRef.current = recorder

@@ -38,6 +38,8 @@ type SvgCanvasSceneLifecycleOptions = {
   transformGizmoGroupRef: NullableRef<THREE.Group>
   transformGizmoHitObjectsRef: MutableRefObject<THREE.Object3D[]>
   rotationDragOverlayRef: NullableRef<THREE.Group>
+  selectionRaycasterRef: MutableRefObject<THREE.Raycaster>
+  selectionPointerRef: MutableRefObject<THREE.Vector2>
   resetViewFrameRef: MutableRefObject<number | null>
   isDraggingRef: MutableRefObject<boolean>
   isInertiaActiveRef: MutableRefObject<boolean>
@@ -59,6 +61,7 @@ type SvgCanvasSceneLifecycleOptions = {
   ) => void
   applyViewRotationDelta: (delta: RotationVelocity) => void
   cancelViewNudge: () => void
+  requestRenderRef: MutableRefObject<() => void>
 }
 
 export function useSvgCanvasSceneLifecycle({
@@ -82,6 +85,8 @@ export function useSvgCanvasSceneLifecycle({
   transformGizmoGroupRef,
   transformGizmoHitObjectsRef,
   rotationDragOverlayRef,
+  selectionRaycasterRef,
+  selectionPointerRef,
   resetViewFrameRef,
   isDraggingRef,
   isInertiaActiveRef,
@@ -100,6 +105,7 @@ export function useSvgCanvasSceneLifecycle({
   setTransformGizmoHighlight,
   applyViewRotationDelta,
   cancelViewNudge,
+  requestRenderRef,
 }: SvgCanvasSceneLifecycleOptions) {
   const hitTransformGizmoRef = useLatestRef(hitTransformGizmo)
   const beginTransformScaleRef = useLatestRef(beginTransformScale)
@@ -109,6 +115,9 @@ export function useSvgCanvasSceneLifecycle({
   const applyViewRotationDeltaRef = useLatestRef(applyViewRotationDelta)
   const cancelViewNudgeRef = useLatestRef(cancelViewNudge)
   const onZoomChangeRef = useLatestRef(props.onZoomChange)
+  const selectedIconColorRoleRef = useLatestRef(props.selectedIconColorRole)
+  const onSelectLayerRef = useLatestRef(props.onSelectLayer)
+  const onDeselectLayersRef = useLatestRef(props.onDeselectLayers)
   const sceneCreationPropsRef = useRef(props)
 
   useEffect(() => {
@@ -157,6 +166,7 @@ export function useSvgCanvasSceneLifecycle({
       activePointerIdRef,
       pointerStartPositionRef,
       previousPointerPositionRef,
+      onZoomChange: (zoom) => onZoomChangeRef.current?.(zoom),
       rotationVelocityRef,
       viewInertiaEnabledRef,
       targetZoomRef,
@@ -164,13 +174,21 @@ export function useSvgCanvasSceneLifecycle({
       animationStartRef,
       iconAGroupRef,
       iconBGroupRef,
-      onZoomChange: (zoom) => onZoomChangeRef.current?.(zoom),
+      selectedIconColorRole: () => selectedIconColorRoleRef.current,
+      sceneRef,
+      cameraRef,
+      selectionRaycasterRef,
+      selectionPointerRef,
+      onSelectLayer: (layerId) => onSelectLayerRef.current?.(layerId),
+      onDeselectLayers: () => onDeselectLayersRef.current?.(),
+      requestRender: () => requestRenderRef.current(),
     })
     const unbindSceneResize = bindSvgSceneResize({
       container,
       cameraRef,
       rendererRef,
       currentZoomRef,
+      requestRender: () => requestRenderRef.current(),
     })
 
     return () => {
@@ -214,15 +232,20 @@ export function useSvgCanvasSceneLifecycle({
     isInertiaActiveRef,
     keyLightRef,
     onZoomChangeRef,
+    onDeselectLayersRef,
+    onSelectLayerRef,
     pointerStartPositionRef,
     pivotGroupRef,
     previousPointerPositionRef,
     rendererRef,
+    requestRenderRef,
     resetViewFrameRef,
     rimLightRef,
     rotationDragOverlayRef,
     rotationVelocityRef,
     sceneRef,
+    selectionRaycasterRef,
+    selectionPointerRef,
     setTransformGizmoHighlightRef,
     softboxLightRef,
     targetZoomRef,

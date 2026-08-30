@@ -92,11 +92,18 @@ export const TimelineLeftRail = React.forwardRef<
 
     return (
       <div ref={ref} className="will-change-transform">
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+          Content
+        </div>
         <TimelineShapeHeaderRow
           selectedShapeId={selectedShapeId}
           isPreviewLoading={isPreviewLoading}
           onAddShape={onAddShape}
         />
+
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+          Animation
+        </div>
 
         {visiblePropertyRows.map((row) => (
           <TimelinePropertyRailRow

@@ -194,19 +194,19 @@ export type TrackKeyframeBlockSnapTarget = {
 }
 
 export const createTrackKeyframeBlockSnapTargets = ({
-  breakpointTimes,
+  keyMomentTimes,
   playheadTime,
   duration,
   snapThreshold,
   playheadSnapThreshold,
 }: {
-  breakpointTimes: number[]
+  keyMomentTimes: number[]
   playheadTime: number
   duration: number
   snapThreshold: number
   playheadSnapThreshold: number
 }): TrackKeyframeBlockSnapTarget[] => [
-  ...breakpointTimes.map((time) => ({
+  ...keyMomentTimes.map((time) => ({
     time,
     threshold: snapThreshold,
   })),

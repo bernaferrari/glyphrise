@@ -22,7 +22,7 @@ export function WipePairsSection({
 
   return (
     <div className={cn("mb-3 border-t border-border pt-2", className)}>
-      <div className="grid max-h-[min(36vh,300px)] grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
+      <div className="editor-scrollbar grid max-h-[min(36vh,300px)] grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
         {filteredWipePairs.map((pair) => (
           <button
             key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}

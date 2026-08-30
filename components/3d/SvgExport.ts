@@ -22,7 +22,7 @@ type FilamentExportProps = {
   transitionProgress: number
 }
 
-const GEOMETRY_EXPORT_GROUP_NAME = "VectorForgeGeometry"
+const GEOMETRY_EXPORT_GROUP_NAME = "GlyphriseGeometry"
 
 const applyExportEasing = (easing: SvgExportEasing, t: number) => {
   if (easing === "ease-in-out")
@@ -216,7 +216,7 @@ const buildExportAnimationClips = (
   }
 
   return [
-    new THREE.AnimationClip("VectorForgeTimeline", animation.duration, tracks),
+    new THREE.AnimationClip("GlyphriseTimeline", animation.duration, tracks),
   ]
 }
 
@@ -308,9 +308,9 @@ export const prepareFilamentExportObject = (
   applyModelScale: (group: THREE.Group) => void
 ) => {
   const root = new THREE.Group()
-  root.name = "VectorForgeIcon"
+  root.name = "GlyphriseIcon"
   root.userData = {
-    generator: "VectorForge",
+    generator: "Glyphrise",
     target: "Filament glTF 2.0",
     materialPreset: props.materialPreset,
     colorMode: props.enableGradient
@@ -423,13 +423,13 @@ export const exportFilamentGltf = ({
           if (gltf instanceof ArrayBuffer) {
             downloadBlob(
               new Blob([gltf], { type: "model/gltf-binary" }),
-              "vectorforge-icon.glb"
+              "glyphrise-icon.glb"
             )
           } else {
             const output = JSON.stringify(gltf)
             downloadBlob(
               new Blob([output], { type: "model/gltf+json" }),
-              "vectorforge-icon.gltf"
+              "glyphrise-icon.gltf"
             )
           }
           resolve()

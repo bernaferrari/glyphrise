@@ -42,7 +42,7 @@ export function InspectorSection({
         <span
           className={cn(
             "text-[11px] font-semibold tracking-[0.12em] transition-colors",
-            active ? "text-foreground/85" : "text-muted-foreground/70"
+            active ? "text-foreground/90" : "text-muted-foreground"
           )}
         >
           {title}
@@ -82,6 +82,7 @@ export function InspectorRow({
     <div
       ref={rowRef}
       onClick={onClick}
+      onFocusCapture={onClick}
       data-active={active ? "" : undefined}
       className={cn(
         "flex min-h-8 items-center gap-2 rounded-lg px-1.5 py-0.5 transition-colors",
@@ -92,7 +93,7 @@ export function InspectorRow({
     >
       <div
         className={cn(
-          "flex shrink-0 items-center gap-1 text-[11px] font-medium transition-colors duration-100",
+          "flex shrink-0 items-center gap-1 text-xs font-medium transition-colors duration-100",
           INSPECTOR_LABEL_WIDTH,
           active ? "text-foreground" : "text-muted-foreground"
         )}
@@ -131,7 +132,7 @@ export function InspectorDisclosure({
         type="button"
         aria-expanded={open}
         onClick={() => onOpenChange(!open)}
-        className="flex h-7 items-center gap-1 rounded-lg px-1.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground/75 transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        className="flex h-7 items-center gap-1 rounded-lg px-1.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         <ChevronRight
           className={cn(

@@ -20,6 +20,7 @@ export function useEditorPlaybackState() {
     videoExportProgress,
     exportTimelineVideo,
     stopVideoExportRecording,
+    cancelVideoExport,
   } = useVideoExport({
     canvasRef: canvas3DRef,
     duration,
@@ -79,6 +80,8 @@ export function useEditorPlaybackState() {
     isVideoExporting,
     videoExportProgress,
     exportTimelineVideo,
+    stopVideoExportRecording,
+    cancelVideoExport,
     stopPlayback,
     togglePlayback,
     resetPlayback,

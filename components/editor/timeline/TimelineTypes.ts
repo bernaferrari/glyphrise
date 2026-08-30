@@ -4,6 +4,7 @@ import type {
   TimelinePropertyRow,
   TimelineTrack,
 } from "../TimelineModel"
+import type { MotionRecipe } from "../MotionRecipes"
 
 export interface ShapeOption {
   id: string
@@ -40,6 +41,7 @@ export type TimelineTrackProps = {
   onClearTrackKeyframes?: (trackId: string) => void
   onClearPropertyRow?: (rowId: string) => void
   onTogglePropertyKeyframe?: (rowId: string, keyframeId?: string | null) => void
+  onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void
   onMovePropertyKeyframe?: (
     rowId: string,
@@ -84,10 +86,17 @@ export type TimelineShapePickerProps = {
   wipeDirections: WipeDirectionOption[]
 }
 
+export type TimelineSimpleMotionProps = {
+  motionRecipes?: MotionRecipe[]
+  activeRecipeId?: string | null
+  onApplyMotionRecipe?: (recipe: MotionRecipe) => void
+}
+
 export type TimelineProps = TimelinePlaybackProps &
   TimelineTrackProps &
   TimelineShapeProps &
-  TimelineShapePickerProps
+  TimelineShapePickerProps &
+  TimelineSimpleMotionProps
 
 export type SelectedTimelineKeyframe =
   | { type: "track"; trackId: string; kfId: string }

@@ -79,7 +79,7 @@ export const useFillEditor = ({
     )
     setFillGradientType(recipe.fillGradientType ?? "linear")
     setFillStops(
-      recipe.id === "google-metal"
+      recipe.id === "spectrum-chrome"
         ? googleMeshFillStops()
         : makeFillStops(
             recipe.colorA,

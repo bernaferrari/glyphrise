@@ -180,7 +180,7 @@ export function useTransformGizmoInteractions({
     const baseScale = finiteNumber(liveRenderPropsRef.current.objectScale, 1)
     const axisScales = liveRenderPropsRef.current.objectScaleAxes
     const startScale = axis ? finiteNumber(axisScales[axis], 1) : baseScale
-    const cursor = axis ? axisDragCursor(axis) : "grab"
+    const cursor = axis ? axisDragCursor(axis) : "move"
     startTransformDrag(event, cursor, { kind: "scale", axis }, (ev) => {
       const projectedDelta = axis
         ? projectedAxisPointerDelta({

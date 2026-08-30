@@ -17,6 +17,8 @@ interface TimelineHeaderProps {
   currentTime: number
   duration: number
   durationEditor: string | null
+  durationInvalid: boolean
+  durationNotice: string | null
   snapEnabled: boolean
   loop: boolean
   onDurationEditorChange: (value: string | null) => void
@@ -31,6 +33,8 @@ export function TimelineHeader({
   currentTime,
   duration,
   durationEditor,
+  durationInvalid,
+  durationNotice,
   snapEnabled,
   loop,
   onDurationEditorChange,
@@ -48,12 +52,21 @@ export function TimelineHeader({
       <Popover
         open={durationEditor !== null}
         onOpenChange={(open) => {
-          if (open) onOpenDurationEditor()
-          else onCommitDurationEditor()
+          if (open) {
+            onOpenDurationEditor()
+            return
+          }
+          if (durationInvalid) {
+            // Garbage text: revert and let the controlled popover close.
+            onDurationEditorChange(null)
+            return
+          }
+          onCommitDurationEditor()
         }}
       >
         <PopoverTrigger
-          title="Timeline duration"
+          title="Edit duration"
+          aria-label="Edit duration"
           className="flex min-w-0 flex-1 items-center rounded px-1 text-left transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
         >
           <span className="text-foreground">{currentTime.toFixed(2)}</span>
@@ -74,7 +87,9 @@ export function TimelineHeader({
               0.5-30s
             </span>
           </div>
-          <div className="flex h-9 items-center rounded-lg border border-border bg-muted/55 focus-within:border-ring/50">
+          <div
+            className={`flex h-9 items-center rounded-lg border bg-muted/55 focus-within:border-ring/50 ${durationInvalid ? "border-destructive" : "border-border"}`}
+          >
             <input
               autoFocus
               aria-label="Timeline duration in seconds"
@@ -97,6 +112,13 @@ export function TimelineHeader({
             />
             <span className="pr-2 text-[11px] text-muted-foreground">s</span>
           </div>
+          {durationInvalid ? (
+            <p className="mt-1 text-[10px] text-destructive">
+              Enter a time in seconds, or press Esc to cancel
+            </p>
+          ) : durationNotice ? (
+            <p className="mt-1 text-[10px] text-amber-600">{durationNotice}</p>
+          ) : null}
           <div className="mt-2 grid grid-cols-3 gap-1">
             {[3, 5, 10].map((value) => (
               <button
@@ -181,6 +203,17 @@ export function TimelineHeader({
                 label="Diamonds"
                 description="Keyframes at an exact time"
               />
+              <div className="col-span-3 text-muted-foreground max-[720px]:hidden">
+                Double-click a track row (or press the ◆ button) to add a
+                keyframe at the playhead.
+              </div>
+              <div className="col-span-3 text-muted-foreground max-[720px]:hidden">
+                Right-click a lane for &quot;Go to time&quot;.
+              </div>
+              <div className="col-span-3 hidden text-muted-foreground max-[720px]:block">
+                Tap the ruler to move the playhead, then press the ◆ button to
+                add a keyframe.
+              </div>
             </div>
           </PopoverContent>
         </Popover>

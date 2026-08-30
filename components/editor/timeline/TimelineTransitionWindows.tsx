@@ -2,15 +2,15 @@
 
 import React from "react"
 import type { EasingType, ShapeStop } from "../TimelineModel"
-import type { MorphWindow } from "./TimelineLayoutModel"
+import type { TransitionWindow } from "./TimelineLayoutModel"
 import type { WipeDirectionOption } from "./TimelineTypes"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
-import { TimelineMorphWindow } from "./TimelineMorphWindow"
+import { TimelineTransitionWindow } from "./TimelineTransitionWindow"
 import type { TransitionEdge } from "./TimelineTransitionModel"
 
-type TimelineMorphWindowsProps = {
+type TimelineTransitionWindowsProps = {
   duration: number
-  morphWindows: MorphWindow[]
+  transitionWindows: TransitionWindow[]
   openClipEditor: string | null
   wipeDirections: WipeDirectionOption[]
   onOpenClipEditorChange: (shapeId: string | null) => void
@@ -19,7 +19,7 @@ type TimelineMorphWindowsProps = {
     patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
-  onMorphEdgeDrag: (
+  onTransitionEdgeDrag: (
     event: React.PointerEvent<HTMLElement>,
     shapeId: string,
     edge: TransitionEdge,
@@ -43,24 +43,24 @@ type TimelineMorphWindowsProps = {
   ) => number
 }
 
-export function TimelineMorphWindows({
+export function TimelineTransitionWindows({
   duration,
-  morphWindows,
+  transitionWindows,
   openClipEditor,
   wipeDirections,
   onOpenClipEditorChange,
   onShapeBlendChange,
   onShapeEasingChange,
-  onMorphEdgeDrag,
+  onTransitionEdgeDrag,
   onOpenContextMenu,
   createGoToMenuItem,
   shapeLabel,
   timeFromClientX,
-}: TimelineMorphWindowsProps) {
+}: TimelineTransitionWindowsProps) {
   return (
     <>
-      {morphWindows.map((window) => (
-        <TimelineMorphWindow
+      {transitionWindows.map((window) => (
+        <TimelineTransitionWindow
           key={`transition-${window.stop.id}`}
           duration={duration}
           window={window}
@@ -69,7 +69,7 @@ export function TimelineMorphWindows({
           onOpenClipEditorChange={onOpenClipEditorChange}
           onShapeBlendChange={onShapeBlendChange}
           onShapeEasingChange={onShapeEasingChange}
-          onMorphEdgeDrag={onMorphEdgeDrag}
+          onTransitionEdgeDrag={onTransitionEdgeDrag}
           onOpenContextMenu={onOpenContextMenu}
           createGoToMenuItem={createGoToMenuItem}
           shapeLabel={shapeLabel}

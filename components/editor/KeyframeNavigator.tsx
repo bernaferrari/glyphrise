@@ -4,7 +4,7 @@ import { TimeKeyframe, clampNumber } from "./EditorModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 
 const keyframeNavButtonClass =
-  "flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground/55 transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+  "flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
 
 const getAdjacentKeyframeTimes = (
   keyframes: TimeKeyframe[],

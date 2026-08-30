@@ -17,6 +17,25 @@ export const shouldScheduleSvgRenderFrame = ({
   animationFrameId: number | null
 }) => !disposed && !documentHidden && animationFrameId === null
 
+export const shouldContinueSvgRenderLoop = ({
+  isPlaying,
+  isExporting,
+  isDragging,
+  isInertiaActive,
+  zoomDelta,
+}: {
+  isPlaying: boolean
+  isExporting: boolean
+  isDragging: boolean
+  isInertiaActive: boolean
+  zoomDelta: number
+}) =>
+  isPlaying ||
+  isExporting ||
+  isDragging ||
+  isInertiaActive ||
+  Math.abs(zoomDelta) > 0.0005
+
 export const advanceInertiaVelocity = (
   velocity: RotationVelocity
 ): {

@@ -12,7 +12,9 @@ import { exportFilamentGltf } from "./SvgExport"
 import { animateSvgViewReset } from "./SvgViewReset"
 import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { SvgCanvasProps, SvgCanvasRef } from "./SvgTypes"
+import type { ExportRenderOptions } from "./SvgTypes"
 import type { CanvasRecorderOptions } from "./useCanvasRecorder"
+import type { ExportRenderSnapshot } from "./useSvgCanvasSceneRefs"
 
 type CanvasRecorder = {
   startRecording: (
@@ -29,6 +31,10 @@ type SvgCanvasImperativeHandleOptions = {
   props: SvgCanvasProps
   canvasRef: RefObject<HTMLCanvasElement | null>
   rendererRef: MutableRefObject<THREE.WebGLRenderer | null>
+  cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
+  exportRenderOptionsRef: MutableRefObject<ExportRenderOptions | null>
+  exportRenderSnapshotRef: MutableRefObject<ExportRenderSnapshot | null>
+  requestRenderRef: MutableRefObject<() => void>
   pivotGroupRef: MutableRefObject<THREE.Group | null>
   iconAGroupRef: MutableRefObject<THREE.Group | null>
   iconBGroupRef: MutableRefObject<THREE.Group | null>
@@ -49,6 +55,10 @@ export function useSvgCanvasImperativeHandle({
   props,
   canvasRef,
   rendererRef,
+  cameraRef,
+  exportRenderOptionsRef,
+  exportRenderSnapshotRef,
+  requestRenderRef,
   pivotGroupRef,
   iconAGroupRef,
   iconBGroupRef,
@@ -63,6 +73,57 @@ export function useSvgCanvasImperativeHandle({
   animationStartRef,
   onViewRotationSet,
 }: SvgCanvasImperativeHandleOptions) {
+  const prepareExportRender = (options: ExportRenderOptions) => {
+    const renderer = rendererRef.current
+    const camera = cameraRef.current
+    if (!renderer || !camera) {
+      throw new Error("The 3D preview is not ready.")
+    }
+    if (exportRenderSnapshotRef.current) {
+      throw new Error("Another render export is already running.")
+    }
+
+    const width = Math.max(64, Math.round(options.width))
+    const height = Math.max(64, Math.round(options.height))
+    exportRenderSnapshotRef.current = {
+      size: renderer.getSize(new THREE.Vector2()),
+      pixelRatio: renderer.getPixelRatio(),
+      cameraAspect: camera.aspect,
+      clearColor: renderer.getClearColor(new THREE.Color()).clone(),
+      clearAlpha: renderer.getClearAlpha(),
+    }
+    exportRenderOptionsRef.current = {
+      width,
+      height,
+      backgroundColor: options.backgroundColor,
+    }
+    renderer.setPixelRatio(1)
+    renderer.setSize(width, height, false)
+    renderer.setClearColor(
+      options.backgroundColor ?? "#000000",
+      options.backgroundColor ? 1 : 0
+    )
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+    requestRenderRef.current()
+  }
+
+  const restorePreviewRender = () => {
+    const renderer = rendererRef.current
+    const camera = cameraRef.current
+    const snapshot = exportRenderSnapshotRef.current
+    exportRenderOptionsRef.current = null
+    exportRenderSnapshotRef.current = null
+    if (!renderer || !camera || !snapshot) return
+
+    renderer.setPixelRatio(snapshot.pixelRatio)
+    renderer.setSize(snapshot.size.x, snapshot.size.y, false)
+    renderer.setClearColor(snapshot.clearColor, snapshot.clearAlpha)
+    camera.aspect = snapshot.cameraAspect
+    camera.updateProjectionMatrix()
+    requestRenderRef.current()
+  }
+
   useImperativeHandle(ref, () => ({
     exportGltf() {
       if (!pivotGroupRef.current) {
@@ -77,6 +138,31 @@ export function useSvgCanvasImperativeHandle({
         applyModelScale: applySvgModelScale,
       })
     },
+
+    async exportPng(options: ExportRenderOptions) {
+      prepareExportRender(options)
+      try {
+        await new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+        )
+        const canvas = canvasRef.current
+        if (!canvas) throw new Error("The 3D preview canvas is not ready.")
+        return await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            (blob) =>
+              blob
+                ? resolve(blob)
+                : reject(new Error("The browser could not create the PNG.")),
+            "image/png"
+          )
+        })
+      } finally {
+        restorePreviewRender()
+      }
+    },
+
+    prepareExportRender,
+    restorePreviewRender,
 
     startRecording(options?: CanvasRecorderOptions) {
       if (!rendererRef.current || !canvasRef.current) {

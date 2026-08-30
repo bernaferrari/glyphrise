@@ -1,16 +1,21 @@
-"use client"
-
 import { useCallback, useEffect, useMemo, useState } from "react"
 import type { Dispatch, SetStateAction } from "react"
 import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
 import type { QuickStartGuideProps } from "./QuickStartGuide"
 
-const QUICK_START_STORAGE_KEY = "vectorforge:quick-start:v1"
-const QUICK_START_EXPORT_KEY = "vectorforge:quick-start:exported:v1"
+const QUICK_START_STORAGE_KEY = "glyphrise:quick-start:v1"
+
+export type QuickStartGuideController = {
+  openGuide: () => void
+  dismissedRecently: boolean
+  markExportComplete: () => void
+  quickStartProps: QuickStartGuideProps
+}
 
 export function useQuickStartGuideController({
   selectedShapeId,
   setOpenShapePicker,
+  fallbackShapeId,
   isPlaying,
   togglePlayback,
   applyRecipe,
@@ -21,6 +26,7 @@ export function useQuickStartGuideController({
 }: {
   selectedShapeId: string | null
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
+  fallbackShapeId: string | null
   isPlaying: boolean
   togglePlayback: () => void
   applyRecipe: (recipe: MotionRecipe) => void
@@ -28,25 +34,22 @@ export function useQuickStartGuideController({
   hasStyle: boolean
   hasMotion: boolean
   onExport: () => void
-}): {
-  openGuide: () => void
-  quickStartProps: QuickStartGuideProps
-} {
+}): QuickStartGuideController {
   const [open, setOpen] = useState(false)
-  const [exportVisited, setExportVisited] = useState(false)
+  const [exportCompleted, setExportCompleted] = useState(false)
+  const [dismissedRecently, setDismissedRecently] = useState(false)
 
   useEffect(() => {
     setOpen(
       window.localStorage.getItem(QUICK_START_STORAGE_KEY) !== "dismissed"
-    )
-    setExportVisited(
-      window.localStorage.getItem(QUICK_START_EXPORT_KEY) === "visited"
     )
   }, [])
 
   const dismiss = useCallback(() => {
     window.localStorage.setItem(QUICK_START_STORAGE_KEY, "dismissed")
     setOpen(false)
+    // Session-local: lets the layout offer a subtle reopen affordance.
+    setDismissedRecently(true)
   }, [])
 
   const templates = useMemo(
@@ -65,23 +68,28 @@ export function useQuickStartGuideController({
         hasCustomizedIcon ? "icon" : null,
         hasStyle ? "style" : null,
         hasMotion ? "motion" : null,
-        exportVisited ? "export" : null,
+        exportCompleted ? "export" : null,
       ].filter((value): value is string => value !== null),
-    [exportVisited, hasCustomizedIcon, hasMotion, hasStyle]
+    [exportCompleted, hasCustomizedIcon, hasMotion, hasStyle]
   )
-
   return {
-    openGuide: () => setOpen(true),
+    openGuide: () => {
+      setOpen(true)
+      setDismissedRecently(false)
+    },
+    dismissedRecently,
+    markExportComplete: () => setExportCompleted(true),
     quickStartProps: {
       open,
       completedStepIds,
       onChooseIcon: () => {
-        if (!selectedShapeId) return
-        setOpen(false)
-        setOpenShapePicker(selectedShapeId)
+        // Timeline property-row selection can clear the shape selection;
+        // fall back to the first shape so the picker still opens.
+        const shapeId = selectedShapeId ?? fallbackShapeId
+        if (!shapeId) return
+        setOpenShapePicker(shapeId)
       },
       onStyle: () => {
-        setOpen(false)
         requestAnimationFrame(() => {
           document
             .getElementById("inspector-style")
@@ -89,18 +97,17 @@ export function useQuickStartGuideController({
         })
       },
       onMotion: () => {
-        setOpen(false)
         requestAnimationFrame(() => {
           document.getElementById("timeline-add-property")?.focus()
         })
       },
       onPlayExample: () => {
-        setOpen(false)
+        // Keep the guide open during preview so the final step stays visible.
         if (!isPlaying) togglePlayback()
       },
       onExport: () => {
-        window.localStorage.setItem(QUICK_START_EXPORT_KEY, "visited")
-        setExportVisited(true)
+        // Opening the surface is not enough; the step completes only on a
+        // real export action (see markExportComplete).
         onExport()
       },
       templates,

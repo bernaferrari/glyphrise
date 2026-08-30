@@ -93,14 +93,11 @@ const createMemoryStorage = (): Storage => {
 afterEach(() => vi.unstubAllGlobals())
 
 describe("EditorDocumentModel", () => {
-  it("accepts and normalizes a complete version-one project", () => {
+  it("rejects project files from unsupported schema versions", () => {
     const snapshot = validSnapshot()
 
     expect(isPersistedEditorSnapshot(snapshot)).toBe(true)
-    expect(
-      parseEditorDocumentSnapshot({ version: 1, snapshot })?.shapes[0]
-        .transitionType
-    ).toBe("fade")
+    expect(parseEditorDocumentSnapshot({ version: 1, snapshot })).toBeNull()
   })
 
   it("preserves named version-two project metadata", () => {
@@ -224,14 +221,18 @@ describe("EditorDocumentModel", () => {
     expect(normalizeProjectName("a".repeat(100))).toHaveLength(80)
   })
 
-  it("normalizes legacy clips that omitted a transition type", () => {
+  it("requires every clip to use the current transition schema", () => {
     const snapshot = validSnapshot()
     delete (snapshot.shapes[0] as Partial<(typeof snapshot.shapes)[number]>)
       .transitionType
 
+    const project = createProjectMetadata("Current schema")
     expect(
-      parseEditorDocumentSnapshot(snapshot)?.shapes[0].transitionType
-    ).toBe("fade")
+      parseEditorDocumentSnapshot({
+        ...createEditorDocumentFile(validSnapshot(), project),
+        snapshot,
+      })
+    ).toBeNull()
   })
 
   it("rejects unsupported file versions and incomplete snapshots", () => {
@@ -246,26 +247,42 @@ describe("EditorDocumentModel", () => {
   it("rejects unsafe SVG content nested in a project", () => {
     const snapshot = validSnapshot()
     snapshot.shapes[0].svgContent = `<svg onload="alert(1)"><path d="M0 0h1v1z"/></svg>`
+    const documentFile = createEditorDocumentFile(
+      validSnapshot(),
+      createProjectMetadata()
+    )
 
-    expect(parseEditorDocumentSnapshot(snapshot)).toBeNull()
+    expect(
+      parseEditorDocumentSnapshot({ ...documentFile, snapshot })
+    ).toBeNull()
   })
 
   it("rejects non-finite values and oversized collections", () => {
+    const documentFile = createEditorDocumentFile(
+      validSnapshot(),
+      createProjectMetadata()
+    )
     expect(
-      parseEditorDocumentSnapshot({ ...validSnapshot(), duration: Infinity })
+      parseEditorDocumentSnapshot({
+        ...documentFile,
+        snapshot: { ...validSnapshot(), duration: Infinity },
+      })
     ).toBeNull()
     expect(
       parseEditorDocumentSnapshot({
-        ...validSnapshot(),
-        tracks: Array.from({ length: 33 }, (_, index) => ({
-          id: `track-${index}`,
-          name: "Track",
-          color: "#fff",
-          min: 0,
-          max: 1,
-          defaultValue: 0,
-          keyframes: [],
-        })),
+        ...documentFile,
+        snapshot: {
+          ...validSnapshot(),
+          tracks: Array.from({ length: 33 }, (_, index) => ({
+            id: `track-${index}`,
+            name: "Track",
+            color: "#fff",
+            min: 0,
+            max: 1,
+            defaultValue: 0,
+            keyframes: [],
+          })),
+        },
       })
     ).toBeNull()
   })

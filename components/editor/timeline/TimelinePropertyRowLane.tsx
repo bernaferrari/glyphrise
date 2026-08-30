@@ -22,6 +22,7 @@ export type TimelinePropertyRowLaneProps = {
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
   onActivePropertyRowChange?: (rowId: string) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void
+  onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onMovePropertyKeyframe?: (
     rowId: string,
     keyframeId: string,
@@ -59,6 +60,7 @@ export function TimelinePropertyRowLane({
   onActivePropertyRowChange,
   onRemovePropertyKeyframe,
   onMovePropertyKeyframe,
+  onAddPropertyKeyframeAtTime,
   onSetPropertyEasing,
   onScrubStart,
   onTimeChange,
@@ -89,9 +91,15 @@ export function TimelinePropertyRowLane({
           bypass: event.altKey,
         })
         onOpenContextMenu(event, row.name, [
-          createGoToMenuItem(event, time, () =>
-            onActivePropertyRowChange?.(row.id)
-          ),
+          ...(onAddPropertyKeyframeAtTime
+            ? [
+                {
+                  label: "Add keyframe",
+                  shortcut: `${time.toFixed(2)}s`,
+                  onSelect: () => onAddPropertyKeyframeAtTime(row.id, time),
+                },
+              ]
+            : []),
           {
             label: "Select property",
             onSelect: () => onActivePropertyRowChange?.(row.id),
@@ -146,8 +154,10 @@ export function TimelinePropertyRowLane({
           <button
             type="button"
             key={keyframe.id}
+            aria-label={`Select ${row.name} keyframe${keyframe.label ? `, ${keyframe.label}` : ""} at ${keyframe.time.toFixed(2)} seconds`}
+            aria-pressed={selected}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className="absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="touch-hit-area absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
             style={{
               left: xForFrac(keyframe.time / duration),
               zIndex: TIMELINE_LAYER.propertyKeyframe,
@@ -204,6 +214,26 @@ export function TimelinePropertyRowLane({
               onSelectKeyframe(nextSelection)
               onActivePropertyRowChange?.(row.id)
               onTimeChange(keyframe.time)
+            }}
+            onKeyDown={(event) => {
+              if (
+                !onMovePropertyKeyframe ||
+                (event.key !== "ArrowLeft" && event.key !== "ArrowRight")
+              ) {
+                return
+              }
+              event.preventDefault()
+              event.stopPropagation()
+              const frameStep = (event.shiftKey ? 10 : 1) / 60
+              const direction = event.key === "ArrowLeft" ? -1 : 1
+              const nextTime = Math.max(
+                0,
+                Math.min(duration, keyframe.time + direction * frameStep)
+              )
+              onSelectKeyframe(nextSelection)
+              onActivePropertyRowChange?.(row.id)
+              onMovePropertyKeyframe(row.id, keyframe.id, nextTime)
+              onTimeChange(nextTime)
             }}
             onContextMenu={(event) => {
               event.stopPropagation()

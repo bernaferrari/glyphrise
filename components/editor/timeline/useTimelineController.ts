@@ -31,6 +31,7 @@ export function useTimelineController({
   onClearTrackKeyframes,
   onClearPropertyRow,
   onTogglePropertyKeyframe,
+  onAddPropertyKeyframeAtTime,
   onRemovePropertyKeyframe,
   onMovePropertyKeyframe,
   onSetPropertyEasing,
@@ -76,6 +77,8 @@ export function useTimelineController({
     openDurationEditor,
     applyDuration,
     adjustTimelineZoom,
+    durationInvalid,
+    durationNotice,
   } = useTimelineZoomAndDuration({
     duration,
     onDurationChange,
@@ -103,10 +106,10 @@ export function useTimelineController({
     visibleTracks,
     hiddenTracks,
     frameSnapActive,
-    morphWindows,
+    transitionWindows,
     clipBounds,
-    breakpointTimes,
-    baseBreakpointTimes,
+    keyMomentTimes,
+    baseKeyMomentTimes,
     shapeLabel,
   } = useTimelineDerivedState({
     duration,
@@ -135,8 +138,8 @@ export function useTimelineController({
       timelineZoom,
       snapEnabled,
       frameSnapActive,
-      baseBreakpointTimes,
-      getBreakpointTimes: breakpointTimes,
+      baseKeyMomentTimes,
+      getKeyMomentTimes: keyMomentTimes,
       laneRef,
       timelineScrollRef,
       onTimeChange,
@@ -147,6 +150,7 @@ export function useTimelineController({
   const {
     timeEditor,
     setTimeEditor,
+    timeClampNotice,
     keyframeDraggedRef,
     selectTrack,
     toggleKeyframeAtPlayhead,
@@ -165,7 +169,7 @@ export function useTimelineController({
     frameSnapActive,
     laneRef,
     setSelectedKeyframe,
-    breakpointTimes,
+    keyMomentTimes,
     snapTime,
     onTracksChange,
     onTimeChange,
@@ -194,7 +198,7 @@ export function useTimelineController({
     onRemovePropertyKeyframe,
   })
 
-  const { shapeDraggedRef, handleShapeDrag, handleMorphEdgeDrag } =
+  const { shapeDraggedRef, handleShapeDrag, handleTransitionEdgeDrag } =
     useTimelineShapeDrag({
       duration,
       shapes,
@@ -244,8 +248,10 @@ export function useTimelineController({
     )
     if (!newRowId) return
 
-    const rowIndex = 1 + visibleRowIds.indexOf(newRowId)
-    const targetScrollTop = Math.max(0, rowIndex * 36 - 12)
+    const rowIndex = visibleRowIds.indexOf(newRowId)
+    // Content label (24) + icon row (36) + Animation label (24), then
+    // position the revealed property row with 12px of context above it.
+    const targetScrollTop = Math.max(0, 72 + rowIndex * 36)
     const scroller = timelineScrollRef.current
     if (scroller) {
       const maxScrollTop = Math.max(
@@ -290,6 +296,8 @@ export function useTimelineController({
       currentTime,
       duration,
       durationEditor,
+      durationInvalid,
+      durationNotice,
       isPreviewLoading,
       leftRailBodyRef,
       loop,
@@ -321,6 +329,7 @@ export function useTimelineController({
     },
     lanesSurfaceProps: {
       viewport: {
+        currentTime: visibleCurrentTime,
         duration,
         timelineZoom,
         playheadX,
@@ -341,7 +350,7 @@ export function useTimelineController({
         openShapePicker,
         openClipEditor,
         wipeDirections,
-        morphWindows,
+        transitionWindows,
         clipBounds,
         shapePicker,
         shapeDraggedRef,
@@ -352,7 +361,7 @@ export function useTimelineController({
         onOpenClipEditorChange: setOpenClipEditor,
         onShapeBlendChange,
         onShapeEasingChange,
-        onMorphEdgeDrag: handleMorphEdgeDrag,
+        onTransitionEdgeDrag: handleTransitionEdgeDrag,
         onSelectShape,
         onOpenShapePicker,
         onShapeIconChange,
@@ -369,6 +378,7 @@ export function useTimelineController({
         onRemovePropertyKeyframe,
         onMovePropertyKeyframe,
         onSetPropertyEasing,
+        onAddPropertyKeyframeAtTime,
         onSelectKeyframe: setSelectedKeyframe,
         onScrubStart,
         onTimeChange,
@@ -381,6 +391,7 @@ export function useTimelineController({
         selectedKeyframe,
         timeEditor,
         keyframeDraggedRef,
+        keyframeTimeClampNotice: timeClampNotice,
         onSelectTrack: selectTrack,
         onSelectKeyframe: setSelectedKeyframe,
         onTimeEditorChange: setTimeEditor,

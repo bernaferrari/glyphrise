@@ -1,8 +1,5 @@
 import type { CSSProperties } from "react"
-import {
-  appendVectorForgeSlash,
-  normalizeSvgToIconViewBox,
-} from "../3d/SvgText"
+import { appendGlyphriseSlash, normalizeSvgToIconViewBox } from "../3d/SvgText"
 import { MATERIAL_WIPE_READY_PAIRS } from "./MaterialWipePairs"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
 
@@ -105,7 +102,7 @@ export async function fetchMaterialSymbolIcon(
     if (!baseResponse.ok)
       throw new Error(`Material Symbol "${baseName}" was not found.`)
     const svgContent = validateAndSanitizeSvg(
-      appendVectorForgeSlash((await baseResponse.text()).trim())
+      appendGlyphriseSlash((await baseResponse.text()).trim())
     )
     const icon: PresetIcon = {
       id: `material-symbol-${style}-${symbolName}-slash`,

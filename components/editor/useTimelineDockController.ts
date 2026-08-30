@@ -9,8 +9,8 @@ import {
   quantizeTimeToFrame,
 } from "./EditorModel"
 import {
-  createTimelineBreakpoints,
-  getAdjacentTimelineBreakpoints,
+  createTimelineKeyMoments,
+  getAdjacentTimelineKeyMoments,
 } from "./TimelineNavigationModel"
 import { clearTrackKeyframes } from "./TimelineDockKeyframeModel"
 import {
@@ -100,9 +100,9 @@ export function useTimelineDockController({
   activeMoveOffset: LightPosition
   markCustom: () => void
 }) {
-  const timelineBreakpoints = useMemo(
+  const timelineKeyMoments = useMemo(
     () =>
-      createTimelineBreakpoints({
+      createTimelineKeyMoments({
         duration,
         shapes: sortedShapes,
         fillKeyframes,
@@ -144,12 +144,10 @@ export function useTimelineDockController({
     ]
   )
 
-  const { previousBreakpoint, nextBreakpoint } = getAdjacentTimelineBreakpoints(
-    {
-      breakpoints: timelineBreakpoints,
-      currentTime,
-    }
-  )
+  const { previousKeyMoment, nextKeyMoment } = getAdjacentTimelineKeyMoments({
+    keyMoments: timelineKeyMoments,
+    currentTime,
+  })
 
   const propertyKeyframeSetters = useMemo<TimelinePropertyKeyframeSetters>(
     () => ({
@@ -220,14 +218,14 @@ export function useTimelineDockController({
     markCustom()
   }
 
-  const addTimelinePropertyKeyframe = (rowId: string) => {
-    const playheadTime = quantizeTimeToFrame(
-      clampNumber(currentTime, 0, duration)
+  const addTimelinePropertyKeyframe = (rowId: string, time?: number) => {
+    const keyframeTime = quantizeTimeToFrame(
+      clampNumber(time ?? currentTime, 0, duration)
     )
     markCustom()
     addPropertyRowKeyframe(
       rowId,
-      playheadTime,
+      keyframeTime,
       {
         duration,
         selectedShapeFillStops,
@@ -295,17 +293,17 @@ export function useTimelineDockController({
 
   return {
     timelinePropertyRows,
-    previousBreakpoint,
-    nextBreakpoint,
+    previousKeyMoment,
+    nextKeyMoment,
     atTimelineStart: currentTime <= KEYFRAME_TIME_EPSILON,
     atTimelineEnd: currentTime >= duration - KEYFRAME_TIME_EPSILON,
     playbackProgress:
       duration > 0 ? clampNumber(currentTime / duration, 0, 1) : 0,
-    goToPreviousBreakpoint: () => {
-      if (previousBreakpoint !== undefined) goToTime(previousBreakpoint)
+    goToPreviousKeyMoment: () => {
+      if (previousKeyMoment !== undefined) goToTime(previousKeyMoment)
     },
-    goToNextBreakpoint: () => {
-      if (nextBreakpoint !== undefined) goToTime(nextBreakpoint)
+    goToNextKeyMoment: () => {
+      if (nextKeyMoment !== undefined) goToTime(nextKeyMoment)
     },
     goToEnd: () => goToTime(duration),
     handleDurationChange,
@@ -317,6 +315,7 @@ export function useTimelineDockController({
     clearTimelinePropertyRow,
     toggleTimelinePropertyKeyframe,
     removeTimelinePropertyKeyframe,
+    addTimelinePropertyKeyframeAtTime: addTimelinePropertyKeyframe,
     moveTimelinePropertyKeyframe,
     setTimelinePropertyEasing,
     setShapeBlend,

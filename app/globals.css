@@ -147,7 +147,14 @@
   }
   html {
     @apply font-sans;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
   }
+}
+
+::selection {
+  background: color-mix(in oklch, var(--primary) 24%, transparent);
+  color: var(--foreground);
 }
 
 .material-symbols-outlined,
@@ -245,11 +252,27 @@
 }
 
 @media (pointer: coarse) {
+  .touch-hit-area::after {
+    position: absolute;
+    inset: -10px;
+    content: "";
+  }
+}
+
+@media (pointer: coarse) {
   button,
   [role="button"],
   input[type="range"] {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* The timeline is a precision surface with component-managed targets. A
+     blanket 44px box makes its fixed rows overlap on touch laptops. */
+  .timeline-density button,
+  .timeline-density [role="button"] {
+    min-width: 0;
+    min-height: 0;
   }
 
   input:not([type="range"]),
@@ -263,29 +286,35 @@
    CUSTOM SHADCN-STYLE PREMIUM COMPONENT STYLING
    ========================================================================= */
 
-/* Custom premium scrollbar for sidebar panels */
-::-webkit-scrollbar {
+/* Scoped scrollbars for compact editor panes; keep the page scrollbar native. */
+.editor-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
-::-webkit-scrollbar-track {
+.editor-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-::-webkit-scrollbar-thumb {
+.editor-scrollbar::-webkit-scrollbar-thumb {
   background: color-mix(in oklch, var(--muted-foreground) 38%, transparent);
   border-radius: 9999px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.editor-scrollbar::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklch, var(--muted-foreground) 62%, transparent);
 }
 
-* {
+.editor-scrollbar {
   scrollbar-color: color-mix(in oklch, var(--muted-foreground) 42%, transparent)
     transparent;
   scrollbar-width: thin;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .favorite-action {
+    opacity: 1;
+  }
 }
 
 /* Glassmorphism panel styling */

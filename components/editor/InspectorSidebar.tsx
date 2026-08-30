@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { ChevronLeft, ChevronRight, Shapes } from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, Shapes } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { LayerSwitcher } from "./LayerSwitcher"
 import {
@@ -46,6 +46,7 @@ function ShapeNavRow({
   return (
     <div className="flex min-h-11 items-center justify-between gap-2 pr-1 pl-2">
       <div className="flex min-w-0 items-center gap-2">
+        <span className="sr-only">Icon</span>
         <span
           className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/50 bg-background text-foreground shadow-sm [&_svg]:size-4 [&_svg_*]:fill-current"
           style={{ color: shapeNavigation.color }}
@@ -60,6 +61,16 @@ function ShapeNavRow({
         </span>
       </div>
       <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          aria-label="Add icon"
+          title="Add icon at playhead"
+          onClick={shapeNavigation.onAddIcon}
+          className="flex h-7 items-center gap-1.5 rounded-md bg-foreground/[0.055] px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        >
+          <Plus className="size-3.5" />
+          Add icon
+        </button>
         <button
           type="button"
           aria-label={`Change icon for ${shapeNavigation.label}`}
@@ -77,11 +88,11 @@ function ShapeNavRow({
               aria-label="Previous icon clip"
               title="Previous icon clip"
               onClick={shapeNavigation.onPrevious}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             >
               <ChevronLeft className="size-3.5" />
             </button>
-            <span className="min-w-[46px] text-center font-mono text-[11px] text-muted-foreground/70 tabular-nums">
+            <span className="min-w-[46px] text-center font-mono text-[11px] text-muted-foreground tabular-nums">
               Clip {shapeNavigation.index + 1}/{shapeNavigation.total}
             </span>
             <button
@@ -89,7 +100,7 @@ function ShapeNavRow({
               aria-label="Next icon clip"
               title="Next icon clip"
               onClick={shapeNavigation.onNext}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground/70 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
             >
               <ChevronRight className="size-3.5" />
             </button>
@@ -117,6 +128,15 @@ function InspectorContextHeader({
   return (
     <div className="mb-3 flex shrink-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-muted/25 shadow-sm">
       {showShapeNav ? <ShapeNavRow shapeNavigation={shapeNavigation} /> : null}
+      {showShapeNav ? (
+        <div className="flex items-center gap-2 px-3 pb-2 text-[11px] text-muted-foreground">
+          <span className="font-medium text-foreground">Icon</span>
+          <span aria-hidden="true">·</span>
+          <span>{shapeNavigation.pathCount} SVG paths</span>
+          <span aria-hidden="true">·</span>
+          <span>{shapeNavigation.sourceLabel}</span>
+        </div>
+      ) : null}
       {showShapeNav && showLayers ? (
         <div className="h-px bg-border/40" />
       ) : null}
@@ -172,16 +192,18 @@ export function InspectorSidebar({
   }
 
   return (
-    <div
+    <aside
+      id="glyphrise-properties-pane"
+      aria-label="Properties inspector"
       ref={scrollRef}
       onScroll={updateActiveSection}
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`flex shrink-0 flex-col overflow-y-auto bg-background max-[719px]:absolute max-[719px]:inset-0 max-[719px]:z-20 max-[719px]:w-full max-[719px]:border-l-0 max-[719px]:shadow-none ${
+      className={`editor-scrollbar flex shrink-0 flex-col overflow-y-auto bg-background max-[720px]:absolute max-[720px]:inset-0 max-[720px]:z-20 max-[720px]:w-full max-[720px]:border-l-0 max-[720px]:shadow-none ${
         zenMode
           ? "pointer-events-none w-0 border-l-0 p-0 opacity-0"
           : `w-[clamp(280px,28vw,328px)] border-l border-border/40 px-3 py-3 ${
-              compactOpen ? "max-[719px]:flex" : "max-[719px]:hidden"
+              compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"
             }`
       }`}
     >
@@ -228,6 +250,6 @@ export function InspectorSidebar({
           <LightInspectorSection {...lightProps} />
         </div>
       </div>
-    </div>
+    </aside>
   )
 }

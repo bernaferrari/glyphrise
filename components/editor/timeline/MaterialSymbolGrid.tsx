@@ -116,7 +116,7 @@ export function MaterialSymbolGrid({
       ref={gridRef}
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       className={cn(
-        "mb-3 grid max-h-[250px] grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
+        "editor-scrollbar mb-3 grid max-h-[250px] grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
         className
       )}
     >
@@ -159,7 +159,7 @@ export function MaterialSymbolGrid({
                 event.stopPropagation()
                 onToggleMaterialSymbolFavorite(symbolName)
               }}
-              className={`absolute top-1 right-1 grid size-5 place-items-center rounded-md border text-[11px] opacity-0 transition-[background-color,border-color,color,opacity] group-hover/symbol:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
+              className={`favorite-action absolute top-1 right-1 grid size-5 place-items-center rounded-md border text-[11px] opacity-0 transition-[background-color,border-color,color,opacity] group-hover/symbol:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
                 favorites.has(symbolName)
                   ? "border-primary/40 bg-primary/15 text-primary opacity-100"
                   : "border-border bg-background/90 text-muted-foreground hover:text-foreground"

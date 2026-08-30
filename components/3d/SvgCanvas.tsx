@@ -63,7 +63,12 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       transformGizmoGroupRef,
       transformGizmoHitObjectsRef,
       rotationDragOverlayRef,
+      selectionRaycasterRef,
+      selectionPointerRef,
       resetViewFrameRef,
+      exportRenderOptionsRef,
+      exportRenderSnapshotRef,
+      requestRenderRef,
     } = useSvgCanvasSceneRefs(props.zoom)
     const pathOverridesASignature = useMemo(
       () => pathRebuildSignature(props.pathOverridesA),
@@ -171,6 +176,10 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       props,
       canvasRef,
       rendererRef,
+      cameraRef,
+      exportRenderOptionsRef,
+      exportRenderSnapshotRef,
+      requestRenderRef,
       pivotGroupRef,
       iconAGroupRef,
       iconBGroupRef,
@@ -212,6 +221,8 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       transformGizmoGroupRef,
       transformGizmoHitObjectsRef,
       rotationDragOverlayRef,
+      selectionRaycasterRef,
+      selectionPointerRef,
       resetViewFrameRef,
       isDraggingRef,
       isInertiaActiveRef,
@@ -230,6 +241,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       setTransformGizmoHighlight,
       applyViewRotationDelta,
       cancelViewNudge,
+      requestRenderRef,
     })
 
     // Effect: Updates Lights
@@ -315,18 +327,27 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       clipPlaneBRef,
       centerMarkerRef,
       transformGizmoGroupRef,
+      exportRenderOptionsRef,
+      requestRenderRef,
+      isDraggingRef,
       updateTransformGizmo,
     })
+
+    // React/property changes invalidate one frame. The loop keeps itself alive
+    // only during playback, gestures, inertia, zoom settling, and export.
+    useEffect(() => {
+      requestRenderRef.current()
+    }, [modelReady, props, requestRenderRef])
 
     return (
       <div
         ref={containerRef}
         role="region"
         aria-label="3D preview"
-        aria-describedby="vectorforge-preview-instructions"
-        className="relative h-full min-h-0 w-full overflow-hidden rounded-xl border border-border/10 bg-[oklch(0.13_0.012_280)] shadow-2xl"
+        aria-describedby="glyphrise-preview-instructions"
+        className="relative h-full min-h-0 w-full overflow-hidden bg-[oklch(0.13_0.012_280)]"
       >
-        <span id="vectorforge-preview-instructions" className="sr-only">
+        <span id="glyphrise-preview-instructions" className="sr-only">
           Drag the preview to rotate the icon. Use the view controls to reset or
           adjust the camera.
         </span>

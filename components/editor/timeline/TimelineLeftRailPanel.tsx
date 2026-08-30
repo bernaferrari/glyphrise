@@ -16,6 +16,8 @@ type TimelineLeftRailPanelProps = {
   currentTime: number
   duration: number
   durationEditor: string | null
+  durationInvalid: boolean
+  durationNotice: string | null
   isPreviewLoading: boolean
   leftRailBodyRef: React.RefObject<HTMLDivElement | null>
   loop: boolean
@@ -61,6 +63,8 @@ type TimelineLeftRailPanelProps = {
 export function TimelineLeftRailPanel({
   activeTrackId,
   currentTime,
+  durationInvalid,
+  durationNotice,
   duration,
   durationEditor,
   isPreviewLoading,
@@ -101,6 +105,8 @@ export function TimelineLeftRailPanel({
         currentTime={currentTime}
         duration={duration}
         durationEditor={durationEditor}
+        durationInvalid={durationInvalid}
+        durationNotice={durationNotice}
         snapEnabled={snapEnabled}
         loop={loop}
         onDurationEditorChange={onDurationEditorChange}

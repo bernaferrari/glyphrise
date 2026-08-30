@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import type { EasingType, ShapeStop } from "../TimelineModel"
 import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
-import type { MorphWindow } from "./TimelineLayoutModel"
+import type { TransitionWindow } from "./TimelineLayoutModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import {
   type TransitionEdge,
@@ -20,9 +20,9 @@ import {
 import { TimelineTransitionEditor } from "./TimelineTransitionEditor"
 import type { WipeDirectionOption } from "./TimelineTypes"
 
-export type TimelineMorphWindowProps = {
+export type TimelineTransitionWindowProps = {
   duration: number
-  window: MorphWindow
+  window: TransitionWindow
   openClipEditor: string | null
   wipeDirections: WipeDirectionOption[]
   onOpenClipEditorChange: (shapeId: string | null) => void
@@ -31,7 +31,7 @@ export type TimelineMorphWindowProps = {
     patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
-  onMorphEdgeDrag: (
+  onTransitionEdgeDrag: (
     event: React.PointerEvent<HTMLElement>,
     shapeId: string,
     edge: TransitionEdge,
@@ -55,7 +55,7 @@ export type TimelineMorphWindowProps = {
   ) => number
 }
 
-export function TimelineMorphWindow({
+export function TimelineTransitionWindow({
   duration,
   window,
   openClipEditor,
@@ -63,12 +63,12 @@ export function TimelineMorphWindow({
   onOpenClipEditorChange,
   onShapeBlendChange,
   onShapeEasingChange,
-  onMorphEdgeDrag,
+  onTransitionEdgeDrag,
   onOpenContextMenu,
   createGoToMenuItem,
   shapeLabel,
   timeFromClientX,
-}: TimelineMorphWindowProps) {
+}: TimelineTransitionWindowProps) {
   const { stop, next, startTime, endTime } = window
   const mode = transitionModeForShape(stop)
   const isCut = mode === "cut"
@@ -152,7 +152,7 @@ export function TimelineMorphWindow({
           align="center"
           side="top"
           sideOffset={10}
-          className="w-60 border-border bg-popover p-3 text-foreground shadow-2xl"
+          className="w-60 border-border bg-popover p-3 text-foreground shadow-lg"
           onPointerDown={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
@@ -176,7 +176,7 @@ export function TimelineMorphWindow({
         }
         left={xForFrac(startTime / duration)}
         onPointerDown={(event) =>
-          onMorphEdgeDrag(event, stop.id, "start", stop.time, next.time)
+          onTransitionEdgeDrag(event, stop.id, "start", stop.time, next.time)
         }
       />
       {!isCut && (
@@ -184,7 +184,7 @@ export function TimelineMorphWindow({
           title="Drag to set when the transition ends"
           left={xForFrac(endTime / duration)}
           onPointerDown={(event) =>
-            onMorphEdgeDrag(event, stop.id, "end", stop.time, next.time)
+            onTransitionEdgeDrag(event, stop.id, "end", stop.time, next.time)
           }
         />
       )}

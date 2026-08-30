@@ -69,7 +69,7 @@ function LayerSwitcherComponent({
   const visible = selectedLayerOverride?.visible ?? true
   const showLayerControls = !isAllLayers && selectedLayerOverride
 
-  if (layers.length < 2) return null
+  if (layers.length === 0) return null
 
   return (
     <div className="flex flex-col">
@@ -79,7 +79,7 @@ function LayerSwitcherComponent({
           SVG paths
         </span>
 
-        <div className="ml-auto flex max-h-20 flex-wrap items-center justify-end gap-1 overflow-y-auto">
+        <div className="editor-scrollbar ml-auto flex max-h-20 flex-wrap items-center justify-end gap-1 overflow-y-auto">
           <LayerChip
             active={isAllLayers}
             label="All paths"

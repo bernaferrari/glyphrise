@@ -12,7 +12,7 @@ import {
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 import type { FillKeyframe } from "./TimelineModel"
 
-export const createShapeTransitionBreakpoints = (shapes: ShapeStop[]) =>
+export const createShapeTransitionKeyMoments = (shapes: ShapeStop[]) =>
   shapes.slice(0, -1).flatMap((from, index) => {
     const to = shapes[index + 1]
     const gap = Math.max(0, to.time - from.time)
@@ -22,7 +22,7 @@ export const createShapeTransitionBreakpoints = (shapes: ShapeStop[]) =>
     return [start, end]
   })
 
-export const createTimelineBreakpoints = ({
+export const createTimelineKeyMoments = ({
   duration,
   shapes,
   fillKeyframes,
@@ -46,7 +46,7 @@ export const createTimelineBreakpoints = ({
       [
         0,
         duration,
-        ...createShapeTransitionBreakpoints(shapes),
+        ...createShapeTransitionKeyMoments(shapes),
         ...fillKeyframes.map((keyframe) => keyframe.time),
         ...tracks.flatMap((track) =>
           track.keyframes.map((keyframe) => keyframe.time)
@@ -59,22 +59,22 @@ export const createTimelineBreakpoints = ({
     )
   ).sort((a, b) => a - b)
 
-export const getAdjacentTimelineBreakpoints = ({
-  breakpoints,
+export const getAdjacentTimelineKeyMoments = ({
+  keyMoments,
   currentTime,
 }: {
-  breakpoints: number[]
+  keyMoments: number[]
   currentTime: number
 }) => {
-  let previousBreakpoint: number | undefined
-  let nextBreakpoint: number | undefined
-  for (const time of breakpoints) {
+  let previousKeyMoment: number | undefined
+  let nextKeyMoment: number | undefined
+  for (const time of keyMoments) {
     if (time < currentTime - KEYFRAME_TIME_EPSILON) {
-      previousBreakpoint = time
+      previousKeyMoment = time
     } else if (time > currentTime + KEYFRAME_TIME_EPSILON) {
-      nextBreakpoint = time
+      nextKeyMoment = time
       break
     }
   }
-  return { previousBreakpoint, nextBreakpoint }
+  return { previousKeyMoment, nextKeyMoment }
 }

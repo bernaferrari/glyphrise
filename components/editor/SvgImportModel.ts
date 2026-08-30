@@ -58,7 +58,7 @@ const ALLOWED_SVG_ATTRIBUTES = new Set([
   "points",
   "id",
   "data-name",
-  "data-vectorforge-slash",
+  "data-glyphrise-slash",
 ])
 
 const TAG_PATTERN = /<\s*(\/?)\s*([A-Za-z][\w:-]*)([^>]*)>/g
@@ -116,6 +116,25 @@ export const validateAndSanitizeSvg = (source: string) => {
   if (svgByteLength(svg) > MAX_SVG_BYTES) {
     throw new SvgImportError("This SVG is larger than the 1 MB import limit.")
   }
+  const unsupportedConstruct = svg.match(
+    /<\s*(text|image|use|defs|mask|clipPath|filter|symbol)\b/i
+  )
+  if (unsupportedConstruct) {
+    const tag = unsupportedConstruct[1].toLowerCase()
+    const remediation =
+      tag === "text"
+        ? "Outline text to paths and export again."
+        : tag === "use" || tag === "defs"
+          ? "Expand <use>/<defs> instances and export again."
+          : tag === "mask" || tag === "clippath"
+            ? "Flatten masks/clipping paths and export again."
+            : tag === "image"
+              ? "Remove embedded images and export vector paths only."
+              : "Export a clean SVG containing paths and basic shapes."
+    throw new SvgImportError(
+      `The <${unsupportedConstruct[1]}> element is not supported. ${remediation}`
+    )
+  }
   if (ACTIVE_CONTENT_PATTERN.test(svg) || /<\s*[!?]|&[A-Za-z#]/.test(svg)) {
     throw new SvgImportError(
       "This SVG contains scripts, links, embedded content, or XML features that are not supported."
@@ -142,7 +161,19 @@ export const validateAndSanitizeSvg = (source: string) => {
     const isSelfClosing = /\/\s*$/.test(attributeSource)
 
     if (!ALLOWED_SVG_TAGS.has(tag)) {
-      throw new SvgImportError(`The <${match[2]}> element is not supported.`)
+      const remediation =
+        tag === "text"
+          ? " Outline text to paths and export again."
+          : tag === "use" || tag === "defs"
+            ? " Expand <use>/<defs> instances and export again."
+            : tag === "mask" || tag === "clippath"
+              ? " Flatten masks/clipping paths and export again."
+              : tag === "image"
+                ? " Remove embedded images and export vector paths only."
+                : " Export a clean SVG containing paths and basic shapes."
+      throw new SvgImportError(
+        `The <${match[2]}> element is not supported.${remediation}`
+      )
     }
 
     if (isClosing) {
@@ -221,4 +252,4 @@ export const isSvgFile = (file: File | undefined | null) =>
 export const svgImportMessage = (error: unknown) =>
   error instanceof Error
     ? error.message
-    : "VectorForge could not read this SVG. Try exporting it as a plain SVG with paths."
+    : "Glyphrise could not read this SVG. Try exporting it as a plain SVG with paths."

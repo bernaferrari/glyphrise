@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef } from "react"
 import {
   Check,
   Download,
@@ -79,6 +80,12 @@ export function QuickStartGuide({
   onTemplateChoose,
   onDismiss,
 }: QuickStartGuideProps) {
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    if (open) titleRef.current?.focus()
+  }, [open])
+
   if (!open) return null
   const completed = new Set(completedStepIds)
   const completedCount = GUIDE_STEPS.filter((step) =>
@@ -96,19 +103,26 @@ export function QuickStartGuide({
 
   return (
     <aside
-      aria-label="Quick start"
-      className="absolute top-3 left-3 z-30 flex max-h-[calc(100%-24px)] w-[min(336px,calc(100%-24px))] flex-col overflow-hidden rounded-2xl border border-white/12 bg-black/84 p-3.5 text-white shadow-2xl backdrop-blur-xl"
+      aria-labelledby="quick-start-title"
+      className="quick-start-guide absolute top-3 left-3 z-30 flex max-h-[calc(100%-24px)] w-[min(336px,calc(100%-24px))] max-w-[calc(100%-24px)] flex-col overflow-hidden rounded-2xl border border-white/12 bg-black/84 p-3.5 text-white shadow-xl backdrop-blur-xl sm:max-w-[336px]"
     >
       <div className="flex items-start gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white">
           <Sparkles className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold tracking-tight text-balance">
+          <h2
+            ref={titleRef}
+            id="quick-start-title"
+            tabIndex={-1}
+            className="text-sm font-semibold tracking-tight text-balance outline-none"
+          >
             Build your first 3D motion
           </h2>
           <p className="mt-0.5 text-[12px] leading-5 text-white/65">
-            {completedCount}/4 project ingredients ready
+            {completedCount === 0
+              ? "4 steps to your first 3D motion"
+              : `${completedCount}/4 project ingredients ready`}
           </p>
         </div>
         <button
@@ -116,7 +130,7 @@ export function QuickStartGuide({
           aria-label="Dismiss quick start"
           title="Dismiss quick start"
           onClick={onDismiss}
-          className="-mt-1 -mr-1 grid size-9 shrink-0 place-items-center rounded-lg text-white/60 transition-colors duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 active:scale-[0.98]"
+          className="-mt-1 -mr-1 grid size-10 shrink-0 place-items-center rounded-lg text-white/70 transition-[background-color,color,transform] duration-150 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 active:scale-[0.96]"
         >
           <X className="size-4" />
         </button>
@@ -131,8 +145,10 @@ export function QuickStartGuide({
         className="mt-3 h-1 overflow-hidden rounded-full bg-white/10"
       >
         <div
-          className="h-full rounded-full bg-white transition-[width] duration-200 ease-out"
-          style={{ width: `${(completedCount / GUIDE_STEPS.length) * 100}%` }}
+          className="h-full w-full origin-left rounded-full bg-white transition-transform duration-200 ease-out"
+          style={{
+            transform: `scaleX(${completedCount / GUIDE_STEPS.length})`,
+          }}
         />
       </div>
 
@@ -150,7 +166,7 @@ export function QuickStartGuide({
                 title={step.title}
                 onClick={actions[step.id]}
                 className={cn(
-                  "flex min-h-12 w-full flex-col items-center justify-center gap-1 rounded-lg border px-1 text-[10px] font-medium transition-[background-color,border-color,color,transform] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 active:scale-[0.98]",
+                  "flex min-h-12 w-full flex-col items-center justify-center gap-1 rounded-lg border px-1 text-[11px] font-medium transition-[background-color,border-color,color,transform] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 active:scale-[0.96]",
                   isCurrent
                     ? "border-white/25 bg-white/14 text-white"
                     : "border-white/8 bg-white/[0.045] text-white/58 hover:bg-white/10 hover:text-white",
@@ -169,16 +185,16 @@ export function QuickStartGuide({
         })}
       </ol>
 
-      <div className="mt-3 min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-white/[0.055] p-3">
+      <div className="editor-scrollbar mt-3 min-h-0 overflow-y-auto rounded-xl border border-white/10 bg-white/[0.055] p-3">
         {currentStep ? (
           <>
-            <div className="text-[10px] font-semibold tracking-[0.12em] text-white/55 uppercase">
+            <div className="text-[11px] font-semibold tracking-[0.12em] text-white/65 uppercase">
               Next step
             </div>
             <h3 className="mt-1 text-[13px] font-semibold text-white">
               {currentStep.title}
             </h3>
-            <p className="mt-1 text-[11px] leading-4 text-white/58">
+            <p className="mt-1 text-xs leading-5 text-white/65">
               {currentStep.description}
             </p>
 
@@ -195,10 +211,10 @@ export function QuickStartGuide({
                       {template.emoji}
                     </span>
                     <span className="min-w-0">
-                      <span className="block truncate text-[11px] font-semibold text-white/90">
+                      <span className="block truncate text-xs font-semibold text-white/90">
                         {template.name}
                       </span>
-                      <span className="block truncate text-[10px] text-white/48">
+                      <span className="block truncate text-[11px] text-white/60">
                         {template.description}
                       </span>
                     </span>
@@ -207,7 +223,7 @@ export function QuickStartGuide({
                 <button
                   type="button"
                   onClick={onStyle}
-                  className="min-h-10 rounded-lg text-[11px] font-medium text-white/70 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/70"
+                  className="min-h-10 rounded-lg text-xs font-medium text-white/75 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/70"
                 >
                   Open style controls instead
                 </button>
@@ -217,7 +233,7 @@ export function QuickStartGuide({
                 type="button"
                 size="sm"
                 onClick={actions[currentStep.id]}
-                className="mt-3 h-9 w-full rounded-lg bg-white text-[12px] font-semibold text-black hover:bg-white/90"
+                className="mt-3 h-10 w-full rounded-lg bg-white text-xs font-semibold text-black hover:bg-white/90"
               >
                 <currentStep.icon className="size-3.5" />
                 {currentStep.actionLabel}
@@ -230,7 +246,7 @@ export function QuickStartGuide({
             <h3 className="mt-2 text-[13px] font-semibold">
               Your first motion is ready
             </h3>
-            <p className="mt-1 text-[11px] leading-4 text-white/58">
+            <p className="mt-1 text-xs leading-5 text-white/65">
               Keep refining it, or dismiss this guide and use the full studio.
             </p>
           </div>
@@ -241,7 +257,7 @@ export function QuickStartGuide({
         <button
           type="button"
           onClick={onPlayExample}
-          className="mt-2 flex min-h-10 items-center justify-center gap-2 rounded-lg text-[11px] font-medium text-white/68 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/70"
+          className="mt-2 flex min-h-10 items-center justify-center gap-2 rounded-lg text-xs font-medium text-white/75 transition-colors hover:bg-white/8 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-white/70"
         >
           <Play className="size-3.5 fill-current" />
           Preview current motion

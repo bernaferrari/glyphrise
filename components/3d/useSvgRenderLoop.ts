@@ -19,12 +19,14 @@ import {
 import {
   ZOOM_DAMPING,
   advanceInertiaVelocity,
+  shouldContinueSvgRenderLoop,
   shouldScheduleSvgRenderFrame,
   type RotationVelocity,
 } from "./SvgRenderLoopModel"
 import { framedCameraDistance } from "./SvgSceneUtils"
 import { applySvgTransitionState } from "./SvgTransitionState"
 import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
+import type { ExportRenderOptions } from "./SvgTypes"
 
 type NullableRef<T> = MutableRefObject<T | null>
 
@@ -46,6 +48,9 @@ type UseSvgRenderLoopOptions = {
   clipPlaneBRef: NullableRef<THREE.Plane>
   centerMarkerRef: NullableRef<THREE.Group>
   transformGizmoGroupRef: NullableRef<THREE.Group>
+  exportRenderOptionsRef: MutableRefObject<ExportRenderOptions | null>
+  requestRenderRef: MutableRefObject<() => void>
+  isDraggingRef: MutableRefObject<boolean>
   updateTransformGizmo: (
     center: THREE.Vector3 | null,
     camera: THREE.PerspectiveCamera
@@ -70,6 +75,9 @@ export function useSvgRenderLoop({
   clipPlaneBRef,
   centerMarkerRef,
   transformGizmoGroupRef,
+  exportRenderOptionsRef,
+  requestRenderRef,
+  isDraggingRef,
   updateTransformGizmo,
 }: UseSvgRenderLoopOptions) {
   const applyViewRotationDeltaRef = useRef(applyViewRotationDelta)
@@ -115,6 +123,7 @@ export function useSvgRenderLoop({
       }
 
       const liveProps = liveRenderPropsRef.current
+      const exportRenderOptions = exportRenderOptionsRef.current
       const progress = liveProps.transitionProgress
 
       if (isInertiaActiveRef.current) {
@@ -160,7 +169,9 @@ export function useSvgRenderLoop({
       )
       updateLayerSelectionOutline({
         groups: [iconAGroupRef.current, iconBGroupRef.current],
-        selectedLayerId: liveProps.selectedLayerId,
+        selectedLayerId: exportRenderOptions
+          ? undefined
+          : liveProps.selectedLayerId,
       })
       const visibleCenter = shouldUpdateCenterTools
         ? getVisibleIconCenter([iconAGroupRef.current, iconBGroupRef.current])
@@ -182,10 +193,19 @@ export function useSvgRenderLoop({
         camera,
         iconA: iconAGroupRef.current,
         iconB: iconBGroupRef.current,
-        marker: centerMarkerRef.current,
-        transformGizmo: transformGizmoGroupRef.current,
+        marker: exportRenderOptions ? null : centerMarkerRef.current,
+        transformGizmo: exportRenderOptions
+          ? null
+          : transformGizmoGroupRef.current,
       })
-      scheduleFrame()
+      const shouldRenderContinuously = shouldContinueSvgRenderLoop({
+        isPlaying: liveProps.isPlaying,
+        isExporting: Boolean(exportRenderOptions),
+        isDragging: isDraggingRef.current,
+        isInertiaActive: isInertiaActiveRef.current,
+        zoomDelta: targetZoomRef.current - currentZoomRef.current,
+      })
+      if (shouldRenderContinuously) scheduleFrame()
     }
 
     const handleVisibilityChange = () => {
@@ -199,11 +219,13 @@ export function useSvgRenderLoop({
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
+    requestRenderRef.current = scheduleFrame
     scheduleFrame()
 
     return () => {
       disposed = true
       document.removeEventListener("visibilitychange", handleVisibilityChange)
+      requestRenderRef.current = () => undefined
       if (animFrameId !== null) cancelAnimationFrame(animFrameId)
       animFrameId = null
     }
@@ -224,5 +246,8 @@ export function useSvgRenderLoop({
     sceneRef,
     targetZoomRef,
     transformGizmoGroupRef,
+    exportRenderOptionsRef,
+    requestRenderRef,
+    isDraggingRef,
   ])
 }

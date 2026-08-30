@@ -53,6 +53,10 @@ interface AppTopBarProps {
 }
 
 function CompactWorkspaceMenu({
+  autoKeyEnabled,
+  themeMounted,
+  isLightTheme,
+  themeToggleLabel,
   onProjectNew,
   onProjectOpen,
   onProjectSave,
@@ -61,8 +65,14 @@ function CompactWorkspaceMenu({
   canUndo,
   canRedo,
   onGuideOpen,
+  onAutoKeyChange,
+  onThemeChange,
 }: Pick<
   AppTopBarProps,
+  | "autoKeyEnabled"
+  | "themeMounted"
+  | "isLightTheme"
+  | "themeToggleLabel"
   | "onProjectNew"
   | "onProjectOpen"
   | "onProjectSave"
@@ -71,6 +81,8 @@ function CompactWorkspaceMenu({
   | "canUndo"
   | "canRedo"
   | "onGuideOpen"
+  | "onAutoKeyChange"
+  | "onThemeChange"
 >) {
   const [open, setOpen] = useState(false)
   const action = (callback: () => void) => () => {
@@ -82,6 +94,7 @@ function CompactWorkspaceMenu({
     Icon: LucideIcon
     onClick: () => void
     disabled: boolean
+    pressed?: boolean
   }> = [
     {
       label: "Projects",
@@ -109,26 +122,45 @@ function CompactWorkspaceMenu({
       onClick: action(onGuideOpen),
       disabled: false,
     },
+    {
+      label: autoKeyEnabled ? "Turn auto-key off" : "Turn auto-key on",
+      Icon: CircleDot,
+      onClick: action(() => onAutoKeyChange(!autoKeyEnabled)),
+      disabled: false,
+      pressed: autoKeyEnabled,
+    },
+    {
+      label: themeToggleLabel,
+      Icon: isLightTheme ? Moon : Sun,
+      onClick: action(() => onThemeChange(isLightTheme ? "dark" : "light")),
+      disabled: !themeMounted,
+    },
   ]
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         aria-label="Workspace actions"
         title="Workspace actions"
-        className="grid size-9 place-items-center rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+        className="grid size-9 place-items-center rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
       >
         <MoreHorizontal className="size-4" />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-52 p-1.5 md:hidden">
-        {items.map(({ label, Icon, onClick, disabled }) => (
+        {items.map(({ label, Icon, onClick, disabled, pressed }) => (
           <button
             key={label}
             type="button"
             disabled={disabled}
+            aria-pressed={pressed}
             onClick={onClick}
-            className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:text-muted-foreground disabled:opacity-50"
+            className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:text-muted-foreground disabled:opacity-50 ${
+              pressed ? "bg-destructive/10 text-destructive" : "text-foreground"
+            }`}
           >
-            <Icon className="size-4 text-muted-foreground" />
+            <Icon
+              aria-hidden="true"
+              className={`size-4 ${pressed ? "text-destructive" : "text-muted-foreground"}`}
+            />
             {label}
           </button>
         ))}
@@ -167,7 +199,7 @@ function ProjectMenu({
     {
       label: "Import project file",
       accessibleLabel: "Import project file",
-      description: "Open a downloaded VectorForge backup",
+      description: "Open a downloaded Glyphrise backup",
       Icon: FolderOpen,
       onClick: action(onProjectOpen),
     },
@@ -267,14 +299,23 @@ export function AppTopBar({
   onGuideOpen,
   onExportOpen,
 }: AppTopBarProps) {
+  const projectStatusLabel =
+    projectStatus === "restoring"
+      ? "Restoring project"
+      : projectStatus === "saving"
+        ? "Saving locally…"
+        : projectStatus === "error"
+          ? "Autosave needs attention"
+          : "Saved locally"
+
   return (
-    <header className="relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 px-2 backdrop-blur-xl sm:px-3">
+    <header className="app-topbar relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
       <div className="flex min-w-0 items-center gap-3">
         <button
           type="button"
           aria-label={zenMode ? "Show panels" : "Hide panels"}
           onClick={() => onZenModeChange(!zenMode)}
-          className="size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           {zenMode ? (
             <PanelLeftOpen className="mx-auto size-4" />
@@ -286,7 +327,7 @@ export function AppTopBar({
           <div className="hidden min-w-0 lg:block">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold tracking-tight text-foreground">
-                VectorForge
+                Glyphrise
               </span>
               <span className="hidden text-[11px] tracking-[0.18em] text-muted-foreground uppercase sm:inline">
                 3D Motion Studio
@@ -307,12 +348,13 @@ export function AppTopBar({
         <span
           aria-live="polite"
           title={projectStatusMessage}
-          className={`flex min-w-7 items-center justify-center gap-1.5 rounded-md px-1.5 text-xs ${
+          className={`flex min-w-7 items-center justify-center gap-1.5 rounded-md px-1.5 text-xs tabular-nums lg:w-32 lg:justify-start ${
             projectStatus === "error"
               ? "text-destructive"
               : "text-muted-foreground"
           }`}
         >
+          <span className="sr-only">{projectStatusLabel}</span>
           {projectStatus === "restoring" || projectStatus === "saving" ? (
             <LoaderCircle
               aria-hidden="true"
@@ -323,14 +365,11 @@ export function AppTopBar({
           ) : (
             <Check aria-hidden="true" className="size-3.5" />
           )}
-          <span className="hidden max-w-28 truncate lg:inline">
-            {projectStatus === "restoring"
-              ? "Restoring…"
-              : projectStatus === "saving"
-                ? "Saving locally…"
-                : projectStatus === "error"
-                  ? "Autosave needs attention"
-                  : "Saved locally"}
+          <span
+            aria-hidden="true"
+            className="hidden max-w-28 truncate lg:inline"
+          >
+            {projectStatusLabel}
           </span>
         </span>
         <ProjectMenu
@@ -340,7 +379,7 @@ export function AppTopBar({
           projectStatus={projectStatus}
           projectStatusMessage={projectStatusMessage}
         />
-        <div className="hidden items-center rounded-lg border border-border bg-muted/35 p-0.5 sm:flex">
+        <div className="hidden items-center rounded-lg border border-border bg-muted/35 p-0.5 md:flex">
           <Button
             size="icon"
             variant="ghost"
@@ -375,10 +414,10 @@ export function AppTopBar({
               : "Auto-key is off: edits stay static unless a keyframe is selected"
           }
           onClick={() => onAutoKeyChange(!autoKeyEnabled)}
-          className={`h-9 gap-1.5 rounded-lg border px-2 text-xs font-medium ${
+          className={`hidden h-9 gap-1.5 rounded-lg border px-2 text-xs font-medium min-[480px]:inline-flex ${
             autoKeyEnabled
               ? "border-destructive/35 bg-destructive/12 text-destructive hover:bg-destructive/18 hover:text-destructive"
-              : "border-border bg-muted/50"
+              : "border-transparent bg-transparent hover:bg-muted"
           }`}
         >
           <CircleDot className="size-3.5" />
@@ -390,7 +429,7 @@ export function AppTopBar({
           aria-label="Open quick start"
           title="Quick start"
           onClick={onGuideOpen}
-          className="hidden size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
+          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
         >
           <CircleHelp className="size-3.5" />
         </Button>
@@ -403,7 +442,7 @@ export function AppTopBar({
             if (!themeMounted) return
             onThemeChange(isLightTheme ? "dark" : "light")
           }}
-          className="size-9 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground min-[480px]:inline-flex"
         >
           {isLightTheme ? (
             <Moon className="size-3.5" />
@@ -421,6 +460,10 @@ export function AppTopBar({
           <span className="hidden sm:inline">Export</span>
         </Button>
         <CompactWorkspaceMenu
+          autoKeyEnabled={autoKeyEnabled}
+          themeMounted={themeMounted}
+          isLightTheme={isLightTheme}
+          themeToggleLabel={themeToggleLabel}
           onProjectNew={onProjectNew}
           onProjectOpen={onProjectOpen}
           onProjectSave={onProjectSave}
@@ -429,6 +472,8 @@ export function AppTopBar({
           canUndo={canUndo}
           canRedo={canRedo}
           onGuideOpen={onGuideOpen}
+          onAutoKeyChange={onAutoKeyChange}
+          onThemeChange={onThemeChange}
         />
       </div>
       {projectStatus === "error" ? (

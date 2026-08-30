@@ -41,7 +41,7 @@ export function ViewOptionsPopover({
   onAnimatedSeekChange,
 }: ViewOptionsPopoverProps) {
   return (
-    <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+    <div className="absolute top-3 right-3 z-40 flex items-center gap-2">
       <Popover>
         <PopoverTrigger
           aria-label="View options"
@@ -119,12 +119,12 @@ export type PlaybackControlsProps = {
   playbackProgress: number
   atTimelineStart: boolean
   atTimelineEnd: boolean
-  hasPreviousBreakpoint: boolean
-  hasNextBreakpoint: boolean
+  hasPreviousKeyMoment: boolean
+  hasNextKeyMoment: boolean
   onReset: () => void
-  onPreviousBreakpoint: () => void
+  onPreviousKeyMoment: () => void
   onPlayToggle: () => void
-  onNextBreakpoint: () => void
+  onNextKeyMoment: () => void
   onGoToEnd: () => void
   onExitZenMode: () => void
 }
@@ -135,17 +135,17 @@ export function PlaybackControls({
   playbackProgress,
   atTimelineStart,
   atTimelineEnd,
-  hasPreviousBreakpoint,
-  hasNextBreakpoint,
+  hasPreviousKeyMoment,
+  hasNextKeyMoment,
   onReset,
-  onPreviousBreakpoint,
+  onPreviousKeyMoment,
   onPlayToggle,
-  onNextBreakpoint,
+  onNextKeyMoment,
   onGoToEnd,
   onExitZenMode,
 }: PlaybackControlsProps) {
   return (
-    <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-background/75 px-3 py-2 shadow-2xl backdrop-blur-xl transition-colors hover:border-border">
+    <div className="viewport-playback absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-background/75 px-3 py-2 shadow-lg backdrop-blur-xl transition-colors hover:border-border">
       <Button
         size="icon"
         variant="ghost"
@@ -160,10 +160,10 @@ export function PlaybackControls({
       <Button
         size="icon"
         variant="ghost"
-        onClick={onPreviousBreakpoint}
-        disabled={!hasPreviousBreakpoint}
-        aria-label="Previous breakpoint"
-        title="Previous breakpoint"
+        onClick={onPreviousKeyMoment}
+        disabled={!hasPreviousKeyMoment}
+        aria-label="Previous keyframe"
+        title="Previous keyframe"
         className="size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronLeft size={16} />
@@ -212,10 +212,10 @@ export function PlaybackControls({
       <Button
         size="icon"
         variant="ghost"
-        onClick={onNextBreakpoint}
-        disabled={!hasNextBreakpoint}
-        aria-label="Next breakpoint"
-        title="Next breakpoint"
+        onClick={onNextKeyMoment}
+        disabled={!hasNextKeyMoment}
+        aria-label="Next keyframe"
+        title="Next keyframe"
         className="size-8 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronRight size={16} />

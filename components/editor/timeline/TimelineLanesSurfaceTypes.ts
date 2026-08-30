@@ -1,5 +1,5 @@
 import type React from "react"
-import type { ShapeClipBounds, MorphWindow } from "./TimelineLayoutModel"
+import type { ShapeClipBounds, TransitionWindow } from "./TimelineLayoutModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import type {
   SelectedTimelineKeyframe,
@@ -26,6 +26,7 @@ export type TimelineTick = {
 }
 
 export type TimelineViewportProps = {
+  currentTime: number
   duration: number
   timelineZoom: number
   playheadX: string
@@ -47,7 +48,7 @@ export type TimelineShapeLaneProps = {
   openShapePicker: string | null
   openClipEditor: string | null
   wipeDirections: WipeDirectionOption[]
-  morphWindows: MorphWindow[]
+  transitionWindows: TransitionWindow[]
   clipBounds: ShapeClipBounds[]
   shapePicker: ReturnType<typeof useShapePickerCatalog>
   shapeDraggedRef: React.MutableRefObject<boolean>
@@ -61,7 +62,7 @@ export type TimelineShapeLaneProps = {
     patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
-  onMorphEdgeDrag: (
+  onTransitionEdgeDrag: (
     event: React.PointerEvent<HTMLElement>,
     shapeId: string,
     edge: "start" | "end",
@@ -83,6 +84,7 @@ export type TimelinePropertyLaneProps = {
   selectedKeyframe: SelectedTimelineKeyframe
   onActivePropertyRowChange?: (rowId: string) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void
+  onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onMovePropertyKeyframe?: (
     rowId: string,
     keyframeId: string,
@@ -106,6 +108,7 @@ export type TimelineTrackLaneProps = {
   activeTrackId?: string | null
   selectedKeyframe: SelectedTimelineKeyframe
   timeEditor: TrackTimeEditor | null
+  keyframeTimeClampNotice?: string | null
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void

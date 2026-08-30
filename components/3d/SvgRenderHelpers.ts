@@ -39,15 +39,37 @@ export const updateLayerSelectionOutline = ({
   selectedLayerId,
 }: {
   groups: Array<THREE.Group | null>
+  // ALL_LAYERS_ID ("all") means every path layer is the selection: outline
+  // each visible mesh, including welded cut bodies whose cutSourceLayerIds
+  // span multiple source layers.
   selectedLayerId: string | null | undefined
 }) => {
+  const isAllLayers = selectedLayerId === "all"
+  const activeSelection =
+    selectedLayerId && !isAllLayers ? selectedLayerId : null
   groups.forEach((group) => {
     if (!group || group.userData.selectedLayerId === selectedLayerId) return
     group.userData.selectedLayerId = selectedLayerId
     group.traverse((object) => {
       const mesh = object as THREE.Mesh
-      if (!mesh.isMesh || !mesh.userData.pathLayerId) return
-      if (selectedLayerId && mesh.userData.pathLayerId === selectedLayerId) {
+      if (!mesh.isMesh) return
+      if (isAllLayers) {
+        if (
+          mesh.userData.pathLayerId ||
+          Array.isArray(mesh.userData.cutSourceLayerIds)
+        ) {
+          ensureLayerOutline(mesh)
+        }
+        return
+      }
+      if (
+        activeSelection &&
+        (mesh.userData.pathLayerId === activeSelection ||
+          (Array.isArray(mesh.userData.cutSourceLayerIds) &&
+            (mesh.userData.cutSourceLayerIds as string[]).includes(
+              activeSelection
+            )))
+      ) {
         ensureLayerOutline(mesh)
       } else {
         removeLayerOutline(mesh)

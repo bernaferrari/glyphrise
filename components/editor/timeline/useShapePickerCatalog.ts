@@ -13,8 +13,8 @@ import {
 import { useMaterialSymbolCatalogLoader } from "./useMaterialSymbolCatalogLoader"
 import { useMaterialSymbolImportActions } from "./useMaterialSymbolImportActions"
 
-const RECENT_MATERIAL_SYMBOLS_KEY = "vectorforge.recent-material-symbols.v1"
-const FAVORITE_MATERIAL_SYMBOLS_KEY = "vectorforge.favorite-material-symbols.v1"
+const RECENT_MATERIAL_SYMBOLS_KEY = "glyphrise.recent-material-symbols.v1"
+const FAVORITE_MATERIAL_SYMBOLS_KEY = "glyphrise.favorite-material-symbols.v1"
 const MAX_RECENT_MATERIAL_SYMBOLS = 18
 const MAX_FAVORITE_MATERIAL_SYMBOLS = 48
 

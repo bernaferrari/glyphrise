@@ -646,7 +646,7 @@ export function useEditorSnapshotHistory({
         .then((text) => {
           const nextDocument = parseImportedEditorDocument(JSON.parse(text))
           if (!nextDocument) {
-            throw new Error("Invalid VectorForge project file.")
+            throw new Error("Invalid Glyphrise project file.")
           }
           activateProject(
             nextDocument.snapshot,

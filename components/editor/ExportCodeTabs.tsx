@@ -6,8 +6,8 @@ import { ExportCopyButton } from "./ExportCopyButton"
 
 type ExportReactCodeTabProps = {
   code: string
-  copied: boolean
-  onCopy: (text: string) => void
+  copied: Record<string, boolean>
+  onCopy: (key: string, text: string) => void
 }
 
 export function ExportReactCodeTab({
@@ -18,7 +18,10 @@ export function ExportReactCodeTab({
   return (
     <div className="relative min-w-0 p-4 outline-none">
       <div className="absolute top-6 right-6 z-10">
-        <ExportCopyButton copied={copied} onCopy={() => onCopy(code)} />
+        <ExportCopyButton
+          copied={Boolean(copied.r3f)}
+          onCopy={() => onCopy("r3f", code)}
+        />
       </div>
       <div className="mb-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 pr-24 text-xs leading-5 text-muted-foreground">
         <Info className="mt-0.5 size-4 shrink-0" />
@@ -36,8 +39,8 @@ export function ExportReactCodeTab({
 type ExportAndroidCodeTabProps = {
   gradleCode: string
   filamentCode: string
-  copied: boolean
-  onCopy: (text: string) => void
+  copied: Record<string, boolean>
+  onCopy: (key: string, text: string) => void
 }
 
 export function ExportAndroidCodeTab({
@@ -50,8 +53,11 @@ export function ExportAndroidCodeTab({
     <div className="relative min-w-0 p-4 outline-none">
       <div className="absolute top-6 right-6 z-10">
         <ExportCopyButton
-          copied={copied}
-          onCopy={() => onCopy(`${gradleCode}\n\n${filamentCode}`)}
+          label="Copy both files"
+          copied={Boolean(copied.androidCombined)}
+          onCopy={() =>
+            onCopy("androidCombined", `${gradleCode}\n\n${filamentCode}`)
+          }
         />
       </div>
       <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
@@ -60,12 +66,23 @@ export function ExportAndroidCodeTab({
         <span className="font-mono text-foreground">
           app/src/main/assets/exports/icon.glb
         </span>
-        .
+        . The Gradle dependencies are pinned to a specific Filament release;
+        bump them together with the{" "}
+        <span className="font-mono text-foreground">
+          com.google.android.filament
+        </span>{" "}
+        artifacts if your project uses a newer version.
       </div>
-      <div className="flex max-h-[52vh] min-w-0 flex-col gap-3 overflow-auto">
+      <div className="editor-scrollbar flex max-h-[52vh] min-w-0 flex-col gap-3 overflow-auto">
         <div className="min-w-0">
-          <div className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            Gradle
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <div className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              Gradle
+            </div>
+            <ExportCopyButton
+              copied={Boolean(copied.gradle)}
+              onCopy={() => onCopy("gradle", gradleCode)}
+            />
           </div>
           <ExportCodeBlock
             code={gradleCode}
@@ -74,8 +91,14 @@ export function ExportAndroidCodeTab({
           />
         </div>
         <div className="min-w-0">
-          <div className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-            Kotlin
+          <div className="mb-1.5 flex items-center justify-between gap-2">
+            <div className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              Kotlin
+            </div>
+            <ExportCopyButton
+              copied={Boolean(copied.filament)}
+              onCopy={() => onCopy("filament", filamentCode)}
+            />
           </div>
           <ExportCodeBlock
             code={filamentCode}

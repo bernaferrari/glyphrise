@@ -70,7 +70,10 @@ export function useRotationMotionControls({
           value: nextRotation,
           time,
           duration,
-          createIfMissing: autoKeyEnabled || keyframes.length > 0,
+          // Match scalar/property auto-key semantics: when auto-key is off,
+          // edits may update the exact keyframe under the playhead, but must
+          // never create a new one merely because the track is animated.
+          createIfMissing: autoKeyEnabled,
         })
       )
     },

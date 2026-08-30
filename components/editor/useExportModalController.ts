@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import confetti from "canvas-confetti"
 import {
   type ExportCodeTemplateParams,
@@ -9,6 +9,12 @@ import {
   generateR3fCode,
 } from "./ExportCodeTemplates"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
+import {
+  DEFAULT_EXPORT_SETTINGS,
+  availableVideoContainers,
+  type ExportSettings,
+} from "./ExportSettingsModel"
+import type { VideoContainer } from "../3d/SvgTypes"
 
 export type ExportTab = "options" | "r3f" | "android"
 
@@ -18,19 +24,48 @@ export const isExportTab = (value: string): value is ExportTab =>
 export function useExportModalController({
   scene,
   onExportGltf,
+  onExportPng,
   onExportVideo,
   isVideoExporting,
+  onCodeCopied,
 }: {
   scene: ExportSceneSnapshot
   onExportGltf: () => Promise<void>
-  onExportVideo: () => Promise<void>
+  onExportPng: (settings: ExportSettings) => Promise<void>
+  onExportVideo: (settings: ExportSettings) => Promise<void>
   isVideoExporting: boolean
+  onCodeCopied?: () => void
 }) {
   const [activeTab, setActiveTab] = useState<ExportTab>("options")
   const [isRecording, setIsRecording] = useState(false)
-  const [isCopied, setIsCopied] = useState(false)
+  const [isCopied, setIsCopied] = useState<Record<string, boolean>>({})
   const [isGltfExporting, setIsGltfExporting] = useState(false)
+  const [isPngExporting, setIsPngExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
+  const [justExported, setJustExported] = useState<Record<string, boolean>>({})
+  const [videoExportCanceled, setVideoExportCanceled] = useState(false)
+  const [settings, setSettings] = useState(DEFAULT_EXPORT_SETTINGS)
+  const [supportedVideoContainers, setSupportedVideoContainers] = useState<
+    VideoContainer[]
+  >(["webm"])
+
+  useEffect(() => {
+    if (typeof MediaRecorder === "undefined") {
+      setSupportedVideoContainers([])
+      return
+    }
+    const supported = availableVideoContainers((mimeType) =>
+      MediaRecorder.isTypeSupported(mimeType)
+    )
+    setSupportedVideoContainers([...supported])
+    if (supported.length > 0 && !supported.includes(settings.container)) {
+      setSettings((current) => ({ ...current, container: supported[0] }))
+    }
+  }, [settings.container])
+
+  const updateSettings = useCallback((patch: Partial<ExportSettings>) => {
+    setSettings((current) => ({ ...current, ...patch }))
+  }, [])
 
   const codeTemplateParams = useMemo<ExportCodeTemplateParams>(
     () => ({ ...scene }),
@@ -57,27 +92,45 @@ export function useExportModalController({
   }, [])
 
   const handleCopyCode = useCallback(
-    async (text: string) => {
+    async (key: string, text: string) => {
       try {
         setExportError(null)
         await navigator.clipboard.writeText(text)
-        setIsCopied(true)
+        setIsCopied((current) => ({ ...current, [key]: true }))
+        onCodeCopied?.()
         celebrate({
           particleCount: 80,
           spread: 60,
           origin: { y: 0.6 },
           colors: ["#7c5cff", "#ff5b9a", "#ffd700"],
         })
-        window.setTimeout(() => setIsCopied(false), 2000)
+        window.setTimeout(
+          () =>
+            setIsCopied((current) =>
+              current[key] ? { ...current, [key]: false } : current
+            ),
+          2000
+        )
       } catch {
-        setIsCopied(false)
+        setIsCopied((current) => ({ ...current, [key]: false }))
         setExportError(
           "Code was not copied. Allow clipboard access, or select the code and copy it manually."
         )
       }
     },
-    [celebrate]
+    [celebrate, onCodeCopied]
   )
+
+  const flashExported = useCallback((key: string) => {
+    setJustExported((current) => ({ ...current, [key]: true }))
+    window.setTimeout(
+      () =>
+        setJustExported((current) =>
+          current[key] ? { ...current, [key]: false } : current
+        ),
+      2000
+    )
+  }, [])
 
   const handleGltfExport = useCallback(async () => {
     if (isGltfExporting) return
@@ -85,6 +138,7 @@ export function useExportModalController({
       setExportError(null)
       setIsGltfExporting(true)
       await onExportGltf()
+      flashExported("gltf")
     } catch (error) {
       setExportError(
         error instanceof Error
@@ -94,21 +148,42 @@ export function useExportModalController({
     } finally {
       setIsGltfExporting(false)
     }
-  }, [isGltfExporting, onExportGltf])
+  }, [flashExported, isGltfExporting, onExportGltf])
+
+  const handlePngExport = useCallback(async () => {
+    if (isPngExporting) return
+    try {
+      setExportError(null)
+      setIsPngExporting(true)
+      await onExportPng(settings)
+      flashExported("png")
+    } catch (error) {
+      setExportError(
+        error instanceof Error
+          ? `PNG export failed: ${error.message}`
+          : "PNG export failed. Try a smaller output size."
+      )
+    } finally {
+      setIsPngExporting(false)
+    }
+  }, [flashExported, isPngExporting, onExportPng, settings])
 
   const handleVideoExport = useCallback(async () => {
     if (isRecording || isVideoExporting) return
     try {
       setExportError(null)
+      setVideoExportCanceled(false)
       setIsRecording(true)
-      await onExportVideo()
-      celebrate({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#4ee2a3", "#7c5cff", "#ffffff"],
-      })
+      await onExportVideo(settings)
+      flashExported("video")
     } catch (error) {
+      // User-initiated stops/cancels reject the promise on purpose; they are
+      // expected outcomes, not failures worth an error banner.
+      if (error instanceof Error && /cancel|stopped/i.test(error.message)) {
+        setVideoExportCanceled(true)
+        window.setTimeout(() => setVideoExportCanceled(false), 2000)
+        return
+      }
       setExportError(
         error instanceof Error
           ? `Video export failed: ${error.message}`
@@ -117,7 +192,7 @@ export function useExportModalController({
     } finally {
       setIsRecording(false)
     }
-  }, [celebrate, isRecording, isVideoExporting, onExportVideo])
+  }, [flashExported, isRecording, isVideoExporting, onExportVideo, settings])
 
   return {
     activeTab,
@@ -125,13 +200,20 @@ export function useExportModalController({
     androidGradleCode,
     handleCopyCode,
     handleGltfExport,
+    handlePngExport,
     handleTabChange,
     handleVideoExport,
     isCopied,
+    justExported,
+    videoExportCanceled,
     isGltfExporting,
+    isPngExporting,
     isRecording: isRecording || isVideoExporting,
     exportError,
     clearExportError: () => setExportError(null),
     r3fCode,
+    settings,
+    supportedVideoContainers,
+    updateSettings,
   }
 }

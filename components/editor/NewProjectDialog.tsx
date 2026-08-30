@@ -66,7 +66,7 @@ export function NewProjectDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[min(760px,calc(100dvh-32px))] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="editor-scrollbar max-h-[min(760px,calc(100dvh-32px))] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Projects</DialogTitle>
             <DialogDescription>
@@ -155,7 +155,7 @@ export function NewProjectDialog({
                       <span className="block text-xs leading-4 font-medium text-balance text-foreground">
                         {template.name}
                       </span>
-                      <span className="mt-0.5 block text-[10px] leading-4 text-muted-foreground sm:line-clamp-2">
+                      <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground sm:line-clamp-2">
                         {template.description}
                       </span>
                     </span>

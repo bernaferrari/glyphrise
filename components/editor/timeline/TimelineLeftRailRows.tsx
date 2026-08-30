@@ -51,9 +51,6 @@ export function TimelinePropertyRailRow({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={selectRow}
       onContextMenu={(event) =>
         menu.onOpenContextMenu(
           event,
@@ -68,25 +65,26 @@ export function TimelinePropertyRailRow({
           })
         )
       }
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          selectRow()
-        }
-      }}
-      className={`group flex h-9 items-center gap-2 border-b border-border px-3 transition-colors hover:bg-muted/40 ${
+      className={`group flex h-9 items-center border-b border-border transition-colors hover:bg-muted/40 ${
         isRevealed ? "bg-primary/10 ring-1 ring-primary/25 ring-inset" : ""
       }`}
     >
+      <button
+        type="button"
+        aria-label={`Select ${row.name} property`}
+        onClick={selectRow}
+        className="flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+      >
+        <span
+          className="size-2 shrink-0 rounded-full"
+          style={{ backgroundColor: row.color }}
+        />
+        <span className="flex-1 truncate text-[11px] font-medium text-muted-foreground">
+          {row.name}
+        </span>
+      </button>
       <span
-        className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: row.color }}
-      />
-      <span className="flex-1 truncate text-[11px] font-medium text-muted-foreground">
-        {row.name}
-      </span>
-      <span
-        className="flex h-5 shrink-0 items-center justify-center gap-1.5"
+        className="flex h-full shrink-0 items-center justify-center gap-1.5 pr-3"
         aria-label={`${row.keyframes.length} keyframes`}
       >
         {row.keyframes.length > 0 && onSetPropertyEasing && (
@@ -101,6 +99,7 @@ export function TimelinePropertyRailRow({
           <TimelineRailKeyframeButton
             color={row.color}
             isKeyedAtPlayhead={Boolean(keyframeAtPlayhead)}
+            hasKeyframes={row.keyframes.length > 0}
             isAnimated={false}
             addLabel={`Add ${row.name} keyframe`}
             removeLabel={`Remove ${row.name} keyframe`}
@@ -149,9 +148,6 @@ export function TimelineTrackRailRow({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={selectTrack}
       onContextMenu={(event) =>
         menu.onOpenContextMenu(
           event,
@@ -168,13 +164,7 @@ export function TimelineTrackRailRow({
           })
         )
       }
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          selectTrack()
-        }
-      }}
-      className={`group flex h-9 items-center gap-2 border-b border-border px-3 transition-colors focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset ${
+      className={`group flex h-9 items-center border-b border-border transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/25 ring-inset"
           : isActive
@@ -182,16 +172,24 @@ export function TimelineTrackRailRow({
             : "hover:bg-muted/40"
       }`}
     >
-      <span
-        className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: track.color }}
-      />
-      <span
-        className={`flex-1 truncate text-[11px] font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+      <button
+        type="button"
+        aria-label={`Select ${track.name} track`}
+        aria-pressed={isActive}
+        onClick={selectTrack}
+        className="flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
       >
-        {track.name}
-      </span>
-      <span className="flex h-5 shrink-0 items-center justify-center gap-1.5">
+        <span
+          className="size-2 shrink-0 rounded-full"
+          style={{ backgroundColor: track.color }}
+        />
+        <span
+          className={`flex-1 truncate text-[11px] font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+        >
+          {track.name}
+        </span>
+      </button>
+      <span className="flex h-full shrink-0 items-center justify-center gap-1.5 pr-3">
         {animated && (
           <EasingPicker
             value={track.keyframes[0]?.easing ?? "ease-in-out"}
@@ -203,6 +201,7 @@ export function TimelineTrackRailRow({
         <TimelineRailKeyframeButton
           color={track.color}
           isKeyedAtPlayhead={keyedAtPlayhead}
+          hasKeyframes={animated}
           isAnimated={animated}
           addLabel={`Add ${track.name} keyframe`}
           removeLabel={`Remove ${track.name} keyframe`}

@@ -7,7 +7,7 @@ const openProjects = async (page: Page) => {
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
-    const isolationKey = "vectorforge.e2e.storage-cleared"
+    const isolationKey = "glyphrise.e2e.storage-cleared"
     if (window.sessionStorage.getItem(isolationKey)) return
     window.localStorage.clear()
     window.sessionStorage.setItem(isolationKey, "true")
@@ -79,7 +79,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
 test("starts style templates with a clean undo baseline", async ({ page }) => {
   await openProjects(page)
   await page.getByLabel("New project name").fill("Styled project")
-  await page.getByRole("button", { name: "Google Metal" }).click()
+  await page.getByRole("button", { name: "Spectrum Chrome" }).click()
 
   await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
     "Styled project"
@@ -212,4 +212,24 @@ test("describes code exports as implementation starters", async ({ page }) => {
   await expect(
     page.getByText(/static Filament viewer, not the editor timeline/)
   ).toBeVisible()
+})
+
+test("offers production render controls and an honest fidelity matrix", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Export" }).click()
+
+  await expect(page.getByText("Render settings")).toBeVisible()
+  await expect(page.getByLabel("Width")).toHaveValue("1080")
+  await expect(page.getByLabel("Height")).toHaveValue("1080")
+  await page.getByLabel("Frame rate").selectOption("24")
+  await expect(page.getByText(/at 24 fps/)).toBeVisible()
+  await page.getByRole("button", { name: "Landscape" }).click()
+  await expect(page.getByLabel("Width")).toHaveValue("1920")
+  await expect(page.getByLabel("Height")).toHaveValue("1080")
+
+  await expect(page.getByText("Export fidelity")).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Full timeline" })).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Subset" })).toBeVisible()
+  await expect(page.getByRole("cell", { name: "Compatible PBR" })).toBeVisible()
 })

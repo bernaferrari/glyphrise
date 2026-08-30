@@ -6,6 +6,14 @@ export type Vector3Value = { x: number; y: number; z: number }
 
 export type SvgExportEasing = "linear" | "ease-in-out" | "spring" | "bounce"
 
+export type ExportRenderOptions = {
+  width: number
+  height: number
+  backgroundColor: string | null
+}
+
+export type VideoContainer = "webm" | "mp4"
+
 export type SvgExportScalarKeyframe = {
   id: string
   time: number
@@ -102,6 +110,8 @@ export interface SvgCanvasProps {
   showCenterPoint?: boolean
   showTransformGizmo?: boolean
   selectedLayerId?: string | null
+  /** Color role ("a" | "b") of the shape whose layers selection clicks resolve against. */
+  selectedIconColorRole?: "a" | "b"
   pathOverridesA?: PathOverride[]
   pathOverridesB?: PathOverride[]
   exportAnimation?: SvgExportAnimation
@@ -125,13 +135,20 @@ export interface SvgCanvasProps {
     value: number
   ) => void
   onModelReadyChange?: (ready: boolean) => void
+  onSelectLayer?: (layerId: string) => void
+  onDeselectLayers?: () => void
 }
 
 export interface SvgCanvasRef {
   exportGltf: () => Promise<void>
+  exportPng: (options: ExportRenderOptions) => Promise<Blob>
+  prepareExportRender: (options: ExportRenderOptions) => void
+  restorePreviewRender: () => void
   startRecording: (options?: {
     frameRate?: number
     manualFrames?: boolean
+    mimeType?: string
+    videoBitsPerSecond?: number
     onError?: (error: Error) => void
   }) => void
   requestRecordingFrame: () => void

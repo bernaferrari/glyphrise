@@ -14,8 +14,8 @@ type UseViewportStagePropsArgs = UseSvgCanvasPropsArgs & {
   playbackProgress: number
   atTimelineStart: boolean
   atTimelineEnd: boolean
-  hasPreviousBreakpoint: boolean
-  hasNextBreakpoint: boolean
+  hasPreviousKeyMoment: boolean
+  hasNextKeyMoment: boolean
   zenMode: boolean
   onResetView: () => void
   onViewInertiaChange: (enabled: boolean) => void
@@ -24,9 +24,9 @@ type UseViewportStagePropsArgs = UseSvgCanvasPropsArgs & {
   animatedSeekEnabled: boolean
   onAnimatedSeekChange: (enabled: boolean) => void
   onResetPlayback: () => void
-  onPreviousBreakpoint: () => void
+  onPreviousKeyMoment: () => void
   onPlayToggle: () => void
-  onNextBreakpoint: () => void
+  onNextKeyMoment: () => void
   onGoToEnd: () => void
   onExitZenMode: () => void
 }
@@ -35,8 +35,8 @@ export function useViewportStageProps({
   playbackProgress,
   atTimelineStart,
   atTimelineEnd,
-  hasPreviousBreakpoint,
-  hasNextBreakpoint,
+  hasPreviousKeyMoment,
+  hasNextKeyMoment,
   zenMode,
   onResetView,
   onViewInertiaChange,
@@ -45,9 +45,9 @@ export function useViewportStageProps({
   animatedSeekEnabled,
   onAnimatedSeekChange,
   onResetPlayback,
-  onPreviousBreakpoint,
+  onPreviousKeyMoment,
   onPlayToggle,
-  onNextBreakpoint,
+  onNextKeyMoment,
   onGoToEnd,
   onExitZenMode,
   ...canvasArgs
@@ -86,12 +86,12 @@ export function useViewportStageProps({
       playbackProgress,
       atTimelineStart,
       atTimelineEnd,
-      hasPreviousBreakpoint,
-      hasNextBreakpoint,
+      hasPreviousKeyMoment,
+      hasNextKeyMoment,
       onReset: onResetPlayback,
-      onPreviousBreakpoint,
+      onPreviousKeyMoment,
       onPlayToggle,
-      onNextBreakpoint,
+      onNextKeyMoment,
       onGoToEnd,
       onExitZenMode,
     }),
@@ -101,12 +101,12 @@ export function useViewportStageProps({
       playbackProgress,
       atTimelineStart,
       atTimelineEnd,
-      hasPreviousBreakpoint,
-      hasNextBreakpoint,
+      hasPreviousKeyMoment,
+      hasNextKeyMoment,
       onResetPlayback,
-      onPreviousBreakpoint,
+      onPreviousKeyMoment,
       onPlayToggle,
-      onNextBreakpoint,
+      onNextKeyMoment,
       onGoToEnd,
       onExitZenMode,
     ]

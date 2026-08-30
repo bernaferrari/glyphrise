@@ -40,8 +40,8 @@ export const snapTimelineTime = ({
   currentTime,
   snapEnabled,
   frameSnapActive,
-  baseBreakpointTimes,
-  getBreakpointTimes,
+  baseKeyMomentTimes,
+  getKeyMomentTimes,
   scrubSnapTimes,
   options = {},
 }: {
@@ -50,9 +50,9 @@ export const snapTimelineTime = ({
   currentTime: number
   snapEnabled: boolean
   frameSnapActive: boolean
-  baseBreakpointTimes: number[]
+  baseKeyMomentTimes: number[]
   scrubSnapTimes?: number[] | null
-  getBreakpointTimes: (options: SnapTimeOptions) => number[]
+  getKeyMomentTimes: (options: SnapTimeOptions) => number[]
   options?: SnapTimeOptions
 }) => {
   const clamped = Math.max(0, Math.min(duration, rawTime))
@@ -77,8 +77,8 @@ export const snapTimelineTime = ({
   }
 
   const candidateTimes = hasExcludedSnapTarget(options)
-    ? getBreakpointTimes(options)
-    : (scrubSnapTimes ?? baseBreakpointTimes)
+    ? getKeyMomentTimes(options)
+    : (scrubSnapTimes ?? baseKeyMomentTimes)
 
   const nearest = nearestWithin(candidateTimes, clamped, SNAP_THRESHOLD_SECONDS)
   if (nearest) return quantizeIfNeeded(nearest.time)

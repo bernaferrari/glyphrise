@@ -23,8 +23,8 @@ type TimelineScrubbingOptions = {
   timelineZoom: number
   snapEnabled: boolean
   frameSnapActive: boolean
-  baseBreakpointTimes: number[]
-  getBreakpointTimes: (options: SnapTimeOptions) => number[]
+  baseKeyMomentTimes: number[]
+  getKeyMomentTimes: (options: SnapTimeOptions) => number[]
   laneRef: RefObject<HTMLDivElement | null>
   timelineScrollRef: RefObject<HTMLDivElement | null>
   onTimeChange: (time: number) => void
@@ -38,8 +38,8 @@ export function useTimelineScrubbing({
   timelineZoom,
   snapEnabled,
   frameSnapActive,
-  baseBreakpointTimes,
-  getBreakpointTimes,
+  baseKeyMomentTimes,
+  getKeyMomentTimes,
   laneRef,
   timelineScrollRef,
   onTimeChange,
@@ -61,8 +61,8 @@ export function useTimelineScrubbing({
       currentTime,
       snapEnabled,
       frameSnapActive,
-      baseBreakpointTimes,
-      getBreakpointTimes,
+      baseKeyMomentTimes,
+      getKeyMomentTimes,
       scrubSnapTimes: scrubSnapTimesRef.current,
       options,
     })
@@ -245,7 +245,7 @@ export function useTimelineScrubbing({
       snapToWholeSeconds: true,
     }
     scrubGeometryRef.current = getTimelineGeometry()
-    scrubSnapTimesRef.current = baseBreakpointTimes
+    scrubSnapTimesRef.current = baseKeyMomentTimes
     scrubLastTimeRef.current = null
     scrubEdgeClientXRef.current = event.clientX
     emitScrubTime(

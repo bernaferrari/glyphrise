@@ -1,13 +1,9 @@
 import { createEditorId, type EditorSnapshot } from "./EditorModel"
-import { shapeTransitionType } from "./TimelineModel"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
 
-export const EDITOR_AUTOSAVE_KEY = "vectorforge.editor.autosave.v1"
-export const EDITOR_CURRENT_PROJECT_KEY =
-  "vectorforge.editor.current-project.v2"
-export const EDITOR_RECENT_PROJECTS_KEY =
-  "vectorforge.editor.recent-projects.v2"
-export const EDITOR_PROJECT_KEY_PREFIX = "vectorforge.editor.project.v2."
+export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v2"
+export const EDITOR_RECENT_PROJECTS_KEY = "glyphrise.editor.recent-projects.v2"
+export const EDITOR_PROJECT_KEY_PREFIX = "glyphrise.editor.project.v2."
 export const MAX_PROJECT_FILE_BYTES = 5_000_000
 
 export type EditorProjectMetadata = {
@@ -38,7 +34,7 @@ const MAX_COLLECTION_SIZE = 2_000
 const MAX_SHAPE_COUNT = 100
 const MAX_STRING_LENGTH = 256
 const EASING_TYPES = new Set(["linear", "ease-in-out", "spring", "bounce"])
-const TRANSITION_TYPES = new Set(["cut", "fade", "wipe", "none"])
+const TRANSITION_TYPES = new Set(["cut", "fade", "wipe"])
 const GRADIENT_TYPES = new Set(["linear", "radial", "conic", "mesh"])
 const MATERIAL_PRESETS = new Set([
   "frost",
@@ -166,9 +162,8 @@ const isShapeStop = (value: unknown) => {
     !isShortString(value.colorSecondary) ||
     !isEasing(value.easing) ||
     !(
-      value.transitionType === undefined ||
-      (typeof value.transitionType === "string" &&
-        TRANSITION_TYPES.has(value.transitionType))
+      typeof value.transitionType === "string" &&
+      TRANSITION_TYPES.has(value.transitionType)
     ) ||
     !isVec2(value.wipeDirection) ||
     !(
@@ -245,7 +240,7 @@ export const isPersistedEditorSnapshot = (
     isBoundedArray(value.innerScaleKeyframes, 500) &&
     value.innerScaleKeyframes.every(isVectorKeyframe) &&
     isFiniteEditorNumber(value.objectScale) &&
-    (value.objectScaleAxes === undefined || isVec3(value.objectScaleAxes)) &&
+    isVec3(value.objectScaleAxes) &&
     isVec3(value.moveOffset) &&
     isBoundedArray(value.moveKeyframes, 500) &&
     value.moveKeyframes.every(isVectorKeyframe) &&
@@ -277,11 +272,9 @@ export const normalizeEditorSnapshot = (
   snapshot: EditorSnapshot
 ): EditorSnapshot => ({
   ...snapshot,
-  objectScaleAxes: snapshot.objectScaleAxes ?? { x: 1, y: 1, z: 1 },
   shapes: snapshot.shapes.map((shape) => ({
     ...shape,
     svgContent: validateAndSanitizeSvg(shape.svgContent),
-    transitionType: shapeTransitionType(shape),
   })),
 })
 
@@ -307,42 +300,20 @@ export const createProjectMetadata = (
   updatedAt: now,
 })
 
-const legacyProjectMetadata = (savedAt?: unknown) => {
-  const timestamp =
-    typeof savedAt === "string" ? savedAt : new Date().toISOString()
-  return createProjectMetadata("Imported project", timestamp)
-}
-
 export const parseEditorDocument = (
   value: unknown
 ): ParsedEditorDocument | null => {
-  if (isObjectRecord(value) && "version" in value) {
-    if (value.version === 2) {
-      if (!isProjectMetadata(value.project)) return null
-      return isPersistedEditorSnapshot(value.snapshot)
-        ? {
-            project: {
-              ...value.project,
-              name: normalizeProjectName(value.project.name),
-            },
-            snapshot: normalizeEditorSnapshot(value.snapshot),
-          }
-        : null
-    }
-
-    if (value.version !== 1) return null
-    if (!isPersistedEditorSnapshot(value.snapshot)) return null
-    return {
-      project: legacyProjectMetadata(value.savedAt),
-      snapshot: normalizeEditorSnapshot(value.snapshot),
-    }
-  }
-
-  if (!isPersistedEditorSnapshot(value)) return null
-  return {
-    project: legacyProjectMetadata(),
-    snapshot: normalizeEditorSnapshot(value),
-  }
+  if (!isObjectRecord(value) || value.version !== 2) return null
+  if (!isProjectMetadata(value.project)) return null
+  return isPersistedEditorSnapshot(value.snapshot)
+    ? {
+        project: {
+          ...value.project,
+          name: normalizeProjectName(value.project.name),
+        },
+        snapshot: normalizeEditorSnapshot(value.snapshot),
+      }
+    : null
 }
 
 // External files become a new local project; stored documents still retain
@@ -433,15 +404,6 @@ export const readPersistedEditorDocument = (): ParsedEditorDocument | null => {
       const current = readPersistedEditorProject(projectId)
       if (current) return current
     }
-
-    const legacy = parseStoredDocument(
-      window.localStorage.getItem(EDITOR_AUTOSAVE_KEY)
-    )
-    if (legacy) {
-      writePersistedEditorDocument(legacy.snapshot, legacy.project)
-      window.localStorage.removeItem(EDITOR_AUTOSAVE_KEY)
-      return legacy
-    }
   } catch {
     return null
   }
@@ -497,7 +459,7 @@ const projectFilename = (project: EditorProjectMetadata, savedAt: string) => {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 56)
-  return `${slug || "vectorforge-project"}-${savedAt.slice(0, 10)}.json`
+  return `${slug || "glyphrise-project"}-${savedAt.slice(0, 10)}.json`
 }
 
 export const downloadProjectSnapshot = (

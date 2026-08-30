@@ -49,7 +49,7 @@ export const TRANSFORM_AXIS_VECTORS: Record<TransformAxis, THREE.Vector3> = {
 }
 
 export const axisDragCursor = (axis: TransformAxis) =>
-  axis === "x" ? "ew-resize" : axis === "y" ? "ns-resize" : "grab"
+  axis === "x" ? "ew-resize" : "ns-resize"
 
 export const clampTransformValue = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value))

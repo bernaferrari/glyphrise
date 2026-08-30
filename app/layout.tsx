@@ -14,8 +14,8 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "VectorForge — 3D Motion Studio",
-  description: "Turn SVG icons and Material Symbols into animated 3D assets.",
+  title: "Glyphrise — 3D icon motion",
+  description: "Turn SVG icons into polished 3D motion.",
 }
 
 export default function RootLayout({

@@ -20,7 +20,7 @@ export function TimelineLanesSurface({
   return (
     <div
       ref={viewport.timelineScrollRef}
-      className="relative min-w-0 flex-1 [scrollbar-width:none] overflow-auto [&::-webkit-scrollbar]:hidden"
+      className="editor-scrollbar relative min-w-0 flex-1 overflow-auto"
       onScroll={(event) =>
         viewport.syncLeftRailScroll(event.currentTarget.scrollTop)
       }
@@ -37,10 +37,16 @@ export function TimelineLanesSurface({
         >
           <TimelineRuler
             ref={viewport.laneRef}
+            currentTime={viewport.currentTime}
             duration={viewport.duration}
             ticks={viewport.timelineTicks}
             playheadX={viewport.playheadX}
             onPointerDown={viewport.handleScrubStart}
+            onKeyboardTimeChange={(time) => {
+              shapeLane.onClearSelectedKeyframe()
+              shapeLane.onScrubStart?.()
+              shapeLane.onTimeChange(time)
+            }}
             onContextMenu={(event) => {
               const time = viewport.timeFromClientX(event.clientX, {
                 bypass: event.altKey,
@@ -56,6 +62,10 @@ export function TimelineLanesSurface({
               duration={viewport.duration}
               secondGridTicks={viewport.secondGridTicks}
             />
+            <div
+              className="relative h-6 border-b border-border bg-muted/35"
+              aria-hidden="true"
+            />
             <TimelineShapeLane
               duration={viewport.duration}
               shapes={shapeLane.shapes}
@@ -64,7 +74,7 @@ export function TimelineLanesSurface({
               openShapePicker={shapeLane.openShapePicker}
               openClipEditor={shapeLane.openClipEditor}
               wipeDirections={shapeLane.wipeDirections}
-              morphWindows={shapeLane.morphWindows}
+              transitionWindows={shapeLane.transitionWindows}
               clipBounds={shapeLane.clipBounds}
               shapePicker={shapeLane.shapePicker}
               shapeDraggedRef={shapeLane.shapeDraggedRef}
@@ -76,7 +86,7 @@ export function TimelineLanesSurface({
               onOpenClipEditorChange={shapeLane.onOpenClipEditorChange}
               onShapeBlendChange={shapeLane.onShapeBlendChange}
               onShapeEasingChange={shapeLane.onShapeEasingChange}
-              onMorphEdgeDrag={shapeLane.onMorphEdgeDrag}
+              onTransitionEdgeDrag={shapeLane.onTransitionEdgeDrag}
               onSelectShape={shapeLane.onSelectShape}
               onOpenShapePicker={shapeLane.onOpenShapePicker}
               onShapeIconChange={shapeLane.onShapeIconChange}
@@ -88,6 +98,11 @@ export function TimelineLanesSurface({
               onAddShape={shapeLane.onAddShape}
             />
 
+            <div
+              className="relative h-6 border-b border-border bg-muted/35"
+              aria-hidden="true"
+            />
+
             <TimelinePropertyRows
               duration={viewport.duration}
               rows={propertyLane.visiblePropertyRows}
@@ -96,6 +111,9 @@ export function TimelineLanesSurface({
               onSelectKeyframe={propertyLane.onSelectKeyframe}
               onActivePropertyRowChange={propertyLane.onActivePropertyRowChange}
               onRemovePropertyKeyframe={propertyLane.onRemovePropertyKeyframe}
+              onAddPropertyKeyframeAtTime={
+                propertyLane.onAddPropertyKeyframeAtTime
+              }
               onMovePropertyKeyframe={propertyLane.onMovePropertyKeyframe}
               onSetPropertyEasing={propertyLane.onSetPropertyEasing}
               onScrubStart={propertyLane.onScrubStart}
@@ -112,6 +130,7 @@ export function TimelineLanesSurface({
               activeTrackId={trackLane.activeTrackId}
               selectedKeyframe={trackLane.selectedKeyframe}
               timeEditor={trackLane.timeEditor}
+              keyframeTimeClampNotice={trackLane.keyframeTimeClampNotice}
               keyframeDraggedRef={trackLane.keyframeDraggedRef}
               onSelectTrack={trackLane.onSelectTrack}
               onSelectKeyframe={trackLane.onSelectKeyframe}

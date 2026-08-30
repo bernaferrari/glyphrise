@@ -20,6 +20,7 @@ type TimelineTrackKeyframeButtonProps = {
   duration: number
   selectedKeyframe: SelectedTimelineKeyframe
   timeEditor: TrackTimeEditor | null
+  keyframeTimeClampNotice?: string | null
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
@@ -57,6 +58,7 @@ export function TimelineTrackKeyframeButton({
   duration,
   selectedKeyframe,
   timeEditor,
+  keyframeTimeClampNotice,
   keyframeDraggedRef,
   onSelectTrack,
   onSelectKeyframe,
@@ -75,6 +77,8 @@ export function TimelineTrackKeyframeButton({
     selectedKeyframe.kfId === keyframe.id
   const editingTime =
     timeEditor?.trackId === track.id && timeEditor.kfId === keyframe.id
+  const timeDraftInvalid =
+    editingTime && !Number.isFinite(Number.parseFloat(timeEditor.draft))
   const selection: SelectedTimelineKeyframe = {
     type: "track",
     trackId: track.id,
@@ -97,8 +101,10 @@ export function TimelineTrackKeyframeButton({
     >
       <PopoverTrigger
         type="button"
+        aria-label={`Select ${track.name} keyframe at ${keyframe.time.toFixed(2)} seconds`}
+        aria-pressed={selected}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
+        className={`touch-hit-area absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
         style={{
           left: xForFrac(keyframe.time / duration),
           zIndex: selected
@@ -166,9 +172,11 @@ export function TimelineTrackKeyframeButton({
           onContextMenu={(event) => event.stopPropagation()}
         >
           <label className="mb-1 block text-left text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
-            Time
+            Time (0–{duration.toFixed(1)}s)
           </label>
-          <div className="flex h-8 items-center rounded-md bg-muted/70 ring-1 ring-border">
+          <div
+            className={`flex h-8 items-center rounded-md bg-muted/70 ring-1 ${timeDraftInvalid ? "ring-destructive" : "ring-border"}`}
+          >
             <input
               autoFocus
               aria-label={`${track.name} keyframe time in seconds`}
@@ -197,6 +205,16 @@ export function TimelineTrackKeyframeButton({
             />
             <span className="pr-2 text-[11px] text-muted-foreground">s</span>
           </div>
+          {!timeDraftInvalid && keyframeTimeClampNotice && editingTime ? (
+            <p className="mt-1 text-left text-[10px] text-amber-600">
+              {keyframeTimeClampNotice}
+            </p>
+          ) : null}
+          {timeDraftInvalid && (
+            <p className="mt-1 text-left text-[10px] text-destructive">
+              Enter a time in seconds
+            </p>
+          )}
         </PopoverContent>
       )}
     </Popover>

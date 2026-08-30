@@ -16,6 +16,7 @@ export type TimelineTrackRowProps = {
   isActive: boolean
   selectedKeyframe: SelectedTimelineKeyframe
   timeEditor: TrackTimeEditor | null
+  keyframeTimeClampNotice?: string | null
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
@@ -63,6 +64,7 @@ export function TimelineTrackRow({
   isActive,
   selectedKeyframe,
   timeEditor,
+  keyframeTimeClampNotice,
   keyframeDraggedRef,
   onSelectTrack,
   onSelectKeyframe,
@@ -208,6 +210,7 @@ export function TimelineTrackRow({
           duration={duration}
           selectedKeyframe={selectedKeyframe}
           timeEditor={timeEditor}
+          keyframeTimeClampNotice={keyframeTimeClampNotice}
           keyframeDraggedRef={keyframeDraggedRef}
           onSelectTrack={onSelectTrack}
           onSelectKeyframe={onSelectKeyframe}

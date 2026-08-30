@@ -242,7 +242,7 @@ export function ShapePickerContent({
               />
 
               {materialSymbolStatus.state === "error" && (
-                <p className="mt-2 px-0.5 text-[11px] text-red-300">
+                <p className="mt-2 px-0.5 text-[11px] text-destructive">
                   {materialSymbolStatus.message}
                 </p>
               )}
@@ -288,7 +288,17 @@ export function ShapePickerContent({
             </TabsContent>
 
             <TabsContent value="upload" className="min-h-0 outline-none">
-              <div className="grid min-h-40 place-items-center rounded-lg border border-dashed border-border bg-muted/25 p-6">
+              <div className="flex min-h-40 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-muted/25 p-6 text-center">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    Clean, path-based SVG
+                  </p>
+                  <p className="mt-1 max-w-md text-[11px] leading-relaxed text-muted-foreground">
+                    Use an SVG made from outlined paths and basic shapes.
+                    Scripts, images, text, masks, and external references are
+                    removed or rejected for safe 3D conversion.
+                  </p>
+                </div>
                 <Button
                   type="button"
                   size="lg"
@@ -301,6 +311,16 @@ export function ShapePickerContent({
                   <Upload className="size-4" />
                   Upload SVG
                 </Button>
+                <div className="max-w-md text-left text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="font-medium text-foreground">
+                    Before uploading
+                  </p>
+                  <p className="mt-1">
+                    Outline text and strokes, flatten masks, and expand{" "}
+                    <code>&lt;use&gt;</code>/<code>&lt;defs&gt;</code> instances
+                    in your vector editor.
+                  </p>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

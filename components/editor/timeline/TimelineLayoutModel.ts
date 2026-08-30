@@ -11,7 +11,7 @@ export type ShapeTransitionWindow = {
   endTime: number
 }
 
-export type MorphWindow = ShapeTransitionWindow & {
+export type TransitionWindow = ShapeTransitionWindow & {
   stop: ShapeStop
   next: ShapeStop
   mStart: number
@@ -24,17 +24,17 @@ export type ShapeClipBounds = {
   isOnly: boolean
 }
 
-export type BreakpointTimeOptions = {
+export type KeyMomentTimeOptions = {
   excludeShapeId?: string
   excludeKeyframe?: { trackId: string; kfId: string }
   excludeTrackId?: string
 }
 
-export const computeMorphWindows = (
+export const computeTransitionWindows = (
   sortedShapes: ShapeStop[],
   defaultTransitionStart: number,
   defaultTransitionEnd: number
-): MorphWindow[] =>
+): TransitionWindow[] =>
   sortedShapes.slice(0, -1).map((stop, index) => {
     const next = sortedShapes[index + 1]
     const gap = Math.max(0, next.time - stop.time)
@@ -57,23 +57,23 @@ export const computeMorphWindows = (
 
 export const computeShapeClipBounds = (
   sortedShapes: ShapeStop[],
-  morphWindows: MorphWindow[],
+  transitionWindows: TransitionWindow[],
   duration: number
 ): ShapeClipBounds[] =>
   sortedShapes.map((_, index) => {
     if (sortedShapes.length === 1)
       return { left: 0, right: duration, isOnly: true }
-    const left = index === 0 ? 0 : morphWindows[index - 1].endTime
+    const left = index === 0 ? 0 : transitionWindows[index - 1].endTime
     const right =
       index === sortedShapes.length - 1
         ? duration
-        : morphWindows[index].startTime
+        : transitionWindows[index].startTime
     return { left, right, isOnly: false }
   })
 
-export const collectBreakpointTimes = ({
+export const collectKeyMomentTimes = ({
   duration,
-  morphWindows,
+  transitionWindows,
   shapes,
   tracks,
   propertyRows,
@@ -82,12 +82,12 @@ export const collectBreakpointTimes = ({
   excludeTrackId,
 }: {
   duration: number
-  morphWindows: MorphWindow[]
+  transitionWindows: TransitionWindow[]
   shapes: ShapeStop[]
   tracks: TimelineTrack[]
   propertyRows: TimelinePropertyRow[]
-} & BreakpointTimeOptions) => {
-  const shapeTransitionTimes = morphWindows.flatMap(
+} & KeyMomentTimeOptions) => {
+  const shapeTransitionTimes = transitionWindows.flatMap(
     ({ from, to, startTime, endTime }) => {
       if (from.id === excludeShapeId || to.id === excludeShapeId) return []
       return [startTime, endTime]

@@ -4,6 +4,7 @@ import {
   MutableRefObject,
   type PointerEvent,
   RefObject,
+  useEffect,
   useRef,
   useState,
 } from "react"
@@ -35,6 +36,8 @@ import {
 import type { SelectedTimelineKeyframe } from "./TimelineTypes"
 import type { TrackTimeEditor } from "./TimelineTypes"
 
+const KEYFRAME_TIME_CLAMP_NOTICE_MS = 1800
+
 interface TimelineTrackKeyframesOptions {
   duration: number
   currentTime: number
@@ -43,7 +46,7 @@ interface TimelineTrackKeyframesOptions {
   frameSnapActive: boolean
   laneRef: RefObject<HTMLDivElement | null>
   setSelectedKeyframe: (keyframe: SelectedTimelineKeyframe) => void
-  breakpointTimes: (options: SnapTimeOptions) => number[]
+  keyMomentTimes: (options: SnapTimeOptions) => number[]
   snapTime: (rawTime: number, options?: SnapTimeOptions) => number
   onTracksChange: (tracks: TimelineTrack[]) => void
   onTimeChange: (time: number) => void
@@ -59,7 +62,7 @@ export function useTimelineTrackKeyframes({
   frameSnapActive,
   laneRef,
   setSelectedKeyframe,
-  breakpointTimes,
+  keyMomentTimes,
   snapTime,
   onTracksChange,
   onTimeChange,
@@ -67,7 +70,21 @@ export function useTimelineTrackKeyframes({
   onActiveTrackChange,
 }: TimelineTrackKeyframesOptions) {
   const [timeEditor, setTimeEditor] = useState<TrackTimeEditor | null>(null)
+  const [timeClampNotice, setTimeClampNotice] = useState<string | null>(null)
+  const timeClampNoticeTimeoutRef = useRef<number | null>(null)
+  const timeEditorClampCloseTimeoutRef = useRef<number | null>(null)
   const keyframeDraggedRef = useRef(false)
+  useEffect(
+    () => () => {
+      if (timeClampNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(timeClampNoticeTimeoutRef.current)
+      }
+      if (timeEditorClampCloseTimeoutRef.current !== null) {
+        window.clearTimeout(timeEditorClampCloseTimeoutRef.current)
+      }
+    },
+    []
+  )
 
   const selectTrack = (trackId: string) => {
     onActiveTrackChange?.(trackId)
@@ -162,6 +179,9 @@ export function useTimelineTrackKeyframes({
     kfId: string,
     time: number
   ) => {
+    const keyframe = tracks
+      .find((track) => track.id === trackId)
+      ?.keyframes.find((keyframe) => keyframe.id === kfId)
     selectTrack(trackId)
     onTracksChange(
       applyTrackKeyframeTime({
@@ -173,13 +193,38 @@ export function useTimelineTrackKeyframes({
         frameSnapActive,
       })
     )
+    // Surface a transient notice when the requested time fell outside
+    // 0-<duration>s and was clamped, instead of silently moving the diamond.
+    if (keyframe && (time < 0 || time > duration)) {
+      if (timeClampNoticeTimeoutRef.current !== null) {
+        window.clearTimeout(timeClampNoticeTimeoutRef.current)
+      }
+      setTimeClampNotice(`Clamped to 0-${duration.toFixed(1)}s`)
+      timeClampNoticeTimeoutRef.current = window.setTimeout(() => {
+        timeClampNoticeTimeoutRef.current = null
+        setTimeClampNotice(null)
+      }, KEYFRAME_TIME_CLAMP_NOTICE_MS)
+    }
   }
 
   const commitTimeEditor = () => {
     if (!timeEditor) return
     const parsed = Number.parseFloat(timeEditor.draft)
     if (!Number.isFinite(parsed)) return
+    const wasClamped = parsed < 0 || parsed > duration
     setTrackKeyframeTime(timeEditor.trackId, timeEditor.kfId, parsed)
+    if (wasClamped) {
+      // Keep the editor open for the notice window so the amber clamp
+      // message is actually seen before the popover dismisses itself.
+      if (timeEditorClampCloseTimeoutRef.current !== null) {
+        window.clearTimeout(timeEditorClampCloseTimeoutRef.current)
+      }
+      timeEditorClampCloseTimeoutRef.current = window.setTimeout(() => {
+        timeEditorClampCloseTimeoutRef.current = null
+        setTimeEditor(null)
+      }, KEYFRAME_TIME_CLAMP_NOTICE_MS)
+      return
+    }
     setTimeEditor(null)
   }
 
@@ -211,7 +256,7 @@ export function useTimelineTrackKeyframes({
             ? quantizeTimeToFrame(currentTime)
             : currentTime
           const targets = createTrackKeyframeBlockSnapTargets({
-            breakpointTimes: breakpointTimes({ excludeTrackId: trackId }),
+            keyMomentTimes: keyMomentTimes({ excludeTrackId: trackId }),
             playheadTime,
             duration,
             snapThreshold: SNAP_THRESHOLD_SECONDS,
@@ -256,6 +301,7 @@ export function useTimelineTrackKeyframes({
   return {
     timeEditor,
     setTimeEditor,
+    timeClampNotice,
     keyframeDraggedRef: keyframeDraggedRef as MutableRefObject<boolean>,
     selectTrack,
     toggleKeyframeAtPlayhead,

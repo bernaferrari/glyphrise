@@ -7,9 +7,9 @@ import {
   TimelineTrack,
 } from "../TimelineModel"
 import {
-  BreakpointTimeOptions,
-  collectBreakpointTimes,
-  computeMorphWindows,
+  KeyMomentTimeOptions,
+  collectKeyMomentTimes,
+  computeTransitionWindows,
   computeShapeClipBounds,
 } from "./TimelineLayoutModel"
 import { TIMELINE_ZOOM_MAX } from "./TimelineGeometry"
@@ -53,9 +53,9 @@ export const useTimelineDerivedState = ({
   )
   const frameSnapActive = timelineZoom >= TIMELINE_ZOOM_MAX - 0.001
 
-  const morphWindows = useMemo(
+  const transitionWindows = useMemo(
     () =>
-      computeMorphWindows(
+      computeTransitionWindows(
         sortedShapes,
         DEFAULT_TRANSITION_START,
         DEFAULT_TRANSITION_END
@@ -63,27 +63,24 @@ export const useTimelineDerivedState = ({
     [sortedShapes]
   )
   const clipBounds = useMemo(
-    () => computeShapeClipBounds(sortedShapes, morphWindows, duration),
-    [duration, morphWindows, sortedShapes]
+    () => computeShapeClipBounds(sortedShapes, transitionWindows, duration),
+    [duration, transitionWindows, sortedShapes]
   )
 
-  const breakpointTimes = useCallback(
-    (options: BreakpointTimeOptions = {}) =>
-      collectBreakpointTimes({
+  const keyMomentTimes = useCallback(
+    (options: KeyMomentTimeOptions = {}) =>
+      collectKeyMomentTimes({
         duration,
-        morphWindows,
+        transitionWindows,
         shapes,
         tracks,
         propertyRows: visiblePropertyRows,
         ...options,
       }),
-    [duration, morphWindows, shapes, tracks, visiblePropertyRows]
+    [duration, transitionWindows, shapes, tracks, visiblePropertyRows]
   )
 
-  const baseBreakpointTimes = useMemo(
-    () => breakpointTimes(),
-    [breakpointTimes]
-  )
+  const baseKeyMomentTimes = useMemo(() => keyMomentTimes(), [keyMomentTimes])
 
   const shapeLabel = useCallback(
     (stop: ShapeStop) =>
@@ -99,10 +96,10 @@ export const useTimelineDerivedState = ({
     visibleTracks,
     hiddenTracks,
     frameSnapActive,
-    morphWindows,
+    transitionWindows,
     clipBounds,
-    breakpointTimes,
-    baseBreakpointTimes,
+    keyMomentTimes,
+    baseKeyMomentTimes,
     shapeLabel,
   }
 }

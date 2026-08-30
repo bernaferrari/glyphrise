@@ -6,9 +6,14 @@ import { Button } from "@/components/ui/button"
 type ExportCopyButtonProps = {
   copied: boolean
   onCopy: () => void
+  label?: string
 }
 
-export function ExportCopyButton({ copied, onCopy }: ExportCopyButtonProps) {
+export function ExportCopyButton({
+  copied,
+  onCopy,
+  label = "Copy Code",
+}: ExportCopyButtonProps) {
   return (
     <Button
       size="sm"
@@ -21,7 +26,7 @@ export function ExportCopyButton({ copied, onCopy }: ExportCopyButtonProps) {
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}
-      {copied ? "Copied!" : "Copy Code"}
+      {copied ? "Copied!" : label}
     </Button>
   )
 }

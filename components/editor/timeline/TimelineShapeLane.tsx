@@ -2,9 +2,9 @@
 
 import React from "react"
 import type { EasingType, ShapeStop } from "../TimelineModel"
-import type { ShapeClipBounds, MorphWindow } from "./TimelineLayoutModel"
+import type { ShapeClipBounds, TransitionWindow } from "./TimelineLayoutModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
-import { TimelineMorphWindows } from "./TimelineMorphWindows"
+import { TimelineTransitionWindows } from "./TimelineTransitionWindows"
 import { TimelineShapeClips } from "./TimelineShapeClips"
 import type { ShapeOption, WipeDirectionOption } from "./TimelineTypes"
 import type { useShapePickerCatalog } from "./useShapePickerCatalog"
@@ -17,7 +17,7 @@ type TimelineShapeLaneProps = {
   openShapePicker: string | null
   openClipEditor: string | null
   wipeDirections: WipeDirectionOption[]
-  morphWindows: MorphWindow[]
+  transitionWindows: TransitionWindow[]
   clipBounds: ShapeClipBounds[]
   shapePicker: ReturnType<typeof useShapePickerCatalog>
   shapeDraggedRef: React.MutableRefObject<boolean>
@@ -35,7 +35,7 @@ type TimelineShapeLaneProps = {
     patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
-  onMorphEdgeDrag: (
+  onTransitionEdgeDrag: (
     event: React.PointerEvent<HTMLElement>,
     shapeId: string,
     edge: "start" | "end",
@@ -69,7 +69,7 @@ export function TimelineShapeLane({
   openShapePicker,
   openClipEditor,
   wipeDirections,
-  morphWindows,
+  transitionWindows,
   clipBounds,
   shapePicker,
   shapeDraggedRef,
@@ -81,7 +81,7 @@ export function TimelineShapeLane({
   onOpenClipEditorChange,
   onShapeBlendChange,
   onShapeEasingChange,
-  onMorphEdgeDrag,
+  onTransitionEdgeDrag,
   onSelectShape,
   onOpenShapePicker,
   onShapeIconChange,
@@ -112,15 +112,15 @@ export function TimelineShapeLane({
         ])
       }}
     >
-      <TimelineMorphWindows
+      <TimelineTransitionWindows
         duration={duration}
-        morphWindows={morphWindows}
+        transitionWindows={transitionWindows}
         openClipEditor={openClipEditor}
         wipeDirections={wipeDirections}
         onOpenClipEditorChange={onOpenClipEditorChange}
         onShapeBlendChange={onShapeBlendChange}
         onShapeEasingChange={onShapeEasingChange}
-        onMorphEdgeDrag={onMorphEdgeDrag}
+        onTransitionEdgeDrag={onTransitionEdgeDrag}
         onOpenContextMenu={onOpenContextMenu}
         createGoToMenuItem={createGoToMenuItem}
         shapeLabel={shapeLabel}
