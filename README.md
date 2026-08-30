@@ -69,7 +69,7 @@ the speed of a generator with the control of an editor—without learning a full
 - Google Chrome, if you want to run the end-to-end tests
 
 ```bash
-git clone <your-glyphrise-repository-url> glyphrise
+git clone https://github.com/bernaferrari/glyphrise.git
 cd glyphrise
 pnpm install
 pnpm dev
