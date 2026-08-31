@@ -244,6 +244,19 @@ describe("EditorDocumentModel", () => {
     ).toBeNull()
   })
 
+  it("enforces the editor's supported duration range", () => {
+    const snapshot = validSnapshot()
+
+    snapshot.duration = 30
+    expect(isPersistedEditorSnapshot(snapshot)).toBe(true)
+
+    snapshot.duration = 30.001
+    expect(isPersistedEditorSnapshot(snapshot)).toBe(false)
+
+    snapshot.duration = 0.499
+    expect(isPersistedEditorSnapshot(snapshot)).toBe(false)
+  })
+
   it("rejects unsafe SVG content nested in a project", () => {
     const snapshot = validSnapshot()
     snapshot.shapes[0].svgContent = `<svg onload="alert(1)"><path d="M0 0h1v1z"/></svg>`

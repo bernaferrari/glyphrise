@@ -153,12 +153,12 @@ components/editor/
   AppLayout.tsx               Editor composition
   EditorModel.ts              Shared editor data model
   ShapeSequenceModel.ts       Shape clips and transitions
+  Timeline.tsx                Timeline shell
   TimelineModel.ts            Tracks, keyframes, and interpolation
   FinishRegistry.ts           Finish labels, previews, and defaults
   Export*.tsx/ts              Export UI, snapshots, and templates
 
 components/editor/timeline/
-  Timeline.tsx                Timeline shell
   useTimelineController.ts    Timeline state and interactions
   ShapePickerContent.tsx      Symbol, preset, and upload picker
   Timeline*                   Clips, tracks, rows, and menus

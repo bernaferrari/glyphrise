@@ -4,3 +4,7 @@ packages:
 allowBuilds:
   msw: true
   sharp: false
+
+overrides:
+  nanoid: 3.3.18
+  vite: 8.0.16

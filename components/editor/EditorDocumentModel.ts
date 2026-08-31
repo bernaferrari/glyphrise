@@ -1,4 +1,9 @@
-import { createEditorId, type EditorSnapshot } from "./EditorModel"
+import {
+  MAX_TIMELINE_DURATION,
+  MIN_TIMELINE_DURATION,
+  createEditorId,
+  type EditorSnapshot,
+} from "./EditorModel"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
 
 export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v2"
@@ -217,8 +222,8 @@ export const isPersistedEditorSnapshot = (
   return (
     (value.activeRecipeId === null || isShortString(value.activeRecipeId)) &&
     isFiniteEditorNumber(value.duration) &&
-    value.duration > 0 &&
-    value.duration <= 3_600 &&
+    value.duration >= MIN_TIMELINE_DURATION &&
+    value.duration <= MAX_TIMELINE_DURATION &&
     isBoundedArray(value.shapes, MAX_SHAPE_COUNT) &&
     value.shapes.length > 0 &&
     value.shapes.every(isShapeStop) &&

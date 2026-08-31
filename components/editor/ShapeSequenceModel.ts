@@ -6,7 +6,8 @@ import {
   DEFAULT_TRANSITION_START,
   type ShapeStop,
 } from "./TimelineModel"
-import { clampNumber, createEditorId, quantizeTimeToFrame } from "./EditorModel"
+import { createEditorId } from "./EditorModel"
+import { SHAPE_MIN_GAP, findAvailableShapeStopTime } from "./ShapeTimeModel"
 
 export const createShapeStop = (
   icon: PresetIcon,
@@ -68,15 +69,16 @@ export const applyShapeWipePair = ({
   const next = sorted[index + 1]
   const nextTime = next
     ? next.time
-    : current.time < duration - 0.1
-      ? clampNumber(
-          quantizeTimeToFrame(
-            Math.min(duration, current.time + Math.max(0.85, duration * 0.25))
-          ),
-          current.time + 0.1,
-          duration
-        )
-      : duration
+    : findAvailableShapeStopTime({
+        times: sorted.map((shape) => shape.time),
+        requestedTime: Math.min(
+          duration,
+          current.time + Math.max(0.85, duration * 0.25)
+        ),
+        duration,
+        minTime: current.time + SHAPE_MIN_GAP,
+      })
+  if (nextTime === null) return shapes
   const nextId = next?.id ?? createEditorId("shape")
   const disabledStop: ShapeStop = {
     ...(next ?? current),
@@ -119,10 +121,15 @@ export const addShapeStopAtTime = ({
   duration: number
 }) => {
   const icon = PRESET_ICONS[shapes.length % PRESET_ICONS.length]
-  const stop = createShapeStop(
-    icon,
-    clampNumber(quantizeTimeToFrame(time), 0, duration)
-  )
+  const availableTime = findAvailableShapeStopTime({
+    times: shapes.map((shape) => shape.time),
+    requestedTime: time,
+    duration,
+  })
+  if (availableTime === null) {
+    return { shapes, addedShapeId: null }
+  }
+  const stop = createShapeStop(icon, availableTime)
   return {
     shapes: [...shapes, stop].sort((a, b) => a.time - b.time),
     addedShapeId: stop.id,

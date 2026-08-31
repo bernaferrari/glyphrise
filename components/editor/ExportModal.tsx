@@ -69,6 +69,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     updateSettings,
     handlePngExport,
   } = useExportModalController({
+    isOpen,
     scene,
     onExportGltf,
     onExportPng,

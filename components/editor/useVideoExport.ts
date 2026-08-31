@@ -1,6 +1,10 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
-import { quantizeTimeToFrame } from "./EditorModel"
+import {
+  MAX_TIMELINE_DURATION,
+  MIN_TIMELINE_DURATION,
+  quantizeTimeToFrame,
+} from "./EditorModel"
 import {
   exportRenderOptions,
   extensionForVideoBlob,
@@ -232,6 +236,22 @@ export const useVideoExport = ({
   const exportTimelineVideo = useCallback(
     (settings: ExportSettings) =>
       new Promise<void>((resolve, reject) => {
+        if (
+          !Number.isFinite(duration) ||
+          duration < MIN_TIMELINE_DURATION ||
+          duration > MAX_TIMELINE_DURATION
+        ) {
+          reject(
+            new Error(
+              `Video duration must be between ${MIN_TIMELINE_DURATION} and ${MAX_TIMELINE_DURATION} seconds.`
+            )
+          )
+          return
+        }
+        if (![24, 30, 60].includes(settings.frameRate)) {
+          reject(new Error("Video frame rate must be 24, 30, or 60 fps."))
+          return
+        }
         const recordingCanvas = canvasRef.current
         if (!recordingCanvas) {
           reject(new Error("Canvas is not ready."))

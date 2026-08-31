@@ -4,11 +4,19 @@ import type {
   ScalarKeyframe,
   Vector3Keyframe,
 } from "./EditorModel"
-import { clampNumber, quantizeTimeToFrame } from "./EditorModel"
+import {
+  MAX_TIMELINE_DURATION,
+  MIN_TIMELINE_DURATION,
+  clampNumber,
+  quantizeTimeToFrame,
+} from "./EditorModel"
 import type { FillKeyframe, ShapeStop, TimelineTrack } from "./TimelineModel"
 
 export const clampTimelineDuration = (duration: number) =>
-  Math.max(0.5, Math.min(30, Number(duration.toFixed(1))))
+  Math.max(
+    MIN_TIMELINE_DURATION,
+    Math.min(MAX_TIMELINE_DURATION, Number(duration.toFixed(1)))
+  )
 
 export const scaleTimelineTime = ({
   time,

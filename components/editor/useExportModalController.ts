@@ -22,6 +22,7 @@ export const isExportTab = (value: string): value is ExportTab =>
   value === "options" || value === "r3f" || value === "android"
 
 export function useExportModalController({
+  isOpen,
   scene,
   onExportGltf,
   onExportPng,
@@ -29,6 +30,7 @@ export function useExportModalController({
   isVideoExporting,
   onCodeCopied,
 }: {
+  isOpen: boolean
   scene: ExportSceneSnapshot
   onExportGltf: () => Promise<void>
   onExportPng: (settings: ExportSettings) => Promise<void>
@@ -73,13 +75,21 @@ export function useExportModalController({
   )
 
   const r3fCode = useMemo(
-    () => generateR3fCode(codeTemplateParams),
-    [codeTemplateParams]
+    () =>
+      isOpen && activeTab === "r3f" ? generateR3fCode(codeTemplateParams) : "",
+    [activeTab, codeTemplateParams, isOpen]
   )
-  const androidGradleCode = useMemo(() => generateAndroidGradleCode(), [])
+  const androidGradleCode = useMemo(
+    () =>
+      isOpen && activeTab === "android" ? generateAndroidGradleCode() : "",
+    [activeTab, isOpen]
+  )
   const androidFilamentCode = useMemo(
-    () => generateAndroidFilamentCode(codeTemplateParams),
-    [codeTemplateParams]
+    () =>
+      isOpen && activeTab === "android"
+        ? generateAndroidFilamentCode(codeTemplateParams)
+        : "",
+    [activeTab, codeTemplateParams, isOpen]
   )
 
   const handleTabChange = useCallback((value: string) => {

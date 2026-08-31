@@ -3,11 +3,11 @@ import {
   DEFAULT_TRANSITION_START,
   type ShapeStop,
 } from "../TimelineModel"
+import { SHAPE_MIN_GAP } from "../ShapeTimeModel"
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value))
 
-const SHAPE_MIN_GAP = 0.05
 const TRANSITION_MIN_FRACTION = 0.04
 
 export const clampShapeStopTime = ({

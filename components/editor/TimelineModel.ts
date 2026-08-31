@@ -157,70 +157,163 @@ const toHexColor = ({ r, g, b }: { r: number; g: number; b: number }) => {
   return `#${channel(r)}${channel(g)}${channel(b)}`
 }
 
-const interpolateColorKeyframes = (
+type PreparedFillPoint = {
+  time: number
+  easing: EasingType
+  stop: FillStop | null
+  parsedColor?: { r: number; g: number; b: number } | null
+}
+
+type PreparedFillStopTrack = {
+  id?: string
+  points: PreparedFillPoint[]
+}
+
+export type PreparedFillKeyframes = {
+  sorted: FillKeyframe[]
+  stopTracks: PreparedFillStopTrack[]
+}
+
+export const prepareFillKeyframes = (
+  keyframes: FillKeyframe[] = []
+): PreparedFillKeyframes => {
+  const sorted = [...keyframes].sort((a, b) => a.time - b.time)
+  const maxStops = Math.max(
+    0,
+    ...sorted.map((keyframe) => keyframe.stops?.length ?? 0)
+  )
+  const stopTracks = Array.from({ length: maxStops }, (_, index) => ({
+    id: sorted.find((keyframe) => keyframe.stops?.[index])?.stops[index].id,
+    points: sorted.map((keyframe) => {
+      const stop = keyframe.stops?.length
+        ? (keyframe.stops[index] ?? keyframe.stops[keyframe.stops.length - 1])
+        : null
+      return {
+        time: keyframe.time,
+        easing: keyframe.easing,
+        stop,
+        parsedColor: stop ? parseHexColor(stop.color) : undefined,
+      }
+    }),
+  }))
+
+  return { sorted, stopTracks }
+}
+
+const interpolatePreparedNumber = (
   time: number,
-  fallback: string,
-  keyframes: Array<{ time: number; value: string; easing: EasingType }> = []
-): string => {
-  const sorted = keyframes
-    .filter((keyframe) => parseHexColor(keyframe.value))
-    .sort((a, b) => a.time - b.time)
+  fallback: number,
+  points: PreparedFillPoint[]
+) => {
+  if (points.length === 0) return fallback
+  const valueAt = (point: PreparedFillPoint) => point.stop?.position ?? fallback
+  if (time <= points[0].time) return valueAt(points[0])
+  if (time >= points[points.length - 1].time)
+    return valueAt(points[points.length - 1])
 
-  if (sorted.length === 0) return fallback
-  if (time <= sorted[0].time) return sorted[0].value
-  if (time >= sorted[sorted.length - 1].time)
-    return sorted[sorted.length - 1].value
-
-  let prev = sorted[0]
-  let next = sorted[0]
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (time >= sorted[i].time && time <= sorted[i + 1].time) {
-      prev = sorted[i]
-      next = sorted[i + 1]
+  let previous = points[0]
+  let next = points[0]
+  for (let index = 0; index < points.length - 1; index++) {
+    if (time >= points[index].time && time <= points[index + 1].time) {
+      previous = points[index]
+      next = points[index + 1]
       break
     }
   }
+  const span = next.time - previous.time
+  const ratio = span > 0 ? (time - previous.time) / span : 0
+  const eased = applyEasing(previous.easing, ratio)
+  return valueAt(previous) + (valueAt(next) - valueAt(previous)) * eased
+}
 
-  const prevColor = parseHexColor(prev.value)
-  const nextColor = parseHexColor(next.value)
-  if (!prevColor || !nextColor) return fallback
-
-  const span = next.time - prev.time
-  const ratio = span > 0 ? (time - prev.time) / span : 0
-  const eased = applyEasing(prev.easing, ratio)
-
+const interpolatePreparedColor = (
+  time: number,
+  fallback: string,
+  points: PreparedFillPoint[]
+) => {
+  const fallbackColor = parseHexColor(fallback)
+  const valueAt = (point: PreparedFillPoint) => point.stop?.color ?? fallback
+  const parsedAt = (point: PreparedFillPoint) =>
+    point.stop ? point.parsedColor : fallbackColor
+  let first: PreparedFillPoint | null = null
+  let previous: PreparedFillPoint | null = null
+  let next: PreparedFillPoint | null = null
+  let last: PreparedFillPoint | null = null
+  for (const point of points) {
+    if (!parsedAt(point)) continue
+    first ??= point
+    last = point
+    if (point.time <= time) previous = point
+    if (point.time >= time && !next) next = point
+  }
+  if (!first || !last) return fallback
+  if (!previous) return valueAt(first)
+  if (!next) return valueAt(last)
+  const previousColor = parsedAt(previous)
+  const nextColor = parsedAt(next)
+  if (!previousColor || !nextColor) return fallback
+  const span = next.time - previous.time
+  const ratio = span > 0 ? (time - previous.time) / span : 0
+  const eased = applyEasing(previous.easing, ratio)
   return toHexColor({
-    r: prevColor.r + (nextColor.r - prevColor.r) * eased,
-    g: prevColor.g + (nextColor.g - prevColor.g) * eased,
-    b: prevColor.b + (nextColor.b - prevColor.b) * eased,
+    r: previousColor.r + (nextColor.r - previousColor.r) * eased,
+    g: previousColor.g + (nextColor.g - previousColor.g) * eased,
+    b: previousColor.b + (nextColor.b - previousColor.b) * eased,
   })
 }
 
-const interpolateNumericKeyframes = (
+export const interpolatePreparedFillKeyframes = (
   time: number,
-  fallback: number,
-  keyframes: Array<{ time: number; value: number; easing: EasingType }> = []
+  fallback: {
+    color: string
+    colorSecondary: string
+    gradientType?: FillGradientType
+    stops?: FillStop[]
+  },
+  prepared: PreparedFillKeyframes
 ) => {
-  const sorted = [...keyframes].sort((a, b) => a.time - b.time)
-  if (sorted.length === 0) return fallback
-  if (time <= sorted[0].time) return sorted[0].value
-  if (time >= sorted[sorted.length - 1].time)
-    return sorted[sorted.length - 1].value
+  const fallbackStops: FillStop[] = fallback.stops?.length
+    ? fallback.stops
+    : [
+        { id: "start", color: fallback.color, position: 0 },
+        { id: "end", color: fallback.colorSecondary, position: 1 },
+      ]
+  const maxStops = Math.max(fallbackStops.length, prepared.stopTracks.length)
+  const stops = Array.from({ length: maxStops }, (_, index) => {
+    const fallbackStop =
+      fallbackStops[index] ?? fallbackStops[fallbackStops.length - 1]
+    const track = prepared.stopTracks[index]
+    return {
+      id: track?.id ?? fallbackStop.id ?? `stop-${index}`,
+      position: interpolatePreparedNumber(
+        time,
+        fallbackStop.position,
+        track?.points ?? []
+      ),
+      color: interpolatePreparedColor(
+        time,
+        fallbackStop.color,
+        track?.points ?? []
+      ),
+    }
+  })
 
-  let prev = sorted[0]
-  let next = sorted[0]
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (time >= sorted[i].time && time <= sorted[i + 1].time) {
-      prev = sorted[i]
-      next = sorted[i + 1]
+  let gradientType = fallback.gradientType ?? "linear"
+  for (let index = prepared.sorted.length - 1; index >= 0; index--) {
+    const keyframe = prepared.sorted[index]
+    if (keyframe.time <= time) {
+      gradientType = keyframe.gradientType ?? gradientType
       break
     }
   }
 
-  const span = next.time - prev.time
-  const ratio = span > 0 ? (time - prev.time) / span : 0
-  const eased = applyEasing(prev.easing, ratio)
-  return prev.value + (next.value - prev.value) * eased
+  return {
+    color: stops[0]?.color ?? fallback.color,
+    colorSecondary:
+      stops[1]?.color ?? stops[0]?.color ?? fallback.colorSecondary,
+    gradientType,
+    stops,
+  }
 }
 
 export const interpolateFillKeyframes = (
@@ -232,72 +325,9 @@ export const interpolateFillKeyframes = (
     stops?: FillStop[]
   },
   keyframes: FillKeyframe[] = []
-) => {
-  const sorted = [...keyframes].sort((a, b) => a.time - b.time)
-  const fallbackStops: FillStop[] = fallback.stops?.length
-    ? fallback.stops
-    : [
-        { id: "start", color: fallback.color, position: 0 },
-        { id: "end", color: fallback.colorSecondary, position: 1 },
-      ]
-
-  const stopsAt = (index: number) =>
-    sorted[index]?.stops?.length ? sorted[index].stops : fallbackStops
-  const maxStops = Math.max(
-    fallbackStops.length,
-    ...sorted.map((keyframe) => keyframe.stops?.length ?? 0)
+) =>
+  interpolatePreparedFillKeyframes(
+    time,
+    fallback,
+    prepareFillKeyframes(keyframes)
   )
-  const stopIdAt = (index: number) =>
-    sorted.find((keyframe) => keyframe.stops?.[index])?.stops[index].id ??
-    fallbackStops[index]?.id ??
-    `stop-${index}`
-  const stops = Array.from({ length: maxStops }).map((_, index) => {
-    const fallbackStop =
-      fallbackStops[index] ?? fallbackStops[fallbackStops.length - 1]
-    return {
-      id: stopIdAt(index),
-      position: interpolateNumericKeyframes(
-        time,
-        fallbackStop.position,
-        sorted.map((keyframe, keyframeIndex) => {
-          const stop =
-            stopsAt(keyframeIndex)[index] ??
-            stopsAt(keyframeIndex)[stopsAt(keyframeIndex).length - 1] ??
-            fallbackStop
-          return {
-            time: keyframe.time,
-            value: stop.position,
-            easing: keyframe.easing,
-          }
-        })
-      ),
-      color: interpolateColorKeyframes(
-        time,
-        fallbackStop.color,
-        sorted.map((keyframe, keyframeIndex) => {
-          const stop =
-            stopsAt(keyframeIndex)[index] ??
-            stopsAt(keyframeIndex)[stopsAt(keyframeIndex).length - 1] ??
-            fallbackStop
-          return {
-            time: keyframe.time,
-            value: stop.color,
-            easing: keyframe.easing,
-          }
-        })
-      ),
-    }
-  })
-
-  return {
-    color: stops[0]?.color ?? fallback.color,
-    colorSecondary:
-      stops[1]?.color ?? stops[0]?.color ?? fallback.colorSecondary,
-    gradientType:
-      [...sorted].reverse().find((keyframe) => keyframe.time <= time)
-        ?.gradientType ??
-      fallback.gradientType ??
-      "linear",
-    stops,
-  }
-}

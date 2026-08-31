@@ -15,6 +15,8 @@ export const clampNumber = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value))
 
 export const TIMELINE_FRAME_RATE = 60
+export const MIN_TIMELINE_DURATION = 0.5
+export const MAX_TIMELINE_DURATION = 30
 export const quantizeTimeToFrame = (time: number) =>
   Number(
     (Math.round(time * TIMELINE_FRAME_RATE) / TIMELINE_FRAME_RATE).toFixed(3)

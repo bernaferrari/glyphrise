@@ -68,8 +68,10 @@ export function useShapeSequenceEditor({
         time: currentTime,
         duration,
       })
-      setSelectedShapeId(result.addedShapeId)
-      setOpenShapePicker(result.addedShapeId)
+      if (result.addedShapeId) {
+        setSelectedShapeId(result.addedShapeId)
+        setOpenShapePicker(result.addedShapeId)
+      }
       return result.shapes
     })
   }, [currentTime, duration, markCustom])

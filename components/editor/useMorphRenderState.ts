@@ -10,7 +10,9 @@ import {
   FillStop,
   ShapeStop,
   applyEasing,
-  interpolateFillKeyframes,
+  interpolatePreparedFillKeyframes,
+  prepareFillKeyframes,
+  type PreparedFillKeyframes,
 } from "./TimelineModel"
 
 type FillRenderValue = {
@@ -141,14 +143,14 @@ const shapeFillValue = ({
   shape,
   currentTime,
   fallback,
-  fillKeyframes,
+  preparedFillKeyframes,
 }: {
   shape: ShapeStop
   currentTime: number
   fallback: FillRenderValue
-  fillKeyframes: FillKeyframe[]
+  preparedFillKeyframes: PreparedFillKeyframes
 }) =>
-  interpolateFillKeyframes(
+  interpolatePreparedFillKeyframes(
     currentTime,
     {
       color: shape.color || fallback.color,
@@ -156,7 +158,7 @@ const shapeFillValue = ({
       gradientType: shape.fillGradientType ?? fallback.gradientType,
       stops: shape.fillStops ?? fallback.stops,
     },
-    shape.fillKeyframes?.length ? shape.fillKeyframes : fillKeyframes
+    preparedFillKeyframes
   )
 
 export const useMorphRenderState = ({
@@ -180,7 +182,24 @@ export const useMorphRenderState = ({
     [currentTime, sortedShapes]
   )
 
-  const selectedShapeFillValue = interpolateFillKeyframes(
+  const preparedFillKeyframes = useMemo(
+    () => prepareFillKeyframes(fillKeyframes),
+    [fillKeyframes]
+  )
+  const preparedShapeFillKeyframes = useMemo(() => {
+    const prepared = new Map<string, PreparedFillKeyframes>()
+    shapes.forEach((shape) => {
+      prepared.set(
+        shape.id,
+        shape.fillKeyframes?.length
+          ? prepareFillKeyframes(shape.fillKeyframes)
+          : preparedFillKeyframes
+      )
+    })
+    return prepared
+  }, [preparedFillKeyframes, shapes])
+
+  const selectedShapeFillValue = interpolatePreparedFillKeyframes(
     currentTime,
     {
       color: fillColor,
@@ -188,7 +207,7 @@ export const useMorphRenderState = ({
       gradientType: fillGradientType,
       stops: fillStops,
     },
-    fillKeyframes
+    preparedFillKeyframes
   )
 
   const selectedShapeFill = selectedShapeFillValue.color
@@ -213,13 +232,15 @@ export const useMorphRenderState = ({
     shape: morph.from,
     currentTime,
     fallback: fallbackFill,
-    fillKeyframes,
+    preparedFillKeyframes:
+      preparedShapeFillKeyframes.get(morph.from.id) ?? preparedFillKeyframes,
   })
   const fillB = shapeFillValue({
     shape: morph.to,
     currentTime,
     fallback: fallbackFill,
-    fillKeyframes,
+    preparedFillKeyframes:
+      preparedShapeFillKeyframes.get(morph.to.id) ?? preparedFillKeyframes,
   })
   const renderA = getRenderFill(fillA, fillMode, fillGradientType)
   const renderB = getRenderFill(fillB, fillMode, fillGradientType)
