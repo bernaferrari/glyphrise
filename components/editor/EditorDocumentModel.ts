@@ -346,67 +346,106 @@ const parseStoredDocument = (raw: string | null) => {
   return parseEditorDocument(JSON.parse(raw))
 }
 
-const projectStorageKey = (projectId: string) =>
+export type EditorProjectStore = Pick<
+  Storage,
+  "getItem" | "setItem" | "removeItem"
+>
+
+const defaultProjectStore = (): EditorProjectStore => window.localStorage
+
+export const editorProjectStorageKey = (projectId: string) =>
   `${EDITOR_PROJECT_KEY_PREFIX}${projectId}`
 
-export const listPersistedEditorProjects = (): EditorProjectMetadata[] => {
+const projectStorageKey = editorProjectStorageKey
+
+export const readCurrentEditorProjectId = (
+  store: EditorProjectStore = defaultProjectStore()
+) => store.getItem(EDITOR_CURRENT_PROJECT_KEY)
+
+export const listPersistedEditorProjects = (
+  store: EditorProjectStore = defaultProjectStore()
+): EditorProjectMetadata[] => {
   try {
-    const raw = window.localStorage.getItem(EDITOR_RECENT_PROJECTS_KEY)
+    const raw = store.getItem(EDITOR_RECENT_PROJECTS_KEY)
     if (!raw) return []
     const value: unknown = JSON.parse(raw)
     if (!Array.isArray(value)) return []
     return value
       .filter(isProjectMetadata)
-      .filter((project) =>
-        window.localStorage.getItem(projectStorageKey(project.id))
-      )
+      .filter((project) => store.getItem(projectStorageKey(project.id)))
   } catch {
     return []
   }
 }
 
-const updateRecentProjects = (project: EditorProjectMetadata) => {
-  const next = [
-    project,
-    ...listPersistedEditorProjects().filter((item) => item.id !== project.id),
-  ]
-  window.localStorage.setItem(EDITOR_RECENT_PROJECTS_KEY, JSON.stringify(next))
+export const writeEditorProjectDocument = (
+  snapshot: EditorSnapshot,
+  project: EditorProjectMetadata,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
+  const documentFile = createEditorDocumentFile(snapshot, project)
+  store.setItem(projectStorageKey(project.id), JSON.stringify(documentFile))
+  return documentFile
 }
 
-export const readPersistedEditorProject = (projectId: string) => {
+export const writeEditorProjectIndex = (
+  project: EditorProjectMetadata,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
+  const next = [
+    project,
+    ...listPersistedEditorProjects(store).filter(
+      (item) => item.id !== project.id
+    ),
+  ]
+  store.setItem(EDITOR_RECENT_PROJECTS_KEY, JSON.stringify(next))
+  return next
+}
+
+export const writeCurrentEditorProjectId = (
+  projectId: string,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
+  store.setItem(EDITOR_CURRENT_PROJECT_KEY, projectId)
+}
+
+export const readPersistedEditorProject = (
+  projectId: string,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
   try {
-    return parseStoredDocument(
-      window.localStorage.getItem(projectStorageKey(projectId))
-    )
+    return parseStoredDocument(store.getItem(projectStorageKey(projectId)))
   } catch {
     return null
   }
 }
 
-export const deletePersistedEditorProject = (projectId: string) => {
-  window.localStorage.removeItem(projectStorageKey(projectId))
-  const nextRecent = listPersistedEditorProjects().filter(
+export const deletePersistedEditorProject = (
+  projectId: string,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
+  store.removeItem(projectStorageKey(projectId))
+  const nextRecent = listPersistedEditorProjects(store).filter(
     (project) => project.id !== projectId
   )
   if (nextRecent.length > 0) {
-    window.localStorage.setItem(
-      EDITOR_RECENT_PROJECTS_KEY,
-      JSON.stringify(nextRecent)
-    )
+    store.setItem(EDITOR_RECENT_PROJECTS_KEY, JSON.stringify(nextRecent))
   } else {
-    window.localStorage.removeItem(EDITOR_RECENT_PROJECTS_KEY)
+    store.removeItem(EDITOR_RECENT_PROJECTS_KEY)
   }
-  if (window.localStorage.getItem(EDITOR_CURRENT_PROJECT_KEY) === projectId) {
-    window.localStorage.removeItem(EDITOR_CURRENT_PROJECT_KEY)
+  if (store.getItem(EDITOR_CURRENT_PROJECT_KEY) === projectId) {
+    store.removeItem(EDITOR_CURRENT_PROJECT_KEY)
   }
   return nextRecent
 }
 
-export const readPersistedEditorDocument = (): ParsedEditorDocument | null => {
+export const readPersistedEditorDocument = (
+  store: EditorProjectStore = defaultProjectStore()
+): ParsedEditorDocument | null => {
   try {
-    const projectId = window.localStorage.getItem(EDITOR_CURRENT_PROJECT_KEY)
+    const projectId = store.getItem(EDITOR_CURRENT_PROJECT_KEY)
     if (projectId) {
-      const current = readPersistedEditorProject(projectId)
+      const current = readPersistedEditorProject(projectId, store)
       if (current) return current
     }
   } catch {
@@ -415,8 +454,9 @@ export const readPersistedEditorDocument = (): ParsedEditorDocument | null => {
   return null
 }
 
-export const readPersistedEditorSnapshot = () =>
-  readPersistedEditorDocument()?.snapshot ?? null
+export const readPersistedEditorSnapshot = (
+  store: EditorProjectStore = defaultProjectStore()
+) => readPersistedEditorDocument(store)?.snapshot ?? null
 
 export const createEditorDocumentFile = (
   snapshot: EditorSnapshot,
@@ -437,23 +477,24 @@ export const createEditorDocumentFile = (
 
 export const writePersistedEditorDocument = (
   snapshot: EditorSnapshot,
-  project: EditorProjectMetadata
+  project: EditorProjectMetadata,
+  store: EditorProjectStore = defaultProjectStore()
 ) => {
-  const documentFile = createEditorDocumentFile(snapshot, project)
-  window.localStorage.setItem(
-    projectStorageKey(project.id),
-    JSON.stringify(documentFile)
-  )
-  window.localStorage.setItem(EDITOR_CURRENT_PROJECT_KEY, project.id)
-  updateRecentProjects(documentFile.project)
+  const documentFile = writeEditorProjectDocument(snapshot, project, store)
+  writeEditorProjectIndex(documentFile.project, store)
+  writeCurrentEditorProjectId(project.id, store)
   return documentFile.project
 }
 
-export const writePersistedEditorSnapshot = (snapshot: EditorSnapshot) => {
-  const current = readPersistedEditorDocument()
+export const writePersistedEditorSnapshot = (
+  snapshot: EditorSnapshot,
+  store: EditorProjectStore = defaultProjectStore()
+) => {
+  const current = readPersistedEditorDocument(store)
   return writePersistedEditorDocument(
     snapshot,
-    current?.project ?? createProjectMetadata()
+    current?.project ?? createProjectMetadata(),
+    store
   )
 }
 

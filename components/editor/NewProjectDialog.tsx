@@ -6,6 +6,7 @@ import {
   Download,
   FilePlus2,
   FolderClock,
+  Search,
   Sparkles,
   Trash2,
 } from "lucide-react"
@@ -19,6 +20,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { EditorProjectMetadata } from "./EditorDocumentModel"
+import {
+  filterSavedProjects,
+  getVisibleSavedProjectRows,
+} from "./NewProjectDialogModel"
 
 export type NewProjectDialogProps = {
   open: boolean
@@ -55,12 +60,20 @@ export function NewProjectDialog({
   onDownloadCurrent,
 }: NewProjectDialogProps) {
   const [name, setName] = useState("Untitled project")
+  const [projectQuery, setProjectQuery] = useState("")
   const [projectToDelete, setProjectToDelete] =
     useState<EditorProjectMetadata | null>(null)
+  const visibleProjects = filterSavedProjects(recentProjects, projectQuery)
+  const visibleProjectRows = getVisibleSavedProjectRows(
+    recentProjects,
+    projectQuery
+  )
 
   useEffect(() => {
-    if (open) setName("Untitled project")
-    else setProjectToDelete(null)
+    if (open) {
+      setName("Untitled project")
+      setProjectQuery("")
+    } else setProjectToDelete(null)
   }, [open])
 
   return (
@@ -178,9 +191,35 @@ export function NewProjectDialog({
                 >
                   Saved on this device
                 </h3>
+                <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">
+                  {visibleProjects.length === recentProjects.length
+                    ? `${recentProjects.length}`
+                    : `${visibleProjects.length} of ${recentProjects.length}`}
+                </span>
               </div>
-              <div className="grid gap-1 rounded-xl border border-border bg-muted/20 p-1">
-                {recentProjects.slice(0, 8).map((recent) => {
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  id="saved-project-search"
+                  type="search"
+                  value={projectQuery}
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="Search saved projects"
+                  aria-label="Search saved projects"
+                  onChange={(event) =>
+                    setProjectQuery(event.currentTarget.value)
+                  }
+                  className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-base text-foreground transition-[border-color,box-shadow] outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
+                />
+              </div>
+              <div className="grid max-h-72 gap-1 overflow-y-auto rounded-xl border border-border bg-muted/20 p-1">
+                {visibleProjects.length === 0 ? (
+                  <p className="px-3 py-4 text-sm text-muted-foreground">
+                    No saved projects match “{projectQuery.trim()}”.
+                  </p>
+                ) : null}
+                {visibleProjectRows.map(({ project: recent }) => {
                   const current = recent.id === currentProjectId
                   return (
                     <div

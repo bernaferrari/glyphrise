@@ -76,6 +76,62 @@ test("duplicates projects and recovers after deleting the current project", asyn
   ).toHaveCount(0)
 })
 
+test("can reopen, duplicate, and delete a project beyond the first eight", async ({
+  page,
+}) => {
+  const createBlankProject = async (name: string) => {
+    await openProjects(page)
+    await page.getByLabel("New project name").fill(name)
+    await page.getByRole("button", { name: "Start blank" }).click()
+    await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+      name
+    )
+  }
+
+  await createBlankProject("Oldest saved project")
+  for (let index = 2; index <= 12; index += 1) {
+    await createBlankProject(`Project ${index}`)
+  }
+
+  await openProjects(page)
+  await expect(page.getByLabel("Search saved projects")).toBeVisible()
+  await expect(
+    page.getByRole("button", {
+      name: /^Open (Oldest saved project|Project \d+)(, current project)?$/,
+    })
+  ).toHaveCount(12)
+
+  await page.getByLabel("Search saved projects").fill("Oldest saved")
+  await expect(
+    page.getByRole("button", { name: "Open Oldest saved project" })
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Open Oldest saved project" }).click()
+  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+    "Oldest saved project"
+  )
+
+  await openProjects(page)
+  await page.getByLabel("Search saved projects").fill("Oldest saved")
+  await page
+    .getByRole("button", { name: "Duplicate Oldest saved project" })
+    .click()
+  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+    "Oldest saved project copy"
+  )
+
+  await openProjects(page)
+  await page
+    .getByLabel("Search saved projects")
+    .fill("Oldest saved project copy")
+  await page
+    .getByRole("button", { name: "Delete Oldest saved project copy" })
+    .click()
+  await page.getByRole("button", { name: "Delete project" }).click()
+  await expect(
+    page.getByLabel("Project name", { exact: true })
+  ).not.toHaveValue("Oldest saved project copy")
+})
+
 test("starts style templates with a clean undo baseline", async ({ page }) => {
   await openProjects(page)
   await page.getByLabel("New project name").fill("Styled project")

@@ -39,6 +39,10 @@ import {
   readPersistedEditorProject,
   writePersistedEditorDocument,
 } from "./EditorDocumentModel"
+import {
+  persistProjectActivation,
+  type ProjectActivationKind,
+} from "./EditorProjectActivation"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import type {
   FillGradientType,
@@ -419,18 +423,26 @@ export function useEditorSnapshotHistory({
   }
 
   const activateProject = (
+    kind: ProjectActivationKind,
     nextSnapshot: EditorSnapshot,
     nextProject: EditorProjectMetadata,
-    statusMessage: string
+    statusMessage: string,
+    preserveOutgoing = true
   ) => {
-    restoreSnapshot(nextSnapshot)
-    history.resetHistory(nextSnapshot, true)
-    const persistedProject = writePersistedEditorDocument(
-      nextSnapshot,
-      nextProject
-    )
-    markSnapshotPersisted(nextSnapshot, persistedProject)
-    setProject(persistedProject)
+    const persisted = persistProjectActivation({
+      kind,
+      incomingSnapshot: nextSnapshot,
+      incomingProject: nextProject,
+      outgoing: {
+        snapshot: snapshotRef.current,
+        project: projectRef.current,
+      },
+      preserveOutgoing,
+    })
+    restoreSnapshot(persisted.snapshot)
+    history.resetHistory(persisted.snapshot, true)
+    markSnapshotPersisted(persisted.snapshot, persisted.project)
+    setProject(persisted.project)
     setRecentProjects(listPersistedEditorProjects())
     setProjectStatus("saved")
     setProjectStatusMessage(statusMessage)
@@ -471,6 +483,7 @@ export function useEditorSnapshotHistory({
     )
     try {
       activateProject(
+        "create",
         nextSnapshot,
         nextProject,
         `${nextProject.name} created and saved locally.`
@@ -480,8 +493,8 @@ export function useEditorSnapshotHistory({
       setProjectStatus("error")
       setProjectStatusMessage(
         error instanceof Error
-          ? `New project created, but autosave failed: ${error.message}`
-          : "New project created, but autosave failed."
+          ? `Could not create the project: ${error.message}`
+          : "Could not create the project."
       )
     }
   }
@@ -522,12 +535,22 @@ export function useEditorSnapshotHistory({
       setRecentProjects(listPersistedEditorProjects())
       return
     }
-    activateProject(
-      documentFile.snapshot,
-      documentFile.project,
-      `${documentFile.project.name} opened.`
-    )
-    setNewProjectDialogOpen(false)
+    try {
+      activateProject(
+        "switch",
+        documentFile.snapshot,
+        documentFile.project,
+        `${documentFile.project.name} opened.`
+      )
+      setNewProjectDialogOpen(false)
+    } catch (error) {
+      setProjectStatus("error")
+      setProjectStatusMessage(
+        error instanceof Error
+          ? `Could not open the project: ${error.message}`
+          : "Could not open the project."
+      )
+    }
   }
 
   const duplicateRecentProject = (projectId: string) => {
@@ -548,6 +571,7 @@ export function useEditorSnapshotHistory({
     )
     try {
       activateProject(
+        "duplicate",
         documentFile.snapshot,
         duplicatedProject,
         `${duplicatedProject.name} created and opened.`
@@ -584,9 +608,11 @@ export function useEditorSnapshotHistory({
         .find((candidate) => candidate !== null)
       if (fallback) {
         activateProject(
+          "switch",
           fallback.snapshot,
           fallback.project,
-          `${deleting.name} deleted. ${fallback.project.name} opened.`
+          `${deleting.name} deleted. ${fallback.project.name} opened.`,
+          false
         )
         return
       }
@@ -596,9 +622,11 @@ export function useEditorSnapshotHistory({
       )
       const blankProject = createProjectMetadata()
       activateProject(
+        "create",
         blankSnapshot,
         blankProject,
-        `${deleting.name} deleted. A new blank project is ready.`
+        `${deleting.name} deleted. A new blank project is ready.`,
+        false
       )
     } catch (error) {
       setProjectStatus("error")
@@ -649,6 +677,7 @@ export function useEditorSnapshotHistory({
             throw new Error("Invalid Glyphrise project file.")
           }
           activateProject(
+            "import",
             nextDocument.snapshot,
             nextDocument.project,
             `${nextDocument.project.name} imported and saved locally.`
