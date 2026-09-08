@@ -98,7 +98,7 @@ export function InspectorRow({
           active ? "text-foreground" : "text-muted-foreground"
         )}
       >
-        <span className="truncate">{label}</span>
+        <span className="min-w-0 text-pretty">{label}</span>
         {dot ? (
           <span
             className="size-1 shrink-0 rounded-full"

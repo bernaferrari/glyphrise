@@ -5,6 +5,7 @@ import {
   createEditorDocumentFile,
   createProjectMetadata,
   editorProjectStorageKey,
+  listPersistedEditorProjects,
   parseImportedEditorDocument,
   readCurrentEditorProjectId,
   readPersistedEditorProject,
@@ -265,5 +266,68 @@ describe("persistProjectActivation", () => {
     expect(
       readPersistedEditorProject(previous.project.id, store)?.snapshot
     ).toEqual(previous.snapshot)
+  })
+
+  it("saves a dirty outgoing snapshot under its own id when a later write fails", () => {
+    const baseline = createMemoryStorage()
+    const previous = seedPreviousProject(baseline)
+    const dirtyOutgoing = validSnapshot("#d1d1d1")
+    const incomingSnapshot = validSnapshot("#ff0066")
+    const incomingProject = createProjectMetadata("Incoming project")
+
+    for (const failOnWrite of [3, 4]) {
+      const store = failingStore(baseline, failOnWrite)
+      expect(() =>
+        persistProjectActivation({
+          kind: "create",
+          incomingSnapshot,
+          incomingProject,
+          outgoing: {
+            snapshot: dirtyOutgoing,
+            project: previous.project,
+          },
+          store,
+        })
+      ).toThrow(`storage write ${failOnWrite} failed`)
+
+      expect(readCurrentEditorProjectId(store)).toBe(previous.project.id)
+      expect(
+        readPersistedEditorProject(previous.project.id, store)?.snapshot
+      ).toEqual(dirtyOutgoing)
+      expect(
+        readPersistedEditorProject(previous.project.id, store)?.snapshot
+          .fillColor
+      ).not.toBe(incomingSnapshot.fillColor)
+
+      if (failOnWrite === 3) {
+        expect(readPersistedEditorProject(incomingProject.id, store)).toBeNull()
+      } else {
+        expect(
+          listPersistedEditorProjects(store).some(
+            (project) => project.id === incomingProject.id
+          )
+        ).toBe(true)
+      }
+
+      const retryStore = cloneStorage(store)
+      const retried = persistProjectActivation({
+        kind: "create",
+        incomingSnapshot,
+        incomingProject: createProjectMetadata("Retry project"),
+        outgoing: {
+          snapshot: dirtyOutgoing,
+          project: previous.project,
+        },
+        store: retryStore,
+      })
+      expect(retried.project.id).not.toBe(previous.project.id)
+      expect(
+        readPersistedEditorProject(previous.project.id, retryStore)?.snapshot
+      ).toEqual(dirtyOutgoing)
+      expect(
+        readPersistedEditorProject(retried.project.id, retryStore)?.snapshot
+          .fillColor
+      ).toBe(incomingSnapshot.fillColor)
+    }
   })
 })

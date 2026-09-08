@@ -178,7 +178,7 @@ test("keeps essential workspace actions reachable at compact widths", async ({
     page.getByRole("button", { name: "Download project backup" })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Quick start", exact: true })
+    page.getByRole("button", { name: "Animate", exact: true })
   ).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
@@ -189,7 +189,6 @@ test("uses dedicated workspace views on phone-sized screens", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 568 })
-  await page.getByRole("button", { name: "Dismiss quick start" }).click()
 
   const preview = page.getByRole("region", { name: "3D preview" })
   await expect(preview).toBeVisible()
@@ -204,7 +203,7 @@ test("uses dedicated workspace views on phone-sized screens", async ({
 
   await page.getByRole("button", { name: "Properties" }).click()
   await expect(
-    page.getByRole("navigation", { name: "Inspector sections" })
+    page.getByRole("complementary", { name: "Properties inspector" })
   ).toBeVisible()
 
   await page.getByRole("button", { name: "Timeline" }).click()
@@ -227,8 +226,7 @@ test("persists the latest edit during an immediate reload", async ({
   )
 })
 
-test("treats one canvas drag as one undo step", async ({ page }) => {
-  await page.getByRole("button", { name: "Dismiss quick start" }).click()
+test("orbits the camera without editing the document", async ({ page }) => {
   const canvas = page
     .getByRole("region", { name: "3D preview" })
     .locator("canvas")
@@ -244,21 +242,22 @@ test("treats one canvas drag as one undo step", async ({ page }) => {
 
   const rotationX = page.getByLabel("Rotation X", { exact: true })
   const rotationY = page.getByLabel("Rotation Y", { exact: true })
-  await expect
-    .poll(async () => [
-      await rotationX.inputValue(),
-      await rotationY.inputValue(),
-    ])
-    .not.toEqual(["0", "0"])
-  await page.waitForTimeout(400)
-  await page.getByRole("button", { name: "Undo" }).click()
-
   await expect(rotationX).toHaveValue("0")
+  await expect(rotationY).toHaveValue("0")
+  await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click()
+  await expect(rotationY).toHaveValue("0")
+  await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
+
+  // An explicit object edit still participates in document undo.
+  await rotationY.fill("25")
+  await rotationY.press("Enter")
+  await page.getByRole("button", { name: "Undo" }).click()
   await expect(rotationY).toHaveValue("0")
 })
 
 test("describes code exports as implementation starters", async ({ page }) => {
-  await page.getByRole("button", { name: "Export" }).click()
+  await page.getByRole("button", { name: "Export", exact: true }).click()
   await page.getByRole("tab", { name: "React starter" }).click()
 
   await expect(
@@ -273,7 +272,7 @@ test("describes code exports as implementation starters", async ({ page }) => {
 test("offers production render controls and an honest fidelity matrix", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Export" }).click()
+  await page.getByRole("button", { name: "Export", exact: true }).click()
 
   await expect(page.getByText("Render settings")).toBeVisible()
   await expect(page.getByLabel("Width")).toHaveValue("1080")

@@ -31,6 +31,7 @@ import type { ExportRenderOptions } from "./SvgTypes"
 type NullableRef<T> = MutableRefObject<T | null>
 
 type UseSvgRenderLoopOptions = {
+  cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
   sceneRef: NullableRef<THREE.Scene>
   rendererRef: NullableRef<THREE.WebGLRenderer>
   cameraRef: NullableRef<THREE.PerspectiveCamera>
@@ -58,6 +59,7 @@ type UseSvgRenderLoopOptions = {
 }
 
 export function useSvgRenderLoop({
+  cameraOrbitRef,
   sceneRef,
   rendererRef,
   cameraRef,
@@ -149,9 +151,25 @@ export function useSvgRenderLoop({
 
       currentZoomRef.current +=
         (targetZoomRef.current - currentZoomRef.current) * ZOOM_DAMPING
-      camera.position.z = framedCameraDistance(camera) / currentZoomRef.current
+      const orbit = exportRenderOptions
+        ? { x: 0, y: 0 }
+        : cameraOrbitRef.current
+      const pitch = THREE.MathUtils.degToRad(
+        Math.max(-85, Math.min(85, orbit.x))
+      )
+      const yaw = THREE.MathUtils.degToRad(orbit.y)
+      const distance =
+        framedCameraDistance(camera) /
+        (exportRenderOptions ? 1 : currentZoomRef.current)
+      camera.position.set(
+        -distance * Math.sin(yaw) * Math.cos(pitch),
+        distance * Math.sin(pitch),
+        distance * Math.cos(yaw) * Math.cos(pitch)
+      )
+      camera.lookAt(0, 0, 0)
+      camera.updateMatrixWorld()
 
-      updateOrientationGizmo(orientationGizmoRefs, displayRotation)
+      updateOrientationGizmo(orientationGizmoRefs, { x: -pitch, y: -yaw, z: 0 })
 
       const { isCrossfade } = applySvgTransitionState({
         progress,
@@ -230,6 +248,7 @@ export function useSvgRenderLoop({
       animFrameId = null
     }
   }, [
+    cameraOrbitRef,
     cameraRef,
     centerMarkerRef,
     clipPlaneARef,

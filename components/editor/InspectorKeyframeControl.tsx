@@ -20,19 +20,21 @@ const KeyframeDiamond = ({
 
 const KeyframeButton = ({
   isKeyedHere,
+  currentTime,
   label,
   color,
   onToggle,
 }: {
   isKeyedHere: boolean
+  currentTime: number
   label: string
   color: string
   onToggle: () => void
 }) => (
   <button
     type="button"
-    aria-label={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at current time`}
-    title={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe`}
+    aria-label={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}
+    title={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}
     onPointerDown={(event) => event.stopPropagation()}
     onMouseDown={(event) => event.stopPropagation()}
     onClick={(event) => {
@@ -75,6 +77,7 @@ export function InspectorKeyframeControl({
       onJump={onJump}
     >
       <KeyframeButton
+        currentTime={currentTime}
         isKeyedHere={isKeyedHere}
         label={label}
         color={color}

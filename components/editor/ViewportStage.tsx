@@ -72,7 +72,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
         id="glyphrise-preview-pane"
         inert={workspaceActive ? undefined : true}
         aria-hidden={workspaceActive ? undefined : true}
-        className={`flex min-w-0 flex-1 flex-col ${
+        className={`relative isolate flex min-w-0 flex-1 flex-col ${
           zenMode ? "gap-0 p-0" : "gap-2 p-4 max-[720px]:p-2"
         }`}
       >
@@ -128,6 +128,11 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           )}
 
           <ViewOptionsPopover {...viewOptionsProps} />
+          {!zenMode && (
+            <p className="pointer-events-none absolute top-14 right-3 left-3 text-center text-[11px] text-white/65">
+              Drag to orbit · Scroll to zoom · Camera is preview-only
+            </p>
+          )}
           <PlaybackControls {...playbackProps} />
         </div>
       </div>

@@ -13,6 +13,8 @@ import { useEditorMotionSurface } from "./useEditorMotionSurface"
 import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
 import { ALL_LAYERS_ID } from "./SvgLayerModel"
 import type { AppLayoutViewProps } from "./AppLayoutView"
+import { clampTimelineDuration } from "./TimelineDurationModel"
+import { createAnimationPreset } from "./AnimationPresetModel"
 import { useQuickStartGuideController } from "./useQuickStartGuideController"
 
 export function useAppLayoutController(): AppLayoutViewProps {
@@ -27,9 +29,10 @@ export function useAppLayoutController(): AppLayoutViewProps {
       project,
       renameProject,
       createNewProject,
-      finalizeProjectBaseline,
+      createProjectFromTemplate,
       newProjectDialogOpen,
       setNewProjectDialogOpen,
+      projectActionError,
       recentProjects,
       openRecentProject,
       duplicateRecentProject,
@@ -253,6 +256,12 @@ export function useAppLayoutController(): AppLayoutViewProps {
   const [sessionIconChanged, setSessionIconChanged] = useState(false)
   const [sessionStyleChanged, setSessionStyleChanged] = useState(false)
   const [sessionMotionAdded, setSessionMotionAdded] = useState(false)
+
+  useEffect(() => {
+    setSessionIconChanged(false)
+    setSessionStyleChanged(false)
+    setSessionMotionAdded(false)
+  }, [project.id])
 
   const setShapeIcon: typeof setShapeIconRaw = (...args) => {
     setSessionIconChanged(true)
@@ -540,6 +549,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
 
   const { openGuide, dismissedRecently, markExportComplete, quickStartProps } =
     useQuickStartGuideController({
+      projectId: project.id,
       selectedShapeId,
       fallbackShapeId: shapes[0]?.id ?? null,
       setOpenShapePicker,
@@ -548,7 +558,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
       applyRecipe: applyRecipeFromGuide,
       hasCustomizedIcon: sessionIconChanged,
       hasStyle: sessionStyleChanged,
-      hasMotion: sessionMotionAdded,
+      hasMotion: sessionMotionAdded && keyframeCount > 0,
       onExport: openExport,
     })
 
@@ -814,6 +824,34 @@ export function useAppLayoutController(): AppLayoutViewProps {
     })
 
   return {
+    animationProps: {
+      duration,
+      onApply: (id, seconds, intensity) => {
+        stopPlayback()
+        cancelAnimatedSeek()
+        const presetDuration = clampTimelineDuration(seconds)
+        const result = createAnimationPreset({
+          id,
+          duration: presetDuration,
+          intensity,
+          rotation: rotationAxisKeyframes[0]?.value ?? rotationOffset,
+          scale: scaleTrack.keyframes[0]?.value ?? objectScale,
+          scaleTrack,
+        })
+        timelineProps.onDurationChange(presetDuration)
+        if (result.rotationKeyframes)
+          setRotationAxisKeyframes(result.rotationKeyframes)
+        if (result.scaleTrack)
+          setTracks((previous) =>
+            previous.map((track) =>
+              track.id === "scale" ? result.scaleTrack! : track
+            )
+          )
+        setCurrentTime(0)
+        setPreviewRotationOffset(null)
+        markCustom()
+      },
+    },
     keyframeNotice,
     topBarProps: {
       zenMode,
@@ -835,7 +873,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onRedo: redo,
       canUndo,
       canRedo,
-      onGuideOpen: openGuide,
       onExportOpen: quickStartProps.onExport,
     },
     viewportProps: {
@@ -856,6 +893,27 @@ export function useAppLayoutController(): AppLayoutViewProps {
       },
     },
     inspectorProps: {
+      editScopeProps: {
+        currentTime,
+        autoKeyEnabled,
+        onAutoKeyChange: setAutoKeyEnabled,
+        properties: [
+          { name: "Rotation", times: rotationAxisKeyframes.map((k) => k.time) },
+          { name: "Position", times: moveKeyframes.map((k) => k.time) },
+          { name: "Fill", times: fillKeyframes.map((k) => k.time) },
+          { name: "Finish", times: materialKeyframes.map((k) => k.time) },
+          {
+            name: "Light direction",
+            times: keyLightPositionKeyframes.map((k) => k.time),
+          },
+          ...tracks
+            .filter((t) => t.id !== "rotation" && t.id !== "transition")
+            .map((t) => ({
+              name: t.name,
+              times: t.keyframes.map((k) => k.time),
+            })),
+        ],
+      },
       zenMode,
       styleProps,
       geometryProps,
@@ -880,11 +938,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       templates: quickStartProps.templates,
       onOpenChange: setNewProjectDialogOpen,
       onCreate: createNewProject,
-      onCreateFromTemplate: (templateId, name) => {
-        createNewProject("blank", name)
-        quickStartProps.onTemplateChoose(templateId)
-        finalizeProjectBaseline()
-      },
+      onCreateFromTemplate: createProjectFromTemplate,
+      actionError: projectActionError,
       onOpenRecent: openRecentProject,
       onDuplicateRecent: duplicateRecentProject,
       onDeleteRecent: deleteRecentProject,

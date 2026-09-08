@@ -1,0 +1,183 @@
+import { expect, test, type Page } from "@playwright/test"
+
+async function backup(page: Page) {
+  await page.getByRole("button", { name: "Open project menu" }).click()
+  const downloaded = page.waitForEvent("download")
+  await page.getByRole("button", { name: "Download project backup" }).click()
+  const stream = await (await downloaded).createReadStream()
+  const chunks: Buffer[] = []
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
+  return JSON.parse(Buffer.concat(chunks).toString()).snapshot
+}
+
+async function renderPng(page: Page) {
+  await page.getByRole("button", { name: "Export", exact: true }).click()
+  await page.getByLabel("Width", { exact: true }).fill("256")
+  await page.getByLabel("Height", { exact: true }).fill("256")
+  const downloaded = page.waitForEvent("download")
+  await page.getByRole("button", { name: "PNG", exact: true }).click()
+  const stream = await (await downloaded).createReadStream()
+  const chunks: Buffer[] = []
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
+  await page.keyboard.press("Escape")
+  await expect(page.getByRole("dialog", { includeHidden: true })).toHaveCount(0)
+  return Buffer.concat(chunks)
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.goto("/")
+})
+
+test("applies adjustable motion while preserving artwork, then undoes it in one step", async ({
+  page,
+}) => {
+  const before = await backup(page)
+  await page.getByRole("button", { name: "Animate", exact: true }).click()
+  await page.getByRole("button", { name: "Tilt", exact: true }).click()
+  await page.getByLabel("Motion duration").fill("4")
+  await page.getByLabel("Motion intensity").fill("0.5")
+  await page.getByRole("button", { name: "Apply Tilt" }).click()
+  await expect(
+    page.getByRole("button", { name: "Play", exact: true })
+  ).toBeVisible()
+  const after = await backup(page)
+  expect(after.duration).toBe(4)
+  expect(
+    after.rotationAxisKeyframes.map(
+      (k: { time: number; value: { z: number } }) => [k.time, k.value.z]
+    )
+  ).toEqual([
+    [0, 0],
+    [2, 12.5],
+    [4, 0],
+  ])
+  for (const field of [
+    "materialPreset",
+    "materialSettings",
+    "fillColor",
+    "extrusionDepth",
+    "objectScale",
+    "moveOffset",
+  ])
+    expect(after[field]).toEqual(before[field])
+  expect(
+    after.shapes.map((shape: { svgContent: string }) => shape.svgContent)
+  ).toEqual(
+    before.shapes.map((shape: { svgContent: string }) => shape.svgContent)
+  )
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  expect(await backup(page)).toEqual(before)
+})
+
+test("explains edits at and between keyframes and creates only an intentional keyframe", async ({
+  page,
+}) => {
+  await expect(
+    page.getByText("Rotation: editing this keyframe.", { exact: true })
+  ).toBeVisible()
+  const playhead = page.getByRole("slider", { name: "Timeline playhead" })
+  await playhead.focus()
+  await playhead.press("ArrowRight")
+  await expect(
+    page.getByText(/^Enable to animate changes at/, { exact: true })
+  ).toBeVisible()
+  await page
+    .getByRole("switch", { name: "Create keyframes when editing" })
+    .click()
+  const rotation = page.getByLabel("Rotation Y", { exact: true })
+  await rotation.fill("45")
+  await rotation.press("Enter")
+  const document = await backup(page)
+  expect(document.rotationAxisKeyframes).toHaveLength(3)
+  expect(
+    document.rotationAxisKeyframes.some(
+      (k: { time: number; value: { y: number } }) =>
+        k.time > 0 && k.time < 5 && k.value.y === 45
+    )
+  ).toBe(true)
+})
+
+test("adding a property supplies a useful animation", async ({ page }) => {
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  await page.getByRole("button", { name: "Depth", exact: true }).click()
+  const document = await backup(page)
+  const frames = document.tracks.find(
+    (track: { id: string }) => track.id === "extrusion"
+  ).keyframes
+  expect(frames).toHaveLength(3)
+  expect(frames[0].value).not.toBe(frames[1].value)
+  expect(frames[0].value).toBe(frames[2].value)
+})
+
+test("camera orbit changes the view but preserves exported document state", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "View options" }).click()
+  await page.getByRole("switch", { name: "Inertia", exact: true }).click()
+  await page.keyboard.press("Escape")
+  const before = await backup(page)
+  const originalPng = await renderPng(page)
+  const canvas = page
+    .getByRole("region", { name: "3D preview" })
+    .locator("canvas")
+  await expect(
+    page.getByRole("button", { name: /Change icon for/ })
+  ).toBeVisible()
+  const box = (await canvas.boundingBox())!
+  // Compare the rendered icon, excluding browser-antialiased rounded corners
+  // and overlay controls whose hover/focus appearance changes during the flow.
+  const captureIcon = () =>
+    page.screenshot({
+      clip: {
+        x: box.x + box.width / 4,
+        y: box.y + box.height / 4,
+        width: box.width / 2,
+        height: box.height / 2,
+      },
+    })
+  const image = await captureIcon()
+  await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, {
+    steps: 12,
+  })
+  await page.mouse.up()
+  expect((await captureIcon()).equals(image)).toBe(false)
+  expect(await backup(page)).toEqual(before)
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.wheel(0, -200)
+  expect((await renderPng(page)).equals(originalPng)).toBe(true)
+  await expect(
+    page.getByRole("button", { name: "Undo", exact: true })
+  ).toBeDisabled()
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click()
+  await expect.poll(async () => (await captureIcon()).equals(image)).toBe(true)
+  expect(await backup(page)).toEqual(before)
+})
+
+test("phone workflow reaches motion preview and export with reduced motion", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 568 })
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await page.getByRole("button", { name: "Animate", exact: true }).click()
+  await expect(page.getByRole("dialog")).toBeVisible()
+  expect(
+    await page
+      .locator(".motion-preview")
+      .first()
+      .evaluate((element) => getComputedStyle(element).animationName)
+  ).toBe("none")
+  await page.getByRole("button", { name: "Pulse", exact: true }).click()
+  await page.getByRole("button", { name: "Apply Pulse" }).click()
+  await page.getByRole("button", { name: "Play", exact: true }).click()
+  await expect(
+    page.getByRole("button", { name: "Pause", exact: true })
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Export", exact: true }).click()
+  await expect(page.getByRole("dialog")).toBeVisible()
+  await expect(page.getByLabel("Width", { exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
+    390
+  )
+})

@@ -17,7 +17,7 @@ const DEFAULT_VIEWPORT_OPTIONS: ViewportOptions = {
   zoom: 1,
   viewInertiaEnabled: true,
   showCenterPoint: false,
-  showTransformGizmo: true,
+  showTransformGizmo: false,
   zenMode: false,
   isDragging: false,
 }

@@ -83,6 +83,8 @@ export const TimelineRuler = React.forwardRef<
     <div
       ref={ref}
       role="slider"
+      data-timeline-playback-surface
+      aria-keyshortcuts="Space"
       tabIndex={0}
       aria-label="Timeline playhead"
       aria-orientation="horizontal"

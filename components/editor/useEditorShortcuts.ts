@@ -15,8 +15,12 @@ export const useEditorShortcuts = ({
 
   useEffect(() => {
     const handleEditorShortcut = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.repeat) return
+      if (event.defaultPrevented) return
+      if (event.repeat && event.code !== "Space") return
       if (isEditableShortcutTarget(event.target)) return
+      // Dialogs own keyboard interaction while the editor is in the background.
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]'))
+        return
 
       const key = event.key.toLowerCase()
       const commandOrControl = event.metaKey || event.ctrlKey
@@ -38,8 +42,17 @@ export const useEditorShortcuts = ({
 
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (event.code === "Space") {
+        // Preserve native activation and custom controls' Space handling.
+        if (
+          event.target instanceof Element &&
+          !event.target.closest("[data-timeline-playback-surface]") &&
+          event.target.closest(
+            'button, a[href], summary, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="slider"], [role="menuitem"], [role="option"]'
+          )
+        )
+          return
         event.preventDefault()
-        callbacksRef.current.onPlayPause()
+        if (!event.repeat) callbacksRef.current.onPlayPause()
       }
     }
 

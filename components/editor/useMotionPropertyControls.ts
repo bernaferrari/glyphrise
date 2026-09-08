@@ -72,7 +72,7 @@ export function useMotionPropertyControls({
     markCustom,
   })
 
-  const { updateMoveAxis, resetMovePositionToOrigin } = useMoveMotionControls({
+  const { updateMoveAxis } = useMoveMotionControls({
     currentTime,
     duration,
     setSelectedMotionTrackId,
@@ -94,8 +94,7 @@ export function useMotionPropertyControls({
 
   const resetView = useCallback(() => {
     canvas3DRef.current?.resetRotation()
-    resetMovePositionToOrigin()
-  }, [canvas3DRef, resetMovePositionToOrigin])
+  }, [canvas3DRef])
 
   return {
     handleDepthChange,

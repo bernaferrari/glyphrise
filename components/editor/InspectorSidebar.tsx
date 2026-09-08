@@ -1,8 +1,7 @@
 "use client"
 
-import { useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, Plus, Shapes } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { EditScopePanel, type EditScopePanelProps } from "./EditScopePanel"
 import { LayerSwitcher } from "./LayerSwitcher"
 import {
   GeometryInspectorSection,
@@ -30,6 +29,7 @@ export type SidebarTransformProps = TransformInspectorSectionProps & {
 export type SidebarLightProps = LightInspectorSectionProps
 
 export type InspectorSidebarProps = {
+  editScopeProps: EditScopePanelProps
   zenMode: boolean
   compactOpen?: boolean
   styleProps: SidebarStyleProps
@@ -44,69 +44,69 @@ function ShapeNavRow({
   shapeNavigation: NonNullable<SidebarTransformProps["shapeNavigation"]>
 }) {
   return (
-    <div className="flex min-h-11 items-center justify-between gap-2 pr-1 pl-2">
+    <div className="space-y-2 p-2">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="sr-only">Icon</span>
         <span
-          className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-border/50 bg-background text-foreground shadow-sm [&_svg]:size-4 [&_svg_*]:fill-current"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background text-foreground [&_svg]:size-4 [&_svg_*]:fill-current"
           style={{ color: shapeNavigation.color }}
           aria-hidden="true"
           dangerouslySetInnerHTML={{ __html: shapeNavigation.svgContent }}
         />
         <span
-          className="min-w-0 truncate text-[12px] font-semibold text-foreground"
+          className="min-w-0 truncate text-xs font-semibold"
           title={shapeNavigation.label}
         >
           {shapeNavigation.label}
         </span>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          aria-label="Add icon"
-          title="Add icon at playhead"
-          onClick={shapeNavigation.onAddIcon}
-          className="flex h-7 items-center gap-1.5 rounded-md bg-foreground/[0.055] px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
-        >
-          <Plus className="size-3.5" />
-          Add icon
-        </button>
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           aria-label={`Change icon for ${shapeNavigation.label}`}
-          title="Change icon"
           onClick={shapeNavigation.onChangeIcon}
-          className="flex h-7 items-center gap-1.5 rounded-md bg-foreground/[0.055] px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.09] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+          className="flex min-h-9 items-center justify-center gap-1.5 rounded-md bg-muted px-2 text-xs font-medium whitespace-nowrap hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11"
         >
-          <Shapes className="size-3.5" />
-          Change
+          <Shapes className="size-3.5 shrink-0" />
+          Change icon
         </button>
-        {shapeNavigation.canNavigate ? (
-          <div className="flex shrink-0 items-center gap-0.5">
+        <button
+          type="button"
+          aria-label="Add icon"
+          title="Add an icon at the playhead"
+          onClick={shapeNavigation.onAddIcon}
+          className="flex min-h-9 items-center justify-center gap-1.5 rounded-md bg-muted px-2 text-xs font-medium whitespace-nowrap hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11"
+        >
+          <Plus className="size-3.5 shrink-0" />
+          Add icon
+        </button>
+      </div>
+      {shapeNavigation.canNavigate && (
+        <div className="flex items-center justify-between gap-2 pl-1">
+          <span className="text-xs text-muted-foreground tabular-nums">
+            Icon {shapeNavigation.index + 1} of {shapeNavigation.total}
+          </span>
+          <div className="flex shrink-0 gap-1">
             <button
               type="button"
               aria-label="Previous icon clip"
-              title="Previous icon clip"
+              title="Previous icon"
               onClick={shapeNavigation.onPrevious}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:size-11"
             >
-              <ChevronLeft className="size-3.5" />
+              <ChevronLeft className="size-4" />
             </button>
-            <span className="min-w-[46px] text-center font-mono text-[11px] text-muted-foreground tabular-nums">
-              Clip {shapeNavigation.index + 1}/{shapeNavigation.total}
-            </span>
             <button
               type="button"
               aria-label="Next icon clip"
-              title="Next icon clip"
+              title="Next icon"
               onClick={shapeNavigation.onNext}
-              className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+              className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:size-11"
             >
-              <ChevronRight className="size-3.5" />
+              <ChevronRight className="size-4" />
             </button>
           </div>
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -122,21 +122,12 @@ function InspectorContextHeader({
 }) {
   const { shapeNavigation } = transformProps
   const showShapeNav = !!shapeNavigation
-  const showLayers = transformProps.selectedShapeLayers.length > 0
+  const showLayers = transformProps.selectedShapeLayers.length > 1
   if (!showShapeNav && !showLayers) return null
 
   return (
     <div className="mb-3 flex shrink-0 flex-col overflow-hidden rounded-xl border border-border/60 bg-muted/25 shadow-sm">
       {showShapeNav ? <ShapeNavRow shapeNavigation={shapeNavigation} /> : null}
-      {showShapeNav ? (
-        <div className="flex items-center gap-2 px-3 pb-2 text-[11px] text-muted-foreground">
-          <span className="font-medium text-foreground">Icon</span>
-          <span aria-hidden="true">·</span>
-          <span>{shapeNavigation.pathCount} SVG paths</span>
-          <span aria-hidden="true">·</span>
-          <span>{shapeNavigation.sourceLabel}</span>
-        </div>
-      ) : null}
       {showShapeNav && showLayers ? (
         <div className="h-px bg-border/40" />
       ) : null}
@@ -156,6 +147,7 @@ function InspectorContextHeader({
 }
 
 export function InspectorSidebar({
+  editScopeProps,
   zenMode,
   compactOpen = false,
   styleProps,
@@ -163,40 +155,10 @@ export function InspectorSidebar({
   transformProps,
   lightProps,
 }: InspectorSidebarProps) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [activeSectionId, setActiveSectionId] = useState("inspector-style")
-  const scrollToSection = (id: string) => {
-    setActiveSectionId(id)
-    document.getElementById(id)?.scrollIntoView({ block: "start" })
-  }
-  const updateActiveSection = () => {
-    const rootTop = scrollRef.current?.getBoundingClientRect().top ?? 0
-    const sections = [
-      "inspector-style",
-      "inspector-geometry",
-      "inspector-transform",
-      "inspector-light",
-    ]
-    const active = sections.reduce(
-      (closest, id) => {
-        const top =
-          document.getElementById(id)?.getBoundingClientRect().top ?? Infinity
-        return Math.abs(top - rootTop - 48) <
-          Math.abs(closest.top - rootTop - 48)
-          ? { id, top }
-          : closest
-      },
-      { id: sections[0], top: Infinity }
-    )
-    setActiveSectionId(active.id)
-  }
-
   return (
     <aside
       id="glyphrise-properties-pane"
       aria-label="Properties inspector"
-      ref={scrollRef}
-      onScroll={updateActiveSection}
       inert={zenMode}
       aria-hidden={zenMode}
       className={`editor-scrollbar flex shrink-0 flex-col overflow-y-auto bg-background max-[720px]:absolute max-[720px]:inset-0 max-[720px]:z-20 max-[720px]:w-full max-[720px]:border-l-0 max-[720px]:shadow-none ${
@@ -209,44 +171,18 @@ export function InspectorSidebar({
     >
       <InspectorContextHeader transformProps={transformProps} />
 
-      <nav
-        aria-label="Inspector sections"
-        className="sticky top-0 z-20 -mx-1 mb-1 grid grid-cols-4 gap-1 border-b border-border/40 bg-background/95 px-1 pb-2 backdrop-blur-md"
-      >
-        {[
-          ["inspector-style", "Style"],
-          ["inspector-geometry", "Geometry"],
-          ["inspector-transform", "Transform"],
-          ["inspector-light", "Light"],
-        ].map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            aria-current={activeSectionId === id ? "location" : undefined}
-            onClick={() => scrollToSection(id)}
-            className={cn(
-              "min-h-9 rounded-md px-1 text-[11px] font-medium transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.98]",
-              activeSectionId === id
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground"
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </nav>
-
+      <EditScopePanel {...editScopeProps} />
       <div className="flex flex-col divide-y divide-border/30">
-        <div id="inspector-style" className="scroll-mt-12">
+        <div id="inspector-style" className="scroll-mt-3">
           <StyleInspectorSection {...styleProps} />
         </div>
-        <div id="inspector-geometry" className="scroll-mt-12">
+        <div id="inspector-geometry" className="scroll-mt-3">
           <GeometryInspectorSection {...geometryProps} />
         </div>
-        <div id="inspector-transform" className="scroll-mt-12">
+        <div id="inspector-transform" className="scroll-mt-3">
           <TransformInspectorSection {...transformProps} />
         </div>
-        <div id="inspector-light" className="scroll-mt-12">
+        <div id="inspector-light" className="scroll-mt-3">
           <LightInspectorSection {...lightProps} />
         </div>
       </div>

@@ -27,6 +27,7 @@ type TimelineLeftRailProps = {
   currentTime: number
   onAddShape: () => void
   onClearSelection: () => void
+  onAddProperty: (trackId: string) => void
   onSelectTrack: (trackId: string) => void
   onActivePropertyRowChange?: (rowId: string) => void
   onClearPropertyRow?: (rowId: string) => void
@@ -70,6 +71,7 @@ export const TimelineLeftRail = React.forwardRef<
       currentTime,
       onAddShape,
       onClearSelection,
+      onAddProperty,
       onSelectTrack,
       onActivePropertyRowChange,
       onClearPropertyRow,
@@ -92,8 +94,8 @@ export const TimelineLeftRail = React.forwardRef<
 
     return (
       <div ref={ref} className="will-change-transform">
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-          Content
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[9px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
+          Icon sequence
         </div>
         <TimelineShapeHeaderRow
           selectedShapeId={selectedShapeId}
@@ -101,8 +103,8 @@ export const TimelineLeftRail = React.forwardRef<
           onAddShape={onAddShape}
         />
 
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-          Animation
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[9px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
+          Animated properties
         </div>
 
         {visiblePropertyRows.map((row) => (
@@ -156,15 +158,19 @@ export const TimelineLeftRail = React.forwardRef<
               onMouseDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+              <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground uppercase">
                 Add property
               </div>
+              <p className="px-2 pb-2 text-[11px] leading-relaxed text-muted-foreground">
+                Start with a gentle animation. Adjust its diamonds after adding
+                it.
+              </p>
               {hiddenTracks.map((track) => (
                 <button
                   key={track.id}
                   type="button"
                   onClick={() => {
-                    onSelectTrack(track.id)
+                    onAddProperty(track.id)
                     setAddPropertyOpen(false)
                   }}
                   className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[11px] font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"

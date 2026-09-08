@@ -1,15 +1,10 @@
 "use client"
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ComponentProps,
-  type RefObject,
-} from "react"
-import { Box, SlidersHorizontal, Sparkles, Waypoints } from "lucide-react"
+import { useEffect, useState, type ComponentProps, type RefObject } from "react"
+import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
+import { usePanelTransition } from "./usePanelTransition"
 import { AppTopBar } from "./AppTopBar"
 import { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
@@ -17,11 +12,12 @@ import { TimelineDock } from "./TimelineDock"
 import { ViewportStage } from "./ViewportStage"
 import { NewProjectDialog } from "./NewProjectDialog"
 import type { QuickStartGuideController } from "./useQuickStartGuideController"
-import { QuickStartGuide } from "./QuickStartGuide"
+import { AnimateDialog, type AnimateDialogProps } from "./AnimateDialog"
 
 export type AppLayoutViewProps = {
+  animationProps: Pick<AnimateDialogProps, "duration" | "onApply">
   keyframeNotice?: string | null
-  topBarProps: ComponentProps<typeof AppTopBar>
+  topBarProps: Omit<ComponentProps<typeof AppTopBar>, "onAnimateOpen">
   viewportProps: Omit<ComponentProps<typeof ViewportStage>, "ref"> & {
     quickStartController: Pick<
       QuickStartGuideController,
@@ -55,6 +51,7 @@ function useCompactWorkspaceLayout() {
 }
 
 export function AppLayoutView({
+  animationProps,
   keyframeNotice,
   topBarProps,
   viewportProps,
@@ -67,7 +64,8 @@ export function AppLayoutView({
   onUploadInputChange,
 }: AppLayoutViewProps) {
   const isCompactLayout = useCompactWorkspaceLayout()
-  const quickStartReturnRef = useRef<HTMLButtonElement>(null)
+  const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
+  const [animateOpen, setAnimateOpen] = useState(false)
   const [compactPane, setCompactPane] = useState<
     "preview" | "properties" | "timeline"
   >("preview")
@@ -75,27 +73,7 @@ export function AppLayoutView({
     if (topBarProps.zenMode) topBarProps.onZenModeChange(false)
     setCompactPane(pane)
   }
-  const {
-    openGuide,
-    dismissedRecently,
-    markExportComplete,
-    quickStartProps: baseQuickStartProps,
-  } = viewportProps.quickStartController
-  const quickStartProps = {
-    ...baseQuickStartProps,
-    onDismiss: () => {
-      baseQuickStartProps.onDismiss()
-      window.requestAnimationFrame(() => quickStartReturnRef.current?.focus())
-    },
-    onStyle: () => {
-      showCompactPane("properties")
-      baseQuickStartProps.onStyle()
-    },
-    onMotion: () => {
-      showCompactPane("timeline")
-      baseQuickStartProps.onMotion()
-    },
-  }
+  const { markExportComplete } = viewportProps.quickStartController
   const exportModalProps = {
     ...exportModalPropsProp,
     // The export checklist step completes only on a real export action,
@@ -118,9 +96,6 @@ export function AppLayoutView({
     },
     onCodeCopied: markExportComplete,
   }
-  const showQuickStartOverlay =
-    !topBarProps.zenMode &&
-    (quickStartProps.open || (!quickStartProps.open && dismissedRecently))
 
   return (
     <div className="isolate flex h-dvh w-screen flex-col overflow-hidden bg-background font-sans text-foreground antialiased">
@@ -130,7 +105,11 @@ export function AppLayoutView({
       >
         Skip to editor workspace
       </a>
-      <AppTopBar {...topBarProps} />
+      <AppTopBar
+        {...topBarProps}
+        onZenModeChange={changePanelVisibility}
+        onAnimateOpen={() => setAnimateOpen(true)}
+      />
 
       <main
         id="glyphrise-workspace"
@@ -159,6 +138,10 @@ export function AppLayoutView({
           <ViewportStage
             ref={canvas3DRef}
             {...viewportProps}
+            playbackProps={{
+              ...viewportProps.playbackProps,
+              onExitZenMode: () => changePanelVisibility(false),
+            }}
             workspaceActive={!isCompactLayout || compactPane === "preview"}
           />
           <InspectorSidebar
@@ -166,34 +149,6 @@ export function AppLayoutView({
             compactOpen={compactPane === "properties"}
           />
         </div>
-
-        {showQuickStartOverlay ? (
-          <div
-            className={cn(
-              "pointer-events-none absolute inset-x-0 top-0 z-30",
-              "bottom-[calc(3.25rem+env(safe-area-inset-bottom))] min-[720px]:bottom-[calc(clamp(152px,24dvh,184px)+8px)]"
-            )}
-          >
-            {quickStartProps.open ? (
-              <div className="pointer-events-auto">
-                <QuickStartGuide {...quickStartProps} />
-              </div>
-            ) : null}
-
-            {!quickStartProps.open && dismissedRecently ? (
-              <button
-                ref={quickStartReturnRef}
-                type="button"
-                onClick={openGuide}
-                aria-label="Reopen quick start"
-                className="pointer-events-auto absolute bottom-2 left-2 flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 text-xs font-medium text-muted-foreground shadow-lg backdrop-blur-md transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.96] max-[720px]:bottom-2"
-              >
-                <Sparkles aria-hidden="true" className="size-3.5" />
-                Quick start
-              </button>
-            ) : null}
-          </div>
-        ) : null}
 
         <TimelineDock
           {...timelineProps}
@@ -243,6 +198,15 @@ export function AppLayoutView({
         onChange={onUploadInputChange}
       />
 
+      <AnimateDialog
+        {...animationProps}
+        open={animateOpen}
+        onOpenChange={setAnimateOpen}
+        onApply={(...args) => {
+          animationProps.onApply(...args)
+          showCompactPane("preview")
+        }}
+      />
       <ExportModal {...exportModalProps} />
       <NewProjectDialog {...newProjectDialogProps} />
     </div>

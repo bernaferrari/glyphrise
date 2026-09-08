@@ -44,6 +44,7 @@ type TimelineLeftRailPanelProps = {
     items: TimelineMenuItem[]
   ) => void
   onOpenDurationEditor: () => void
+  onAddProperty: (trackId: string) => void
   onSelectTrack: (trackId: string) => void
   onSetPropertyEasing?: (
     rowId: string,
@@ -89,6 +90,7 @@ export function TimelineLeftRailPanel({
   onLoopChange,
   onOpenContextMenu,
   onOpenDurationEditor,
+  onAddProperty,
   onSelectTrack,
   onSetPropertyEasing,
   onSetTrackEasing,
@@ -132,6 +134,7 @@ export function TimelineLeftRailPanel({
           currentTime={currentTime}
           onAddShape={onAddShape}
           onClearSelection={onClearSelection}
+          onAddProperty={onAddProperty}
           onSelectTrack={onSelectTrack}
           onActivePropertyRowChange={onActivePropertyRowChange}
           onClearPropertyRow={onClearPropertyRow}

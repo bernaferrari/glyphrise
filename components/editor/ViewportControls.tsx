@@ -4,6 +4,8 @@ import {
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
+  RotateCcw,
+  Move3D,
   Pause,
   Play,
   SkipBack,
@@ -42,6 +44,24 @@ export function ViewOptionsPopover({
 }: ViewOptionsPopoverProps) {
   return (
     <div className="absolute top-3 right-3 z-40 flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onResetView}
+        title="Reset preview camera and zoom"
+        className="flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background/90 px-3 text-xs text-foreground pointer-coarse:min-h-11"
+      >
+        <RotateCcw aria-hidden="true" className="size-3.5" /> Reset camera
+      </button>
+      <button
+        type="button"
+        aria-label="Transform object"
+        aria-pressed={showTransformGizmo}
+        onClick={() => onShowTransformGizmoChange(!showTransformGizmo)}
+        title="Edit the object's position, scale, and rotation"
+        className="flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background/90 px-3 text-xs text-foreground aria-pressed:bg-accent pointer-coarse:min-h-11"
+      >
+        <Move3D aria-hidden="true" className="size-3.5" /> Transform
+      </button>
       <Popover>
         <PopoverTrigger
           aria-label="View options"
@@ -56,13 +76,6 @@ export function ViewOptionsPopover({
           sideOffset={8}
           className="w-44 border-border bg-popover p-1.5 text-popover-foreground"
         >
-          <button
-            type="button"
-            onClick={onResetView}
-            className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md px-2 text-left transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-          >
-            <span className="text-[11px] text-foreground">Reset view</span>
-          </button>
           <ViewportToggleRow
             label="Inertia"
             checked={viewInertiaEnabled}

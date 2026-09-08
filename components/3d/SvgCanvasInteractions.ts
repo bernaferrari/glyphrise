@@ -309,8 +309,6 @@ export const bindSvgCanvasPointerInteractions = ({
     targetZoomRef.current = 1
     currentZoomRef.current = 1
     animationStartRef.current = performance.now()
-    iconAGroupRef.current?.rotation.set(0, 0, 0)
-    iconBGroupRef.current?.rotation.set(0, 0, 0)
     onZoomChange?.(1)
   }
 

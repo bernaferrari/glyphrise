@@ -92,8 +92,6 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
     const {
       liveRenderPropsRef,
       viewInertiaEnabledRef,
-      onViewRotationCommitRef,
-      onViewRotationSetRef,
       onObjectScaleChangeRef,
       onObjectScaleAxisChangeRef,
       onMoveOffsetChangeRef,
@@ -123,15 +121,24 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       onMoveOffsetChangeRef,
       onRotationAxisChangeRef,
     })
+    const cameraOrbitRef = useRef({ x: 0, y: 0, z: 0 })
+    const onCameraRotationSetRef =
+      useRef<SvgCanvasProps["onViewRotationSet"]>(undefined)
+    onCameraRotationSetRef.current = (rotation) => {
+      cameraOrbitRef.current = { ...cameraOrbitRef.current, ...rotation }
+      cameraOrbitRef.current.x = Math.max(
+        -85,
+        Math.min(85, cameraOrbitRef.current.x)
+      )
+      requestRenderRef.current()
+    }
     const { viewNudgeFrameRef, cancelViewNudge, nudgeViewRotation } =
       useSvgViewNudge({
-        liveRenderPropsRef,
+        rotationRef: cameraOrbitRef,
         isInertiaActiveRef,
         rotationVelocityRef,
-        onViewRotationSetRef,
+        onViewRotationSetRef: onCameraRotationSetRef,
       })
-    const pendingViewRotationDeltaRef = useRef({ x: 0, y: 0, z: 0 })
-    const viewRotationCommitFrameRef = useRef<number | null>(null)
 
     useEffect(() => {
       props.onModelReadyChange?.(modelReady)
@@ -139,37 +146,14 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
 
     const applyViewRotationDelta = useCallback(
       (delta: { x: number; y: number }) => {
-        const rotationDelta = {
-          x: THREE.MathUtils.radToDeg(delta.x),
-          y: THREE.MathUtils.radToDeg(delta.y),
-          z: 0,
-        }
-        if (
-          Math.abs(rotationDelta.x) > 0.1 ||
-          Math.abs(rotationDelta.y) > 0.1
-        ) {
-          pendingViewRotationDeltaRef.current.x += rotationDelta.x
-          pendingViewRotationDeltaRef.current.y += rotationDelta.y
-
-          if (viewRotationCommitFrameRef.current !== null) return
-          viewRotationCommitFrameRef.current = requestAnimationFrame(() => {
-            viewRotationCommitFrameRef.current = null
-            const pendingDelta = pendingViewRotationDeltaRef.current
-            pendingViewRotationDeltaRef.current = { x: 0, y: 0, z: 0 }
-            onViewRotationCommitRef.current?.(pendingDelta)
-          })
-        }
+        const current = cameraOrbitRef.current
+        onCameraRotationSetRef.current?.({
+          x: current.x + THREE.MathUtils.radToDeg(delta.x),
+          y: current.y + THREE.MathUtils.radToDeg(delta.y),
+        })
       },
-      [onViewRotationCommitRef]
+      []
     )
-
-    useEffect(() => {
-      return () => {
-        if (viewRotationCommitFrameRef.current === null) return
-        cancelAnimationFrame(viewRotationCommitFrameRef.current)
-        viewRotationCommitFrameRef.current = null
-      }
-    }, [])
 
     useSvgCanvasImperativeHandle({
       ref,
@@ -188,11 +172,11 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       viewNudgeFrameRef,
       isInertiaActiveRef,
       rotationVelocityRef,
-      liveRenderPropsRef,
       currentZoomRef,
       targetZoomRef,
       animationStartRef,
-      onViewRotationSet: onViewRotationSetRef.current,
+      cameraOrbitRef,
+      onViewRotationSet: onCameraRotationSetRef.current,
     })
 
     // Synchronize sidebar zooms with internal targetZoomRef
@@ -310,6 +294,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
     ])
 
     useSvgRenderLoop({
+      cameraOrbitRef,
       sceneRef,
       rendererRef,
       cameraRef,
@@ -348,8 +333,9 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         className="relative h-full min-h-0 w-full overflow-hidden bg-[oklch(0.13_0.012_280)]"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
-          Drag the preview to rotate the icon. Use the view controls to reset or
-          adjust the camera.
+          Drag to orbit the camera; scroll to zoom. Camera changes are
+          preview-only. Use Transform controls to rotate the icon in your
+          export.
         </span>
         <canvas
           ref={canvasRef}

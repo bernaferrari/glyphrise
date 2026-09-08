@@ -145,6 +145,13 @@ export function ShapePickerContent({
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background p-3">
           {activeTab !== "upload" ? (
             <SymbolSearchRow
+              searchScope={
+                activeTab === "presets"
+                  ? "presets"
+                  : activeTab === "wipe"
+                    ? "wipe"
+                    : "symbols"
+              }
               stop={stop}
               materialSymbolClass={materialSymbolClass}
               symbolStyle={symbolStyle}
@@ -179,7 +186,7 @@ export function ShapePickerContent({
 
             <TabsContent
               value="symbols"
-              className="min-h-0 overflow-hidden outline-none"
+              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
             >
               {favoriteMaterialSymbols.length > 0 && (
                 <section className="mb-3">
@@ -250,7 +257,7 @@ export function ShapePickerContent({
 
             <TabsContent
               value="wipe"
-              className="min-h-0 overflow-hidden outline-none"
+              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
             >
               {filteredWipePairs.length > 0 ? (
                 <WipePairsSection
@@ -270,7 +277,7 @@ export function ShapePickerContent({
 
             <TabsContent
               value="presets"
-              className="min-h-0 overflow-hidden outline-none"
+              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
             >
               {visibleShapeOptions.length > 0 ? (
                 <ShapePresetGrid
@@ -287,7 +294,10 @@ export function ShapePickerContent({
               )}
             </TabsContent>
 
-            <TabsContent value="upload" className="min-h-0 outline-none">
+            <TabsContent
+              value="upload"
+              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
+            >
               <div className="flex min-h-40 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-muted/25 p-6 text-center">
                 <div>
                   <p className="text-sm font-medium text-foreground">

@@ -147,9 +147,6 @@ export function FinishPresetPicker({
             </div>
           ))}
         </div>
-        <p className="text-[11px] leading-4 text-muted-foreground">
-          {selected.description}
-        </p>
       </PopoverContent>
     </Popover>
   )

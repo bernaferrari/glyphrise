@@ -35,14 +35,22 @@ import {
   MAX_PROJECT_FILE_BYTES,
   normalizeProjectName,
   parseImportedEditorDocument,
-  readPersistedEditorDocument,
   readPersistedEditorProject,
   writePersistedEditorDocument,
 } from "./EditorDocumentModel"
 import {
+  applySuccessfulBackup,
+  chooseDeletionReplacement,
+  createProjectActionError,
+  createProjectFromTemplateAction,
+  flushAutosaveIfAllowed,
+  persistCurrentProjectDeletion,
   persistProjectActivation,
+  readRestoredEditorDocument,
+  type ProjectActionError,
   type ProjectActivationKind,
 } from "./EditorProjectActivation"
+import { MOTION_RECIPES } from "./MotionRecipes"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import type {
   FillGradientType,
@@ -220,8 +228,11 @@ export function useEditorSnapshotHistory({
     []
   )
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false)
+  const [projectActionError, setProjectActionError] =
+    useState<ProjectActionError | null>(null)
   const projectRef = useRef(project)
   projectRef.current = project
+  const blockedAutosaveIdsRef = useRef<string[]>([])
   const snapshot = useMemo<EditorSnapshot>(
     () => ({
       activeRecipeId,
@@ -338,10 +349,13 @@ export function useEditorSnapshotHistory({
       clearAutosaveTimeout()
       try {
         const latestSnapshot = snapshotRef.current
-        const persistedProject = writePersistedEditorDocument(
+        const flushed = flushAutosaveIfAllowed(
           latestSnapshot,
-          projectRef.current
+          projectRef.current,
+          blockedAutosaveIdsRef.current
         )
+        if (!flushed.wrote) return
+        const persistedProject = flushed.project
         markSnapshotPersisted(latestSnapshot, persistedProject)
         setProject(persistedProject)
         setRecentProjects(listPersistedEditorProjects())
@@ -419,6 +433,7 @@ export function useEditorSnapshotHistory({
           : "Autosave failed. Download the current project for a backup."
       )
     }
+    setProjectActionError(null)
     setNewProjectDialogOpen(true)
   }
 
@@ -452,12 +467,14 @@ export function useEditorSnapshotHistory({
     if (typeof window === "undefined") return
     try {
       downloadProjectSnapshot(snapshot, project)
-      setProjectStatus("saved")
-      setProjectStatusMessage(
-        "Project downloaded. Changes also autosave locally."
-      )
+      const next = applySuccessfulBackup({
+        persistStatus: projectStatus,
+        persistMessage: projectStatusMessage,
+      })
+      setProjectStatus(next.persistStatus)
+      setProjectStatusMessage(next.persistMessage)
     } catch (error) {
-      setProjectStatus("error")
+      if (projectStatus === "error") return
       setProjectStatusMessage(
         error instanceof Error
           ? `Download failed: ${error.message}`
@@ -488,15 +505,58 @@ export function useEditorSnapshotHistory({
         nextProject,
         `${nextProject.name} created and saved locally.`
       )
+      setProjectActionError(null)
       setNewProjectDialogOpen(false)
+      return true
     } catch (error) {
-      setProjectStatus("error")
-      setProjectStatusMessage(
+      const message =
         error instanceof Error
           ? `Could not create the project: ${error.message}`
           : "Could not create the project."
-      )
+      setProjectActionError(createProjectActionError("create", message))
+      return false
     }
+  }
+
+  const createProjectFromTemplate = (templateId: string, name: string) => {
+    const recipe = MOTION_RECIPES.find(
+      (candidate) => candidate.id === templateId
+    )
+    if (!recipe) {
+      setProjectActionError(
+        createProjectActionError(
+          "create",
+          "That style template is unavailable."
+        )
+      )
+      return false
+    }
+    const result = createProjectFromTemplateAction({
+      baseSnapshot: initialSnapshotRef.current,
+      recipe,
+      name,
+      outgoing: {
+        snapshot: snapshotRef.current,
+        project: projectRef.current,
+      },
+      undoStack: [snapshotRef.current],
+    })
+    if (!result.ok || !result.persisted) {
+      setProjectActionError(result.actionError)
+      return false
+    }
+    restoreSnapshot(result.persisted.snapshot)
+    history.resetHistory(result.persisted.snapshot, true)
+    markSnapshotPersisted(result.persisted.snapshot, result.persisted.project)
+    setProject(result.persisted.project)
+    setRecentProjects(listPersistedEditorProjects())
+    setProjectStatus("saved")
+    setProjectStatusMessage(
+      `${result.persisted.project.name} created and saved locally.`
+    )
+    setProjectActionError(null)
+    setNewProjectDialogOpen(false)
+    return true
   }
 
   const renameProject = (name: string) => {
@@ -576,14 +636,16 @@ export function useEditorSnapshotHistory({
         duplicatedProject,
         `${duplicatedProject.name} created and opened.`
       )
+      setProjectActionError(null)
       setNewProjectDialogOpen(false)
+      return true
     } catch (error) {
-      setProjectStatus("error")
-      setProjectStatusMessage(
+      const message =
         error instanceof Error
           ? `Could not duplicate the project: ${error.message}`
           : "Could not duplicate the project."
-      )
+      setProjectActionError(createProjectActionError("duplicate", message))
+      return false
     }
   }
 
@@ -591,50 +653,57 @@ export function useEditorSnapshotHistory({
     const deleting = recentProjects.find(
       (candidate) => candidate.id === projectId
     )
-    if (!deleting) return
+    if (!deleting) return false
 
     try {
       const deletingCurrentProject = project.id === projectId
-      const remaining = deletePersistedEditorProject(projectId)
       if (!deletingCurrentProject) {
+        const remaining = deletePersistedEditorProject(projectId)
         setRecentProjects(remaining)
         setProjectStatus("saved")
         setProjectStatusMessage(`${deleting.name} deleted from this device.`)
-        return
+        setProjectActionError(null)
+        return true
       }
 
-      const fallback = remaining
-        .map((candidate) => readPersistedEditorProject(candidate.id))
-        .find((candidate) => candidate !== null)
-      if (fallback) {
-        activateProject(
-          "switch",
-          fallback.snapshot,
-          fallback.project,
-          `${deleting.name} deleted. ${fallback.project.name} opened.`,
-          false
-        )
-        return
-      }
-
-      const blankSnapshot = createBlankEditorSnapshot(
-        initialSnapshotRef.current
+      const replacement = chooseDeletionReplacement({
+        deletingId: projectId,
+        createBlank: () => ({
+          snapshot: createBlankEditorSnapshot(initialSnapshotRef.current),
+          project: createProjectMetadata(),
+        }),
+      })
+      const openedExisting = recentProjects.some(
+        (candidate) => candidate.id === replacement.project.id
       )
-      const blankProject = createProjectMetadata()
-      activateProject(
-        "create",
-        blankSnapshot,
-        blankProject,
-        `${deleting.name} deleted. A new blank project is ready.`,
-        false
-      )
-    } catch (error) {
-      setProjectStatus("error")
+      const deleted = persistCurrentProjectDeletion({
+        deleting,
+        replacement,
+      })
+      blockedAutosaveIdsRef.current = [
+        ...blockedAutosaveIdsRef.current,
+        ...deleted.blockedAutosaveIds,
+      ]
+      restoreSnapshot(deleted.snapshot)
+      history.resetHistory(deleted.snapshot, true)
+      markSnapshotPersisted(deleted.snapshot, deleted.project)
+      setProject(deleted.project)
+      setRecentProjects(listPersistedEditorProjects())
+      setProjectStatus("saved")
       setProjectStatusMessage(
+        openedExisting
+          ? `${deleting.name} deleted. ${deleted.project.name} opened.`
+          : `${deleting.name} deleted. A new blank project is ready.`
+      )
+      setProjectActionError(null)
+      return true
+    } catch (error) {
+      const message =
         error instanceof Error
           ? `Could not delete the project: ${error.message}`
           : "Could not delete the project."
-      )
+      setProjectActionError(createProjectActionError("delete", message))
+      return false
     }
   }
 
@@ -715,7 +784,7 @@ export function useEditorSnapshotHistory({
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    const persistedDocument = readPersistedEditorDocument()
+    const persistedDocument = readRestoredEditorDocument().document
     if (persistedDocument) {
       skipNextPersistRef.current = true
       restoreSnapshot(persistedDocument.snapshot)
@@ -785,9 +854,11 @@ export function useEditorSnapshotHistory({
     ...history,
     newProject: openProjects,
     createNewProject,
+    createProjectFromTemplate,
     finalizeProjectBaseline,
     newProjectDialogOpen,
     setNewProjectDialogOpen,
+    projectActionError,
     openRecentProject,
     duplicateRecentProject,
     deleteRecentProject,

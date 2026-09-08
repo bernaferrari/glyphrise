@@ -2,7 +2,6 @@
 
 import { useRef } from "react"
 import { GIZMO_SNAP_DEGREES } from "./SvgSceneUtils"
-import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { Vector3Value } from "./SvgTypes"
 
 type ViewNudgeAxis = "x" | "y"
@@ -12,7 +11,7 @@ type ViewNudgeState = {
 }
 
 interface SvgViewNudgeOptions {
-  liveRenderPropsRef: React.MutableRefObject<SvgCanvasLiveRenderProps>
+  rotationRef: React.MutableRefObject<Vector3Value>
   isInertiaActiveRef: React.MutableRefObject<boolean>
   rotationVelocityRef: React.MutableRefObject<{ x: number; y: number }>
   onViewRotationSetRef: React.MutableRefObject<
@@ -25,7 +24,7 @@ interface SvgViewNudgeOptions {
 }
 
 export function useSvgViewNudge({
-  liveRenderPropsRef,
+  rotationRef,
   isInertiaActiveRef,
   rotationVelocityRef,
   onViewRotationSetRef,
@@ -46,7 +45,7 @@ export function useSvgViewNudge({
   const nudgeViewRotation = (axis: ViewNudgeAxis, direction: -1 | 1) => {
     isInertiaActiveRef.current = false
     rotationVelocityRef.current = { x: 0, y: 0 }
-    const current = liveRenderPropsRef.current.rotationOffset
+    const current = rotationRef.current
     const nudgeState = viewNudgeStateRef.current[axis]
     const startValue = nudgeState.value ?? current[axis]
     const targetBase = nudgeState.target ?? current[axis]
@@ -63,7 +62,10 @@ export function useSvgViewNudge({
     cancelViewNudge()
     nudgeState.target = targetValue
     const startTime = performance.now()
-    const duration = 220
+    const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
+      .matches
+      ? 1
+      : 220
     const tick = (now: number) => {
       const t = Math.max(0, Math.min(1, (now - startTime) / duration))
       const eased = 1 - Math.pow(1 - t, 3)

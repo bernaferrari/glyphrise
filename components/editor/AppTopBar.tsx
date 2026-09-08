@@ -6,7 +6,7 @@ import {
   AlertTriangle,
   Check,
   CircleDot,
-  CircleHelp,
+  Sparkles,
   Download,
   FileDown,
   FolderClock,
@@ -48,7 +48,7 @@ interface AppTopBarProps {
   onRedo: () => void
   canUndo: boolean
   canRedo: boolean
-  onGuideOpen: () => void
+  onAnimateOpen: () => void
   onExportOpen: () => void
 }
 
@@ -64,7 +64,6 @@ function CompactWorkspaceMenu({
   onRedo,
   canUndo,
   canRedo,
-  onGuideOpen,
   onAutoKeyChange,
   onThemeChange,
 }: Pick<
@@ -80,7 +79,6 @@ function CompactWorkspaceMenu({
   | "onRedo"
   | "canUndo"
   | "canRedo"
-  | "onGuideOpen"
   | "onAutoKeyChange"
   | "onThemeChange"
 >) {
@@ -116,12 +114,6 @@ function CompactWorkspaceMenu({
     },
     { label: "Undo", Icon: Undo2, onClick: action(onUndo), disabled: !canUndo },
     { label: "Redo", Icon: Redo2, onClick: action(onRedo), disabled: !canRedo },
-    {
-      label: "Quick start",
-      Icon: CircleHelp,
-      onClick: action(onGuideOpen),
-      disabled: false,
-    },
     {
       label: autoKeyEnabled ? "Turn auto-key off" : "Turn auto-key on",
       Icon: CircleDot,
@@ -296,7 +288,7 @@ export function AppTopBar({
   onRedo,
   canUndo,
   canRedo,
-  onGuideOpen,
+  onAnimateOpen,
   onExportOpen,
 }: AppTopBarProps) {
   const projectStatusLabel =
@@ -426,12 +418,13 @@ export function AppTopBar({
         <Button
           size="icon"
           variant="ghost"
-          aria-label="Open quick start"
-          title="Quick start"
-          onClick={onGuideOpen}
-          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
+          aria-label="Animate"
+          title="Animate"
+          onClick={onAnimateOpen}
+          className="h-9 w-auto gap-1.5 rounded-lg border border-border bg-transparent px-3 text-xs text-foreground hover:bg-muted"
         >
-          <CircleHelp className="size-3.5" />
+          <Sparkles className="size-3.5" />
+          Animate
         </Button>
         <Button
           size="icon"
@@ -471,7 +464,6 @@ export function AppTopBar({
           onRedo={onRedo}
           canUndo={canUndo}
           canRedo={canRedo}
-          onGuideOpen={onGuideOpen}
           onAutoKeyChange={onAutoKeyChange}
           onThemeChange={onThemeChange}
         />

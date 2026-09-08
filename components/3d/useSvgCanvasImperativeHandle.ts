@@ -10,7 +10,6 @@ import * as THREE from "three"
 import { applySvgModelScale } from "./SvgSceneUtils"
 import { exportFilamentGltf } from "./SvgExport"
 import { animateSvgViewReset } from "./SvgViewReset"
-import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { SvgCanvasProps, SvgCanvasRef } from "./SvgTypes"
 import type { ExportRenderOptions } from "./SvgTypes"
 import type { CanvasRecorderOptions } from "./useCanvasRecorder"
@@ -43,10 +42,10 @@ type SvgCanvasImperativeHandleOptions = {
   viewNudgeFrameRef: MutableRefObject<number | null>
   isInertiaActiveRef: MutableRefObject<boolean>
   rotationVelocityRef: MutableRefObject<{ x: number; y: number }>
-  liveRenderPropsRef: MutableRefObject<SvgCanvasLiveRenderProps>
   currentZoomRef: MutableRefObject<number>
   targetZoomRef: MutableRefObject<number>
   animationStartRef: MutableRefObject<number>
+  cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
   onViewRotationSet: SvgCanvasProps["onViewRotationSet"]
 }
 
@@ -67,11 +66,11 @@ export function useSvgCanvasImperativeHandle({
   viewNudgeFrameRef,
   isInertiaActiveRef,
   rotationVelocityRef,
-  liveRenderPropsRef,
   currentZoomRef,
   targetZoomRef,
   animationStartRef,
   onViewRotationSet,
+  cameraOrbitRef,
 }: SvgCanvasImperativeHandleOptions) {
   const prepareExportRender = (options: ExportRenderOptions) => {
     const renderer = rendererRef.current
@@ -189,7 +188,7 @@ export function useSvgCanvasImperativeHandle({
         viewNudgeFrameRef,
         isInertiaActiveRef,
         rotationVelocityRef,
-        liveRotation: liveRenderPropsRef.current.rotationOffset,
+        liveRotation: cameraOrbitRef.current,
         currentZoomRef,
         targetZoomRef,
         animationStartRef,

@@ -10,12 +10,14 @@ import {
   MotionTrackId,
   SCALE_DEFAULT,
   SCALE_MAX,
+  type EditorSnapshot,
+  type FillMode,
   type GeometrySettings,
   type LightSettings,
   type MaterialSettings,
   type TransformSettings,
 } from "./EditorModel"
-import { googleMeshFillStops } from "./FillStopModel"
+import { googleMeshFillStops, makeFillStops } from "./FillStopModel"
 import { DEFAULT_MATERIAL_SETTINGS } from "./MaterialEditorModel"
 import type { ShapeStop, TimelineTrack } from "./TimelineModel"
 import type { MOTION_RECIPES } from "./MotionRecipes"
@@ -129,6 +131,73 @@ export const normalizeRecipeTracks = (
   }
 
   return normalized
+}
+
+export const fillStateForRecipe = (recipe: MotionRecipe) => {
+  const fillColor = recipe.colorA
+  const fillColorSecondary =
+    recipe.colorASecondary ?? recipe.colorB ?? recipe.colorA
+  return {
+    enableGradient: recipe.enableGradient,
+    fillMode: (recipe.enableGradient ? "gradient" : "solid") as FillMode,
+    fillColor,
+    fillColorSecondary,
+    fillGradientType: recipe.fillGradientType ?? "linear",
+    fillStops:
+      recipe.id === "spectrum-chrome"
+        ? googleMeshFillStops()
+        : makeFillStops(fillColor, fillColorSecondary, !recipe.enableGradient),
+    fillKeyframes: [],
+  }
+}
+
+export const createEditorSnapshotFromRecipe = (
+  baseSnapshot: EditorSnapshot,
+  recipe: MotionRecipe
+): EditorSnapshot => {
+  const geometry = geometrySettingsForRecipe(recipe)
+  const transform = transformSettingsForRecipe(recipe)
+  const light = lightSettingsForRecipe(recipe)
+  const fill = fillStateForRecipe(recipe)
+  return {
+    ...baseSnapshot,
+    activeRecipeId: recipe.id,
+    shapes: recolorShapesForRecipe(baseSnapshot.shapes, recipe),
+    materialPreset: recipe.materialPreset,
+    materialSettings: materialSettingsForRecipe(recipe),
+    extrusionDepth: geometry.extrusionDepth,
+    bevelEnabled: geometry.bevelEnabled,
+    bevelThickness: geometry.bevelThickness,
+    bevelSize: geometry.bevelSize,
+    bevelSegments: geometry.bevelSegments,
+    geometryQuality: geometry.geometryQuality,
+    layerSpacing: geometry.layerSpacing,
+    innerElementScale: geometry.innerElementScale,
+    objectScale: transform.objectScale,
+    objectScaleAxes: transform.objectScaleAxes,
+    moveOffset: transform.moveOffset,
+    rotationOffset: transform.rotationOffset,
+    keyLightColor: light.keyLightColor,
+    keyLightIntensity: light.keyLightIntensity,
+    keyLightPosition: light.keyLightPosition,
+    keyLightSoftness: light.keyLightSoftness,
+    enableGradient: fill.enableGradient,
+    fillMode: fill.fillMode,
+    fillColor: fill.fillColor,
+    fillColorSecondary: fill.fillColorSecondary,
+    fillGradientType: fill.fillGradientType,
+    fillStops: fill.fillStops,
+    fillKeyframes: fill.fillKeyframes,
+    rotationAxisKeyframes: normalizeRecipeRotationKeyframes(
+      recipe,
+      baseSnapshot.duration
+    ),
+    moveKeyframes: [],
+    qualityKeyframes: [],
+    innerScaleKeyframes: [],
+    keyLightPositionKeyframes: [],
+    tracks: normalizeRecipeTracks(recipe),
+  }
 }
 
 export const normalizeRecipeRotationKeyframes = (

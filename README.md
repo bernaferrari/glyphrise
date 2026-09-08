@@ -79,15 +79,28 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ### Create your first animated 3D icon
 
-1. Open the top bar and choose **Projects on this device**.
-2. Start with **Use example** to explore a finished composition, or choose
-   **Start blank** for a clean canvas.
-3. Select the icon clip and choose **Change** to search Material Symbols or
-   upload an SVG.
-4. Use **Style**, **Geometry**, **Transform**, and **Light** to shape the result.
-5. Move the playhead and add keyframes, or enable **Auto-key** before adjusting
-   animated properties.
-6. Choose **Export** to download the asset or inspect implementation code.
+1. Choose **Change** in the inspector to search symbols, pick a preset,
+   or upload an SVG. To start with a clean timeline, use **Project → Open projects → Start blank**.
+2. Adjust the finish, fill, depth, and lighting in the inspector.
+3. Choose **Animate**, pick **Spin**, **Tilt**, or **Pulse**, set duration and
+   intensity, then apply. The preset replaces only its rotation or scale
+   animation; your icon, finish, and other animated properties remain.
+4. Press **Play** to preview.
+5. Choose **Export** to download a PNG, video, GLB, or starter code.
+
+For precise edits, use the timeline's **Icon sequence** and **Animated properties**.
+**Add property** creates a gentle starter animation you can refine by moving its
+keyframe diamonds. Duration changes retime the full sequence.
+
+The inspector explains edit scope at the playhead. With **Auto-key** enabled,
+editing an animatable property creates or updates a keyframe. With it disabled,
+existing keyframes can still be edited; between keyframes, base-value edits do
+not override animation playback. Properties without keyframes apply throughout.
+
+Dragging the preview **orbits the camera**, and scrolling zooms. These changes
+are preview-only and do not enter document undo or exports. **Reset camera**
+restores the front view and zoom. Use **Transform** or the inspector to edit the
+object's position, scale, or rotation for export.
 
 ## Projects and persistence
 
@@ -128,7 +141,7 @@ pnpm format:check
 pnpm build
 ```
 
-The current automated suite includes more than 75 unit tests and nine Playwright workflows
+The current automated suite includes 118 unit tests and 21 Playwright workflows
 covering blank and template projects, project duplication/deletion recovery,
 custom SVG upload, phone-sized workspace views, immediate-reload persistence,
 gesture-level undo, and export messaging.

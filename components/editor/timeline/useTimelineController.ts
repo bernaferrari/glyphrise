@@ -1,5 +1,7 @@
 "use client"
 
+import { withStarterAnimation } from "./StarterTrackModel"
+
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { SelectedTimelineKeyframe, TimelineProps } from "./TimelineTypes"
 import { useShapePickerCatalog } from "./useShapePickerCatalog"
@@ -320,6 +322,16 @@ export function useTimelineController({
       onLoopChange,
       onOpenContextMenu: openContextMenu,
       onOpenDurationEditor: openDurationEditor,
+      onAddProperty: (trackId: string) => {
+        onScrubStart?.()
+        onTracksChange(
+          tracks.map((track) =>
+            track.id === trackId ? withStarterAnimation(track, duration) : track
+          )
+        )
+        onTimeChange(0)
+        selectTrack(trackId)
+      },
       onSelectTrack: selectTrack,
       onSetPropertyEasing,
       onSetTrackEasing: setTrackEasing,

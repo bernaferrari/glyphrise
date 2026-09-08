@@ -101,8 +101,8 @@ export function TimelinePropertyRailRow({
             isKeyedAtPlayhead={Boolean(keyframeAtPlayhead)}
             hasKeyframes={row.keyframes.length > 0}
             isAnimated={false}
-            addLabel={`Add ${row.name} keyframe`}
-            removeLabel={`Remove ${row.name} keyframe`}
+            addLabel={`Add ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+            removeLabel={`Remove ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
             onToggle={() =>
               onTogglePropertyKeyframe(row.id, keyframeAtPlayhead?.id)
             }
@@ -203,8 +203,8 @@ export function TimelineTrackRailRow({
           isKeyedAtPlayhead={keyedAtPlayhead}
           hasKeyframes={animated}
           isAnimated={animated}
-          addLabel={`Add ${track.name} keyframe`}
-          removeLabel={`Remove ${track.name} keyframe`}
+          addLabel={`Add ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+          removeLabel={`Remove ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
           onToggle={() => onToggleTrackKeyframe(track.id)}
         />
       </span>

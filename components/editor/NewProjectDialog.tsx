@@ -21,6 +21,10 @@ import {
 } from "@/components/ui/dialog"
 import type { EditorProjectMetadata } from "./EditorDocumentModel"
 import {
+  projectsDialogErrorText,
+  type ProjectActionError,
+} from "./EditorProjectActivation"
+import {
   filterSavedProjects,
   getVisibleSavedProjectRows,
 } from "./NewProjectDialogModel"
@@ -43,6 +47,7 @@ export type NewProjectDialogProps = {
   onDuplicateRecent: (projectId: string) => void
   onDeleteRecent: (projectId: string) => void
   onDownloadCurrent: () => void
+  actionError?: ProjectActionError | null
 }
 
 export function NewProjectDialog({
@@ -58,6 +63,7 @@ export function NewProjectDialog({
   onDuplicateRecent,
   onDeleteRecent,
   onDownloadCurrent,
+  actionError = null,
 }: NewProjectDialogProps) {
   const [name, setName] = useState("Untitled project")
   const [projectQuery, setProjectQuery] = useState("")
@@ -87,6 +93,15 @@ export function NewProjectDialog({
               portable copy when you need an external backup.
             </DialogDescription>
           </DialogHeader>
+          {projectsDialogErrorText(actionError) ? (
+            <p
+              role="alert"
+              data-project-action={actionError?.action}
+              className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+            >
+              {projectsDialogErrorText(actionError)}
+            </p>
+          ) : null}
 
           <form
             className="grid gap-4"

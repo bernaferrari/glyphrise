@@ -13,6 +13,7 @@ export type QuickStartGuideController = {
 }
 
 export function useQuickStartGuideController({
+  projectId,
   selectedShapeId,
   setOpenShapePicker,
   fallbackShapeId,
@@ -24,6 +25,7 @@ export function useQuickStartGuideController({
   hasMotion,
   onExport,
 }: {
+  projectId: string
   selectedShapeId: string | null
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   fallbackShapeId: string | null
@@ -36,6 +38,7 @@ export function useQuickStartGuideController({
   onExport: () => void
 }): QuickStartGuideController {
   const [open, setOpen] = useState(false)
+  const [hasPreviewed, setHasPreviewed] = useState(false)
   const [exportCompleted, setExportCompleted] = useState(false)
   const [dismissedRecently, setDismissedRecently] = useState(false)
 
@@ -44,6 +47,15 @@ export function useQuickStartGuideController({
       window.localStorage.getItem(QUICK_START_STORAGE_KEY) !== "dismissed"
     )
   }, [])
+
+  useEffect(() => {
+    setExportCompleted(false)
+    setHasPreviewed(false)
+  }, [projectId])
+
+  useEffect(() => {
+    if (isPlaying && hasMotion) setHasPreviewed(true)
+  }, [isPlaying, hasMotion])
 
   const dismiss = useCallback(() => {
     window.localStorage.setItem(QUICK_START_STORAGE_KEY, "dismissed")
@@ -82,6 +94,7 @@ export function useQuickStartGuideController({
     quickStartProps: {
       open,
       completedStepIds,
+      hasPreviewed,
       onChooseIcon: () => {
         // Timeline property-row selection can clear the shape selection;
         // fall back to the first shape so the picker still opens.
@@ -102,7 +115,8 @@ export function useQuickStartGuideController({
         })
       },
       onPlayExample: () => {
-        // Keep the guide open during preview so the final step stays visible.
+        setHasPreviewed(true)
+        // Playback is an explicit step in the walkthrough.
         if (!isPlaying) togglePlayback()
       },
       onExport: () => {

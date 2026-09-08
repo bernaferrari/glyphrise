@@ -43,7 +43,9 @@ export const animateSvgViewReset = ({
 
   const startRotation = liveRotation
   const startZoom = currentZoomRef.current
-  const duration = 320
+  const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? 1
+    : 220
   const startTime = performance.now()
 
   targetZoomRef.current = 1.0
