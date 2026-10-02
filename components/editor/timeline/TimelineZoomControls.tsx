@@ -21,7 +21,7 @@ export function TimelineZoomControls({
 }: TimelineZoomControlsProps) {
   return (
     <div
-      className="pointer-events-auto fixed right-2 bottom-2 flex h-auto w-max items-center gap-px rounded-full border border-border bg-background/85 p-0.5 shadow-md backdrop-blur-xl"
+      className="timeline-zoom-controls flex shrink-0 items-center justify-end gap-1 border-t border-border bg-background px-2 py-1"
       style={{ zIndex: TIMELINE_LAYER.zoomControls }}
     >
       <button

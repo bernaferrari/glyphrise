@@ -12,7 +12,7 @@ const KeyframeDiamond = ({
 }) => (
   <span
     className={`size-[7px] rotate-45 rounded-[1px] border transition-[background-color,border-color] ${
-      active ? "border-transparent" : "border-muted-foreground/40"
+      active ? "border-transparent" : "border-muted-foreground"
     }`}
     style={{ backgroundColor: active ? color : "transparent" }}
   />
@@ -41,7 +41,7 @@ const KeyframeButton = ({
       event.stopPropagation()
       onToggle()
     }}
-    className={`touch-hit-area relative flex size-6 shrink-0 items-center justify-center rounded-md transition-colors duration-100 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
+    className={`relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring ${
       isKeyedHere ? "" : "hover:bg-muted/40"
     }`}
   >

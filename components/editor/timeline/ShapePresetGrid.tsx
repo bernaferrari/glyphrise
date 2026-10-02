@@ -66,7 +66,7 @@ export function ShapePresetGrid({
       )}
       <div
         className={cn(
-          "editor-scrollbar grid max-h-72 grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
+          "editor-scrollbar grid max-h-72 grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2 overflow-y-auto pr-1",
           className
         )}
       >
@@ -83,7 +83,7 @@ export function ShapePresetGrid({
                 onShapeIconChange(stop.id, option)
                 onOpenShapePicker(null)
               }}
-              className={`grid aspect-square place-items-center rounded-lg border focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none ${
+              className={`flex min-h-20 flex-col items-center justify-center gap-2 rounded-lg border px-2 py-3 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring ${
                 active
                   ? "bg-accent"
                   : "border-border bg-muted/40 text-muted-foreground hover:border-border hover:bg-muted/60"
@@ -95,6 +95,9 @@ export function ShapePresetGrid({
                 style={{ color: option.defaultTint }}
                 dangerouslySetInnerHTML={{ __html: option.svgContent }}
               />
+              <span className="text-center text-xs font-medium text-foreground">
+                {option.name}
+              </span>
             </button>
           )
         })}

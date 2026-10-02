@@ -6,20 +6,17 @@ import type { ShapeClipBounds, TransitionWindow } from "./TimelineLayoutModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import { TimelineTransitionWindows } from "./TimelineTransitionWindows"
 import { TimelineShapeClips } from "./TimelineShapeClips"
-import type { ShapeOption, WipeDirectionOption } from "./TimelineTypes"
-import type { useShapePickerCatalog } from "./useShapePickerCatalog"
+import type { WipeDirectionOption } from "./TimelineTypes"
 
 type TimelineShapeLaneProps = {
   duration: number
   shapes: ShapeStop[]
   sortedShapes: ShapeStop[]
   selectedShapeId: string | null
-  openShapePicker: string | null
   openClipEditor: string | null
   wipeDirections: WipeDirectionOption[]
   transitionWindows: TransitionWindow[]
   clipBounds: ShapeClipBounds[]
-  shapePicker: ReturnType<typeof useShapePickerCatalog>
   shapeDraggedRef: React.MutableRefObject<boolean>
   shapeLabel: (stop: ShapeStop) => string
   timeFromClientX: (
@@ -32,7 +29,12 @@ type TimelineShapeLaneProps = {
   onOpenClipEditorChange: (shapeId: string | null) => void
   onShapeBlendChange: (
     id: string,
-    patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
+    patch: Partial<
+      Pick<
+        ShapeStop,
+        "transitionType" | "wipeDirection" | "transitionStart" | "transitionEnd"
+      >
+    >
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
   onTransitionEdgeDrag: (
@@ -44,7 +46,6 @@ type TimelineShapeLaneProps = {
   ) => void
   onSelectShape: (id: string) => void
   onOpenShapePicker: (id: string | null) => void
-  onShapeIconChange: (id: string, option: ShapeOption) => void
   onUploadShape: (id: string) => void
   onRemoveShape: (id: string) => void
   onShapeDrag: (event: React.PointerEvent<HTMLElement>, shapeId: string) => void
@@ -66,12 +67,10 @@ export function TimelineShapeLane({
   shapes,
   sortedShapes,
   selectedShapeId,
-  openShapePicker,
   openClipEditor,
   wipeDirections,
   transitionWindows,
   clipBounds,
-  shapePicker,
   shapeDraggedRef,
   shapeLabel,
   timeFromClientX,
@@ -84,7 +83,6 @@ export function TimelineShapeLane({
   onTransitionEdgeDrag,
   onSelectShape,
   onOpenShapePicker,
-  onShapeIconChange,
   onUploadShape,
   onRemoveShape,
   onShapeDrag,
@@ -94,7 +92,7 @@ export function TimelineShapeLane({
 }: TimelineShapeLaneProps) {
   return (
     <div
-      className={`relative h-9 border-b border-border transition-colors ${
+      className={`relative h-[var(--timeline-shape-height)] border-b border-border transition-colors ${
         selectedShapeId ? "bg-muted/45" : "hover:bg-muted/35"
       }`}
       onMouseDown={(event) => {
@@ -131,14 +129,11 @@ export function TimelineShapeLane({
         sortedShapes={sortedShapes}
         shapes={shapes}
         selectedShapeId={selectedShapeId}
-        openShapePicker={openShapePicker}
-        shapePicker={shapePicker}
         clipBounds={clipBounds}
         shapeLabel={shapeLabel}
         shapeDraggedRef={shapeDraggedRef}
         onSelectShape={onSelectShape}
         onOpenShapePicker={onOpenShapePicker}
-        onShapeIconChange={onShapeIconChange}
         onUploadShape={onUploadShape}
         onRemoveShape={onRemoveShape}
         onShapeDrag={onShapeDrag}

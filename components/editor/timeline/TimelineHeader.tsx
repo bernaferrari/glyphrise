@@ -1,6 +1,15 @@
 "use client"
 
-import { CircleHelp, Diamond, Magnet, MoveRight, RotateCw } from "lucide-react"
+import {
+  CircleHelp,
+  MoreHorizontal,
+  Diamond,
+  Magnet,
+  MoveRight,
+  RotateCw,
+  Play,
+  Pause,
+} from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -14,6 +23,10 @@ import {
 import { TIMELINE_LAYER } from "./TimelineLayering"
 
 interface TimelineHeaderProps {
+  compactMode?: boolean
+  showSnap?: boolean
+  isPlaying?: boolean
+  onPlayToggle?: () => void
   currentTime: number
   duration: number
   durationEditor: string | null
@@ -30,6 +43,10 @@ interface TimelineHeaderProps {
 }
 
 export function TimelineHeader({
+  compactMode = false,
+  showSnap = true,
+  isPlaying = false,
+  onPlayToggle,
   currentTime,
   duration,
   durationEditor,
@@ -46,7 +63,7 @@ export function TimelineHeader({
 }: TimelineHeaderProps) {
   return (
     <div
-      className="relative flex h-7 shrink-0 items-center gap-2 border-b border-border bg-background py-0 pr-1 pl-2 font-mono text-[11px] tabular-nums"
+      className="relative flex min-h-11 min-w-0 flex-1 shrink-0 items-center gap-2 border-b border-border bg-background px-2 font-mono text-xs tabular-nums"
       style={{ zIndex: TIMELINE_LAYER.ruler }}
     >
       <Popover
@@ -67,10 +84,14 @@ export function TimelineHeader({
         <PopoverTrigger
           title="Edit duration"
           aria-label="Edit duration"
-          className="flex min-w-0 flex-1 items-center rounded px-1 text-left transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+          className="flex min-h-11 min-w-0 items-center gap-1 rounded-md px-2 text-left transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
         >
-          <span className="text-foreground">{currentTime.toFixed(2)}</span>
-          <span className="px-1 text-muted-foreground">/</span>
+          {!compactMode && (
+            <>
+              <span className="text-foreground">{currentTime.toFixed(2)}</span>
+              <span className="px-1 text-muted-foreground">/</span>
+            </>
+          )}
           <span className="text-muted-foreground">{duration.toFixed(1)}s</span>
         </PopoverTrigger>
         <PopoverContent
@@ -133,50 +154,108 @@ export function TimelineHeader({
           </div>
         </PopoverContent>
       </Popover>
-      <div className="flex shrink-0 items-center gap-1">
-        <TimelineToggle
-          active={snapEnabled}
-          activeLabel="Disable timeline snapping"
-          inactiveLabel="Enable timeline snapping"
-          tooltip="Snap to keyframes"
-          onClick={() => onSnapEnabledChange(!snapEnabled)}
-        >
-          <Magnet className="size-3" />
-        </TimelineToggle>
-        <TimelineToggle
-          active={loop}
-          activeLabel="Disable loop playback"
-          inactiveLabel="Enable loop playback"
-          tooltip="Loop playback"
-          onClick={() => onLoopChange(!loop)}
-        >
-          <RotateCw className="size-3" />
-        </TimelineToggle>
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        {onPlayToggle && (
+          <button
+            type="button"
+            aria-label={isPlaying ? "Pause timeline" : "Play timeline"}
+            onClick={onPlayToggle}
+            className="flex size-11 shrink-0 items-center justify-center rounded-md text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            {isPlaying ? (
+              <Pause className="size-4" />
+            ) : (
+              <Play className="size-4" />
+            )}
+          </button>
+        )}
+        {!compactMode && showSnap && (
+          <TimelineToggle
+            active={snapEnabled}
+            activeLabel="Disable timeline snapping"
+            inactiveLabel="Enable timeline snapping"
+            tooltip="Snap to keyframes"
+            onClick={() => onSnapEnabledChange(!snapEnabled)}
+          >
+            <Magnet className="size-3" />
+          </TimelineToggle>
+        )}
+        {!compactMode && (
+          <TimelineToggle
+            active={loop}
+            activeLabel="Disable loop playback"
+            inactiveLabel="Enable loop playback"
+            tooltip="Loop playback"
+            onClick={() => onLoopChange(!loop)}
+          >
+            <RotateCw className="size-3" />
+          </TimelineToggle>
+        )}
         <Popover>
           <PopoverTrigger
             render={
               <button
                 type="button"
-                aria-label="How the timeline works"
+                aria-label={
+                  compactMode ? "Animation options" : "How the timeline works"
+                }
                 title="Timeline guide"
-                className="flex size-5 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+                className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
               />
             }
           >
-            <CircleHelp className="size-3" />
+            {compactMode ? (
+              <MoreHorizontal className="size-4" />
+            ) : (
+              <CircleHelp className="size-3" />
+            )}
           </PopoverTrigger>
           <PopoverContent
             align="start"
             side="top"
             sideOffset={8}
-            className="w-64 border-border bg-popover p-3 font-sans text-popover-foreground shadow-2xl"
+            className="max-h-(--available-height) w-64 overflow-y-auto border-border bg-popover p-3 font-sans text-popover-foreground shadow-2xl"
           >
-            <div className="text-[12px] font-semibold">
-              Timeline at a glance
-            </div>
+            {compactMode && (
+              <div className="mb-3 grid gap-1 border-b border-border pb-3">
+                <button
+                  type="button"
+                  aria-label={
+                    loop ? "Disable loop playback" : "Enable loop playback"
+                  }
+                  aria-pressed={loop}
+                  onClick={() => onLoopChange(!loop)}
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-md px-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  <span>Loop playback</span>
+                  <span className="text-xs text-muted-foreground">
+                    {loop ? "On" : "Off"}
+                  </span>
+                </button>
+                {showSnap && (
+                  <button
+                    type="button"
+                    aria-label={
+                      snapEnabled
+                        ? "Disable timeline snapping"
+                        : "Enable timeline snapping"
+                    }
+                    aria-pressed={snapEnabled}
+                    onClick={() => onSnapEnabledChange(!snapEnabled)}
+                    className="flex min-h-11 items-center justify-between gap-3 rounded-md px-2 text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    <span>Snap to keyframes</span>
+                    <span className="text-xs text-muted-foreground">
+                      {snapEnabled ? "On" : "Off"}
+                    </span>
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="text-xs font-semibold">Working with motion</div>
             <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-              Arrange icon clips first, then animate only the properties that
-              need to change.
+              Use Motion to edit time, easing, and values. Use Sequence to
+              arrange icon clips and transitions.
             </p>
             <div className="mt-3 grid gap-2.5 text-[11px]">
               <TimelineGuideRow
@@ -263,13 +342,16 @@ function TimelineToggle({
         aria-label={active ? activeLabel : inactiveLabel}
         aria-pressed={active}
         onClick={onClick}
-        className={`flex size-5 shrink-0 items-center justify-center rounded transition-colors focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
+        className={`flex h-11 min-w-11 shrink-0 items-center justify-center rounded-md px-2 transition-colors focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
           active
             ? "bg-accent text-foreground"
             : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
         }`}
       >
         {children}
+        <span className="ml-2 hidden font-sans text-xs min-[720px]:inline">
+          {tooltip}
+        </span>
       </TooltipTrigger>
       <TooltipContent side="bottom">{tooltip}</TooltipContent>
     </Tooltip>

@@ -168,7 +168,7 @@ export function SolidColorEditor({
       )}
 
       {format === "HEX" ? null : (
-        <div className="flex items-center gap-2 text-[12px]">
+        <div className="flex items-center gap-2 text-xs">
           {formatSelect}
           <div
             className={cn(

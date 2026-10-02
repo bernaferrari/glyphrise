@@ -13,18 +13,15 @@ export function useEditorSelectionNavigation({
 }) {
   const [selectedMotionTrackId, setSelectedMotionTrackId] =
     useState<MotionTrackId>("rotation")
-  const { inspectorRefs, selectTimelineTrack, selectTimelinePropertyRow } =
-    useInspectorNavigation({
-      setAdvancedMaterialOpen,
-      setSelectedMotionTrackId,
-      setSelectedShapeId,
-    })
+  const navigation = useInspectorNavigation({
+    setAdvancedMaterialOpen,
+    setSelectedMotionTrackId,
+    setSelectedShapeId,
+  })
 
   return {
-    inspectorRefs,
+    ...navigation,
     selectedMotionTrackId,
     setSelectedMotionTrackId,
-    selectTimelineTrack,
-    selectTimelinePropertyRow,
   }
 }

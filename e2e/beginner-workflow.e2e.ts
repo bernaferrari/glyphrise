@@ -72,18 +72,29 @@ test("applies adjustable motion while preserving artwork, then undoes it in one 
 test("explains edits at and between keyframes and creates only an intentional keyframe", async ({
   page,
 }) => {
+  await page.getByRole("tab", { name: "Transform", exact: true }).click()
+  const row = page.locator('[data-edit-property="Rotation"]')
   await expect(
-    page.getByText("Rotation: editing this keyframe.", { exact: true })
+    row.getByText("Keyframe at 0.00s", { exact: true })
   ).toBeVisible()
+  const before = await backup(page)
+  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   const playhead = page.getByRole("slider", { name: "Timeline playhead" })
   await playhead.focus()
   await playhead.press("ArrowRight")
   await expect(
-    page.getByText(/^Enable to animate changes at/, { exact: true })
+    row.getByText("Between keyframes. Enable Auto-key to edit.")
   ).toBeVisible()
-  await page
-    .getByRole("switch", { name: "Create keyframes when editing" })
+  await expect(page.getByLabel("Rotation Y", { exact: true })).toBeDisabled()
+  await row
+    .getByRole("button", { name: "Enable Auto-key to edit Rotation at 0.10s" })
     .click()
+  await expect(
+    row.getByText("Add keyframe at 0.10s", { exact: true })
+  ).toBeVisible()
+  expect((await backup(page)).rotationAxisKeyframes).toEqual(
+    before.rotationAxisKeyframes
+  )
   const rotation = page.getByLabel("Rotation Y", { exact: true })
   await rotation.fill("45")
   await rotation.press("Enter")
@@ -95,6 +106,13 @@ test("explains edits at and between keyframes and creates only an intentional ke
         k.time > 0 && k.time < 5 && k.value.y === 45
     )
   ).toBe(true)
+  await expect(
+    row.getByText("Keyframe at 0.10s", { exact: true })
+  ).toBeVisible()
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  expect((await backup(page)).rotationAxisKeyframes).toEqual(
+    before.rotationAxisKeyframes
+  )
 })
 
 test("adding a property supplies a useful animation", async ({ page }) => {

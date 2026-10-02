@@ -73,7 +73,7 @@ export function MaterialSymbolGrid({
     const observer = new ResizeObserver(measure)
     observer.observe(grid)
     return () => observer.disconnect()
-  }, [listKey])
+  }, [listKey, normalizedShapeQuery])
 
   useEffect(() => {
     const grid = gridRef.current
@@ -117,6 +117,8 @@ export function MaterialSymbolGrid({
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       className={cn(
         "editor-scrollbar mb-3 grid max-h-[250px] grid-cols-[repeat(auto-fill,minmax(44px,44px))] justify-between gap-2 overflow-y-auto pr-1",
+        normalizedShapeQuery &&
+          "grid-cols-[repeat(auto-fill,minmax(112px,1fr))]",
         className
       )}
     >
@@ -131,20 +133,30 @@ export function MaterialSymbolGrid({
         <div
           key={`material-symbol-${stop.id}-${symbolName}`}
           data-symbol-tile
-          className="group/symbol relative aspect-square"
+          className={cn(
+            "material-symbol-tile group/symbol relative aspect-square",
+            normalizedShapeQuery && "aspect-auto min-h-20"
+          )}
         >
           <button
             type="button"
             title={symbolName.replace(/_/g, " ")}
+            aria-label={symbolName.replace(/_/g, " ")}
             onClick={() => onChooseMaterialSymbol(stop.id, symbolName)}
-            className="grid size-full place-items-center rounded-lg border border-transparent text-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="flex size-full flex-col items-center justify-center gap-2 rounded-lg border border-transparent p-1 text-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
           >
             <span
+              aria-hidden="true"
               className={`${materialSymbolClass} text-[22px] leading-none`}
               style={symbolStyle}
             >
               {symbolName}
             </span>
+            {normalizedShapeQuery && (
+              <span className="text-center text-xs leading-4">
+                {symbolName.replace(/_/g, " ")}
+              </span>
+            )}
           </button>
           {onToggleMaterialSymbolFavorite && (
             <button
@@ -187,12 +199,10 @@ export function MaterialSymbolGrid({
           disabled={materialSymbolStatus.state === "loading"}
           className="col-span-full flex h-10 items-center justify-between rounded-lg border border-dashed border-border bg-muted/40 px-3 text-left text-[11px] text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="truncate">
-            {normalizedShapeQuery.replace(/_/g, " ")}
+          <span className="min-w-0">
+            No matching symbols. Try another word or an exact symbol name.
           </span>
-          <span className="text-[11px] text-muted-foreground">
-            Use typed name
-          </span>
+          <span className="text-[11px] text-muted-foreground">Try name</span>
         </button>
       )}
     </div>

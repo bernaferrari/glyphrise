@@ -1,5 +1,5 @@
-export const RAIL_WIDTH = 140
-export const EDGE_INSET = 12
+// Leave space for the full 44px endpoint keyframe target.
+export const EDGE_INSET = 24
 export const SNAP_THRESHOLD_SECONDS = 0.08
 export const PLAYHEAD_SNAP_THRESHOLD_SECONDS = 0.06
 export const SECOND_SNAP_THRESHOLD_SECONDS = 0.035

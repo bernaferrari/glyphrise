@@ -101,7 +101,7 @@ export function ColorGradientStopRows({
                   }
                 }}
               />
-              <span className="text-[12px] text-muted-foreground">%</span>
+              <span className="text-xs text-muted-foreground">%</span>
             </label>
             <span
               className="flex h-7 min-w-0 items-center gap-2 rounded-md bg-muted/60 px-2 font-mono text-foreground uppercase focus-within:ring-2 focus-within:ring-ring/35"
@@ -146,7 +146,7 @@ export function ColorGradientStopRows({
                 spellCheck={false}
                 aria-label={`Stop ${stop + 1} color`}
                 defaultValue={stopColor.replace(/^#/, "").toUpperCase()}
-                className="h-full min-w-0 flex-1 bg-transparent p-0 font-mono text-[12px] text-foreground uppercase outline-none"
+                className="h-full min-w-0 flex-1 bg-transparent p-0 font-mono text-xs text-foreground uppercase outline-none"
                 onFocus={(event) => {
                   onActiveStopChange(stop)
                   event.currentTarget.select()

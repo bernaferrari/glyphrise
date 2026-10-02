@@ -286,7 +286,7 @@ export function ExportAssetOptions(props: Props) {
               className={cn(
                 "size-4",
                 props.isRecording &&
-                  "animate-pulse text-red-500 motion-reduce:animate-none"
+                  "animate-pulse text-destructive motion-reduce:animate-none"
               )}
             />
           }

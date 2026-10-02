@@ -1,7 +1,6 @@
 "use client"
 
 import { CircleHelp } from "lucide-react"
-import { keyframeTimeMatches } from "./EditorKeyframeModel"
 import { Switch } from "@/components/ui/switch"
 import {
   Popover,
@@ -20,14 +19,9 @@ export function EditScopePanel({
   currentTime,
   autoKeyEnabled,
   onAutoKeyChange,
-  properties,
 }: EditScopePanelProps) {
-  const keyed = properties.filter((property) =>
-    property.times.some((time) => keyframeTimeMatches(time, currentTime))
-  )
-  const animated = properties.some((property) => property.times.length > 0)
   return (
-    <div className="mb-2 border-b border-border/40 px-1 pb-3 text-xs">
+    <div className="px-1 text-xs">
       <div className="flex min-h-9 items-center gap-1">
         <label className="flex min-h-9 flex-1 items-center justify-between gap-2 font-medium">
           Auto-key
@@ -54,8 +48,9 @@ export function EditScopePanel({
               at {currentTime.toFixed(2)}s.
             </p>
             <p>
-              When off, you can still edit an existing keyframe. Between
-              keyframes, turn Auto-key on to change the animation at that time.
+              When off, properties without keyframes apply throughout. At an
+              existing keyframe, edits update that keyframe. Between keyframes,
+              choose Edit here beside a property to enable Auto-key.
             </p>
             <p>
               Properties without keyframes use one value throughout the
@@ -65,14 +60,10 @@ export function EditScopePanel({
           </PopoverContent>
         </Popover>
       </div>
-      <p className="text-[11px] leading-relaxed text-muted-foreground tabular-nums">
+      <p className="text-[11px] leading-relaxed text-muted-foreground tabular-nums max-[720px]:hidden">
         {autoKeyEnabled
-          ? `Changes add keyframes at ${currentTime.toFixed(2)}s.`
-          : keyed.length
-            ? `${keyed.map((item) => item.name).join(", ")}: editing this keyframe.`
-            : animated
-              ? `Enable to animate changes at ${currentTime.toFixed(2)}s.`
-              : "Changes apply throughout the animation."}
+          ? `Your next edit adds or updates a keyframe at ${currentTime.toFixed(2)}s.`
+          : "Static settings apply to the whole animation."}
       </p>
     </div>
   )

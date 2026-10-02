@@ -15,7 +15,7 @@ export function TimelineShapeHeaderRow({
 }: TimelineShapeHeaderRowProps) {
   return (
     <div
-      className={`group flex h-9 items-center gap-2 border-b border-border px-3 transition-colors ${
+      className={`group flex h-[var(--timeline-shape-height)] items-center gap-2 border-b border-border px-3 transition-colors ${
         selectedShapeId ? "bg-muted/25" : "hover:bg-muted/40"
       }`}
     >

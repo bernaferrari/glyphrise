@@ -3,17 +3,25 @@
 import { ArrowRight, Blend, SquareSplitHorizontal } from "lucide-react"
 import type { EasingType, ShapeStop } from "../TimelineModel"
 import type { WipeDirectionOption } from "./TimelineTypes"
+import { NumberField } from "../NumberField"
 import { EasingPicker } from "./TimelineEasingControls"
-import { TIMELINE_LAYER } from "./TimelineLayering"
 import type { TransitionMode } from "./TimelineTransitionModel"
 
 type TimelineTransitionEditorProps = {
   mode: TransitionMode
   stop: ShapeStop
+  next: ShapeStop
+  startTime: number
+  endTime: number
   wipeDirections: WipeDirectionOption[]
   onShapeBlendChange: (
     id: string,
-    patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
+    patch: Partial<
+      Pick<
+        ShapeStop,
+        "transitionType" | "wipeDirection" | "transitionStart" | "transitionEnd"
+      >
+    >
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
 }
@@ -39,6 +47,9 @@ const TRANSITION_MODES = [
 export function TimelineTransitionEditor({
   mode,
   stop,
+  next,
+  startTime,
+  endTime,
   wipeDirections,
   onShapeBlendChange,
   onShapeEasingChange,
@@ -85,6 +96,7 @@ export function TimelineTransitionEditor({
           <button
             key={option.id}
             type="button"
+            aria-pressed={mode === option.id}
             onClick={() => selectMode(option.id)}
             className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[11px] font-medium transition-colors ${
               mode === option.id
@@ -97,6 +109,54 @@ export function TimelineTransitionEditor({
           </button>
         ))}
       </div>
+
+      <fieldset disabled={next.time <= stop.time} className="mt-3 grid gap-2">
+        <legend className="mb-2 text-xs font-medium">Timing</legend>
+        <label className="flex items-center justify-between gap-2 text-xs">
+          {mode === "cut" ? "Cut at" : "Start"}
+          <NumberField
+            value={startTime}
+            min={stop.time}
+            max={mode === "cut" ? next.time : endTime}
+            step={0.1}
+            precision={2}
+            suffix="s"
+            ariaLabel={
+              mode === "cut"
+                ? "Cut time in seconds"
+                : "Transition start in seconds"
+            }
+            onChange={(time) => {
+              const fraction = (time - stop.time) / (next.time - stop.time)
+              onShapeBlendChange(
+                stop.id,
+                mode === "cut"
+                  ? { transitionStart: fraction, transitionEnd: fraction }
+                  : { transitionStart: fraction }
+              )
+            }}
+          />
+        </label>
+        {mode !== "cut" && (
+          <label className="flex items-center justify-between gap-2 text-xs">
+            End
+            <NumberField
+              value={endTime}
+              min={startTime}
+              max={next.time}
+              step={0.1}
+              precision={2}
+              suffix="s"
+              ariaLabel="Transition end in seconds"
+              onChange={(time) =>
+                onShapeBlendChange(stop.id, {
+                  transitionEnd: (time - stop.time) / (next.time - stop.time),
+                })
+              }
+            />
+          </label>
+        )}
+      </fieldset>
 
       {mode === "wipe" && (
         <div className="mt-3 flex justify-center">
@@ -121,39 +181,40 @@ function WipeDirectionPicker({
   onShapeBlendChange: TimelineTransitionEditorProps["onShapeBlendChange"]
 }) {
   return (
-    <div className="relative size-[104px] rounded-full">
-      <span className="pointer-events-none absolute top-1/2 left-1/2 size-[76px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-muted/30" />
+    <div className="grid grid-cols-3 gap-1">
       {wipeDirections
         .filter((dir) => !(dir.x === 0 && dir.y === 0))
+        .sort((a, b) => b.y - a.y || a.x - b.x)
         .map((dir) => {
           const active =
             stop.wipeDirection.x === dir.x && stop.wipeDirection.y === dir.y
-          const len = Math.hypot(dir.x, dir.y) || 1
-          const left = `calc(50% + ${(dir.x / len) * 38}px)`
-          const top = `calc(50% - ${(dir.y / len) * 38}px)`
 
           return (
             <button
               key={dir.label}
               type="button"
               title={dir.tooltip}
+              aria-label={dir.tooltip}
+              aria-pressed={active}
               onClick={() =>
                 onShapeBlendChange(stop.id, {
                   wipeDirection: { x: dir.x, y: dir.y },
                 })
               }
-              className={`absolute flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-[11px] transition-colors ${
+              style={{
+                gridColumn: Math.sign(dir.x) + 2,
+                gridRow: 2 - Math.sign(dir.y),
+              }}
+              className={`flex size-11 items-center justify-center rounded-md border text-xs transition-colors ${
                 active
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-muted/50 text-muted-foreground hover:border-ring/50 hover:text-foreground"
               }`}
-              style={{ left, top, zIndex: TIMELINE_LAYER.transitionHandle }}
             >
               {dir.label}
             </button>
           )
         })}
-      <span className="pointer-events-none absolute top-1/2 left-1/2 size-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted-foreground/50" />
     </div>
   )
 }

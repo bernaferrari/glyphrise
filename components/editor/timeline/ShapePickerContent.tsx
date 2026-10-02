@@ -57,7 +57,7 @@ export function ShapePickerContent({
   onRemoveShape,
 }: {
   open: boolean
-  finalFocusRef: RefObject<HTMLElement | null>
+  finalFocusRef?: RefObject<HTMLElement | null>
   onOpenChange: (open: boolean) => void
   stop: ShapeStop
   shapeCount: number
@@ -92,6 +92,30 @@ export function ShapePickerContent({
   const materialSymbolClass = `material-symbols-${materialSymbolStyle}`
   const symbolStyle = shapePickerSymbolStyle(materialSymbolSettings)
   const [activeTab, setActiveTab] = useState("symbols")
+  const searching = shapeSearchQuery.trim().length > 0
+  const searchSymbols = [
+    ...favoriteMaterialSymbols,
+    ...recentMaterialSymbols,
+    ...filteredMaterialSymbols,
+  ]
+  const firstSearchResult = searchSymbols.includes(normalizedShapeQuery)
+    ? normalizedShapeQuery.replace(/_/g, " ")
+    : (visibleShapeOptions[0]?.name ?? searchSymbols[0]?.replace(/_/g, " "))
+  const searchActionLabel = firstSearchResult
+    ? `Use first result: ${firstSearchResult}`
+    : "Try exact symbol name"
+  const chooseSearchResult = (shapeId: string) => {
+    if (searchSymbols.includes(normalizedShapeQuery)) {
+      onChooseMaterialSymbol(shapeId, normalizedShapeQuery)
+    } else if (visibleShapeOptions[0]) {
+      onShapeIconChange(shapeId, visibleShapeOptions[0])
+      onOpenShapePicker(null)
+    } else if (searchSymbols[0]) {
+      onChooseMaterialSymbol(shapeId, searchSymbols[0])
+    } else {
+      onImportMaterialSymbol(shapeId)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -161,6 +185,7 @@ export function ShapePickerContent({
               materialSymbolStatus={materialSymbolStatus}
               normalizedShapeQuery={normalizedShapeQuery}
               shapeSearchQuery={shapeSearchQuery}
+              searchActionLabel={searchActionLabel}
               onMaterialSymbolOptionsOpenChange={
                 onMaterialSymbolOptionsOpenChange
               }
@@ -168,16 +193,22 @@ export function ShapePickerContent({
               onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
               onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
               onShapeSearchQueryChange={onShapeSearchQueryChange}
-              onImportMaterialSymbol={onImportMaterialSymbol}
+              onImportMaterialSymbol={chooseSearchResult}
             />
           ) : null}
+
+          {materialSymbolStatus.state === "error" && (
+            <p role="alert" className="mb-2 text-xs text-destructive">
+              {materialSymbolStatus.message}
+            </p>
+          )}
 
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
             className="min-h-0 flex-1 gap-2"
           >
-            <TabsList className="grid h-8 w-full grid-cols-4">
+            <TabsList className="grid min-h-11 w-full grid-cols-4">
               <TabsTrigger value="symbols">Symbols</TabsTrigger>
               <TabsTrigger value="wipe">Wipe pairs</TabsTrigger>
               <TabsTrigger value="presets">Presets</TabsTrigger>
@@ -188,6 +219,18 @@ export function ShapePickerContent({
               value="symbols"
               className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
             >
+              {searching && visibleShapeOptions.length > 0 && (
+                <section className="mb-3">
+                  <h3 className="mb-2 text-xs font-medium">Matching presets</h3>
+                  <ShapePresetGrid
+                    stop={stop}
+                    visibleShapeOptions={visibleShapeOptions}
+                    onShapeIconChange={onShapeIconChange}
+                    onOpenShapePicker={onOpenShapePicker}
+                  />
+                  <h3 className="mt-3 text-xs font-medium">Material Symbols</h3>
+                </section>
+              )}
               {favoriteMaterialSymbols.length > 0 && (
                 <section className="mb-3">
                   <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
@@ -247,12 +290,6 @@ export function ShapePickerContent({
                 onImportMaterialSymbol={onImportMaterialSymbol}
                 onToggleMaterialSymbolFavorite={onToggleMaterialSymbolFavorite}
               />
-
-              {materialSymbolStatus.state === "error" && (
-                <p className="mt-2 px-0.5 text-[11px] text-destructive">
-                  {materialSymbolStatus.message}
-                </p>
-              )}
             </TabsContent>
 
             <TabsContent
@@ -269,7 +306,7 @@ export function ShapePickerContent({
                   onChooseWipePair={onChooseWipePair}
                 />
               ) : (
-                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-[12px] text-muted-foreground">
+                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
                   No wipe pairs match
                 </div>
               )}
@@ -287,10 +324,27 @@ export function ShapePickerContent({
                   onShapeIconChange={onShapeIconChange}
                   onOpenShapePicker={onOpenShapePicker}
                 />
-              ) : (
-                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-[12px] text-muted-foreground">
+              ) : !searching || searchSymbols.length === 0 ? (
+                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
                   No presets match
                 </div>
+              ) : null}
+              {searching && searchSymbols.length > 0 && (
+                <section className="mt-3">
+                  <h3 className="mb-2 text-xs font-medium">
+                    Matching Material Symbols
+                  </h3>
+                  <MaterialSymbolGrid
+                    stop={stop}
+                    filteredMaterialSymbols={searchSymbols}
+                    normalizedShapeQuery={normalizedShapeQuery}
+                    materialSymbolClass={materialSymbolClass}
+                    symbolStyle={symbolStyle}
+                    materialSymbolStatus={materialSymbolStatus}
+                    onChooseMaterialSymbol={onChooseMaterialSymbol}
+                    onImportMaterialSymbol={onImportMaterialSymbol}
+                  />
+                </section>
               )}
             </TabsContent>
 

@@ -9,12 +9,14 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { MotionPresetPreview } from "./MotionPresetPreview"
 import {
   ANIMATION_PRESETS,
   type AnimationPresetId,
 } from "./AnimationPresetModel"
 
 export type AnimateDialogProps = {
+  svgContent?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   duration: number
@@ -22,6 +24,7 @@ export type AnimateDialogProps = {
 }
 
 export function AnimateDialog({
+  svgContent,
   open,
   onOpenChange,
   duration,
@@ -33,12 +36,12 @@ export function AnimateDialog({
         <DialogHeader>
           <DialogTitle>Animate your icon</DialogTitle>
           <DialogDescription>
-            Choose a motion, then adjust its timing. Your icon and finish stay
-            yours.
+            Preview a motion, then adjust its timing and intensity.
           </DialogDescription>
         </DialogHeader>
         {open && (
           <AnimationChoices
+            svgContent={svgContent}
             initialDuration={duration}
             onApply={(id, seconds, intensity) => {
               onApply(id, seconds, intensity)
@@ -52,9 +55,11 @@ export function AnimateDialog({
 }
 
 function AnimationChoices({
+  svgContent,
   initialDuration,
   onApply,
 }: {
+  svgContent?: string
   initialDuration: number
   onApply: AnimateDialogProps["onApply"]
 }) {
@@ -77,22 +82,12 @@ function AnimationChoices({
             onClick={() => setSelected(item.id)}
             className="group flex min-h-28 flex-col items-center justify-center gap-3 rounded-xl border border-border bg-muted/30 p-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/5"
           >
-            <span
-              className="grid h-10 w-full place-items-center [perspective:120px]"
-              aria-hidden="true"
-            >
-              <span
-                className={`motion-preview motion-preview-${item.id} grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground`}
-                style={
-                  {
-                    animationDuration: `${valid ? seconds : initialDuration}s`,
-                    "--motion-amount": intensity,
-                  } as React.CSSProperties
-                }
-              >
-                ✦
-              </span>
-            </span>
+            <MotionPresetPreview
+              preset={item.id}
+              svgContent={svgContent}
+              duration={valid ? Number(seconds) : initialDuration}
+              intensity={intensity}
+            />
             {item.name}
           </button>
         ))}
@@ -135,9 +130,10 @@ function AnimationChoices({
         </p>
       )}
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Replaces {preset.property.toLowerCase()} keyframes across the sequence.
-        Other animated properties stay in place. Duration retimes the full
-        sequence. You can undo this action.
+        Updates the project duration and replaces{" "}
+        {preset.property.toLowerCase()}
+        animation. Other motion is preserved. Undo restores your previous
+        animation.
       </p>
       <Button
         disabled={!valid}

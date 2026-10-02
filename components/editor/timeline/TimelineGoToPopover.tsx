@@ -76,7 +76,7 @@ export function TimelineGoToPopover({
               }
             }}
             onBlur={onCommit}
-            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[12px] text-foreground outline-none"
+            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-xs text-foreground outline-none"
           />
           <span className="pr-2 text-[11px] text-muted-foreground">s</span>
         </div>

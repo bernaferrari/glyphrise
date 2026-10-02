@@ -86,6 +86,7 @@ export function TransformInspectorSection({
     <InspectorSection title="TRANSFORM" action={transformKeyframeControl}>
       <InspectorRow
         label="Scale"
+        editProperty={isScaleLocked ? "Scale" : "Scale axes"}
         rowRef={scaleRef}
         dot={scaleTrack.keyframes.length > 0 ? scaleTrack.color : null}
         active={activeTrackId === "scale"}
@@ -127,6 +128,7 @@ export function TransformInspectorSection({
 
       <InspectorRow
         label="Rotation"
+        editProperty="Rotation"
         rowRef={rotationRef}
         dot={rotationAxisKeyframes.length > 0 ? ROTATION_COLOR : null}
         active={activeTrackId === "rotation"}
@@ -152,6 +154,7 @@ export function TransformInspectorSection({
 
       <InspectorRow
         label="Position"
+        editProperty="Position"
         rowRef={moveRef}
         dot={moveKeyframesLength > 0 ? MOVE_COLOR : null}
         active={activeTrackId === "move"}

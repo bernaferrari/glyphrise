@@ -104,7 +104,7 @@ export function TimelineTrackKeyframeButton({
         aria-label={`Select ${track.name} keyframe at ${keyframe.time.toFixed(2)} seconds`}
         aria-pressed={selected}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`touch-hit-area absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
+        className={`timeline-keyframe absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
         style={{
           left: xForFrac(keyframe.time / duration),
           zIndex: selected
@@ -201,7 +201,7 @@ export function TimelineTrackKeyframeButton({
                   onTimeEditorChange(null)
                 }
               }}
-              className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[12px] text-foreground outline-none"
+              className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-xs text-foreground outline-none"
             />
             <span className="pr-2 text-[11px] text-muted-foreground">s</span>
           </div>

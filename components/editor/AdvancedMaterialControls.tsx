@@ -38,7 +38,7 @@ export function AdvancedMaterialControls({
     >
       {MATERIAL_CONTROLS.map(
         ({ key, label, min, max, sliderMax, step, precision }) => (
-          <InspectorRow key={key} label={label}>
+          <InspectorRow key={key} label={label} editProperty="Finish">
             <InspectorSlider
               value={settings[key]}
               min={min}

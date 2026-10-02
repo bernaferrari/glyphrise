@@ -1,8 +1,9 @@
 "use client"
 
 import { ChevronRight } from "lucide-react"
-import type { ReactNode, RefObject } from "react"
+import { useId, type ReactNode, type RefObject } from "react"
 import { cn } from "@/lib/utils"
+import { usePropertyEditScope } from "./PropertyEditScope"
 
 // Single source of truth for inspector layout rhythm. Every property row shares
 // one label column width and one control height so columns line up across every
@@ -31,21 +32,26 @@ export function InspectorSection({
     <section
       data-active={active ? "" : undefined}
       className={cn(
-        "relative flex flex-col gap-0.5 py-2.5 first:pt-1 last:pb-1",
+        "relative flex flex-col gap-2 py-3 first:pt-1 last:pb-1",
         className
       )}
     >
       {active ? (
         <span className="pointer-events-none absolute top-2.5 bottom-2.5 -left-1.5 w-0.5 rounded-full bg-foreground/35" />
       ) : null}
-      <div className="flex h-6 items-center justify-between px-1.5">
+      <div className="flex min-h-8 items-center justify-between px-1.5">
         <span
           className={cn(
-            "text-[11px] font-semibold tracking-[0.12em] transition-colors",
+            "text-sm font-semibold tracking-tight transition-colors",
             active ? "text-foreground/90" : "text-muted-foreground"
           )}
         >
-          {title}
+          {{
+            STYLE: "Appearance",
+            GEOMETRY: "Shape",
+            TRANSFORM: "Transform",
+            LIGHT: "Lighting",
+          }[title] ?? title}
         </span>
         {action}
       </div>
@@ -63,6 +69,8 @@ export function InspectorRow({
   onClick,
   rowRef,
   className,
+  editProperty,
+  scopeLabel,
   children,
 }: {
   label: ReactNode
@@ -76,16 +84,22 @@ export function InspectorRow({
   onClick?: () => void
   rowRef?: RefObject<HTMLDivElement | null>
   className?: string
+  editProperty?: string
+  scopeLabel?: string
   children: ReactNode
 }) {
+  const scope = usePropertyEditScope(editProperty)
+  const scopeId = useId()
+  const needsKeyframe = scope?.kind === "animated"
   return (
     <div
       ref={rowRef}
       onClick={onClick}
       onFocusCapture={onClick}
       data-active={active ? "" : undefined}
+      data-edit-property={editProperty}
       className={cn(
-        "flex min-h-8 items-center gap-2 rounded-lg px-1.5 py-0.5 transition-colors",
+        "flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg px-1.5 py-1.5 transition-colors",
         onClick && "cursor-pointer hover:bg-foreground/[0.03]",
         active && "bg-foreground/[0.05]",
         className
@@ -93,9 +107,9 @@ export function InspectorRow({
     >
       <div
         className={cn(
-          "flex shrink-0 items-center gap-1 text-xs font-medium transition-colors duration-100",
+          "flex shrink-0 items-center gap-1 text-[13px] font-medium transition-colors duration-100",
           INSPECTOR_LABEL_WIDTH,
-          active ? "text-foreground" : "text-muted-foreground"
+          active ? "text-foreground" : "text-foreground/80"
         )}
       >
         <span className="min-w-0 text-pretty">{label}</span>
@@ -107,8 +121,50 @@ export function InspectorRow({
         ) : null}
         {labelAction}
       </div>
-      {children}
+      <fieldset
+        disabled={needsKeyframe}
+        inert={needsKeyframe ? true : undefined}
+        aria-label={editProperty ? `${editProperty} controls` : undefined}
+        aria-describedby={scope ? scopeId : undefined}
+        className={cn(
+          "flex min-w-0 flex-1 items-center gap-2",
+          needsKeyframe && "opacity-65"
+        )}
+      >
+        {children}
+      </fieldset>
       {trailing}
+      {scope && (
+        <div
+          className={cn(
+            "flex w-full items-center justify-between gap-2 text-xs leading-4",
+            scope.kind === "whole" && "sr-only"
+          )}
+        >
+          <span
+            id={scopeId}
+            title={scope.description}
+            className="text-muted-foreground"
+          >
+            {scopeLabel ? `${scopeLabel}: ` : null}
+            {scope.label}
+            {needsKeyframe ? ". Enable Auto-key to edit." : null}
+          </span>
+          {needsKeyframe && (
+            <button
+              type="button"
+              aria-label={`Enable Auto-key to edit ${editProperty} at ${scope.time}s`}
+              onClick={(event) => {
+                event.stopPropagation()
+                scope.enableEditing()
+              }}
+              className="min-h-8 shrink-0 rounded-md bg-primary/10 px-2 font-medium text-primary hover:bg-primary/15 focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11"
+            >
+              Edit here
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -132,7 +188,7 @@ export function InspectorDisclosure({
         type="button"
         aria-expanded={open}
         onClick={() => onOpenChange(!open)}
-        className="flex h-7 items-center gap-1 rounded-lg px-1.5 text-[11px] font-semibold tracking-[0.12em] text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        className="flex min-h-10 items-center gap-1.5 rounded-lg px-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         <ChevronRight
           className={cn(
@@ -140,7 +196,7 @@ export function InspectorDisclosure({
             open && "rotate-90"
           )}
         />
-        {title}
+        {title.toLowerCase().replace(/^./, (letter) => letter.toUpperCase())}
         {badge}
       </button>
       {open ? <div className="flex flex-col gap-0.5">{children}</div> : null}

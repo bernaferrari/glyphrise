@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": ["@shadcn/lint"],
   "plugins": ["typescript", "unicorn", "oxc"],
   "categories": {
     "correctness": "error"
@@ -17,5 +18,12 @@
     "vanilla-mock-backup/**",
     "*.tsbuildinfo"
   ],
-  "rules": {}
+  "rules": {
+    "shadcn/no-restyle": "error",
+    "shadcn/no-raw-colors": "error",
+    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-inline-styles": "error",
+    "shadcn/no-unknown-classes": "error",
+    "shadcn/require-static-classes": "error"
+  }
 }

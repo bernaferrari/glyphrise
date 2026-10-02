@@ -48,8 +48,8 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.994 0.002 260);
+  --foreground: oklch(0.24 0.008 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -58,13 +58,13 @@
   --primary-foreground: oklch(0.982 0.018 155.826);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted: oklch(0.966 0.003 260);
+  --muted-foreground: oklch(0.49 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --border: oklch(0.91 0.004 260);
+  --input: oklch(0.91 0.004 260);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -89,23 +89,23 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.235 0.006 260);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(0.27 0.006 260);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --popover: oklch(0.29 0.006 260);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.448 0.119 151.328);
   --primary-foreground: oklch(0.982 0.018 155.826);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --muted: oklch(0.3 0.006 260);
+  --muted-foreground: oklch(0.76 0 0);
+  --accent: oklch(0.33 0.006 260);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --border: oklch(0.35 0.006 260);
+  --input: oklch(0.38 0.006 260);
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -267,18 +267,105 @@
     min-height: 44px;
   }
 
-  /* The timeline is a precision surface with component-managed targets. A
-     blanket 44px box makes its fixed rows overlap on touch laptops. */
-  .timeline-density button,
-  .timeline-density [role="button"] {
-    min-width: 0;
-    min-height: 0;
-  }
-
   input:not([type="range"]),
   select,
   textarea {
     font-size: 16px;
+  }
+}
+
+.timeline-density {
+  --timeline-rail-width: 200px;
+  --timeline-ruler-height: 28px;
+  --timeline-shape-height: 36px;
+  --timeline-property-height: 36px;
+}
+
+/* Rail and lanes share dimensions. Touch controls occupy their own space so
+   an expanded hit area cannot steal a neighbouring row's interaction. */
+@media (width <= 720px), (pointer: coarse) {
+  .timeline-density {
+    --timeline-rail-width: 156px;
+    --timeline-ruler-height: 44px;
+    --timeline-shape-height: 52px;
+    --timeline-property-height: 88px;
+  }
+
+  .timeline-density button,
+  .timeline-density [role="button"] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .timeline-property-rail {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeline-property-name {
+    flex: none;
+    height: 44px;
+  }
+
+  .timeline-property-actions {
+    height: 44px;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .timeline-easing {
+    width: auto;
+    gap: 6px;
+    padding: 0 6px;
+  }
+
+  .timeline-easing-label {
+    display: inline;
+  }
+
+  .timeline-keyframe {
+    width: 44px;
+    height: 44px;
+  }
+
+  .timeline-icon-clip,
+  .timeline-transition {
+    height: 44px;
+  }
+
+  /* Precise timing remains available in the transition popover on touch. */
+  .timeline-transition-edge {
+    display: none;
+  }
+
+  .timeline-icon-clip:focus-visible,
+  .timeline-keyframe:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+}
+
+@media (pointer: coarse) {
+  .material-symbol-tile {
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 96px;
+  }
+
+  .material-symbol-tile > button:first-child {
+    min-height: 44px;
+    flex: 1;
+  }
+
+  .material-symbol-tile .favorite-action {
+    position: static;
+    align-self: center;
+  }
+
+  .touch-hit-area::after {
+    content: none;
   }
 }
 

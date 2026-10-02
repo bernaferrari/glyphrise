@@ -204,7 +204,7 @@ export function CompactColorInput({
         onChange={(event) => handleTextChange(event.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={commitInput}
-        className="h-full min-w-0 flex-1 bg-transparent p-0 font-mono text-[12px] text-foreground uppercase outline-none"
+        className="h-full min-w-0 flex-1 bg-transparent p-0 font-mono text-xs text-foreground uppercase outline-none"
       />
     </span>
   )

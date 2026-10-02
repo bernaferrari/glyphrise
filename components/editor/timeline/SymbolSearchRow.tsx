@@ -12,6 +12,7 @@ import { SymbolOptionsPopover } from "./SymbolOptionsPopover"
 
 export function SymbolSearchRow({
   searchScope = "symbols",
+  searchActionLabel = "Try exact symbol name",
   stop,
   materialSymbolClass,
   symbolStyle,
@@ -29,6 +30,7 @@ export function SymbolSearchRow({
   onImportMaterialSymbol,
 }: {
   searchScope?: "symbols" | "presets" | "wipe"
+  searchActionLabel?: string
   stop: ShapeStop
   materialSymbolClass: string
   symbolStyle: React.CSSProperties
@@ -97,8 +99,8 @@ export function SymbolSearchRow({
       {searchScope === "symbols" && (
         <button
           type="button"
-          aria-label="Use typed symbol"
-          title="Use typed symbol"
+          aria-label={searchActionLabel}
+          title={searchActionLabel}
           disabled={
             !normalizedShapeQuery || materialSymbolStatus.state === "loading"
           }

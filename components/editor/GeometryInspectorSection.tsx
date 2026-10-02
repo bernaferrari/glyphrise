@@ -1,8 +1,12 @@
 "use client"
 
-import { ReactNode, RefObject } from "react"
+import { ReactNode, RefObject, useState } from "react"
 import { EXTRUDE_DEFAULT, EXTRUDE_MAX, finiteNumber } from "./EditorModel"
-import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
+import {
+  InspectorRow,
+  InspectorSection,
+  InspectorDisclosure,
+} from "./InspectorPrimitives"
 import { InspectorSlider } from "./InspectorSlider"
 import { MAX_BEVEL_SEGMENTS } from "./EditorModel"
 import type { TimelineTrack } from "./TimelineModel"
@@ -54,6 +58,7 @@ export function GeometryInspectorSection({
   onQualityChange,
   onCustomEdit,
 }: GeometryInspectorSectionProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const depthValue = finiteNumber(
     extrusionTrack.keyframes.length > 0 ? activeExtrusionDepth : extrusionDepth,
     EXTRUDE_DEFAULT
@@ -75,6 +80,7 @@ export function GeometryInspectorSection({
     <InspectorSection title="GEOMETRY" action={keyframeControl}>
       <InspectorRow
         label="Extrude"
+        editProperty="Depth"
         rowRef={extrusionRef}
         dot={extrusionTrack.keyframes.length > 0 ? extrusionTrack.color : null}
         active={isActive}
@@ -96,7 +102,7 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Edge roundness">
+      <InspectorRow label="Edge roundness" editProperty="Edge roundness">
         <InspectorSlider
           value={crownValue}
           min={0}
@@ -118,41 +124,47 @@ export function GeometryInspectorSection({
         />
       </InspectorRow>
 
-      <InspectorRow label="Bevel detail">
-        <InspectorSlider
-          value={bevelEnabled ? bevelSegments : 0}
-          min={0}
-          max={MAX_BEVEL_SEGMENTS}
-          sliderMax={12}
-          step={1}
-          precision={0}
-          ariaLabel="Bevel segments"
-          onChange={(value) => {
-            const nextSegments = Math.max(0, Math.round(value))
-            onBevelEnabledChange(nextSegments > 0)
-            if (nextSegments > 0) {
-              onBevelSegmentsChange(nextSegments)
-            }
-            onCustomEdit()
-          }}
-        />
-      </InspectorRow>
+      <InspectorDisclosure
+        title="Shape detail"
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+      >
+        <InspectorRow label="Bevel detail" editProperty="Bevel detail">
+          <InspectorSlider
+            value={bevelEnabled ? bevelSegments : 0}
+            min={0}
+            max={MAX_BEVEL_SEGMENTS}
+            sliderMax={12}
+            step={1}
+            precision={0}
+            ariaLabel="Bevel segments"
+            onChange={(value) => {
+              const nextSegments = Math.max(0, Math.round(value))
+              onBevelEnabledChange(nextSegments > 0)
+              if (nextSegments > 0) {
+                onBevelSegmentsChange(nextSegments)
+              }
+              onCustomEdit()
+            }}
+          />
+        </InspectorRow>
 
-      <InspectorRow label="Curve smoothness">
-        <InspectorSlider
-          value={curveDetail}
-          min={0}
-          max={100}
-          sliderMin={0}
-          sliderMax={100}
-          step={1}
-          precision={0}
-          ariaLabel="Curve smoothness percent"
-          onChange={(value) =>
-            onQualityChange(geometryQualityFromCurveDetail(value))
-          }
-        />
-      </InspectorRow>
+        <InspectorRow label="Curve smoothness" editProperty="Quality">
+          <InspectorSlider
+            value={curveDetail}
+            min={0}
+            max={100}
+            sliderMin={0}
+            sliderMax={100}
+            step={1}
+            precision={0}
+            ariaLabel="Curve smoothness percent"
+            onChange={(value) =>
+              onQualityChange(geometryQualityFromCurveDetail(value))
+            }
+          />
+        </InspectorRow>
+      </InspectorDisclosure>
     </InspectorSection>
   )
 }

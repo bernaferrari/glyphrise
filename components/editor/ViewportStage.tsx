@@ -16,6 +16,7 @@ import {
 
 type ViewportStageProps = {
   zenMode: boolean
+  presentation?: "workspace" | "motion-preview"
   workspaceActive?: boolean
   isDragging: boolean
   canvasProps: SvgCanvasProps
@@ -32,6 +33,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
     {
       zenMode,
       workspaceActive = true,
+      presentation = "workspace",
       isDragging,
       canvasProps,
       viewOptionsProps,
@@ -73,7 +75,11 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
         inert={workspaceActive ? undefined : true}
         aria-hidden={workspaceActive ? undefined : true}
         className={`relative isolate flex min-w-0 flex-1 flex-col ${
-          zenMode ? "gap-0 p-0" : "gap-2 p-4 max-[720px]:p-2"
+          presentation === "motion-preview"
+            ? "p-0"
+            : zenMode
+              ? "gap-0 p-0"
+              : "gap-2 p-3 max-[720px]:p-2"
         }`}
       >
         <div
@@ -81,12 +87,16 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`relative min-h-0 flex-1 transition-[background-color,border-color] duration-150 ${
-            zenMode
+            zenMode || presentation === "motion-preview"
               ? "rounded-none border-0"
-              : "overflow-hidden rounded-xl border border-border/70 bg-muted/40 shadow-sm"
+              : "overflow-hidden rounded-2xl border border-border/60 bg-muted/40 shadow-sm"
           }`}
         >
-          <SvgCanvas ref={ref} {...canvasProps} />
+          <SvgCanvas
+            ref={ref}
+            {...canvasProps}
+            showOrientationGizmo={presentation !== "motion-preview"}
+          />
 
           {svgImportError ? (
             <div
@@ -112,7 +122,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           ) : null}
 
           {isDragging && (
-            <div className="animate-fade-in absolute inset-0 z-30 flex items-center justify-center bg-black/75 backdrop-blur-md">
+            <div className="absolute inset-0 z-30 flex animate-in items-center justify-center bg-black/75 backdrop-blur-md fade-in-0">
               <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-white/25 p-8">
                 <Upload className="size-8 text-white/70" />
                 <div className="text-center">
@@ -127,13 +137,17 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          <ViewOptionsPopover {...viewOptionsProps} />
-          {!zenMode && (
-            <p className="pointer-events-none absolute top-14 right-3 left-3 text-center text-[11px] text-white/65">
-              Drag to orbit · Scroll to zoom · Camera is preview-only
-            </p>
+          {presentation === "workspace" && (
+            <ViewOptionsPopover {...viewOptionsProps} />
           )}
-          <PlaybackControls {...playbackProps} />
+          {presentation === "motion-preview" && (
+            <div className="pointer-events-none absolute inset-x-4 top-3 flex items-center justify-between text-xs text-white/60">
+              <span>Live preview</span>
+            </div>
+          )}
+          {presentation === "workspace" && (
+            <PlaybackControls {...playbackProps} />
+          )}
         </div>
       </div>
     )

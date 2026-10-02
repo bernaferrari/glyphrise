@@ -1,11 +1,6 @@
 "use client"
 
-import {
-  useCallback,
-  useLayoutEffect,
-  type RefObject,
-  type WheelEvent,
-} from "react"
+import { useCallback, type RefObject, type UIEvent } from "react"
 
 export function useTimelineRailScrollSync({
   leftRailBodyRef,
@@ -14,36 +9,27 @@ export function useTimelineRailScrollSync({
   leftRailBodyRef: RefObject<HTMLDivElement | null>
   timelineScrollRef: RefObject<HTMLDivElement | null>
 }) {
-  const resetHiddenLeftRailScroll = useCallback(() => {
-    const viewport = leftRailBodyRef.current?.parentElement
-    if (viewport && viewport.scrollTop !== 0) viewport.scrollTop = 0
-  }, [leftRailBodyRef])
-
-  useLayoutEffect(() => {
-    resetHiddenLeftRailScroll()
-  }, [resetHiddenLeftRailScroll])
-
-  const handleLeftRailWheel = useCallback(
-    (event: WheelEvent<HTMLElement>) => {
+  // Both surfaces scroll natively: touch, keyboard focus and scrollIntoView all
+  // work on the rail. Equality guards keep their scroll events from bouncing.
+  const handleLeftRailScroll = useCallback(
+    (event: UIEvent<HTMLElement>) => {
       const scroller = timelineScrollRef.current
-      if (!scroller) return
-
-      event.preventDefault()
-      resetHiddenLeftRailScroll()
-      scroller.scrollTop += event.deltaY
-      scroller.scrollLeft += event.deltaX
+      if (scroller && scroller.scrollTop !== event.currentTarget.scrollTop) {
+        scroller.scrollTop = event.currentTarget.scrollTop
+      }
     },
-    [resetHiddenLeftRailScroll, timelineScrollRef]
+    [timelineScrollRef]
   )
 
   const syncLeftRailScroll = useCallback(
     (scrollTop: number) => {
-      if (!leftRailBodyRef.current) return
-      resetHiddenLeftRailScroll()
-      leftRailBodyRef.current.style.transform = `translateY(${-scrollTop}px)`
+      const viewport = leftRailBodyRef.current?.parentElement
+      if (viewport && viewport.scrollTop !== scrollTop) {
+        viewport.scrollTop = scrollTop
+      }
     },
-    [leftRailBodyRef, resetHiddenLeftRailScroll]
+    [leftRailBodyRef]
   )
 
-  return { handleLeftRailWheel, syncLeftRailScroll }
+  return { handleLeftRailScroll, syncLeftRailScroll }
 }

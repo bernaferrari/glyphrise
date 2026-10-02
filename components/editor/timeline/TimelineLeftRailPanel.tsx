@@ -1,9 +1,7 @@
 "use client"
 
 import React from "react"
-import { TimelineHeader } from "./TimelineHeader"
 import { TimelineLeftRail } from "./TimelineLeftRail"
-import { RAIL_WIDTH } from "./TimelineGeometry"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import type {
   EasingType,
@@ -36,7 +34,7 @@ type TimelineLeftRailPanelProps = {
   onClearTrackKeyframes?: (trackId: string) => void
   onCommitDurationEditor: () => void
   onDurationEditorChange: (value: string | null) => void
-  onLeftRailWheel: (event: React.WheelEvent<HTMLDivElement>) => void
+  onLeftRailScroll: (event: React.UIEvent<HTMLDivElement>) => void
   onLoopChange: (enabled: boolean) => void
   onOpenContextMenu: (
     event: React.MouseEvent,
@@ -64,63 +62,37 @@ type TimelineLeftRailPanelProps = {
 export function TimelineLeftRailPanel({
   activeTrackId,
   currentTime,
-  durationInvalid,
-  durationNotice,
-  duration,
-  durationEditor,
   isPreviewLoading,
   leftRailBodyRef,
-  loop,
   selectedShapeId,
-  snapEnabled,
   tracks,
   hiddenTracks,
   revealedRowId,
   visiblePropertyRows,
   onActivePropertyRowChange,
   onAddShape,
-  onApplyDuration,
   onClearPropertyRow,
   onTogglePropertyKeyframe,
   onClearSelection,
   onClearTrackKeyframes,
-  onCommitDurationEditor,
-  onDurationEditorChange,
-  onLeftRailWheel,
-  onLoopChange,
+  onLeftRailScroll,
   onOpenContextMenu,
-  onOpenDurationEditor,
   onAddProperty,
   onSelectTrack,
   onSetPropertyEasing,
   onSetTrackEasing,
-  onSnapEnabledChange,
   onToggleTrackKeyframe,
   createGoToMenuItem,
 }: TimelineLeftRailPanelProps) {
   return (
-    <div
-      className="flex shrink-0 flex-col overflow-visible border-r border-border bg-muted/35"
-      style={{ width: RAIL_WIDTH }}
-    >
-      <TimelineHeader
-        currentTime={currentTime}
-        duration={duration}
-        durationEditor={durationEditor}
-        durationInvalid={durationInvalid}
-        durationNotice={durationNotice}
-        snapEnabled={snapEnabled}
-        loop={loop}
-        onDurationEditorChange={onDurationEditorChange}
-        onOpenDurationEditor={onOpenDurationEditor}
-        onCommitDurationEditor={onCommitDurationEditor}
-        onApplyDuration={onApplyDuration}
-        onSnapEnabledChange={onSnapEnabledChange}
-        onLoopChange={onLoopChange}
+    <div className="flex w-[var(--timeline-rail-width)] shrink-0 flex-col overflow-visible border-r border-border bg-muted/35">
+      <div
+        aria-hidden="true"
+        className="h-[var(--timeline-ruler-height)] shrink-0 border-b border-border"
       />
       <div
-        className="relative min-h-0 flex-1 overflow-clip"
-        onWheel={onLeftRailWheel}
+        className="relative min-h-0 flex-1 [scrollbar-width:none] overflow-y-auto overscroll-contain"
+        onScroll={onLeftRailScroll}
       >
         <TimelineLeftRail
           ref={leftRailBodyRef}

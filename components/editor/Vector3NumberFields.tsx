@@ -12,6 +12,7 @@ const AXIS_ORDER: Array<{ label: "X" | "Y" | "Z"; axis: Axis }> = [
 ]
 
 export function Vector3NumberFields({
+  size = "default",
   values,
   min,
   max,
@@ -22,6 +23,7 @@ export function Vector3NumberFields({
   ariaLabel,
   onChange,
 }: {
+  size?: "default" | "large"
   values: LightPosition
   min: number
   max: number
@@ -47,7 +49,9 @@ export function Vector3NumberFields({
           suffix={suffix}
           precision={precision}
           ariaLabel={`${ariaLabel} ${axisLabel}`}
-          className="min-w-0 flex-1"
+          className={
+            size === "large" ? "min-h-11 min-w-0 flex-1" : "min-w-0 flex-1"
+          }
           inputClassName="text-right"
           onChange={(value) => onChange(axis, value)}
         />

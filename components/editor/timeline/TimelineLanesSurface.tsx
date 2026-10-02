@@ -7,7 +7,6 @@ import { TimelinePropertyRows } from "./TimelinePropertyRows"
 import { TimelineRuler } from "./TimelineRuler"
 import { TimelineShapeLane } from "./TimelineShapeLane"
 import { TimelineTrackRows } from "./TimelineTrackRows"
-import { TimelineZoomControls } from "./TimelineZoomControls"
 import type { TimelineLanesSurfaceProps } from "./TimelineLanesSurfaceTypes"
 
 export function TimelineLanesSurface({
@@ -71,12 +70,10 @@ export function TimelineLanesSurface({
               shapes={shapeLane.shapes}
               sortedShapes={shapeLane.sortedShapes}
               selectedShapeId={shapeLane.selectedShapeId}
-              openShapePicker={shapeLane.openShapePicker}
               openClipEditor={shapeLane.openClipEditor}
               wipeDirections={shapeLane.wipeDirections}
               transitionWindows={shapeLane.transitionWindows}
               clipBounds={shapeLane.clipBounds}
-              shapePicker={shapeLane.shapePicker}
               shapeDraggedRef={shapeLane.shapeDraggedRef}
               shapeLabel={shapeLane.shapeLabel}
               timeFromClientX={viewport.timeFromClientX}
@@ -89,7 +86,6 @@ export function TimelineLanesSurface({
               onTransitionEdgeDrag={shapeLane.onTransitionEdgeDrag}
               onSelectShape={shapeLane.onSelectShape}
               onOpenShapePicker={shapeLane.onOpenShapePicker}
-              onShapeIconChange={shapeLane.onShapeIconChange}
               onUploadShape={shapeLane.onUploadShape}
               onRemoveShape={shapeLane.onRemoveShape}
               onShapeDrag={shapeLane.onShapeDrag}
@@ -152,16 +148,14 @@ export function TimelineLanesSurface({
             {/* Keep lane height in sync with the left-rail "Add property" row so
                 second-grid lines and the playhead are not cut short by empty bg. */}
             {trackLane.showAddPropertyRow && (
-              <div className="h-9 border-b border-border" aria-hidden="true" />
+              <div
+                className="h-[var(--timeline-property-height)] border-b border-border"
+                aria-hidden="true"
+              />
             )}
           </div>
           <TimelinePlayheadLine playheadX={viewport.playheadX} />
         </div>
-        <TimelineZoomControls
-          zoom={viewport.timelineZoom}
-          onAdjustZoom={viewport.onAdjustTimelineZoom}
-          onFitTimeline={viewport.onFitTimeline}
-        />
       </div>
     </div>
   )

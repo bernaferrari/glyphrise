@@ -107,6 +107,7 @@ export interface SvgCanvasProps {
   rimLightIntensity: number
   zoom: number
   viewInertiaEnabled?: boolean
+  showOrientationGizmo?: boolean
   showCenterPoint?: boolean
   showTransformGizmo?: boolean
   selectedLayerId?: string | null

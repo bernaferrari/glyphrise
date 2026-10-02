@@ -53,6 +53,8 @@ interface AppTopBarProps {
 }
 
 function CompactWorkspaceMenu({
+  zenMode,
+  onZenModeChange,
   autoKeyEnabled,
   themeMounted,
   isLightTheme,
@@ -79,6 +81,8 @@ function CompactWorkspaceMenu({
   | "onRedo"
   | "canUndo"
   | "canRedo"
+  | "onZenModeChange"
+  | "zenMode"
   | "onAutoKeyChange"
   | "onThemeChange"
 >) {
@@ -110,6 +114,12 @@ function CompactWorkspaceMenu({
       label: "Download project backup",
       Icon: FileDown,
       onClick: action(onProjectSave),
+      disabled: false,
+    },
+    {
+      label: zenMode ? "Show panels" : "Focus canvas",
+      Icon: PanelLeftClose,
+      onClick: action(() => onZenModeChange(!zenMode)),
       disabled: false,
     },
     { label: "Undo", Icon: Undo2, onClick: action(onUndo), disabled: !canUndo },
@@ -301,13 +311,13 @@ export function AppTopBar({
           : "Saved locally"
 
   return (
-    <header className="app-topbar relative z-30 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="app-topbar relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl max-[720px]:h-14 sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"
           aria-label={zenMode ? "Show panels" : "Hide panels"}
           onClick={() => onZenModeChange(!zenMode)}
-          className="size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring min-[720px]:block"
         >
           {zenMode ? (
             <PanelLeftOpen className="mx-auto size-4" />
@@ -315,14 +325,14 @@ export function AppTopBar({
             <PanelLeftClose className="mx-auto size-4" />
           )}
         </button>
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="hidden min-w-0 lg:block">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold tracking-tight text-foreground">
                 Glyphrise
               </span>
-              <span className="hidden text-[11px] tracking-[0.18em] text-muted-foreground uppercase sm:inline">
-                3D Motion Studio
+              <span className="hidden text-xs tracking-normal text-muted-foreground sm:inline">
+                Motion studio
               </span>
             </div>
           </div>
@@ -334,9 +344,7 @@ export function AppTopBar({
         </div>
       </div>
 
-      <div />
-
-      <div className="flex items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1.5">
         <span
           aria-live="polite"
           title={projectStatusMessage}
@@ -371,7 +379,7 @@ export function AppTopBar({
           projectStatus={projectStatus}
           projectStatusMessage={projectStatusMessage}
         />
-        <div className="hidden items-center rounded-lg border border-border bg-muted/35 p-0.5 md:flex">
+        <div className="hidden items-center gap-0.5 md:flex">
           <Button
             size="icon"
             variant="ghost"
@@ -379,7 +387,7 @@ export function AppTopBar({
             title="Undo (Ctrl/⌘ Z)"
             onClick={onUndo}
             disabled={!canUndo}
-            className="size-7 rounded-md text-muted-foreground hover:text-foreground"
+            className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
             <Undo2 className="size-3.5" />
           </Button>
@@ -390,7 +398,7 @@ export function AppTopBar({
             title="Redo (Ctrl/⌘ Shift Z)"
             onClick={onRedo}
             disabled={!canRedo}
-            className="size-7 rounded-md text-muted-foreground hover:text-foreground"
+            className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
             <Redo2 className="size-3.5" />
           </Button>
@@ -421,10 +429,10 @@ export function AppTopBar({
           aria-label="Animate"
           title="Animate"
           onClick={onAnimateOpen}
-          className="h-9 w-auto gap-1.5 rounded-lg border border-border bg-transparent px-3 text-xs text-foreground hover:bg-muted"
+          className="hidden h-9 w-auto gap-1.5 rounded-lg border border-transparent bg-transparent px-3 text-xs text-foreground hover:bg-muted min-[720px]:inline-flex"
         >
           <Sparkles className="size-3.5" />
-          Animate
+          <span className="hidden min-[480px]:inline">Animate</span>
         </Button>
         <Button
           size="icon"
@@ -450,9 +458,11 @@ export function AppTopBar({
           onClick={onExportOpen}
         >
           <Download className="size-3.5" />
-          <span className="hidden sm:inline">Export</span>
+          <span className="">Export</span>
         </Button>
         <CompactWorkspaceMenu
+          zenMode={zenMode}
+          onZenModeChange={onZenModeChange}
           autoKeyEnabled={autoKeyEnabled}
           themeMounted={themeMounted}
           isLightTheme={isLightTheme}

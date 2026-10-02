@@ -343,6 +343,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
           className="block h-full w-full cursor-grab touch-none active:cursor-grabbing"
         />
         <SvgCanvasOverlays
+          showOrientationGizmo={props.showOrientationGizmo}
           modelReady={modelReady}
           modelError={modelError}
           orientationGizmoRefs={orientationGizmoRefs}

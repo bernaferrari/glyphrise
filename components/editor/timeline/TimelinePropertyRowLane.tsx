@@ -75,7 +75,7 @@ export function TimelinePropertyRowLane({
 
   return (
     <div
-      className={`relative h-9 border-b border-border transition-colors ${
+      className={`relative h-[var(--timeline-property-height)] border-b border-border transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
           : "hover:bg-muted/35"
@@ -157,7 +157,7 @@ export function TimelinePropertyRowLane({
             aria-label={`Select ${row.name} keyframe${keyframe.label ? `, ${keyframe.label}` : ""} at ${keyframe.time.toFixed(2)} seconds`}
             aria-pressed={selected}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className="touch-hit-area absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="timeline-keyframe absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
             style={{
               left: xForFrac(keyframe.time / duration),
               zIndex: TIMELINE_LAYER.propertyKeyframe,

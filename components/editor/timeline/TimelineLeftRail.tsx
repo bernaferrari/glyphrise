@@ -93,8 +93,8 @@ export const TimelineLeftRail = React.forwardRef<
     }
 
     return (
-      <div ref={ref} className="will-change-transform">
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[9px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
+      <div ref={ref}>
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
           Icon sequence
         </div>
         <TimelineShapeHeaderRow
@@ -103,7 +103,7 @@ export const TimelineLeftRail = React.forwardRef<
           onAddShape={onAddShape}
         />
 
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[9px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
+        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
           Animated properties
         </div>
 
@@ -143,7 +143,7 @@ export const TimelineLeftRail = React.forwardRef<
                 <button
                   id="timeline-add-property"
                   type="button"
-                  className="flex h-9 w-full items-center gap-2 border-b border-border px-3 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+                  className="flex h-[var(--timeline-property-height)] w-full items-center gap-2 border-b border-border px-3 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
                 />
               }
             >

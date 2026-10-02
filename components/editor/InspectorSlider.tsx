@@ -16,7 +16,7 @@ export function InspectorSlider({
   scrubStep,
   precision,
   className = "flex-1",
-  inputClassName = "w-[58px]",
+  inputClassName = "w-[68px]",
   sliderClassName = "flex-1",
   ariaLabel,
   onChange,
@@ -35,22 +35,25 @@ export function InspectorSlider({
   ariaLabel: string
   onChange: (value: number) => void
 }) {
-  const { flush: flushSliderChange, schedule: scheduleSliderChange } =
-    useRafNumberChange(onChange)
+  const { flush, schedule } = useRafNumberChange(onChange)
   const sliderValue = clampInspectorValue(value, sliderMin, sliderMax)
-  const progress =
-    sliderMax > sliderMin
-      ? clampInspectorValue(
-          (sliderValue - sliderMin) / (sliderMax - sliderMin),
-          0,
-          1
-        )
-      : 0
-  const thumbInset = 12
-  const thumbPosition = `calc(${thumbInset}px + ${progress} * (100% - ${thumbInset * 2}px))`
-
   return (
-    <div className={`flex min-w-0 items-center gap-2 ${className}`}>
+    <div className={`flex min-w-0 items-center gap-3 ${className}`}>
+      <input
+        type="range"
+        min={sliderMin}
+        max={sliderMax}
+        step={step}
+        value={sliderValue}
+        aria-label={`${ariaLabel} slider`}
+        aria-valuetext={value.toFixed(precision)}
+        onChange={(event) => schedule(Number(event.currentTarget.value))}
+        onPointerUp={flush}
+        onKeyUp={flush}
+        onBlur={flush}
+        onClick={(event) => event.stopPropagation()}
+        className={`h-10 min-w-0 cursor-ew-resize touch-none appearance-none rounded bg-transparent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring [&::-moz-range-thumb]:size-3.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-background [&::-moz-range-thumb]:bg-foreground [&::-moz-range-track]:h-1 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-border [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-border [&::-webkit-slider-thumb]:-mt-1.5 [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-background [&::-webkit-slider-thumb]:bg-foreground ${sliderClassName}`}
+      />
       <NumberField
         value={value}
         min={min}
@@ -62,34 +65,6 @@ export function InspectorSlider({
         className={inputClassName}
         onChange={onChange}
       />
-      <label
-        className={`relative h-7 min-w-0 overflow-visible rounded-[8px] transition-opacity hover:opacity-95 ${sliderClassName}`}
-        onClick={(event) => event.stopPropagation()}
-        style={{
-          background: `linear-gradient(to right, var(--inspector-slider-active) 0 ${thumbPosition}, var(--inspector-slider-track) ${thumbPosition} 100%)`,
-        }}
-      >
-        <span
-          className="pointer-events-none absolute inset-y-0 w-6 -translate-x-1/2 rounded-[8px] bg-[var(--inspector-slider-thumb)] shadow-[inset_0_1px_0_rgba(255,255,255,0.26)] transition-colors"
-          style={{ left: thumbPosition }}
-        />
-        <input
-          type="range"
-          min={sliderMin}
-          max={sliderMax}
-          step={step}
-          value={sliderValue}
-          aria-label={`${ariaLabel} slider`}
-          aria-valuemin={min}
-          aria-valuemax={max}
-          aria-valuenow={value}
-          onChange={(event) => scheduleSliderChange(Number(event.target.value))}
-          onPointerUp={flushSliderChange}
-          onKeyUp={flushSliderChange}
-          onBlur={flushSliderChange}
-          className="absolute inset-y-0 right-3 left-3 h-full w-auto cursor-ew-resize touch-none appearance-none opacity-0"
-        />
-      </label>
     </div>
   )
 }

@@ -15,15 +15,8 @@ export function TimelineDock({
   compactOpen = false,
   timelineProps,
 }: TimelineDockProps) {
-  const [height, setHeight] = useState(168)
+  const [height, setHeight] = useState(336)
   const [dragging, setDragging] = useState(false)
-  const [mode, setMode] = useState<
-    "collapsed" | "compact" | "expanded" | "custom"
-  >("compact")
-  const applyMode = (next: "collapsed" | "compact" | "expanded") => {
-    setMode(next)
-    setHeight(next === "collapsed" ? 120 : next === "expanded" ? 320 : 168)
-  }
   return (
     <div
       id="glyphrise-timeline-pane"
@@ -35,40 +28,23 @@ export function TimelineDock({
           ? "h-0 border-t-0"
           : `border-t border-border bg-background ${
               compactOpen
-                ? "max-[720px]:h-auto max-[720px]:min-h-0 max-[720px]:flex-1"
+                ? "max-[720px]:h-[min(344px,48dvh)] max-[720px]:min-h-0 max-[720px]:flex-none"
                 : "max-[720px]:hidden"
             }`
       }`}
-      style={!zenMode ? { height: `${height}px` } : undefined}
+      style={
+        !zenMode
+          ? {
+              height:
+                timelineProps.compactMode && compactOpen
+                  ? "min(344px,48dvh)"
+                  : `${height}px`,
+            }
+          : undefined
+      }
     >
       {!zenMode && (
         <div className="absolute inset-x-0 top-0 z-30 hidden h-2 -translate-y-1/2 items-center justify-center min-[720px]:flex">
-          <div className="flex items-center gap-1 rounded-md border border-border bg-background px-1 py-0.5 shadow-sm">
-            <button
-              type="button"
-              aria-pressed={mode === "collapsed"}
-              onClick={() => applyMode("collapsed")}
-              className="rounded px-1.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Collapsed
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "compact"}
-              onClick={() => applyMode("compact")}
-              className="rounded px-1.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Compact
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "expanded"}
-              onClick={() => applyMode("expanded")}
-              className="rounded px-1.5 text-[10px] text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              Expanded
-            </button>
-          </div>
           <div
             role="separator"
             aria-label="Resize timeline"
@@ -85,7 +61,6 @@ export function TimelineDock({
               const startY = event.clientY
               const startHeight = height
               const move = (moveEvent: PointerEvent) => {
-                setMode("custom")
                 setHeight(
                   Math.max(
                     120,
@@ -105,7 +80,6 @@ export function TimelineDock({
               const step = event.shiftKey ? 40 : 16
               if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                 event.preventDefault()
-                setMode("custom")
                 setHeight((current) =>
                   Math.max(
                     120,
@@ -116,9 +90,8 @@ export function TimelineDock({
                   )
                 )
               }
-              if (event.key === "Home") applyMode("collapsed")
+              if (event.key === "Home") setHeight(164)
               if (event.key === "End") {
-                setMode("custom")
                 setHeight(480)
               }
             }}

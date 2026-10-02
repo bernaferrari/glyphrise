@@ -59,6 +59,7 @@ export function LightInspectorSection({
     <InspectorSection title="LIGHT" action={brightnessKeyframeControl}>
       <InspectorRow
         label="Brightness"
+        editProperty="Brightness"
         rowRef={lightingRef}
         dot={lightingTrack.keyframes.length > 0 ? lightingTrack.color : null}
         active={isActive}

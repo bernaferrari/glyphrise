@@ -7,8 +7,13 @@ import {
   useCallback,
   useMemo,
   useRef,
+  useState,
 } from "react"
 import type { MotionTrackId } from "./EditorModel"
+import {
+  inspectorTabForProperty,
+  type InspectorTab,
+} from "./InspectorNavigationModel"
 
 type InspectorRefs = {
   fill: RefObject<HTMLDivElement | null>
@@ -33,6 +38,7 @@ export function useInspectorNavigation({
   setSelectedMotionTrackId,
   setSelectedShapeId,
 }: InspectorNavigationOptions) {
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("design")
   const fillRef = useRef<HTMLDivElement>(null)
   const materialRef = useRef<HTMLDivElement>(null)
   const extrusionRef = useRef<HTMLDivElement>(null)
@@ -56,6 +62,7 @@ export function useInspectorNavigation({
 
   const scrollInspectorPropertyIntoView = useCallback(
     (id: InspectorTargetId) => {
+      setInspectorTab(inspectorTabForProperty(id))
       if (id === "material") setAdvancedMaterialOpen(true)
       const target =
         id === "light-position"
@@ -98,6 +105,8 @@ export function useInspectorNavigation({
   )
 
   return {
+    inspectorTab,
+    setInspectorTab,
     inspectorRefs,
     selectTimelineTrack,
     selectTimelinePropertyRow,

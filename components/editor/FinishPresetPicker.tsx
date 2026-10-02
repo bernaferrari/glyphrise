@@ -46,14 +46,14 @@ export function FinishPresetPicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex min-h-9 min-w-0 flex-1 items-center justify-end gap-2 rounded-lg bg-foreground/[0.055] px-2.5 text-left transition-colors hover:bg-foreground/[0.09] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+      <PopoverTrigger className="flex min-h-11 min-w-0 flex-1 items-center justify-end gap-2 rounded-lg bg-foreground/[0.055] px-2.5 text-left transition-colors hover:bg-foreground/[0.09] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <span
           className="size-6 shrink-0 rounded-full border border-border shadow-[inset_0_1px_2px_rgba(255,255,255,0.35),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
           style={{ background: MATERIAL_PREVIEW[value] }}
           aria-hidden="true"
         />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-xs font-semibold text-foreground">
+          <span className="block truncate text-[13px] font-medium text-foreground">
             {selected.name}
           </span>
           <span className="block truncate text-[11px] text-muted-foreground">
@@ -71,8 +71,8 @@ export function FinishPresetPicker({
         <PopoverHeader>
           <PopoverTitle>Choose a finish</PopoverTitle>
           <PopoverDescription>
-            Preview the surface character before tuning advanced material
-            controls.
+            The surface type applies throughout the animation. Its settings
+            follow the edit scope shown in the inspector.
           </PopoverDescription>
         </PopoverHeader>
         <div role="radiogroup" aria-label="Finish preset" className="space-y-3">

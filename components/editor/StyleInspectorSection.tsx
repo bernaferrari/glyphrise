@@ -6,6 +6,7 @@ import type { MaterialPresetId } from "../3d/MaterialPresets"
 import { FillMode, MaterialSettingKey, MaterialSettings } from "./EditorModel"
 import { AdvancedMaterialControls } from "./AdvancedMaterialControls"
 import { FinishPresetPicker } from "./FinishPresetPicker"
+import { FinishPresetStrip } from "./FinishPresetStrip"
 import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
 import type { FillGradientType, FillStop } from "./TimelineModel"
 
@@ -61,7 +62,12 @@ export function StyleInspectorSection({
 }: StyleInspectorSectionProps) {
   return (
     <InspectorSection title="STYLE" action={styleKeyframeControl}>
-      <InspectorRow label="Fill" rowRef={fillRef}>
+      <InspectorRow
+        label="Fill"
+        rowRef={fillRef}
+        editProperty="Fill"
+        scopeLabel="Colors"
+      >
         <div className="min-w-0 flex-1">
           <ColorPicker
             value={selectedShapeFill}
@@ -74,19 +80,28 @@ export function StyleInspectorSection({
             onStopsChange={onStopsChange}
             secondaryValue={selectedShapeFillSecondary}
             onSecondaryChange={(value) => onFillColorChange(value, true)}
-            className="h-7 w-full rounded-lg border-0 bg-foreground/[0.06] px-2 py-0 text-foreground hover:bg-foreground/[0.09]"
+            className="min-h-10 w-full rounded-lg border border-input/60 bg-muted/70 px-3 py-0 text-foreground hover:bg-foreground/[0.09]"
           />
         </div>
       </InspectorRow>
 
-      <InspectorRow label="Finish">
+      <div ref={materialRef}>
+        <FinishPresetStrip
+          value={materialPreset}
+          onChange={onMaterialPresetChange}
+        />
+      </div>
+      <InspectorRow
+        label="All finishes"
+        editProperty="Finish"
+        scopeLabel="Settings"
+      >
         <FinishPresetPicker
           value={materialPreset}
           onChange={onMaterialPresetChange}
         />
       </InspectorRow>
-
-      <div ref={materialRef}>
+      <div>
         <AdvancedMaterialControls
           isOpen={isAdvancedMaterialOpen}
           keyframeCount={materialKeyframeCount}

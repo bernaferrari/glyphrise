@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover"
 import { bindWindowPointerDrag } from "@/lib/drag-events"
 import { NumberField } from "./NumberField"
+import { usePropertyEditScope } from "./PropertyEditScope"
 
 const LIGHT_RANGE = 9
 
@@ -39,6 +40,8 @@ export function LightDirectionPicker({
   keyframeControls?: ReactNode
 }) {
   const padRef = useRef<HTMLDivElement>(null)
+  const scope = usePropertyEditScope("Light direction")
+  const needsKeyframe = scope?.kind === "animated"
   const nx = clampNumber(position.x / LIGHT_RANGE, -1, 1)
   const ny = clampNumber(position.y / LIGHT_RANGE, -1, 1)
   const hx = 50 + nx * 42
@@ -87,7 +90,7 @@ export function LightDirectionPicker({
             style={{ background: triggerSphere }}
           />
         </span>
-        <span className="min-w-0 flex-1 truncate text-[12px]">
+        <span className="min-w-0 flex-1 truncate text-xs">
           {directionLabel}
         </span>
         <ChevronDown className="size-3 shrink-0 text-muted-foreground/70" />
@@ -95,7 +98,7 @@ export function LightDirectionPicker({
       <PopoverContent
         align="end"
         sideOffset={6}
-        className="w-[196px] rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl backdrop-blur-xl"
+        className="w-60 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl backdrop-blur-xl"
       >
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -121,7 +124,24 @@ export function LightDirectionPicker({
           )}
         </div>
 
-        <div className="mt-2.5 aspect-square w-full rounded-full bg-border p-px shadow-inner">
+        {scope && (
+          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{scope.label}</span>
+            {needsKeyframe && (
+              <button
+                type="button"
+                onClick={scope.enableEditing}
+                className="min-h-9 rounded-md bg-primary/10 px-2 font-medium text-primary"
+              >
+                Edit here
+              </button>
+            )}
+          </div>
+        )}
+        <div
+          inert={needsKeyframe ? true : undefined}
+          className={`mt-2.5 aspect-square w-full rounded-full bg-border p-px shadow-inner ${needsKeyframe ? "opacity-65" : ""}`}
+        >
           <div
             ref={padRef}
             onPointerDown={handlePadDown}
@@ -137,7 +157,9 @@ export function LightDirectionPicker({
           </div>
         </div>
         <p className="mt-2 text-center text-[11px] text-muted-foreground">
-          Drag to move the light
+          {needsKeyframe
+            ? "Enable Auto-key to move the light here."
+            : "Drag to move the light"}
         </p>
 
         <div className="mt-2.5">
@@ -165,6 +187,9 @@ export function LightDirectionPicker({
             onChange={onSoftnessChange}
           />
         </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Color and softness apply throughout.
+        </p>
       </PopoverContent>
     </Popover>
   )

@@ -65,7 +65,7 @@ export function TimelinePropertyRailRow({
           })
         )
       }
-      className={`group flex h-9 items-center border-b border-border transition-colors hover:bg-muted/40 ${
+      className={`timeline-property-rail group flex h-[var(--timeline-property-height)] items-center border-b border-border transition-colors hover:bg-muted/40 ${
         isRevealed ? "bg-primary/10 ring-1 ring-primary/25 ring-inset" : ""
       }`}
     >
@@ -73,18 +73,18 @@ export function TimelinePropertyRailRow({
         type="button"
         aria-label={`Select ${row.name} property`}
         onClick={selectRow}
-        className="flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
       >
         <span
           className="size-2 shrink-0 rounded-full"
           style={{ backgroundColor: row.color }}
         />
-        <span className="flex-1 truncate text-[11px] font-medium text-muted-foreground">
+        <span className="flex-1 truncate text-xs font-medium text-muted-foreground">
           {row.name}
         </span>
       </button>
       <span
-        className="flex h-full shrink-0 items-center justify-center gap-1.5 pr-3"
+        className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-1.5 pr-3"
         aria-label={`${row.keyframes.length} keyframes`}
       >
         {row.keyframes.length > 0 && onSetPropertyEasing && (
@@ -164,7 +164,7 @@ export function TimelineTrackRailRow({
           })
         )
       }
-      className={`group flex h-9 items-center border-b border-border transition-colors ${
+      className={`timeline-property-rail group flex h-[var(--timeline-property-height)] items-center border-b border-border transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/25 ring-inset"
           : isActive
@@ -177,19 +177,19 @@ export function TimelineTrackRailRow({
         aria-label={`Select ${track.name} track`}
         aria-pressed={isActive}
         onClick={selectTrack}
-        className="flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
       >
         <span
           className="size-2 shrink-0 rounded-full"
           style={{ backgroundColor: track.color }}
         />
         <span
-          className={`flex-1 truncate text-[11px] font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}
+          className={`flex-1 truncate text-xs font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}
         >
           {track.name}
         </span>
       </button>
-      <span className="flex h-full shrink-0 items-center justify-center gap-1.5 pr-3">
+      <span className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-1.5 pr-3">
         {animated && (
           <EasingPicker
             value={track.keyframes[0]?.easing ?? "ease-in-out"}

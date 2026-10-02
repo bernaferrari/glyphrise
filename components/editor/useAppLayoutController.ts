@@ -188,6 +188,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       rimLightIntensity,
     },
     selection: {
+      inspectorTab,
+      setInspectorTab,
       inspectorRefs,
       selectedMotionTrackId,
       setSelectedMotionTrackId,
@@ -893,6 +895,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       },
     },
     inspectorProps: {
+      activeTab: inspectorTab,
+      onTabChange: setInspectorTab,
       editScopeProps: {
         currentTime,
         autoKeyEnabled,
@@ -902,6 +906,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
           { name: "Position", times: moveKeyframes.map((k) => k.time) },
           { name: "Fill", times: fillKeyframes.map((k) => k.time) },
           { name: "Finish", times: materialKeyframes.map((k) => k.time) },
+          { name: "Quality", times: qualityKeyframes.map((k) => k.time) },
           {
             name: "Light direction",
             times: keyLightPositionKeyframes.map((k) => k.time),

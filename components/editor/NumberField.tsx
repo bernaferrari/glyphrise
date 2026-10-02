@@ -132,10 +132,10 @@ export function NumberField({
       }}
       title={feedback ?? "Drag to adjust · click to type"}
       className={cn(
-        "flex h-7 cursor-ew-resize items-center rounded-[7px] bg-foreground/[0.05] px-2 text-foreground transition-colors focus-within:bg-foreground/[0.07] hover:bg-foreground/[0.08]",
+        "flex h-10 cursor-ew-resize items-center rounded-lg border border-input/60 bg-muted/70 px-2.5 text-foreground transition-colors focus-within:bg-foreground/[0.07] hover:bg-foreground/[0.08] max-[720px]:min-h-[46px] pointer-coarse:min-h-[46px]",
         feedback
           ? "ring-1 ring-destructive/50 focus-within:ring-destructive/50"
-          : "focus-within:ring-1 focus-within:ring-ring/25",
+          : "focus-within:ring-1 focus-within:ring-ring",
         className
       )}
     >
@@ -191,7 +191,7 @@ export function NumberField({
             event.currentTarget.blur()
           }
         }}
-        className={`min-w-0 flex-1 cursor-ew-resize bg-transparent text-base text-foreground tabular-nums outline-none focus:cursor-text md:text-[12px] ${inputClassName}`}
+        className={`min-w-0 flex-1 cursor-ew-resize self-stretch bg-transparent text-base text-foreground tabular-nums outline-none focus:cursor-text md:text-[13px] ${inputClassName}`}
       />
       <span
         id={feedbackId}

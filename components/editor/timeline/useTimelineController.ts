@@ -212,12 +212,11 @@ export function useTimelineController({
       onShapesChange,
       onSelectKeyframe: setSelectedKeyframe,
     })
-  const { handleLeftRailWheel, syncLeftRailScroll } = useTimelineRailScrollSync(
-    {
+  const { handleLeftRailScroll, syncLeftRailScroll } =
+    useTimelineRailScrollSync({
       leftRailBodyRef,
       timelineScrollRef,
-    }
-  )
+    })
 
   const { visibleCurrentTime, playheadX, timelineTicks, secondGridTicks } =
     useTimelineViewportState({
@@ -251,10 +250,21 @@ export function useTimelineController({
     if (!newRowId) return
 
     const rowIndex = visibleRowIds.indexOf(newRowId)
-    // Content label (24) + icon row (36) + Animation label (24), then
-    // position the revealed property row with 12px of context above it.
-    const targetScrollTop = Math.max(0, 72 + rowIndex * 36)
     const scroller = timelineScrollRef.current
+    const styles = scroller ? getComputedStyle(scroller) : null
+    const shapeHeight =
+      Number.parseFloat(
+        styles?.getPropertyValue("--timeline-shape-height") ?? ""
+      ) || 36
+    const rowHeight =
+      Number.parseFloat(
+        styles?.getPropertyValue("--timeline-property-height") ?? ""
+      ) || 36
+    // Keep 12px of context above the row in both mouse and touch layouts.
+    const targetScrollTop = Math.max(
+      0,
+      48 + shapeHeight - 12 + rowIndex * rowHeight
+    )
     if (scroller) {
       const maxScrollTop = Math.max(
         0,
@@ -318,7 +328,7 @@ export function useTimelineController({
       onClearTrackKeyframes,
       onCommitDurationEditor: commitDurationEditor,
       onDurationEditorChange: setDurationEditor,
-      onLeftRailWheel: handleLeftRailWheel,
+      onLeftRailScroll: handleLeftRailScroll,
       onLoopChange,
       onOpenContextMenu: openContextMenu,
       onOpenDurationEditor: openDurationEditor,

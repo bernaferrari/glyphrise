@@ -91,7 +91,7 @@ export function TimelineTrackRow({
 
   return (
     <div
-      className={`relative h-9 border-b border-border transition-colors ${
+      className={`relative h-[var(--timeline-property-height)] border-b border-border transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
           : isActive

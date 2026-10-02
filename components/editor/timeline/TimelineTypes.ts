@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type {
   EasingType,
   ShapeStop,
@@ -23,11 +24,18 @@ export interface WipeDirectionOption {
 }
 
 export type TimelinePlaybackProps = {
+  motionPresets?: ReactNode
   duration: number
   onDurationChange: (duration: number) => void
   currentTime: number
   onTimeChange: (time: number) => void
   onScrubStart?: () => void
+  renderPropertyValueEditor?: (rowId: string) => ReactNode
+  compactMode?: boolean
+  onPlayToggle?: () => void
+  onEditKeyframeValue?: (
+    selection: NonNullable<SelectedTimelineKeyframe>
+  ) => void
   isPlaying?: boolean
   isPreviewLoading?: boolean
   loop: boolean
@@ -76,7 +84,12 @@ export type TimelineShapeProps = {
   onUploadShape: (id: string) => void
   onShapeBlendChange: (
     id: string,
-    patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
+    patch: Partial<
+      Pick<
+        ShapeStop,
+        "transitionType" | "wipeDirection" | "transitionStart" | "transitionEnd"
+      >
+    >
   ) => void
 }
 

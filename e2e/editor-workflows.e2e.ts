@@ -13,6 +13,12 @@ test.beforeEach(async ({ page }) => {
     window.sessionStorage.setItem(isolationKey, "true")
   })
   await page.goto("/")
+  // Native controls are inert while the project restores; fill() bypasses
+  // that hit-testing guard, so wait for the interactive workspace.
+  await expect(page.locator("#glyphrise-workspace")).toHaveAttribute(
+    "aria-busy",
+    "false"
+  )
 })
 
 test("creates a named blank project without example animation", async ({
@@ -22,6 +28,7 @@ test("creates a named blank project without example animation", async ({
   await page.getByLabel("New project name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
+  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   const projectName = page.getByLabel("Project name", { exact: true })
   await expect(projectName).toHaveValue("Launch mark")
   await expect(
@@ -158,6 +165,7 @@ test("uploads a custom SVG into the selected icon clip", async ({ page }) => {
     ),
   })
 
+  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Custom icon clip" })
   ).toBeVisible()
@@ -206,7 +214,7 @@ test("uses dedicated workspace views on phone-sized screens", async ({
     page.getByRole("complementary", { name: "Properties inspector" })
   ).toBeVisible()
 
-  await page.getByRole("button", { name: "Timeline" }).click()
+  await page.getByRole("button", { name: "Motion" }).click()
   await expect(page.getByRole("button", { name: "Add property" })).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
@@ -227,6 +235,7 @@ test("persists the latest edit during an immediate reload", async ({
 })
 
 test("orbits the camera without editing the document", async ({ page }) => {
+  await page.getByRole("tab", { name: "Transform", exact: true }).click()
   const canvas = page
     .getByRole("region", { name: "3D preview" })
     .locator("canvas")

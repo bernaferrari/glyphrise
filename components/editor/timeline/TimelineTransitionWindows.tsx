@@ -16,7 +16,12 @@ type TimelineTransitionWindowsProps = {
   onOpenClipEditorChange: (shapeId: string | null) => void
   onShapeBlendChange: (
     id: string,
-    patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
+    patch: Partial<
+      Pick<
+        ShapeStop,
+        "transitionType" | "wipeDirection" | "transitionStart" | "transitionEnd"
+      >
+    >
   ) => void
   onShapeEasingChange: (id: string, easing: EasingType) => void
   onTransitionEdgeDrag: (
