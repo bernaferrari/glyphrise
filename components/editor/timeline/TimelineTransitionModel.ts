@@ -1,4 +1,4 @@
-import { ArrowRight, Blend, SquareSplitHorizontal } from "lucide-react"
+import { Blend, Blinds, SquareSplitHorizontal } from "lucide-react"
 import type { ShapeStop } from "../TimelineModel"
 
 export type TransitionMode = "cut" | "fade" | "wipe"
@@ -10,5 +10,5 @@ export const transitionModeForShape = (stop: ShapeStop): TransitionMode =>
 export const transitionIconForMode = (mode: TransitionMode) => {
   if (mode === "cut") return SquareSplitHorizontal
   if (mode === "fade") return Blend
-  return ArrowRight
+  return Blinds
 }

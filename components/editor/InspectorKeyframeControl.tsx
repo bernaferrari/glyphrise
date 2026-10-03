@@ -41,7 +41,7 @@ const KeyframeButton = ({
       event.stopPropagation()
       onToggle()
     }}
-    className={`relative flex size-8 shrink-0 items-center justify-center rounded-md transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring ${
+    className={`relative flex size-10 shrink-0 items-center justify-center rounded-md transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring max-[720px]:size-11 pointer-coarse:size-11 ${
       isKeyedHere ? "" : "hover:bg-muted/40"
     }`}
   >

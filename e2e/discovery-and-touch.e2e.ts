@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./fixtures"
 
 test("everyday-word search surfaces labeled presets and symbols, and Enter chooses a real result", async ({
   page,
@@ -49,16 +50,8 @@ for (const width of [390, 1024]) {
       await page.goto("/")
       if (width < 720)
         await page.getByRole("button", { name: "Motion", exact: true }).click()
-      await page.getByRole("tab", { name: "Sequence", exact: true }).click()
       const targets = [
-        page.getByRole("button", {
-          name: width < 720 ? "Animation options" : "How the timeline works",
-        }),
-        page.getByRole("button", { name: "Fit timeline", exact: true }),
-        page.getByRole("button", {
-          name: "All Rotation keyframes easing: Smooth",
-          exact: true,
-        }),
+        page.getByRole("button", { name: "Timeline options", exact: true }),
         page.getByRole("button", {
           name: "Remove Rotation keyframe at 0.00s",
           exact: true,
@@ -86,10 +79,9 @@ for (const width of [390, 1024]) {
           (await target.getAttribute("aria-label")) ?? "Timeline target"
         ).toBe(true)
       }
-      if (width < 720)
-        await page
-          .getByRole("button", { name: "Animation options", exact: true })
-          .click()
+      await page
+        .getByRole("button", { name: "Timeline options", exact: true })
+        .click()
       for (const toggle of [
         page.getByRole("button", { name: /timeline snapping/ }),
         page.getByRole("button", { name: /loop playback/ }),
@@ -100,12 +92,12 @@ for (const width of [390, 1024]) {
           .toBeGreaterThanOrEqual(44)
         expect((await toggle.boundingBox())!.width).toBeGreaterThanOrEqual(44)
       }
-      if (width < 720) await page.keyboard.press("Escape")
+      await page.keyboard.press("Escape")
       const rail = page
         .getByRole("button", { name: "Select Rotation property", exact: true })
         .locator("..")
-      // The rail uses two control rows on touch; lane height must match it.
-      expect((await rail.boundingBox())!.height).toBe(88)
+      // Rows stay one finger-height line on touch; lanes must match.
+      expect((await rail.boundingBox())!.height).toBe(44)
       const keyframe = page.locator(".timeline-keyframe").first()
       const railBox = (await rail.boundingBox())!
       const keyframeBox = (await keyframe.boundingBox())!
@@ -138,7 +130,6 @@ test.describe("touch transition editing", () => {
   }) => {
     await page.goto("/")
     await page.getByRole("button", { name: "Motion", exact: true }).click()
-    await page.getByRole("tab", { name: "Sequence", exact: true }).click()
     await page
       .getByRole("button", {
         name: "Edit Account Circle transition",
@@ -170,7 +161,6 @@ test.describe("touch transition editing", () => {
     await page.keyboard.press("Escape")
     await page.reload()
     await page.getByRole("button", { name: "Motion", exact: true }).click()
-    await page.getByRole("tab", { name: "Sequence", exact: true }).click()
     await page
       .getByRole("button", {
         name: "Edit Account Circle transition",

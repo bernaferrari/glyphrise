@@ -148,12 +148,12 @@ export function InspectorRow({
           >
             {scopeLabel ? `${scopeLabel}: ` : null}
             {scope.label}
-            {needsKeyframe ? ". Enable Auto-key to edit." : null}
+            {needsKeyframe ? ". Choose Edit here to make a change." : null}
           </span>
           {needsKeyframe && (
             <button
               type="button"
-              aria-label={`Enable Auto-key to edit ${editProperty} at ${scope.time}s`}
+              aria-label={`Edit ${editProperty} at ${scope.time}s`}
               onClick={(event) => {
                 event.stopPropagation()
                 scope.enableEditing()

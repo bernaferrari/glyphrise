@@ -133,32 +133,31 @@ export function TimelineTransitionWindow({
             ])
           }}
           className={cn(
-            "timeline-transition group/transition absolute top-1/2 flex h-7 -translate-y-1/2 cursor-pointer items-center justify-center transition-[filter] hover:brightness-125 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset",
+            "timeline-transition group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
             isCut
-              ? "-translate-x-1/2 rounded-md border border-border bg-muted/70"
-              : "overflow-hidden border-y border-border"
+              ? "-translate-x-1/2 rounded-md bg-muted"
+              : "rounded-md bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_45%,transparent)_0_4px,transparent_4px_8px)] hover:bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_75%,transparent)_0_4px,transparent_4px_8px)]"
           )}
           style={{
             left: xForFrac(startTime / duration),
             width: isCut
-              ? 20
+              ? 22
               : widthForSpan(Math.max(0, endTime - startTime) / duration),
-            minWidth: isCut ? 20 : 20,
-            background: isCut
-              ? undefined
-              : `linear-gradient(90deg, ${stop.color}26, ${next.color}26)`,
+            minWidth: 22,
           }}
         >
-          <BlockIcon
-            className="size-3 text-foreground/65 transition-colors group-hover/transition:text-foreground"
-            strokeWidth={2.25}
-          />
+          <span className="flex items-center gap-1 rounded bg-(--timeline-lane)/85 px-1.5 py-0.5">
+            <BlockIcon className="size-3.5 shrink-0" strokeWidth={2} />
+            {!isCut && (
+              <span className="capitalize @max-[88px]:hidden">{mode}</span>
+            )}
+          </span>
         </PopoverTrigger>
         <PopoverContent
           align="center"
           side="top"
           sideOffset={10}
-          className="w-60 border-border bg-popover p-3 text-foreground shadow-lg"
+          className="w-72 p-2.5"
           onPointerDown={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
@@ -214,10 +213,10 @@ function TransitionEdgeHandle({
     <div
       title={title}
       onPointerDown={onPointerDown}
-      className="timeline-transition-edge absolute top-1/2 flex h-7 w-2.5 -translate-x-1/2 -translate-y-1/2 cursor-ew-resize touch-none items-center justify-center"
+      className="timeline-transition-edge group/edge absolute inset-y-1.5 z-[6] flex w-3 -translate-x-1/2 cursor-trim touch-none items-center justify-center"
       style={{ left }}
     >
-      <span className="h-5 w-[3px] rounded-full bg-foreground/45 transition-colors hover:bg-foreground" />
+      <span className="h-full w-0.5 rounded-full bg-(--timeline-playhead) opacity-0 transition-opacity group-hover/edge:opacity-80" />
     </div>
   )
 }

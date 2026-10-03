@@ -79,7 +79,7 @@ export function GeometryInspectorSection({
   return (
     <InspectorSection title="GEOMETRY" action={keyframeControl}>
       <InspectorRow
-        label="Extrude"
+        label="Depth"
         editProperty="Depth"
         rowRef={extrusionRef}
         dot={extrusionTrack.keyframes.length > 0 ? extrusionTrack.color : null}

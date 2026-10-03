@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react"
+import { CornerDownLeft, Search } from "lucide-react"
 import {
   type MaterialSymbolFontSettings,
   type MaterialSymbolStyle,
@@ -48,19 +48,11 @@ export function SymbolSearchRow({
   onImportMaterialSymbol: (shapeId: string) => void
 }) {
   return (
-    <div className="mb-3 flex items-center gap-2">
-      {searchScope !== "presets" && (
-        <SymbolOptionsPopover
-          materialSymbolClass={materialSymbolClass}
-          symbolStyle={symbolStyle}
-          materialSymbolStyle={materialSymbolStyle}
-          materialSymbolSettings={materialSymbolSettings}
-          materialSymbolOptionsOpen={materialSymbolOptionsOpen}
-          onMaterialSymbolOptionsOpenChange={onMaterialSymbolOptionsOpenChange}
-          onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
-          onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
-        />
-      )}
+    <div className="relative mb-2.5 flex items-center">
+      <Search
+        aria-hidden="true"
+        className="pointer-events-none absolute left-3 size-4 text-muted-foreground"
+      />
       <input
         type="search"
         aria-label={
@@ -92,28 +84,45 @@ export function SymbolSearchRow({
             ? "Search presets"
             : searchScope === "wipe"
               ? "Search wipe pairs"
-              : "Search symbols"
+              : "Search 3,000+ symbols"
         }
-        className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-muted/50 px-3 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-ring/50 sm:h-9 sm:text-xs"
+        className="h-10 w-full min-w-0 rounded-lg bg-muted/70 pr-24 pl-9 text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
       />
-      {searchScope === "symbols" && (
-        <button
-          type="button"
-          aria-label={searchActionLabel}
-          title={searchActionLabel}
-          disabled={
-            !normalizedShapeQuery || materialSymbolStatus.state === "loading"
-          }
-          onClick={() => onImportMaterialSymbol(stop.id)}
-          className="grid size-9 shrink-0 place-items-center rounded-lg bg-foreground text-background transition-colors hover:bg-foreground/85 disabled:cursor-not-allowed disabled:bg-accent disabled:text-muted-foreground"
-        >
-          {materialSymbolStatus.state === "loading" ? (
-            <span className="size-3 animate-pulse rounded-full bg-current" />
-          ) : (
-            <ArrowRight className="size-4" />
-          )}
-        </button>
-      )}
+      <div className="absolute right-1 flex items-center gap-0.5">
+        {searchScope === "symbols" && normalizedShapeQuery && (
+          <button
+            type="button"
+            aria-label={searchActionLabel}
+            title={searchActionLabel}
+            disabled={materialSymbolStatus.state === "loading"}
+            onClick={() => onImportMaterialSymbol(stop.id)}
+            className="flex h-8 items-center gap-1 rounded-md bg-foreground px-2 text-[11px] font-medium text-background hover:bg-foreground/85 disabled:opacity-50"
+          >
+            {materialSymbolStatus.state === "loading" ? (
+              <span className="size-3 animate-pulse rounded-full bg-current" />
+            ) : (
+              <>
+                Use
+                <CornerDownLeft aria-hidden="true" className="size-3" />
+              </>
+            )}
+          </button>
+        )}
+        {searchScope !== "presets" && (
+          <SymbolOptionsPopover
+            materialSymbolClass={materialSymbolClass}
+            symbolStyle={symbolStyle}
+            materialSymbolStyle={materialSymbolStyle}
+            materialSymbolSettings={materialSymbolSettings}
+            materialSymbolOptionsOpen={materialSymbolOptionsOpen}
+            onMaterialSymbolOptionsOpenChange={
+              onMaterialSymbolOptionsOpenChange
+            }
+            onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
+            onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
+          />
+        )}
+      </div>
     </div>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowRight, Blend, SquareSplitHorizontal } from "lucide-react"
+import { Blinds, Blend, SquareSplitHorizontal } from "lucide-react"
 import type { EasingType, ShapeStop } from "../TimelineModel"
 import type { WipeDirectionOption } from "./TimelineTypes"
 import { NumberField } from "../NumberField"
@@ -35,7 +35,7 @@ const TRANSITION_MODES = [
   {
     id: "wipe" as const,
     label: "Wipe",
-    icon: <ArrowRight className="size-3.5" />,
+    icon: <Blinds className="size-3.5" />,
   },
   {
     id: "cut" as const,
@@ -76,12 +76,30 @@ export function TimelineTransitionEditor({
     })
   }
 
+  const toFraction = (time: number) =>
+    (time - stop.time) / (next.time - stop.time)
+
   return (
-    <>
-      <div className="flex items-center justify-between px-0.5 pb-2.5">
-        <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
-          Transition
-        </span>
+    <div className="grid gap-3">
+      <div className="flex items-center gap-2">
+        <div
+          role="group"
+          aria-label="Transition type"
+          className="flex flex-1 rounded-lg bg-muted p-0.5"
+        >
+          {TRANSITION_MODES.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={mode === option.id}
+              onClick={() => selectMode(option.id)}
+              className="flex min-h-8 flex-1 items-center justify-center gap-1.5 rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-foreground aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+            >
+              {option.icon}
+              {option.label}
+            </button>
+          ))}
+        </div>
         {mode !== "cut" && (
           <EasingPicker
             value={stop.easing}
@@ -91,55 +109,38 @@ export function TimelineTransitionEditor({
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
-        {TRANSITION_MODES.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            aria-pressed={mode === option.id}
-            onClick={() => selectMode(option.id)}
-            className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[11px] font-medium transition-colors ${
-              mode === option.id
-                ? "border-ring/60 bg-accent text-foreground"
-                : "border-border bg-muted/45 text-muted-foreground hover:border-border hover:text-foreground"
-            }`}
-          >
-            {option.icon}
-            {option.label}
-          </button>
-        ))}
-      </div>
-
-      <fieldset disabled={next.time <= stop.time} className="mt-3 grid gap-2">
-        <legend className="mb-2 text-xs font-medium">Timing</legend>
-        <label className="flex items-center justify-between gap-2 text-xs">
-          {mode === "cut" ? "Cut at" : "Start"}
-          <NumberField
-            value={startTime}
-            min={stop.time}
-            max={mode === "cut" ? next.time : endTime}
-            step={0.1}
-            precision={2}
-            suffix="s"
-            ariaLabel={
+      <fieldset
+        disabled={next.time <= stop.time}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+      >
+        <legend className="sr-only">Timing</legend>
+        <span>{mode === "cut" ? "Cut at" : "From"}</span>
+        <NumberField
+          value={startTime}
+          min={stop.time}
+          max={mode === "cut" ? next.time : endTime}
+          step={0.1}
+          precision={2}
+          suffix="s"
+          className="h-8 w-[76px]"
+          ariaLabel={
+            mode === "cut"
+              ? "Cut time in seconds"
+              : "Transition start in seconds"
+          }
+          onChange={(time) => {
+            const fraction = toFraction(time)
+            onShapeBlendChange(
+              stop.id,
               mode === "cut"
-                ? "Cut time in seconds"
-                : "Transition start in seconds"
-            }
-            onChange={(time) => {
-              const fraction = (time - stop.time) / (next.time - stop.time)
-              onShapeBlendChange(
-                stop.id,
-                mode === "cut"
-                  ? { transitionStart: fraction, transitionEnd: fraction }
-                  : { transitionStart: fraction }
-              )
-            }}
-          />
-        </label>
+                ? { transitionStart: fraction, transitionEnd: fraction }
+                : { transitionStart: fraction }
+            )
+          }}
+        />
         {mode !== "cut" && (
-          <label className="flex items-center justify-between gap-2 text-xs">
-            End
+          <>
+            <span>to</span>
             <NumberField
               value={endTime}
               min={startTime}
@@ -147,19 +148,21 @@ export function TimelineTransitionEditor({
               step={0.1}
               precision={2}
               suffix="s"
+              className="h-8 w-[76px]"
               ariaLabel="Transition end in seconds"
               onChange={(time) =>
                 onShapeBlendChange(stop.id, {
-                  transitionEnd: (time - stop.time) / (next.time - stop.time),
+                  transitionEnd: toFraction(time),
                 })
               }
             />
-          </label>
+          </>
         )}
       </fieldset>
 
       {mode === "wipe" && (
-        <div className="mt-3 flex justify-center">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-muted-foreground">Direction</span>
           <WipeDirectionPicker
             stop={stop}
             wipeDirections={wipeDirections}
@@ -167,7 +170,7 @@ export function TimelineTransitionEditor({
           />
         </div>
       )}
-    </>
+    </div>
   )
 }
 
@@ -181,7 +184,7 @@ function WipeDirectionPicker({
   onShapeBlendChange: TimelineTransitionEditorProps["onShapeBlendChange"]
 }) {
   return (
-    <div className="grid grid-cols-3 gap-1">
+    <div className="grid grid-cols-3 gap-0.5">
       {wipeDirections
         .filter((dir) => !(dir.x === 0 && dir.y === 0))
         .sort((a, b) => b.y - a.y || a.x - b.x)
@@ -205,7 +208,7 @@ function WipeDirectionPicker({
                 gridColumn: Math.sign(dir.x) + 2,
                 gridRow: 2 - Math.sign(dir.y),
               }}
-              className={`flex size-11 items-center justify-center rounded-md border text-xs transition-colors ${
+              className={`flex size-7 items-center justify-center rounded-md border text-xs transition-colors pointer-coarse:size-11 ${
                 active
                   ? "border-foreground bg-foreground text-background"
                   : "border-border bg-muted/50 text-muted-foreground hover:border-ring/50 hover:text-foreground"

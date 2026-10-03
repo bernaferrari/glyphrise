@@ -1,18 +1,23 @@
 import { createEditorId } from "../EditorModel"
 import type { TimelineTrack } from "../TimelineModel"
 
+/** The value the starter animation reaches halfway through. */
+export function starterPeak(track: TimelineTrack) {
+  const start = track.defaultValue
+  const change =
+    track.id === "extrusion" ? 5 : track.id === "scale" ? 0.25 : 0.5
+  return start + change <= track.max
+    ? start + change
+    : Math.max(track.min, start - change)
+}
+
 export function withStarterAnimation(
   track: TimelineTrack,
   duration: number
 ): TimelineTrack {
   if (track.keyframes.length) return track
   const start = track.defaultValue
-  const change =
-    track.id === "extrusion" ? 5 : track.id === "scale" ? 0.25 : 0.5
-  const peak =
-    start + change <= track.max
-      ? start + change
-      : Math.max(track.min, start - change)
+  const peak = starterPeak(track)
   return {
     ...track,
     keyframes: [

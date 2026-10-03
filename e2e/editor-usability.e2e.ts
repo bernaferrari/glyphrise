@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./fixtures"
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/")
@@ -90,10 +91,13 @@ test("downloads a rendered PNG with the requested dimensions", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
+  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("256")
   await page.getByLabel("Height", { exact: true }).fill("256")
   const downloadPromise = page.waitForEvent("download")
-  await page.getByRole("button", { name: "PNG", exact: true }).click()
+  await page
+    .getByRole("button", { name: "Download image", exact: true })
+    .click()
   const download = await downloadPromise
   expect(await download.failure()).toBeNull()
   const stream = await download.createReadStream()
@@ -108,7 +112,6 @@ test("downloads a rendered PNG with the requested dimensions", async ({
 test("Space on the timeline toggles playback without scrolling, including key repeat", async ({
   page,
 }) => {
-  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   const playhead = page.getByRole("slider", { name: "Timeline playhead" })
   await playhead.click({ position: { x: 50, y: 8 } })
   await expect(playhead).toBeFocused()

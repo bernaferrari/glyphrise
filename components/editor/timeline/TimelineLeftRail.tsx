@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { Plus } from "lucide-react"
+import { Plus, Sparkles } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -14,9 +14,17 @@ import {
   TimelineTrackRailRow,
 } from "./TimelineLeftRailRows"
 import { TimelineShapeHeaderRow } from "./TimelineShapeHeaderRow"
+import { TimelineRowIcon } from "./TimelineRowIcon"
+import { describeStarterMotion } from "./TimelinePrimitives"
+import { starterPeak } from "./StarterTrackModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 
 type TimelineLeftRailProps = {
+  selectedRow: string | null
+  onSelectRow: (row: string | null) => void
+  onOpenMotionPresets?: () => void
+  shapeCount: number
+  onSeek: (time: number) => void
   selectedShapeId: string | null
   isPreviewLoading: boolean
   visiblePropertyRows: TimelinePropertyRow[]
@@ -61,6 +69,11 @@ export const TimelineLeftRail = React.forwardRef<
 >(
   (
     {
+      selectedRow,
+      onSelectRow,
+      onOpenMotionPresets,
+      shapeCount,
+      onSeek,
       selectedShapeId,
       isPreviewLoading,
       visiblePropertyRows,
@@ -94,25 +107,22 @@ export const TimelineLeftRail = React.forwardRef<
 
     return (
       <div ref={ref}>
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
-          Icon sequence
-        </div>
         <TimelineShapeHeaderRow
+          shapeCount={shapeCount}
           selectedShapeId={selectedShapeId}
           isPreviewLoading={isPreviewLoading}
           onAddShape={onAddShape}
         />
-
-        <div className="flex h-6 items-center border-b border-border bg-muted/60 px-3 text-[10px] font-semibold tracking-normal whitespace-nowrap text-muted-foreground uppercase">
-          Animated properties
-        </div>
 
         {visiblePropertyRows.map((row) => (
           <TimelinePropertyRailRow
             key={row.id}
             row={row}
             isRevealed={revealedRowId === `property:${row.id}`}
+            selected={selectedRow === `property:${row.id}`}
+            onSelectRow={() => onSelectRow(`property:${row.id}`)}
             menu={menu}
+            onSeek={onSeek}
             onClearSelection={onClearSelection}
             onActivePropertyRowChange={onActivePropertyRowChange}
             onClearPropertyRow={onClearPropertyRow}
@@ -126,8 +136,11 @@ export const TimelineLeftRail = React.forwardRef<
             key={track.id}
             track={track}
             isRevealed={revealedRowId === `track:${track.id}`}
+            selected={selectedRow === `track:${track.id}`}
+            onSelectRow={() => onSelectRow(`track:${track.id}`)}
             activeTrackId={activeTrackId}
             menu={menu}
+            onSeek={onSeek}
             onClearSelection={onClearSelection}
             onSelectTrack={onSelectTrack}
             onClearTrackKeyframes={onClearTrackKeyframes}
@@ -136,50 +149,71 @@ export const TimelineLeftRail = React.forwardRef<
           />
         ))}
 
-        {hiddenTracks.length > 0 && (
+        {(hiddenTracks.length > 0 || onOpenMotionPresets) && (
           <Popover open={addPropertyOpen} onOpenChange={setAddPropertyOpen}>
             <PopoverTrigger
               render={
                 <button
                   id="timeline-add-property"
                   type="button"
-                  className="flex h-[var(--timeline-property-height)] w-full items-center gap-2 border-b border-border px-3 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+                  className="flex h-[var(--timeline-property-height)] w-full items-center gap-2 border-b border-border/60 pl-3.5 text-left text-xs text-muted-foreground transition-colors hover:bg-foreground/[0.03] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
                 />
               }
             >
               <Plus className="size-3.5" />
-              Add property
+              <span className="sr-only">Add property</span>
+              <span aria-hidden="true">Add animation</span>
             </PopoverTrigger>
             <PopoverContent
               align="start"
               side="right"
               sideOffset={8}
-              className="w-44 gap-1 rounded-lg border-border bg-popover p-1.5"
+              className="w-60 gap-0.5 p-1.5"
               onMouseDown={(event) => event.stopPropagation()}
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.04em] text-muted-foreground uppercase">
-                Add property
-              </div>
-              <p className="px-2 pb-2 text-[11px] leading-relaxed text-muted-foreground">
-                Start with a gentle animation. Adjust its diamonds after adding
-                it.
-              </p>
+              {onOpenMotionPresets && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAddPropertyOpen(false)
+                    onOpenMotionPresets()
+                  }}
+                  className="mb-1 flex min-h-11 w-full items-center gap-2.5 rounded-md border-b border-border px-2 pb-1 text-left text-[13px] text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+                >
+                  <Sparkles
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block">Motion preset</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Spin, tilt, or pulse in one step
+                    </span>
+                  </span>
+                </button>
+              )}
               {hiddenTracks.map((track) => (
                 <button
                   key={track.id}
                   type="button"
+                  aria-label={track.name}
                   onClick={() => {
                     onAddProperty(track.id)
                     setAddPropertyOpen(false)
                   }}
-                  className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-left text-[11px] font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+                  className="flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
                 >
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: track.color }}
+                  <TimelineRowIcon
+                    id={track.id}
+                    className="size-4 text-muted-foreground"
                   />
-                  <span className="min-w-0 flex-1 truncate">{track.name}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{track.name}</span>
+                    <span className="block truncate text-[11px] text-muted-foreground tabular-nums">
+                      {describeStarterMotion(track, starterPeak(track))}
+                    </span>
+                  </span>
                 </button>
               ))}
             </PopoverContent>

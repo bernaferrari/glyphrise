@@ -1,5 +1,5 @@
 import { useState, type RefObject } from "react"
-import { Trash2, Upload } from "lucide-react"
+import { Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -30,7 +30,6 @@ export function ShapePickerContent({
   finalFocusRef,
   onOpenChange,
   stop,
-  shapeCount,
   visibleShapeOptions,
   favoriteMaterialSymbols,
   recentMaterialSymbols,
@@ -54,13 +53,11 @@ export function ShapePickerContent({
   onShapeIconChange,
   onOpenShapePicker,
   onUploadShape,
-  onRemoveShape,
 }: {
   open: boolean
   finalFocusRef?: RefObject<HTMLElement | null>
   onOpenChange: (open: boolean) => void
   stop: ShapeStop
-  shapeCount: number
   visibleShapeOptions: ShapeOption[]
   favoriteMaterialSymbols: string[]
   recentMaterialSymbols: string[]
@@ -87,7 +84,6 @@ export function ShapePickerContent({
   onShapeIconChange: (id: string, option: ShapeOption) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
-  onRemoveShape: (id: string) => void
 }) {
   const materialSymbolClass = `material-symbols-${materialSymbolStyle}`
   const symbolStyle = shapePickerSymbolStyle(materialSymbolSettings)
@@ -127,93 +123,85 @@ export function ShapePickerContent({
         onClick={(event) => event.stopPropagation()}
         onContextMenu={(event) => event.stopPropagation()}
       >
-        <DialogHeader className="shrink-0 border-b border-border px-3 py-2.5 pr-10">
-          <div className="flex min-w-0 items-center gap-3">
+        <DialogHeader className="shrink-0 px-4 pt-3.5 pr-12 pb-1">
+          <div className="flex min-w-0 items-center gap-2.5">
             <span
-              className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-muted/50 text-foreground [&_svg]:h-[18px] [&_svg]:w-[18px] [&_svg]:fill-current [&_svg]:stroke-current"
+              aria-hidden="true"
+              className="grid size-7 shrink-0 place-items-center rounded-md bg-muted [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
               style={{ color: stop.color }}
               dangerouslySetInnerHTML={{ __html: stop.svgContent }}
             />
-            <div className="min-w-0 flex-1">
-              <DialogTitle className="truncate text-sm font-semibold text-foreground">
-                Choose icon
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Choose the symbol, wipe pair, preset, or uploaded SVG for this
-                icon clip.
-              </DialogDescription>
-              <div className="mt-1 truncate text-[11px] text-muted-foreground">
-                {stop.iconName ?? stop.iconId}
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {shapeCount > 1 && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon-sm"
-                  aria-label="Remove icon clip"
-                  title="Remove icon clip"
-                  onClick={() => {
-                    onRemoveShape(stop.id)
-                    onOpenShapePicker(null)
-                  }}
-                >
-                  <Trash2 className="size-3.5" />
-                </Button>
-              )}
-            </div>
+            <DialogTitle className="min-w-0 truncate text-sm font-semibold text-foreground">
+              Choose icon
+              <span className="ml-1.5 font-normal text-muted-foreground">
+                replacing {stop.iconName ?? stop.iconId}
+              </span>
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Choose the symbol, wipe pair, preset, or uploaded SVG for this
+              icon clip.
+            </DialogDescription>
           </div>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background p-3">
-          {activeTab !== "upload" ? (
-            <SymbolSearchRow
-              searchScope={
-                activeTab === "presets"
-                  ? "presets"
-                  : activeTab === "wipe"
-                    ? "wipe"
-                    : "symbols"
-              }
-              stop={stop}
-              materialSymbolClass={materialSymbolClass}
-              symbolStyle={symbolStyle}
-              materialSymbolStyle={materialSymbolStyle}
-              materialSymbolSettings={materialSymbolSettings}
-              materialSymbolOptionsOpen={materialSymbolOptionsOpen}
-              materialSymbolStatus={materialSymbolStatus}
-              normalizedShapeQuery={normalizedShapeQuery}
-              shapeSearchQuery={shapeSearchQuery}
-              searchActionLabel={searchActionLabel}
-              onMaterialSymbolOptionsOpenChange={
-                onMaterialSymbolOptionsOpenChange
-              }
-              onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
-              onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
-              onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
-              onShapeSearchQueryChange={onShapeSearchQueryChange}
-              onImportMaterialSymbol={chooseSearchResult}
-            />
-          ) : null}
-
-          {materialSymbolStatus.state === "error" && (
-            <p role="alert" className="mb-2 text-xs text-destructive">
-              {materialSymbolStatus.message}
-            </p>
-          )}
-
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background px-3 pb-3">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
-            className="min-h-0 flex-1 gap-2"
+            className="min-h-0 flex-1 gap-2.5"
           >
-            <TabsList className="grid min-h-11 w-full grid-cols-4">
-              <TabsTrigger value="symbols">Symbols</TabsTrigger>
-              <TabsTrigger value="wipe">Wipe pairs</TabsTrigger>
-              <TabsTrigger value="presets">Presets</TabsTrigger>
-              <TabsTrigger value="upload">Upload SVG</TabsTrigger>
+            <TabsList
+              variant="line"
+              className="w-full shrink-0 justify-start gap-1 border-b border-border px-1 group-data-horizontal/tabs:h-10"
+            >
+              <TabsTrigger value="symbols" className="flex-none px-2 text-xs">
+                Symbols
+              </TabsTrigger>
+              <TabsTrigger value="wipe" className="flex-none px-2 text-xs">
+                Wipe pairs
+              </TabsTrigger>
+              <TabsTrigger value="presets" className="flex-none px-2 text-xs">
+                Presets
+              </TabsTrigger>
+              <TabsTrigger value="upload" className="flex-none px-2 text-xs">
+                Upload
+              </TabsTrigger>
             </TabsList>
+            {activeTab !== "upload" ? (
+              <SymbolSearchRow
+                searchScope={
+                  activeTab === "presets"
+                    ? "presets"
+                    : activeTab === "wipe"
+                      ? "wipe"
+                      : "symbols"
+                }
+                stop={stop}
+                materialSymbolClass={materialSymbolClass}
+                symbolStyle={symbolStyle}
+                materialSymbolStyle={materialSymbolStyle}
+                materialSymbolSettings={materialSymbolSettings}
+                materialSymbolOptionsOpen={materialSymbolOptionsOpen}
+                materialSymbolStatus={materialSymbolStatus}
+                normalizedShapeQuery={normalizedShapeQuery}
+                shapeSearchQuery={shapeSearchQuery}
+                searchActionLabel={searchActionLabel}
+                onMaterialSymbolOptionsOpenChange={
+                  onMaterialSymbolOptionsOpenChange
+                }
+                onMaterialSymbolStyleChange={onMaterialSymbolStyleChange}
+                onMaterialSymbolSettingChange={onMaterialSymbolSettingChange}
+                onMaterialSymbolStatusChange={onMaterialSymbolStatusChange}
+                onShapeSearchQueryChange={onShapeSearchQueryChange}
+                onImportMaterialSymbol={chooseSearchResult}
+              />
+            ) : null}
+
+            {materialSymbolStatus.state === "error" && (
+              <p role="alert" className="mb-2 text-xs text-destructive">
+                {materialSymbolStatus.message}
+              </p>
+            )}
 
             <TabsContent
               value="symbols"

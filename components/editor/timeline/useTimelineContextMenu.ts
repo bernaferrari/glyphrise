@@ -43,6 +43,9 @@ export function useTimelineContextMenu({
     title: string,
     items: TimelineMenuItem[]
   ) => {
+    // Rows stop propagation so the innermost target owns the menu; prevent
+    // the browser menu here so every caller gets the same behaviour.
+    event.preventDefault()
     setGoToEditor(null)
     setContextMenu({
       x: event.clientX,

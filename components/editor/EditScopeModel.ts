@@ -34,7 +34,7 @@ export function propertyEditScope(
     return {
       kind: "animated",
       label: "Between keyframes",
-      description: "Enable Auto-key to change this value here.",
+      description: "Choose Edit here to save a new value at this moment.",
     }
   }
   return {

@@ -15,7 +15,7 @@ import { ALL_LAYERS_ID } from "./SvgLayerModel"
 import type { AppLayoutViewProps } from "./AppLayoutView"
 import { clampTimelineDuration } from "./TimelineDurationModel"
 import { createAnimationPreset } from "./AnimationPresetModel"
-import { useQuickStartGuideController } from "./useQuickStartGuideController"
+import { useCreationJourney } from "./useCreationJourney"
 
 export function useAppLayoutController(): AppLayoutViewProps {
   const editor = useEditorBaseState()
@@ -255,22 +255,18 @@ export function useAppLayoutController(): AppLayoutViewProps {
     []
   )
 
-  const [sessionIconChanged, setSessionIconChanged] = useState(false)
   const [sessionStyleChanged, setSessionStyleChanged] = useState(false)
   const [sessionMotionAdded, setSessionMotionAdded] = useState(false)
 
   useEffect(() => {
-    setSessionIconChanged(false)
     setSessionStyleChanged(false)
     setSessionMotionAdded(false)
   }, [project.id])
 
   const setShapeIcon: typeof setShapeIconRaw = (...args) => {
-    setSessionIconChanged(true)
     return setShapeIconRaw(...args)
   }
   const setShapeWipePair: typeof setShapeWipePairRaw = (...args) => {
-    setSessionIconChanged(true)
     return setShapeWipePairRaw(...args)
   }
   const updateFillColor: typeof updateFillColorRaw = (...args) => {
@@ -366,7 +362,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
   const setShapes: typeof setShapesRaw = (...args) => {
     // Icon picker/upload flows mutate shapes via setShapes; mark the
     // guide's icon step done on any shape mutation this session.
-    setSessionIconChanged(true)
     return setShapesRaw(...args)
   }
   const setTracks: typeof setTracksRaw = (...args) => {
@@ -549,20 +544,14 @@ export function useAppLayoutController(): AppLayoutViewProps {
     applyRecipe(recipe)
   }
 
-  const { openGuide, dismissedRecently, markExportComplete, quickStartProps } =
-    useQuickStartGuideController({
-      projectId: project.id,
-      selectedShapeId,
-      fallbackShapeId: shapes[0]?.id ?? null,
-      setOpenShapePicker,
-      isPlaying,
-      togglePlayback: handlePlayToggle,
-      applyRecipe: applyRecipeFromGuide,
-      hasCustomizedIcon: sessionIconChanged,
-      hasStyle: sessionStyleChanged,
-      hasMotion: sessionMotionAdded && keyframeCount > 0,
-      onExport: openExport,
-    })
+  const creationJourney = useCreationJourney({
+    projectId: project.id,
+    isPlaying,
+    togglePlayback: handlePlayToggle,
+    hasStyle: sessionStyleChanged,
+    hasMotion: sessionMotionAdded && keyframeCount > 0,
+    onExport: openExport,
+  })
 
   const {
     timelineProps,
@@ -826,6 +815,11 @@ export function useAppLayoutController(): AppLayoutViewProps {
     })
 
   return {
+    onCreateStarter: (iconId, name) => {
+      if (!createNewProject("blank", name, iconId)) return false
+      setAutoKeyEnabled(false)
+      return true
+    },
     animationProps: {
       duration,
       onApply: (id, seconds, intensity) => {
@@ -860,10 +854,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
       themeMounted,
       isLightTheme,
       themeToggleLabel,
-      autoKeyEnabled,
       onZenModeChange: setZenMode,
       onThemeChange: setTheme,
-      onAutoKeyChange: setAutoKeyEnabled,
       onProjectNew: newProject,
       onProjectOpen: openProjectFile,
       onProjectSave: saveProjectFile,
@@ -875,7 +867,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onRedo: redo,
       canUndo,
       canRedo,
-      onExportOpen: quickStartProps.onExport,
+      onExportOpen: creationJourney.openExport,
     },
     viewportProps: {
       zenMode,
@@ -887,12 +879,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
       canvasProps,
       viewOptionsProps,
       playbackProps,
-      quickStartController: {
-        openGuide,
-        dismissedRecently,
-        markExportComplete,
-        quickStartProps,
-      },
+      creationJourney,
     },
     inspectorProps: {
       activeTab: inspectorTab,
@@ -940,7 +927,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
       currentProjectName: project.name,
       currentProjectId: project.id,
       recentProjects,
-      templates: quickStartProps.templates,
+      templates: creationJourney.templates,
       onOpenChange: setNewProjectDialogOpen,
       onCreate: createNewProject,
       onCreateFromTemplate: createProjectFromTemplate,

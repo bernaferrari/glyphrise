@@ -13,7 +13,6 @@ export function TimelineShapePicker({
   onOpenShapePicker,
   onShapeIconChange,
   onUploadShape,
-  onRemoveShape,
 }: Pick<
   TimelineShapeLaneProps,
   | "shapes"
@@ -24,7 +23,6 @@ export function TimelineShapePicker({
   | "onOpenShapePicker"
   | "onShapeIconChange"
   | "onUploadShape"
-  | "onRemoveShape"
 >) {
   const stop =
     shapes.find((shape) => shape.id === openShapePicker) ??
@@ -43,7 +41,6 @@ export function TimelineShapePicker({
         onOpenShapePicker(stop.id)
       }}
       stop={stop}
-      shapeCount={shapes.length}
       visibleShapeOptions={shapePicker.visibleShapeOptions}
       favoriteMaterialSymbols={shapePicker.favoriteMaterialSymbols}
       recentMaterialSymbols={shapePicker.recentMaterialSymbols}
@@ -69,7 +66,6 @@ export function TimelineShapePicker({
       onShapeIconChange={onShapeIconChange}
       onOpenShapePicker={onOpenShapePicker}
       onUploadShape={onUploadShape}
-      onRemoveShape={onRemoveShape}
     />
   )
 }

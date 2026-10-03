@@ -38,7 +38,7 @@ export type NewProjectDialogProps = {
     id: string
     name: string
     description: string
-    emoji: string
+    preview: string
   }>
   onOpenChange: (open: boolean) => void
   onCreate: (kind: "blank" | "example", name: string) => void
@@ -85,12 +85,14 @@ export function NewProjectDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="editor-scrollbar max-h-[min(760px,calc(100dvh-32px))] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="editor-scrollbar max-h-[min(760px,calc(100dvh-32px))] gap-5 overflow-y-auto p-6 sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Projects</DialogTitle>
+            <DialogTitle className="text-xl font-semibold tracking-tight">
+              Projects
+            </DialogTitle>
             <DialogDescription>
-              Start fresh or reopen work saved on this device. Download a
-              portable copy when you need an external backup.
+              A fresh canvas or a familiar idea. Your projects stay saved on
+              this device.
             </DialogDescription>
           </DialogHeader>
           {projectsDialogErrorText(actionError) ? (
@@ -126,7 +128,7 @@ export function NewProjectDialog({
                 data-1p-ignore
                 data-lpignore="true"
                 onChange={(event) => setName(event.currentTarget.value)}
-                className="h-10 rounded-lg border border-input bg-background px-3 text-base text-foreground transition-[border-color,box-shadow] outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
+                className="h-11 rounded-lg border border-input bg-background px-3 text-base text-foreground transition-[border-color,box-shadow] outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
               />
             </div>
 
@@ -140,7 +142,7 @@ export function NewProjectDialog({
                   Start blank
                 </span>
                 <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                  One icon at 0s, with no keyframes or transition.
+                  Choose an icon and build your own motion.
                 </span>
               </button>
               <button
@@ -153,7 +155,7 @@ export function NewProjectDialog({
                   Use example
                 </span>
                 <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                  Begin with the two-icon wipe demo and explore from there.
+                  Explore an animated pair of icons, ready to customize.
                 </span>
               </button>
             </div>
@@ -164,7 +166,7 @@ export function NewProjectDialog({
             >
               <h3
                 id="project-templates-title"
-                className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase"
+                className="text-xs font-medium text-muted-foreground"
               >
                 Start with a style
               </h3>
@@ -176,9 +178,11 @@ export function NewProjectDialog({
                     onClick={() => onCreateFromTemplate(template.id, name)}
                     className="flex min-h-14 min-w-0 items-start gap-2 rounded-lg border border-border bg-muted/25 px-2.5 py-2 text-left transition-[background-color,border-color,transform] duration-150 hover:border-ring/40 hover:bg-muted/55 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-[0.99]"
                   >
-                    <span aria-hidden="true" className="mt-0.5 shrink-0">
-                      {template.emoji}
-                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="mt-0.5 size-8 shrink-0 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
+                      style={{ background: template.preview }}
+                    />
                     <span className="min-w-0">
                       <span className="block text-xs leading-4 font-medium text-balance text-foreground">
                         {template.name}
@@ -202,7 +206,7 @@ export function NewProjectDialog({
                 <FolderClock className="size-4 text-muted-foreground" />
                 <h3
                   id="recent-projects-title"
-                  className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase"
+                  className="text-xs font-medium text-muted-foreground"
                 >
                   Saved on this device
                 </h3>
@@ -225,7 +229,7 @@ export function NewProjectDialog({
                   onChange={(event) =>
                     setProjectQuery(event.currentTarget.value)
                   }
-                  className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-base text-foreground transition-[border-color,box-shadow] outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
+                  className="h-11 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-base text-foreground transition-[border-color,box-shadow] outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-3 focus:ring-ring/20"
                 />
               </div>
               <div className="grid max-h-72 gap-1 overflow-y-auto rounded-xl border border-border bg-muted/20 p-1">
@@ -295,7 +299,7 @@ export function NewProjectDialog({
             </section>
           ) : null}
 
-          <DialogFooter className="items-center sm:justify-between">
+          <DialogFooter className="-mx-6 -mb-6 items-center p-6 sm:justify-between">
             <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:block">
               Current: {currentProjectName}
             </span>

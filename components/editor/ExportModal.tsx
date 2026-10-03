@@ -1,13 +1,14 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
-import { AlertTriangle, X } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { AlertTriangle, Code2, X } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { ExportAssetOptions } from "./ExportAssetOptions"
 import { ExportAndroidCodeTab, ExportReactCodeTab } from "./ExportCodeTabs"
@@ -25,6 +26,7 @@ interface ExportModalProps {
   isVideoExporting: boolean
   videoExportProgress: number
   scene: ExportSceneSnapshot
+  artwork?: { svgContent: string; label: string; color: string }
   onCodeCopied?: () => void
 }
 
@@ -39,7 +41,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onCodeCopied,
   videoExportProgress,
   scene,
+  artwork,
 }) => {
+  const [developerOpen, setDeveloperOpen] = useState(false)
+  useEffect(() => {
+    if (!isOpen) setDeveloperOpen(false)
+  }, [isOpen])
   const finalFocusRef = useRef<HTMLElement | null>(null)
   useEffect(() => {
     if (isOpen && document.activeElement instanceof HTMLElement) {
@@ -82,16 +89,27 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     <Dialog
       open={isOpen}
       onOpenChange={(open) => {
-        if (!open) onClose()
+        if (!open) {
+          if (isRecording) onCancelVideoExport()
+          onClose()
+        }
       }}
     >
       <DialogContent
         finalFocus={finalFocusRef}
-        className="max-h-[calc(100vh-40px)] w-[640px] max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 shadow-2xl sm:max-w-[640px]"
+        className="max-h-[calc(100dvh-32px)] w-[640px] max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-[640px]"
       >
-        <DialogHeader className="border-b border-border px-4 py-3 pr-11">
-          <DialogTitle className="text-sm font-semibold text-foreground">
-            Export
+        <DialogHeader className="border-b border-border p-6 pr-14">
+          {artwork && (
+            <span
+              aria-hidden="true"
+              className="grid size-11 place-items-center rounded-xl bg-muted [&_svg]:size-7 [&_svg_*]:fill-current"
+              style={{ color: artwork.color }}
+              dangerouslySetInnerHTML={{ __html: artwork.svgContent }}
+            />
+          )}
+          <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
+            Export your icon
             {isRecording ? (
               <span className="ml-2 inline-flex items-center gap-1.5 align-middle text-xs font-normal text-muted-foreground">
                 <span
@@ -102,6 +120,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               </span>
             ) : null}
           </DialogTitle>
+          <DialogDescription>
+            {artwork?.label ? `${artwork.label}. ` : ""}Choose how you’d like to
+            use it.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs
@@ -109,9 +131,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           onValueChange={handleTabChange}
           className="min-h-0 min-w-0 gap-0"
         >
-          <div className="border-b border-border px-4 py-3">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="options" className="gap-1.5">
+          <div
+            className={
+              developerOpen ? "border-b border-border px-6 py-3" : "hidden"
+            }
+          >
+            <TabsList className="grid h-11 w-full grid-cols-3">
+              <TabsTrigger value="options" className="min-h-11 gap-1.5">
                 {isRecording ? (
                   <>
                     <span
@@ -124,10 +150,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   "Assets"
                 )}
               </TabsTrigger>
-              <TabsTrigger value="r3f" disabled={isRecording}>
+              <TabsTrigger
+                value="r3f"
+                disabled={isRecording}
+                className="min-h-11"
+              >
                 React starter
               </TabsTrigger>
-              <TabsTrigger value="android" disabled={isRecording}>
+              <TabsTrigger
+                value="android"
+                disabled={isRecording}
+                className="min-h-11"
+              >
                 Android viewer
               </TabsTrigger>
             </TabsList>
@@ -156,7 +190,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             ) : null}
             <TabsContent
               value="options"
-              className="editor-scrollbar max-h-[calc(100dvh-180px)] min-w-0 overflow-y-auto p-4 outline-none"
+              className="editor-scrollbar max-h-[calc(100dvh-260px)] min-w-0 overflow-y-auto p-6 outline-none"
             >
               <ExportAssetOptions
                 isRecording={isRecording}
@@ -196,6 +230,21 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             </TabsContent>
           </div>
         </Tabs>
+        <div className="border-t border-border bg-muted/20 px-6 py-1">
+          <button
+            type="button"
+            aria-pressed={developerOpen}
+            disabled={isRecording}
+            onClick={() => {
+              setDeveloperOpen(!developerOpen)
+              handleTabChange("options")
+            }}
+            className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
+          >
+            <Code2 aria-hidden="true" className="size-4" />
+            Developer exports
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   )

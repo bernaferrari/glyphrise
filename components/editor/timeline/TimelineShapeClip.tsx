@@ -9,14 +9,13 @@ import type { TimelineMenuItem } from "./TimelineMenuModel"
 export type TimelineShapeClipProps = {
   duration: number
   stop: ShapeStop
-  index: number
   shapeCount: number
-  sortedShapeCount: number
   selectedShapeId: string | null
   bounds: ShapeClipBounds
   shapeDraggedRef: React.MutableRefObject<boolean>
   shapeLabel: (stop: ShapeStop) => string
   onSelectShape: (id: string) => void
+  onSeek: (time: number) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
   onRemoveShape: (id: string) => void
@@ -37,14 +36,13 @@ export type TimelineShapeClipProps = {
 export function TimelineShapeClip({
   duration,
   stop,
-  index,
   shapeCount,
-  sortedShapeCount,
   selectedShapeId,
   bounds,
   shapeDraggedRef,
   shapeLabel,
   onSelectShape,
+  onSeek,
   onOpenShapePicker,
   onUploadShape,
   onRemoveShape,
@@ -55,21 +53,17 @@ export function TimelineShapeClip({
 }: TimelineShapeClipProps) {
   const selected = stop.id === selectedShapeId
   const isOnly = bounds.isOnly
-  const roundClass = isOnly
-    ? "rounded-md"
-    : `${index === 0 ? "rounded-l-md" : ""} ${
-        index === sortedShapeCount - 1 ? "rounded-r-md" : ""
-      }`
 
   return (
     <button
       type="button"
       aria-label={`${shapeLabel(stop)} icon clip`}
       aria-pressed={selected}
+      data-clip-id={stop.id}
       title={
         isOnly
-          ? `${shapeLabel(stop)} icon clip - click to edit · add another clip to animate`
-          : `${shapeLabel(stop)} icon clip at ${stop.time.toFixed(2)}s - drag to retime, click to edit`
+          ? `${shapeLabel(stop)} · double-click to change the icon`
+          : `${shapeLabel(stop)} at ${stop.time.toFixed(2)}s · drag to retime, double-click to change the icon`
       }
       onMouseDown={(event) => event.stopPropagation()}
       onClick={() => {
@@ -78,6 +72,10 @@ export function TimelineShapeClip({
           return
         }
         onSelectShape(stop.id)
+        onSeek(stop.time)
+      }}
+      onDoubleClick={() => {
+        onSelectShape(stop.id)
         onOpenShapePicker(stop.id)
       }}
       onContextMenu={(event) =>
@@ -85,7 +83,7 @@ export function TimelineShapeClip({
           createGoToMenuItem(event, stop.time, () => onSelectShape(stop.id)),
           { type: "separator" },
           {
-            label: "Edit icon clip",
+            label: "Change icon…",
             onSelect: () => {
               onSelectShape(stop.id)
               onOpenShapePicker(stop.id)
@@ -111,34 +109,34 @@ export function TimelineShapeClip({
       onPointerDown={
         isOnly ? undefined : (event) => onShapeDrag(event, stop.id)
       }
-      className={`timeline-icon-clip group/clip absolute top-1/2 flex h-7 -translate-y-1/2 touch-none items-center gap-1.5 overflow-hidden border pr-2 pl-1 text-left transition-[background-color,border-color] hover:brightness-110 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-none items-stretch overflow-hidden rounded-md border bg-(--timeline-clip) text-left transition-[box-shadow,border-color,filter] duration-100 hover:brightness-[1.06] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-      } ${roundClass}`}
+      } ${
+        selected
+          ? "z-[5] border-(--timeline-accent) shadow-[0_0_0_1px_var(--timeline-accent)]"
+          : "border-(--timeline-clip-edge)"
+      }`}
       style={{
         left: xForFrac(bounds.left / duration),
         width: widthForSpan(Math.max(0, bounds.right - bounds.left) / duration),
-        minWidth: 32,
-        backgroundColor: selected ? `${stop.color}24` : `${stop.color}10`,
-        borderColor: selected ? `${stop.color}f2` : `${stop.color}30`,
-        boxShadow: "none",
+        minWidth: 36,
       }}
     >
-      <span
-        className="grid size-5 shrink-0 place-items-center rounded-[5px] [&_svg]:h-3.5 [&_svg]:w-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
-        style={{
-          color: stop.color,
-          backgroundColor: `${stop.color}26`,
-        }}
-        dangerouslySetInnerHTML={{ __html: stop.svgContent }}
-      />
-      <span className="min-w-0 truncate text-[11px] font-medium text-foreground">
-        {shapeLabel(stop)}
-      </span>
-      {isOnly && (
-        <span className="ml-auto shrink truncate pl-2 text-[11px] text-muted-foreground">
-          add another icon clip to animate
+      <span className="@container flex h-full w-full min-w-0 items-center gap-1.5 px-2 @max-[44px]:justify-center @max-[44px]:px-0">
+        <span
+          aria-hidden="true"
+          className="grid size-4 shrink-0 place-items-center text-(--timeline-clip-fg) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
+          dangerouslySetInnerHTML={{ __html: stop.svgContent }}
+        />
+        <span className="min-w-0 truncate text-xs font-medium text-(--timeline-clip-fg) @max-[72px]:hidden">
+          {shapeLabel(stop)}
         </span>
-      )}
+        {isOnly && (
+          <span className="ml-auto shrink truncate text-[11px] text-(--timeline-clip-fg)/65 @max-[420px]:hidden">
+            Add another icon to morph between them
+          </span>
+        )}
+      </span>
     </button>
   )
 }

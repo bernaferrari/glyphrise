@@ -131,8 +131,13 @@ export function useTimelineZoomAndDuration({
       window.removeEventListener("keydown", handleTimelineZoomShortcut)
   }, [adjustTimelineZoom, fitTimeline])
 
+  const setZoom = useCallback((zoom: number) => {
+    setTimelineZoom(clampTimelineZoom(zoom))
+  }, [])
+
   return {
     timelineZoom,
+    setZoom,
     durationEditor,
     setDurationEditor,
     fitTimeline,

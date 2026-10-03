@@ -15,18 +15,18 @@ export function TimelineLaneBackground({
       {secondGridTicks.map((time) => (
         <div
           key={`second-grid-${time}`}
-          className="pointer-events-none absolute inset-y-0 w-px bg-border/70 dark:bg-muted/45"
+          className="pointer-events-none absolute inset-y-0 w-px bg-border/45"
           style={{ left: xForFrac(time / duration) }}
           aria-hidden="true"
         />
       ))}
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 bg-muted/60 dark:bg-muted/25"
+        className="pointer-events-none absolute inset-y-0 left-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET, zIndex: TIMELINE_LAYER.rangeGutter }}
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 bg-muted/60 dark:bg-muted/25"
+        className="pointer-events-none absolute inset-y-0 right-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET, zIndex: TIMELINE_LAYER.rangeGutter }}
         aria-hidden="true"
       />

@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
   Check,
-  CircleDot,
+  CircleHelp,
   Sparkles,
   Download,
   FileDown,
@@ -33,10 +33,8 @@ interface AppTopBarProps {
   themeMounted: boolean
   isLightTheme: boolean
   themeToggleLabel: string
-  autoKeyEnabled: boolean
   onZenModeChange: (enabled: boolean) => void
   onThemeChange: (theme: "dark" | "light") => void
-  onAutoKeyChange: (enabled: boolean) => void
   onProjectNew: () => void
   onProjectOpen: () => void
   onProjectSave: () => void
@@ -48,6 +46,7 @@ interface AppTopBarProps {
   onRedo: () => void
   canUndo: boolean
   canRedo: boolean
+  onGettingStarted: () => void
   onAnimateOpen: () => void
   onExportOpen: () => void
 }
@@ -55,35 +54,35 @@ interface AppTopBarProps {
 function CompactWorkspaceMenu({
   zenMode,
   onZenModeChange,
-  autoKeyEnabled,
   themeMounted,
   isLightTheme,
   themeToggleLabel,
   onProjectNew,
   onProjectOpen,
   onProjectSave,
+  onGettingStarted,
+  onAnimateOpen,
   onUndo,
   onRedo,
   canUndo,
   canRedo,
-  onAutoKeyChange,
   onThemeChange,
 }: Pick<
   AppTopBarProps,
-  | "autoKeyEnabled"
+  | "onAnimateOpen"
   | "themeMounted"
   | "isLightTheme"
   | "themeToggleLabel"
   | "onProjectNew"
   | "onProjectOpen"
   | "onProjectSave"
+  | "onGettingStarted"
   | "onUndo"
   | "onRedo"
   | "canUndo"
   | "canRedo"
   | "onZenModeChange"
   | "zenMode"
-  | "onAutoKeyChange"
   | "onThemeChange"
 >) {
   const [open, setOpen] = useState(false)
@@ -98,6 +97,12 @@ function CompactWorkspaceMenu({
     disabled: boolean
     pressed?: boolean
   }> = [
+    {
+      label: "Animate",
+      Icon: Sparkles,
+      onClick: action(onAnimateOpen),
+      disabled: false,
+    },
     {
       label: "Projects",
       Icon: FolderClock,
@@ -125,11 +130,10 @@ function CompactWorkspaceMenu({
     { label: "Undo", Icon: Undo2, onClick: action(onUndo), disabled: !canUndo },
     { label: "Redo", Icon: Redo2, onClick: action(onRedo), disabled: !canRedo },
     {
-      label: autoKeyEnabled ? "Turn auto-key off" : "Turn auto-key on",
-      Icon: CircleDot,
-      onClick: action(() => onAutoKeyChange(!autoKeyEnabled)),
+      label: "Getting started",
+      Icon: CircleHelp,
+      onClick: action(onGettingStarted),
       disabled: false,
-      pressed: autoKeyEnabled,
     },
     {
       label: themeToggleLabel,
@@ -143,7 +147,7 @@ function CompactWorkspaceMenu({
       <PopoverTrigger
         aria-label="Workspace actions"
         title="Workspace actions"
-        className="grid size-9 place-items-center rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
+        className="grid size-11 place-items-center rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
       >
         <MoreHorizontal className="size-4" />
       </PopoverTrigger>
@@ -283,10 +287,8 @@ export function AppTopBar({
   themeMounted,
   isLightTheme,
   themeToggleLabel,
-  autoKeyEnabled,
   onZenModeChange,
   onThemeChange,
-  onAutoKeyChange,
   onProjectNew,
   onProjectOpen,
   onProjectSave,
@@ -298,6 +300,7 @@ export function AppTopBar({
   onRedo,
   canUndo,
   canRedo,
+  onGettingStarted,
   onAnimateOpen,
   onExportOpen,
 }: AppTopBarProps) {
@@ -345,13 +348,15 @@ export function AppTopBar({
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
+        {/* Status is text, not an icon that reads as a button. Quiet when
+            saved; visible while saving or when something needs attention. */}
         <span
           aria-live="polite"
           title={projectStatusMessage}
-          className={`flex min-w-7 items-center justify-center gap-1.5 rounded-md px-1.5 text-xs tabular-nums lg:w-32 lg:justify-start ${
+          className={`flex items-center gap-1.5 px-1.5 text-xs whitespace-nowrap ${
             projectStatus === "error"
               ? "text-destructive"
-              : "text-muted-foreground"
+              : "text-muted-foreground/80"
           }`}
         >
           <span className="sr-only">{projectStatusLabel}</span>
@@ -362,14 +367,16 @@ export function AppTopBar({
             />
           ) : projectStatus === "error" ? (
             <AlertTriangle aria-hidden="true" className="size-3.5" />
-          ) : (
-            <Check aria-hidden="true" className="size-3.5" />
-          )}
+          ) : null}
           <span
             aria-hidden="true"
-            className="hidden max-w-28 truncate lg:inline"
+            className={
+              projectStatus === "saved"
+                ? "hidden lg:inline"
+                : "hidden sm:inline"
+            }
           >
-            {projectStatusLabel}
+            {projectStatus === "saved" ? "Saved" : projectStatusLabel}
           </span>
         </span>
         <ProjectMenu
@@ -379,6 +386,27 @@ export function AppTopBar({
           projectStatus={projectStatus}
           projectStatusMessage={projectStatusMessage}
         />
+        {/* Phones: undo/redo stay one tap away on every workspace view. */}
+        <div className="flex items-center md:hidden">
+          <button
+            type="button"
+            aria-label="Undo edit"
+            onClick={onUndo}
+            disabled={!canUndo}
+            className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
+          >
+            <Undo2 aria-hidden="true" className="size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Redo edit"
+            onClick={onRedo}
+            disabled={!canRedo}
+            className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
+          >
+            <Redo2 aria-hidden="true" className="size-4" />
+          </button>
+        </div>
         <div className="hidden items-center gap-0.5 md:flex">
           <Button
             size="icon"
@@ -404,26 +432,6 @@ export function AppTopBar({
           </Button>
         </div>
         <Button
-          size="sm"
-          variant="ghost"
-          aria-pressed={autoKeyEnabled}
-          aria-label={autoKeyEnabled ? "Disable auto-key" : "Enable auto-key"}
-          title={
-            autoKeyEnabled
-              ? "Auto-key is on: edits create keyframes at the playhead"
-              : "Auto-key is off: edits stay static unless a keyframe is selected"
-          }
-          onClick={() => onAutoKeyChange(!autoKeyEnabled)}
-          className={`hidden h-9 gap-1.5 rounded-lg border px-2 text-xs font-medium min-[480px]:inline-flex ${
-            autoKeyEnabled
-              ? "border-destructive/35 bg-destructive/12 text-destructive hover:bg-destructive/18 hover:text-destructive"
-              : "border-transparent bg-transparent hover:bg-muted"
-          }`}
-        >
-          <CircleDot className="size-3.5" />
-          <span className="hidden lg:inline">Auto-key</span>
-        </Button>
-        <Button
           size="icon"
           variant="ghost"
           aria-label="Animate"
@@ -434,6 +442,15 @@ export function AppTopBar({
           <Sparkles className="size-3.5" />
           <span className="hidden min-[480px]:inline">Animate</span>
         </Button>
+        <button
+          type="button"
+          aria-label="Getting started"
+          title="Getting started"
+          onClick={onGettingStarted}
+          className="hidden size-11 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring min-[720px]:grid"
+        >
+          <CircleHelp aria-hidden="true" className="size-4" />
+        </button>
         <Button
           size="icon"
           variant="ghost"
@@ -454,7 +471,7 @@ export function AppTopBar({
         <Button
           size="sm"
           aria-label="Export"
-          className="h-9 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="h-11 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           onClick={onExportOpen}
         >
           <Download className="size-3.5" />
@@ -463,18 +480,18 @@ export function AppTopBar({
         <CompactWorkspaceMenu
           zenMode={zenMode}
           onZenModeChange={onZenModeChange}
-          autoKeyEnabled={autoKeyEnabled}
           themeMounted={themeMounted}
           isLightTheme={isLightTheme}
           themeToggleLabel={themeToggleLabel}
           onProjectNew={onProjectNew}
           onProjectOpen={onProjectOpen}
           onProjectSave={onProjectSave}
+          onGettingStarted={onGettingStarted}
+          onAnimateOpen={onAnimateOpen}
           onUndo={onUndo}
           onRedo={onRedo}
           canUndo={canUndo}
           canRedo={canRedo}
-          onAutoKeyChange={onAutoKeyChange}
           onThemeChange={onThemeChange}
         />
       </div>

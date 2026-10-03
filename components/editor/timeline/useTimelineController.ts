@@ -27,6 +27,11 @@ export function useTimelineController({
   isPreviewLoading = false,
   loop,
   onLoopChange,
+  compactMode = false,
+  playback,
+  autoKeyEnabled,
+  onAutoKeyChange,
+  onOpenMotionPresets,
   tracks,
   onTracksChange,
   propertyRows = [],
@@ -58,7 +63,35 @@ export function useTimelineController({
 }: TimelineProps) {
   const [selectedKeyframe, setSelectedKeyframe] =
     useState<SelectedTimelineKeyframe>(null)
+  // What Delete acts on: a keyframe, a whole row (picked in the rail), or
+  // the icon clip last clicked in the timeline.
+  const [selectedRow, setSelectedRow] = useState<string | null>(null)
+  // The keyframe panel follows selection; closing it keeps the selection
+  // (so Delete still works) until a keyframe is picked again.
+  const [dismissedKeyframe, setDismissedKeyframe] = useState<string | null>(
+    null
+  )
+  const [clipSelected, setClipSelected] = useState(false)
+  const [clipPanelDismissed, setClipPanelDismissed] = useState(false)
+  const selectKeyframe = (keyframe: SelectedTimelineKeyframe) => {
+    setSelectedKeyframe(keyframe)
+    setSelectedRow(null)
+    setClipSelected(false)
+    if (keyframe) setDismissedKeyframe(null)
+  }
+  const clearSelection = () => selectKeyframe(null)
   const [openClipEditor, setOpenClipEditor] = useState<string | null>(null)
+  const selectedKeyframeKey = selectedKeyframe
+    ? `${selectedKeyframe.type}:${
+        selectedKeyframe.type === "track"
+          ? selectedKeyframe.trackId
+          : selectedKeyframe.rowId
+      }:${selectedKeyframe.kfId}`
+    : null
+  const openKeyframeEditor = (keyframe: SelectedTimelineKeyframe) => {
+    selectKeyframe(keyframe)
+    setDismissedKeyframe(null)
+  }
   const [snapEnabled, setSnapEnabled] = useState(true)
   const shapePicker = useShapePickerCatalog({
     openShapePicker,
@@ -72,6 +105,7 @@ export function useTimelineController({
   const timelineScrollRef = useRef<HTMLDivElement>(null)
   const {
     timelineZoom,
+    setZoom,
     durationEditor,
     setDurationEditor,
     fitTimeline,
@@ -146,7 +180,7 @@ export function useTimelineController({
       timelineScrollRef,
       onTimeChange,
       onScrubStart,
-      onClearSelectedKeyframe: () => setSelectedKeyframe(null),
+      onClearSelectedKeyframe: clearSelection,
     })
 
   const {
@@ -190,11 +224,15 @@ export function useTimelineController({
 
   useTimelineDeletion({
     selectedKeyframe,
+    selectedRow,
+    clipSelected,
+    onClearPropertyRow,
+    onClearTrackKeyframes,
     selectedShapeId,
     shapes,
     tracks,
     propertyRows,
-    onClearSelection: () => setSelectedKeyframe(null),
+    onClearSelection: clearSelection,
     onRemoveShape,
     onRemoveTrackKeyframe: removeTrackKeyframe,
     onRemovePropertyKeyframe,
@@ -294,9 +332,47 @@ export function useTimelineController({
     []
   )
 
+  const addProperty = (trackId: string) => {
+    onScrubStart?.()
+    onTracksChange(
+      tracks.map((track) =>
+        track.id === trackId ? withStarterAnimation(track, duration) : track
+      )
+    )
+    onTimeChange(0)
+    selectTrack(trackId)
+  }
+
   return {
     contextMenu,
     setContextMenu,
+    toolbarProps: {
+      compactMode,
+      currentTime: visibleCurrentTime,
+      duration,
+      durationEditor,
+      durationInvalid,
+      durationNotice,
+      snapEnabled,
+      loop,
+      zoom: timelineZoom,
+      playback,
+      autoKeyEnabled,
+      onAutoKeyChange,
+      onDurationEditorChange: setDurationEditor,
+      onOpenDurationEditor: openDurationEditor,
+      onCommitDurationEditor: commitDurationEditor,
+      onApplyDuration: applyDuration,
+      onSnapEnabledChange: setSnapEnabled,
+      onLoopChange,
+      onZoomChange: setZoom,
+      onFitTimeline: fitTimeline,
+      onSeek: (time: number) => {
+        clearSelection()
+        onScrubStart?.()
+        onTimeChange(time)
+      },
+    },
     goToPopoverProps: {
       editor: goToEditor,
       onEditorChange: setGoToEditor,
@@ -304,6 +380,15 @@ export function useTimelineController({
       onCancel: cancelGoToEditor,
     },
     leftRailProps: {
+      selectedRow,
+      onSelectRow: setSelectedRow,
+      onOpenMotionPresets,
+      shapeCount: shapes.length,
+      onSeek: (time: number) => {
+        clearSelection()
+        onScrubStart?.()
+        onTimeChange(time)
+      },
       activeTrackId,
       currentTime,
       duration,
@@ -324,7 +409,7 @@ export function useTimelineController({
       onApplyDuration: applyDuration,
       onClearPropertyRow,
       onTogglePropertyKeyframe,
-      onClearSelection: () => setSelectedKeyframe(null),
+      onClearSelection: clearSelection,
       onClearTrackKeyframes,
       onCommitDurationEditor: commitDurationEditor,
       onDurationEditorChange: setDurationEditor,
@@ -332,22 +417,60 @@ export function useTimelineController({
       onLoopChange,
       onOpenContextMenu: openContextMenu,
       onOpenDurationEditor: openDurationEditor,
-      onAddProperty: (trackId: string) => {
-        onScrubStart?.()
-        onTracksChange(
-          tracks.map((track) =>
-            track.id === trackId ? withStarterAnimation(track, duration) : track
-          )
-        )
-        onTimeChange(0)
-        selectTrack(trackId)
-      },
+      onAddProperty: addProperty,
       onSelectTrack: selectTrack,
       onSetPropertyEasing,
       onSetTrackEasing: setTrackEasing,
       onSnapEnabledChange: setSnapEnabled,
       onToggleTrackKeyframe: toggleKeyframeAtPlayhead,
       createGoToMenuItem: goToMenuItem,
+    },
+    clipPanelProps: {
+      open:
+        clipSelected &&
+        !clipPanelDismissed &&
+        !isPlaying &&
+        !openShapePicker &&
+        openClipEditor === null,
+      stop: shapes.find((shape) => shape.id === selectedShapeId),
+      label: (() => {
+        const stop = shapes.find((shape) => shape.id === selectedShapeId)
+        return stop ? shapeLabel(stop) : ""
+      })(),
+      canRemove: shapes.length > 1,
+      onClose: () => setClipPanelDismissed(true),
+      onChangeIcon: () => {
+        if (selectedShapeId) onOpenShapePicker(selectedShapeId)
+      },
+      onUpload: () => {
+        if (selectedShapeId) onUploadShape(selectedShapeId)
+      },
+      onRemove: () => {
+        if (!selectedShapeId) return
+        setClipSelected(false)
+        onRemoveShape(selectedShapeId)
+      },
+    },
+    keyframeEditorProps: {
+      open:
+        selectedKeyframeKey !== null &&
+        dismissedKeyframe !== selectedKeyframeKey &&
+        !isPlaying,
+      onOpenChange: (open: boolean) =>
+        setDismissedKeyframe(open ? null : selectedKeyframeKey),
+      selectedKeyframe,
+      duration,
+      tracks,
+      propertyRows: visiblePropertyRows,
+      onSelectKeyframe: selectKeyframe,
+      onScrubStart,
+      onTimeChange,
+      onTracksChange,
+      onRemoveTrackKeyframe: removeTrackKeyframe,
+      onSetSingleKeyframeEasing: setSingleKeyframeEasing,
+      onMovePropertyKeyframe,
+      onRemovePropertyKeyframe,
+      onSetPropertyEasing,
     },
     lanesSurfaceProps: {
       viewport: {
@@ -377,14 +500,20 @@ export function useTimelineController({
         shapePicker,
         shapeDraggedRef,
         shapeLabel,
-        onClearSelectedKeyframe: () => setSelectedKeyframe(null),
+        onClearSelectedKeyframe: clearSelection,
         onScrubStart,
         onTimeChange,
         onOpenClipEditorChange: setOpenClipEditor,
         onShapeBlendChange,
         onShapeEasingChange,
         onTransitionEdgeDrag: handleTransitionEdgeDrag,
-        onSelectShape,
+        onSelectShape: (id: string) => {
+          onSelectShape(id)
+          setSelectedKeyframe(null)
+          setSelectedRow(null)
+          setClipSelected(true)
+          setClipPanelDismissed(false)
+        },
         onOpenShapePicker,
         onShapeIconChange,
         onUploadShape,
@@ -401,7 +530,8 @@ export function useTimelineController({
         onMovePropertyKeyframe,
         onSetPropertyEasing,
         onAddPropertyKeyframeAtTime,
-        onSelectKeyframe: setSelectedKeyframe,
+        onSelectKeyframe: selectKeyframe,
+        onOpenKeyframeEditor: openKeyframeEditor,
         onScrubStart,
         onTimeChange,
       },
@@ -415,7 +545,8 @@ export function useTimelineController({
         keyframeDraggedRef,
         keyframeTimeClampNotice: timeClampNotice,
         onSelectTrack: selectTrack,
-        onSelectKeyframe: setSelectedKeyframe,
+        onSelectKeyframe: selectKeyframe,
+        onOpenKeyframeEditor: openKeyframeEditor,
         onTimeEditorChange: setTimeEditor,
         onCommitTimeEditor: commitTimeEditor,
         onScrubStart,

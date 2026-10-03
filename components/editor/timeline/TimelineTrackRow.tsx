@@ -5,7 +5,11 @@ import type { EasingType, TimelineTrack } from "../TimelineModel"
 import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
-import { formatValueLabel } from "./TimelinePrimitives"
+import {
+  TimelineLaneGhost,
+  TimelineMotionSegments,
+  useLaneGhost,
+} from "./TimelinePrimitives"
 import { TimelineTrackKeyframeButton } from "./TimelineTrackKeyframeButton"
 import type { SelectedTimelineKeyframe, TrackTimeEditor } from "./TimelineTypes"
 
@@ -20,6 +24,7 @@ export type TimelineTrackRowProps = {
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onTimeEditorChange: React.Dispatch<
     React.SetStateAction<TrackTimeEditor | null>
   >
@@ -68,6 +73,7 @@ export function TimelineTrackRow({
   keyframeDraggedRef,
   onSelectTrack,
   onSelectKeyframe,
+  onOpenKeyframeEditor,
   onTimeEditorChange,
   onCommitTimeEditor,
   onScrubStart,
@@ -84,20 +90,21 @@ export function TimelineTrackRow({
   createGoToMenuItem,
 }: TimelineTrackRowProps) {
   const animated = track.keyframes.length > 0
-  const sortedKeyframes = [...track.keyframes].sort((a, b) => a.time - b.time)
-  const firstKeyframe = sortedKeyframes[0]
-  const lastKeyframe = sortedKeyframes[sortedKeyframes.length - 1]
-  const firstEasing = track.keyframes[0]?.easing
+  const { ghostX, laneHandlers } = useLaneGhost()
+  const rowSelected =
+    selectedKeyframe?.type === "track" && selectedKeyframe.trackId === track.id
 
   return (
     <div
-      className={`relative h-[var(--timeline-property-height)] border-b border-border transition-colors ${
+      className={`relative h-[var(--timeline-property-height)] border-b border-border/50 transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
-          : isActive
-            ? "bg-muted/45"
-            : "hover:bg-muted/35"
+          : isActive || rowSelected
+            ? "bg-foreground/[0.035]"
+            : "hover:bg-foreground/[0.025]"
       }`}
+      {...laneHandlers}
+      title="Double-click to add a keyframe"
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return
         onSelectKeyframe(null)
@@ -137,70 +144,19 @@ export function TimelineTrackRow({
         onAddTrackKeyframeAtTime(track.id, timeFromClientX(event.clientX))
       }}
     >
-      {animated && firstKeyframe && (
-        <div
-          className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 opacity-45"
-          style={{ backgroundColor: track.color }}
-        />
-      )}
+      <TimelineMotionSegments
+        name={track.name}
+        keyframes={track.keyframes}
+        duration={duration}
+        xForTime={xForFrac}
+        widthForTime={widthForSpan}
+        onEasingChange={(keyframeId, easing) =>
+          onSetSingleKeyframeEasing(track.id, keyframeId, easing)
+        }
+        onDragStart={(event) => onBlockDrag(event, track.id)}
+      />
 
-      {animated &&
-        firstKeyframe &&
-        lastKeyframe &&
-        lastKeyframe.time > firstKeyframe.time && (
-          <div
-            title="Drag to move - drag the diamonds to resize"
-            className="absolute top-1/2 h-2 -translate-y-1/2 cursor-grab touch-none rounded-full opacity-75 transition-opacity select-none hover:opacity-95 active:cursor-grabbing"
-            style={{
-              left: xForFrac(firstKeyframe.time / duration),
-              width: widthForSpan(
-                (lastKeyframe.time - firstKeyframe.time) / duration
-              ),
-              backgroundColor: track.color,
-            }}
-            onPointerDown={(event) => {
-              if (!event.isPrimary || event.button !== 0) return
-              onBlockDrag(event, track.id)
-            }}
-          />
-        )}
-
-      {!animated && (
-        <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center gap-1.5">
-          <span className="rounded-md border border-border/55 bg-background/85 px-1.5 py-0.5 font-mono text-[11px] text-foreground tabular-nums">
-            {formatValueLabel(track, track.defaultValue)}
-          </span>
-          <span className="rounded-md bg-muted/65 px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            static
-          </span>
-        </div>
-      )}
-
-      {animated && (
-        <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center gap-1.5">
-          <span
-            className="size-2 rounded-full ring-1 ring-background/70"
-            style={{ backgroundColor: track.color }}
-          />
-          {firstEasing ? (
-            <span className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[11px] text-muted-foreground">
-              {firstEasing}
-            </span>
-          ) : null}
-        </div>
-      )}
-
-      {animated &&
-        firstKeyframe &&
-        lastKeyframe?.time === firstKeyframe.time && (
-          <div
-            className="absolute top-1/2 h-2 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-45"
-            style={{
-              left: xForFrac(firstKeyframe.time / duration),
-              backgroundColor: track.color,
-            }}
-          />
-        )}
+      <TimelineLaneGhost x={ghostX} color={track.color} />
 
       {track.keyframes.map((keyframe) => (
         <TimelineTrackKeyframeButton
@@ -214,6 +170,7 @@ export function TimelineTrackRow({
           keyframeDraggedRef={keyframeDraggedRef}
           onSelectTrack={onSelectTrack}
           onSelectKeyframe={onSelectKeyframe}
+          onOpenKeyframeEditor={onOpenKeyframeEditor}
           onTimeEditorChange={onTimeEditorChange}
           onCommitTimeEditor={onCommitTimeEditor}
           onTimeChange={onTimeChange}

@@ -57,7 +57,7 @@ export const EasingPicker: React.FC<{
 }> = ({
   value,
   onChange,
-  color = "#a1a1aa",
+  color = "currentColor",
   scopeLabel,
   showLabel = false,
 }) => {
@@ -141,5 +141,52 @@ export const EasingPicker: React.FC<{
         })}
       </PopoverContent>
     </Popover>
+  )
+}
+
+/** Inline easing choices with curve previews — no nested popover. */
+export function EasingChoices({
+  value,
+  label,
+  onChange,
+}: {
+  value: EasingType
+  label: string
+  onChange: (easing: EasingType) => void
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="grid grid-cols-4 gap-0.5 rounded-lg bg-muted p-0.5"
+    >
+      {EASING_OPTIONS.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={option.value === value}
+          title={option.label}
+          onClick={() => onChange(option.value)}
+          className="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+        >
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+          >
+            <path
+              d={easingCurvePath(option.value)}
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          {option.label}
+        </button>
+      ))}
+    </div>
   )
 }

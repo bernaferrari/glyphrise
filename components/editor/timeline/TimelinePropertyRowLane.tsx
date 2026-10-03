@@ -11,7 +11,12 @@ import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
 import { TIMELINE_LAYER } from "./TimelineLayering"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
-import { TimelineDiamond } from "./TimelinePrimitives"
+import {
+  TimelineDiamond,
+  TimelineLaneGhost,
+  TimelineMotionSegments,
+  useLaneGhost,
+} from "./TimelinePrimitives"
 import type { SelectedTimelineKeyframe } from "./TimelineTypes"
 
 export type TimelinePropertyRowLaneProps = {
@@ -20,6 +25,7 @@ export type TimelinePropertyRowLaneProps = {
   isRevealed: boolean
   selectedKeyframe: SelectedTimelineKeyframe
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onActivePropertyRowChange?: (rowId: string) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void
   onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
@@ -57,6 +63,7 @@ export function TimelinePropertyRowLane({
   isRevealed,
   selectedKeyframe,
   onSelectKeyframe,
+  onOpenKeyframeEditor,
   onActivePropertyRowChange,
   onRemovePropertyKeyframe,
   onMovePropertyKeyframe,
@@ -69,17 +76,31 @@ export function TimelinePropertyRowLane({
   createGoToMenuItem,
 }: TimelinePropertyRowLaneProps) {
   const keyframeDraggedRef = React.useRef(false)
-  const times = row.keyframes.map((keyframe) => keyframe.time)
-  const minTime = Math.min(...times)
-  const maxTime = Math.max(...times)
+  const wasSelectedOnPressRef = React.useRef(false)
+  const { ghostX, laneHandlers } = useLaneGhost()
+  const rowSelected =
+    selectedKeyframe?.type === "property" && selectedKeyframe.rowId === row.id
 
   return (
     <div
-      className={`relative h-[var(--timeline-property-height)] border-b border-border transition-colors ${
+      className={`relative h-[var(--timeline-property-height)] border-b border-border/50 transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
-          : "hover:bg-muted/35"
+          : rowSelected
+            ? "bg-foreground/[0.035]"
+            : "hover:bg-foreground/[0.025]"
       }`}
+      {...(onAddPropertyKeyframeAtTime ? laneHandlers : {})}
+      title={
+        onAddPropertyKeyframeAtTime
+          ? "Double-click to add a keyframe"
+          : undefined
+      }
+      onDoubleClick={(event) => {
+        if (!onAddPropertyKeyframeAtTime) return
+        event.preventDefault()
+        onAddPropertyKeyframeAtTime(row.id, timeFromClientX(event.clientX))
+      }}
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return
         onSelectKeyframe(null)
@@ -113,30 +134,21 @@ export function TimelinePropertyRowLane({
         ])
       }}
     >
-      {row.keyframes.length > 0 && (
-        <>
-          <div
-            className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 opacity-40"
-            style={{ backgroundColor: row.color }}
-          />
-          <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center gap-1.5">
-            <span
-              className="size-2 rounded-full ring-1 ring-background/70"
-              style={{ backgroundColor: row.color }}
-            />
-          </div>
-        </>
-      )}
-
-      {row.keyframes.length > 1 && (
-        <div
-          className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full opacity-70"
-          style={{
-            left: xForFrac(minTime / duration),
-            width: widthForSpan((maxTime - minTime) / duration),
-            backgroundColor: row.color,
-          }}
-        />
+      <TimelineMotionSegments
+        name={row.name}
+        keyframes={row.keyframes}
+        duration={duration}
+        xForTime={xForFrac}
+        widthForTime={widthForSpan}
+        onEasingChange={
+          onSetPropertyEasing
+            ? (keyframeId, easing) =>
+                onSetPropertyEasing(row.id, keyframeId, easing)
+            : undefined
+        }
+      />
+      {onAddPropertyKeyframeAtTime && (
+        <TimelineLaneGhost x={ghostX} color={row.color} />
       )}
 
       {row.keyframes.map((keyframe) => {
@@ -156,15 +168,20 @@ export function TimelinePropertyRowLane({
             key={keyframe.id}
             aria-label={`Select ${row.name} keyframe${keyframe.label ? `, ${keyframe.label}` : ""} at ${keyframe.time.toFixed(2)} seconds`}
             aria-pressed={selected}
+            data-keyframe-row={row.id}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className="timeline-keyframe absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
             style={{
               left: xForFrac(keyframe.time / duration),
-              zIndex: TIMELINE_LAYER.propertyKeyframe,
+              zIndex: selected
+                ? TIMELINE_LAYER.selectedKeyframe
+                : TIMELINE_LAYER.propertyKeyframe,
             }}
             onPointerDown={(event) => {
               if (!event.isPrimary) return
               event.stopPropagation()
+              wasSelectedOnPressRef.current =
+                selected && event.pointerType === "touch"
               onSelectKeyframe(nextSelection)
               onActivePropertyRowChange?.(row.id)
               onTimeChange(keyframe.time)
@@ -205,10 +222,19 @@ export function TimelinePropertyRowLane({
                 },
               })
             }}
+            onDoubleClick={(event) => {
+              event.stopPropagation()
+              onOpenKeyframeEditor(nextSelection)
+            }}
             onClick={(event) => {
               event.stopPropagation()
               if (keyframeDraggedRef.current) {
                 keyframeDraggedRef.current = false
+                return
+              }
+              if (wasSelectedOnPressRef.current) {
+                wasSelectedOnPressRef.current = false
+                onOpenKeyframeEditor(nextSelection)
                 return
               }
               onSelectKeyframe(nextSelection)
@@ -238,6 +264,10 @@ export function TimelinePropertyRowLane({
             onContextMenu={(event) => {
               event.stopPropagation()
               onOpenContextMenu(event, row.name, [
+                {
+                  label: "Edit keyframe…",
+                  onSelect: () => onOpenKeyframeEditor(nextSelection),
+                },
                 createGoToMenuItem(event, keyframe.time, () =>
                   onActivePropertyRowChange?.(row.id)
                 ),
@@ -264,9 +294,8 @@ export function TimelinePropertyRowLane({
           >
             <TimelineDiamond
               color={row.color}
-              borderColor="rgba(0,0,0,0.8)"
               selected={selected}
-              className="size-[18px]"
+              className="size-4"
             />
           </button>
         )

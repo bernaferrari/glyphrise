@@ -1,26 +1,35 @@
 "use client"
 
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, Plus, Shapes } from "lucide-react"
 
 type TimelineShapeHeaderRowProps = {
+  shapeCount: number
   selectedShapeId: string | null
   isPreviewLoading: boolean
   onAddShape: () => void
 }
 
 export function TimelineShapeHeaderRow({
+  shapeCount,
   selectedShapeId,
   isPreviewLoading,
   onAddShape,
 }: TimelineShapeHeaderRowProps) {
   return (
     <div
-      className={`group flex h-[var(--timeline-shape-height)] items-center gap-2 border-b border-border px-3 transition-colors ${
-        selectedShapeId ? "bg-muted/25" : "hover:bg-muted/40"
+      className={`group flex h-[var(--timeline-shape-height)] items-center gap-2 border-b border-border pr-1.5 pl-3 transition-colors ${
+        selectedShapeId ? "bg-foreground/[0.03]" : ""
       }`}
     >
-      <span className="flex-1 truncate text-[11px] font-semibold text-foreground">
-        Icon clips
+      <Shapes
+        aria-hidden="true"
+        className="size-3.5 shrink-0 text-muted-foreground"
+      />
+      <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+        Icons
+        <span className="ml-1.5 font-normal text-muted-foreground tabular-nums">
+          {shapeCount}
+        </span>
       </span>
       {isPreviewLoading && (
         <Loader2
@@ -31,12 +40,11 @@ export function TimelineShapeHeaderRow({
       <button
         type="button"
         aria-label="Add icon clip"
-        title="Add icon clip at playhead"
+        title="Add an icon clip at the playhead"
         onClick={onAddShape}
-        className="flex h-7 shrink-0 items-center gap-1 rounded-md bg-foreground/[0.045] px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        className="grid size-6 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring active:scale-95"
       >
-        <Plus className="size-3.5" />
-        Add
+        <Plus className="size-4" />
       </button>
     </div>
   )

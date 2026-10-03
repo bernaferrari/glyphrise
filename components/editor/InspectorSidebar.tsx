@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EditScopePanel, type EditScopePanelProps } from "./EditScopePanel"
+import type { EditScopePanelProps } from "./EditScopePanel"
 import { PropertyEditScopeProvider } from "./PropertyEditScope"
 import { InspectorContextHeader } from "./InspectorContextHeader"
 import type { InspectorTab } from "./InspectorNavigationModel"
@@ -40,6 +40,7 @@ export type InspectorSidebarProps = {
   geometryProps: SidebarGeometryProps
   transformProps: SidebarTransformProps
   lightProps: SidebarLightProps
+  onRemoveIcon?: () => void
 }
 
 export function InspectorSidebar({
@@ -52,6 +53,7 @@ export function InspectorSidebar({
   geometryProps,
   transformProps,
   lightProps,
+  onRemoveIcon,
 }: InspectorSidebarProps) {
   return (
     <aside
@@ -61,7 +63,10 @@ export function InspectorSidebar({
       aria-hidden={zenMode}
       className={`flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-[min(352px,48dvh)] max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
     >
-      <InspectorContextHeader transformProps={transformProps} />
+      <InspectorContextHeader
+        transformProps={transformProps}
+        onRemoveIcon={onRemoveIcon}
+      />
       <PropertyEditScopeProvider value={editScopeProps}>
         <Tabs
           value={activeTab}
@@ -109,9 +114,6 @@ export function InspectorSidebar({
           </div>
         </Tabs>
       </PropertyEditScopeProvider>
-      <div className="shrink-0 border-t border-border bg-muted/30 px-4 py-2">
-        <EditScopePanel {...editScopeProps} />
-      </div>
     </aside>
   )
 }

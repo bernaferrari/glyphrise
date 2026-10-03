@@ -24,6 +24,7 @@ type TimelineTrackKeyframeButtonProps = {
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onTimeEditorChange: React.Dispatch<
     React.SetStateAction<TrackTimeEditor | null>
   >
@@ -62,6 +63,7 @@ export function TimelineTrackKeyframeButton({
   keyframeDraggedRef,
   onSelectTrack,
   onSelectKeyframe,
+  onOpenKeyframeEditor,
   onTimeEditorChange,
   onCommitTimeEditor,
   onTimeChange,
@@ -85,6 +87,7 @@ export function TimelineTrackKeyframeButton({
     kfId: keyframe.id,
   }
 
+  const wasSelectedOnPressRef = React.useRef(false)
   const selectKeyframe = () => {
     onSelectTrack(track.id)
     onSelectKeyframe(selection)
@@ -103,8 +106,9 @@ export function TimelineTrackKeyframeButton({
         type="button"
         aria-label={`Select ${track.name} keyframe at ${keyframe.time.toFixed(2)} seconds`}
         aria-pressed={selected}
+        data-keyframe-row={track.id}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`timeline-keyframe absolute top-1/2 flex size-5 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center transition-transform select-none hover:scale-110 focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none active:cursor-grabbing ${selected ? "scale-110" : ""}`}
+        className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
         style={{
           left: xForFrac(keyframe.time / duration),
           zIndex: selected
@@ -114,6 +118,8 @@ export function TimelineTrackKeyframeButton({
         onPointerDown={(event) => {
           if (!event.isPrimary) return
           event.stopPropagation()
+          wasSelectedOnPressRef.current =
+            selected && event.pointerType === "touch"
           selectKeyframe()
           if (event.button !== 0) return
           onKeyframeDrag(event, track.id, keyframe.id)
@@ -122,6 +128,10 @@ export function TimelineTrackKeyframeButton({
           event.stopPropagation()
           selectKeyframe()
           onOpenContextMenu(event, track.name, [
+            {
+              label: "Edit keyframe…",
+              onSelect: () => onOpenKeyframeEditor(selection),
+            },
             {
               label: "Edit time",
               shortcut: `${keyframe.time.toFixed(2)}s`,
@@ -144,10 +154,19 @@ export function TimelineTrackKeyframeButton({
             },
           ])
         }}
+        onDoubleClick={(event) => {
+          event.stopPropagation()
+          onOpenKeyframeEditor(selection)
+        }}
         onClick={(event) => {
           event.stopPropagation()
           if (keyframeDraggedRef.current) {
             keyframeDraggedRef.current = false
+            return
+          }
+          if (wasSelectedOnPressRef.current) {
+            wasSelectedOnPressRef.current = false
+            onOpenKeyframeEditor(selection)
             return
           }
           selectKeyframe()
@@ -156,9 +175,8 @@ export function TimelineTrackKeyframeButton({
       >
         <TimelineDiamond
           color={track.color}
-          borderColor="rgba(0,0,0,0.85)"
           selected={selected}
-          className="size-[18px]"
+          className="size-4"
         />
       </PopoverTrigger>
       {editingTime && timeEditor && (

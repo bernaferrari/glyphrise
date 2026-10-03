@@ -17,6 +17,7 @@ type TimelineTrackRowsProps = {
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onTimeEditorChange: React.Dispatch<
     React.SetStateAction<TrackTimeEditor | null>
   >
@@ -65,6 +66,7 @@ export function TimelineTrackRows({
   keyframeDraggedRef,
   onSelectTrack,
   onSelectKeyframe,
+  onOpenKeyframeEditor,
   onTimeEditorChange,
   onCommitTimeEditor,
   onScrubStart,
@@ -95,6 +97,7 @@ export function TimelineTrackRows({
           keyframeDraggedRef={keyframeDraggedRef}
           onSelectTrack={onSelectTrack}
           onSelectKeyframe={onSelectKeyframe}
+          onOpenKeyframeEditor={onOpenKeyframeEditor}
           onTimeEditorChange={onTimeEditorChange}
           onCommitTimeEditor={onCommitTimeEditor}
           onScrubStart={onScrubStart}

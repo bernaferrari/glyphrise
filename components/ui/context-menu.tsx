@@ -35,6 +35,9 @@ function ContextMenuContent({
   alignOffset = 4,
   side = "right",
   sideOffset = 0,
+  anchor,
+  collisionPadding,
+  positionMethod,
   ...props
 }: ContextMenuPrimitive.Popup.Props &
   Pick<
@@ -55,6 +58,9 @@ function ContextMenuContent({
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
+        anchor={anchor}
+        collisionPadding={collisionPadding}
+        positionMethod={positionMethod}
       >
         <ContextMenuPrimitive.Popup
           data-slot="context-menu-content"

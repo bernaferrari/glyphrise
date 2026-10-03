@@ -20,7 +20,7 @@ export function MotionPresetPreview({
       className="grid size-12 shrink-0 place-items-center [perspective:160px]"
     >
       <span
-        className={`motion-preview motion-preview-${preset} grid size-9 place-items-center text-primary drop-shadow-sm [&_svg]:size-9 [&_svg_*]:fill-current`}
+        className={`motion-preview motion-preview-${preset} grid size-9 place-items-center text-foreground drop-shadow-sm [&_svg]:size-9 [&_svg_*]:fill-current`}
         style={
           {
             animationDuration: `${duration}s`,

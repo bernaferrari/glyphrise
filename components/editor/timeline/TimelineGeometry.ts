@@ -16,7 +16,18 @@ export const xForFrac = (frac: number, offsetPx = 0) =>
 export const widthForSpan = (span: number) =>
   `calc((100% - ${EDGE_INSET * 2}px) * ${span})`
 
-export const formatTimelineTick = (time: number) => time.toFixed(2)
+export const formatTimelineTick = (time: number) =>
+  `${Number(time.toFixed(2))}s`
+
+/** Editor timecode, e.g. 0:01.25 — minutes, seconds, hundredths. */
+export const formatTimecode = (time: number) => {
+  const safe = Math.max(0, time)
+  const minutes = Math.floor(safe / 60)
+  const seconds = safe - minutes * 60
+  return `${minutes}:${seconds.toFixed(2).padStart(5, "0")}`
+}
+
+const MAJOR_TICK_STEPS = [0.1, 0.25, 0.5, 1, 2, 5, 10]
 
 export const createTimelineTicks = ({
   duration,
@@ -27,15 +38,13 @@ export const createTimelineTicks = ({
   timelineZoom: number
   frameSnapActive: boolean
 }) => {
+  // Aim for roughly eight labelled ticks across the visible lane.
+  const visibleSeconds = duration / Math.max(timelineZoom, 0.001)
   const majorTickStep =
-    timelineZoom >= TIMELINE_ZOOM_MAX - 0.001
-      ? 0.25
-      : timelineZoom >= 2
-        ? 0.5
-        : 1
+    MAJOR_TICK_STEPS.find((step) => step >= visibleSeconds / 8) ?? 10
   const minorTickStep = frameSnapActive
     ? 1 / TIMELINE_FRAME_RATE
-    : majorTickStep / 4
+    : majorTickStep / (majorTickStep === 1 || majorTickStep === 2 ? 4 : 5)
   const tickCount = Math.floor(duration / minorTickStep) + 1
 
   return Array.from({ length: tickCount }, (_, index) => {

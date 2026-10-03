@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./fixtures"
 
 async function backup(page: Page) {
   await page.getByRole("button", { name: "Open project menu" }).click()
@@ -12,10 +13,13 @@ async function backup(page: Page) {
 
 async function renderPng(page: Page) {
   await page.getByRole("button", { name: "Export", exact: true }).click()
+  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("256")
   await page.getByLabel("Height", { exact: true }).fill("256")
   const downloaded = page.waitForEvent("download")
-  await page.getByRole("button", { name: "PNG", exact: true }).click()
+  await page
+    .getByRole("button", { name: "Download image", exact: true })
+    .click()
   const stream = await (await downloaded).createReadStream()
   const chunks: Buffer[] = []
   for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
@@ -78,17 +82,14 @@ test("explains edits at and between keyframes and creates only an intentional ke
     row.getByText("Keyframe at 0.00s", { exact: true })
   ).toBeVisible()
   const before = await backup(page)
-  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   const playhead = page.getByRole("slider", { name: "Timeline playhead" })
   await playhead.focus()
   await playhead.press("ArrowRight")
   await expect(
-    row.getByText("Between keyframes. Enable Auto-key to edit.")
+    row.getByText("Between keyframes. Choose Edit here to make a change.")
   ).toBeVisible()
   await expect(page.getByLabel("Rotation Y", { exact: true })).toBeDisabled()
-  await row
-    .getByRole("button", { name: "Enable Auto-key to edit Rotation at 0.10s" })
-    .click()
+  await row.getByRole("button", { name: "Edit Rotation at 0.10s" }).click()
   await expect(
     row.getByText("Add keyframe at 0.10s", { exact: true })
   ).toBeVisible()
@@ -178,6 +179,7 @@ test("phone workflow reaches motion preview and export with reduced motion", asy
 }) => {
   await page.setViewportSize({ width: 390, height: 568 })
   await page.emulateMedia({ reducedMotion: "reduce" })
+  // Phones reach presets from the button on the preview.
   await page.getByRole("button", { name: "Animate", exact: true }).click()
   await expect(page.getByRole("dialog")).toBeVisible()
   expect(
@@ -194,6 +196,7 @@ test("phone workflow reaches motion preview and export with reduced motion", asy
   ).toBeVisible()
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await expect(page.getByRole("dialog")).toBeVisible()
+  await page.getByText("More settings", { exact: true }).click()
   await expect(page.getByLabel("Width", { exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     390

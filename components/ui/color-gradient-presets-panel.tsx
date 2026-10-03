@@ -1,12 +1,14 @@
 "use client"
 
-import { Move, Shuffle } from "lucide-react"
+import { Check, Move, Shuffle } from "lucide-react"
 import { GRADIENT_PRESETS, type GradientPreset } from "./color-gradient-presets"
 import { type GradientType } from "./color-gradient-mode-toggle"
 import { gradientPreviewCss } from "./color-picker-utils"
+import type { EditableColorStop } from "./color-stop-model"
 
 interface ColorGradientPresetsPanelProps {
   gradientType: GradientType
+  stops: EditableColorStop[]
   onPresetSelect: (preset: GradientPreset) => void
   onShuffleMeshColors: () => void
   onShuffleMeshPoints: () => void
@@ -14,6 +16,7 @@ interface ColorGradientPresetsPanelProps {
 
 export function ColorGradientPresetsPanel({
   gradientType,
+  stops,
   onPresetSelect,
   onShuffleMeshColors,
   onShuffleMeshPoints,
@@ -54,28 +57,47 @@ export function ColorGradientPresetsPanel({
         )}
       </div>
       <div className="grid grid-cols-4 gap-1.5">
-        {GRADIENT_PRESETS.map((preset) => (
-          <button
-            key={preset.name}
-            type="button"
-            title={preset.name}
-            aria-label={`Use ${preset.name} gradient`}
-            className="group flex h-8 min-w-0 items-center justify-center rounded-md border border-border bg-muted/35 p-1 transition-colors hover:border-ring/50 hover:bg-muted/60 focus:ring-2 focus:ring-ring/35 focus:outline-none"
-            onPointerDown={(event) => {
-              event.preventDefault()
-              event.stopPropagation()
-              onPresetSelect(preset)
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <span
-              className="block h-full w-full rounded-[5px] border border-border shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]"
-              style={{
-                background: gradientPreviewCss(preset.type, preset.stops),
+        {GRADIENT_PRESETS.map((preset) => {
+          const selected =
+            gradientType === preset.type &&
+            stops.length === preset.stops.length &&
+            stops.every(
+              (stop, index) =>
+                stop.color.toLowerCase() ===
+                  preset.stops[index].color.toLowerCase() &&
+                stop.position === preset.stops[index].position
+            )
+          return (
+            <button
+              key={preset.name}
+              type="button"
+              title={preset.name}
+              aria-label={`Use ${preset.name} gradient`}
+              aria-pressed={selected}
+              className="group relative flex h-11 min-w-0 items-center justify-center rounded-lg py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              onPointerDown={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
               }}
-            />
-          </button>
-        ))}
+              onClick={(event) => {
+                event.stopPropagation()
+                onPresetSelect(preset)
+              }}
+            >
+              <span
+                className="pointer-events-none block h-full w-full rounded-lg transition-opacity group-hover:opacity-85"
+                style={{
+                  background: gradientPreviewCss(preset.type, preset.stops),
+                }}
+              />
+              {selected && (
+                <span className="pointer-events-none absolute top-1.5 right-1 grid size-4 place-items-center rounded-full bg-white text-black">
+                  <Check aria-hidden="true" className="size-3" />
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
     </div>
   )

@@ -22,9 +22,9 @@ export function EditScopePanel({
 }: EditScopePanelProps) {
   return (
     <div className="px-1 text-xs">
-      <div className="flex min-h-9 items-center gap-1">
-        <label className="flex min-h-9 flex-1 items-center justify-between gap-2 font-medium">
-          Auto-key
+      <div className="flex min-h-11 items-center gap-1">
+        <label className="flex min-h-11 flex-1 items-center justify-between gap-2 font-medium">
+          Record edits
           <Switch
             aria-label="Create keyframes when editing"
             checked={autoKeyEnabled}
@@ -33,8 +33,8 @@ export function EditScopePanel({
         </label>
         <Popover>
           <PopoverTrigger
-            aria-label="How Auto-key works"
-            className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            aria-label="How recording edits works"
+            className="grid size-11 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
             <CircleHelp className="size-3.5" />
           </PopoverTrigger>
@@ -42,28 +42,24 @@ export function EditScopePanel({
             align="end"
             className="max-w-[calc(100vw-32px)] space-y-2 text-xs leading-relaxed"
           >
-            <p className="font-medium">Auto-key</p>
+            <p className="font-medium">Record edits · Auto-key</p>
             <p>
-              When on, changing an animated property adds or updates a keyframe
-              at {currentTime.toFixed(2)}s.
+              Turn this on to save a changed value at {currentTime.toFixed(2)}s.
+              The animation moves between these saved moments, called keyframes.
             </p>
             <p>
-              When off, properties without keyframes apply throughout. At an
-              existing keyframe, edits update that keyframe. Between keyframes,
-              choose Edit here beside a property to enable Auto-key.
+              With this off, properties without motion keep a single value
+              throughout. For a property with motion, choose a saved moment to
+              edit it, or use Edit here to record a new moment.
             </p>
-            <p>
-              Properties without keyframes use one value throughout the
-              animation. Non-animated settings, such as edge roundness, always
-              apply throughout.
-            </p>
+            <p>Shape details such as edge roundness always apply throughout.</p>
           </PopoverContent>
         </Popover>
       </div>
       <p className="text-[11px] leading-relaxed text-muted-foreground tabular-nums max-[720px]:hidden">
         {autoKeyEnabled
-          ? `Your next edit adds or updates a keyframe at ${currentTime.toFixed(2)}s.`
-          : "Static settings apply to the whole animation."}
+          ? `Save your next change at ${currentTime.toFixed(2)}s.`
+          : "Changes to unanimated values apply throughout."}
       </p>
     </div>
   )

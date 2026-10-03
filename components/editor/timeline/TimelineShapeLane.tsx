@@ -92,9 +92,7 @@ export function TimelineShapeLane({
 }: TimelineShapeLaneProps) {
   return (
     <div
-      className={`relative h-[var(--timeline-shape-height)] border-b border-border transition-colors ${
-        selectedShapeId ? "bg-muted/45" : "hover:bg-muted/35"
-      }`}
+      className="relative h-[var(--timeline-shape-height)] border-b border-border"
       onMouseDown={(event) => {
         if (event.button !== 0) return
         onClearSelectedKeyframe()
@@ -133,6 +131,12 @@ export function TimelineShapeLane({
         shapeLabel={shapeLabel}
         shapeDraggedRef={shapeDraggedRef}
         onSelectShape={onSelectShape}
+        onSeek={(time) => {
+          // Selecting the clip already cleared keyframe selection; keep the
+          // clip selected so Delete removes it.
+          onScrubStart?.()
+          onTimeChange(time)
+        }}
         onOpenShapePicker={onOpenShapePicker}
         onUploadShape={onUploadShape}
         onRemoveShape={onRemoveShape}

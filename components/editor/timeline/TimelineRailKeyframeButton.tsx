@@ -3,7 +3,8 @@
 import { Diamond } from "lucide-react"
 
 type TimelineRailKeyframeButtonProps = {
-  color: string
+  rowId: string
+  color?: string
   isKeyedAtPlayhead: boolean
   isAnimated?: boolean
   hasKeyframes?: boolean
@@ -13,7 +14,7 @@ type TimelineRailKeyframeButtonProps = {
 }
 
 export function TimelineRailKeyframeButton({
-  color,
+  rowId,
   isKeyedAtPlayhead,
   isAnimated = true,
   hasKeyframes,
@@ -27,6 +28,7 @@ export function TimelineRailKeyframeButton({
     <button
       type="button"
       aria-label={label}
+      data-rail-keyframe={rowId}
       title={
         isKeyedAtPlayhead
           ? "Remove keyframe at playhead"
@@ -38,24 +40,13 @@ export function TimelineRailKeyframeButton({
         event.stopPropagation()
         onToggle()
       }}
-      className={`relative flex size-6 shrink-0 items-center justify-center rounded-md transition-[color,opacity,background-color] focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
-        isKeyedAtPlayhead
-          ? "text-foreground opacity-100"
-          : hasKeyframes === false
-            ? "opacity-100 hover:bg-muted"
-            : isAnimated
-              ? "text-muted-foreground opacity-85 group-hover:opacity-100 hover:bg-muted hover:text-foreground"
-              : "text-muted-foreground hover:text-foreground"
+      className={`relative grid size-5 shrink-0 place-items-center rounded transition-[background-color,transform] duration-100 hover:bg-foreground/[0.08] focus-visible:outline-2 focus-visible:outline-ring active:scale-90 ${
+        isAnimated || hasKeyframes ? "" : "opacity-80 group-hover:opacity-100"
       }`}
     >
       <Diamond
-        className="size-3.5"
-        style={{
-          fill:
-            isKeyedAtPlayhead || hasKeyframes === false ? color : "transparent",
-          color:
-            isKeyedAtPlayhead || hasKeyframes === false ? color : undefined,
-        }}
+        strokeWidth={2.25}
+        className={`size-3 ${isKeyedAtPlayhead ? "fill-(--timeline-accent) text-(--timeline-accent)" : "text-muted-foreground"}`}
       />
     </button>
   )

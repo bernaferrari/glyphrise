@@ -1,41 +1,33 @@
 "use client"
 
 import { useEffect, useState, type ComponentProps, type RefObject } from "react"
-import {
-  Box,
-  SlidersHorizontal,
-  Waypoints,
-  ChevronRight,
-  Sparkles,
-} from "lucide-react"
-import { MotionPresetPreview } from "./MotionPresetPreview"
+import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import { usePanelTransition } from "./usePanelTransition"
-import { CompactEditingControls } from "./CompactEditingControls"
 import { AppTopBar } from "./AppTopBar"
 import { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
 import { TimelineDock } from "./TimelineDock"
 import { ViewportStage } from "./ViewportStage"
 import { NewProjectDialog } from "./NewProjectDialog"
-import type { QuickStartGuideController } from "./useQuickStartGuideController"
+import type { CreationJourney } from "./useCreationJourney"
 import { Vector3NumberFields } from "./Vector3NumberFields"
 import { ROTATION_MIN, ROTATION_MAX } from "./EditorModel"
 import { AnimateDialog, type AnimateDialogProps } from "./AnimateDialog"
+import { WelcomeDialog } from "./WelcomeDialog"
+import { CreationGuide } from "./CreationGuide"
 
 export type AppLayoutViewProps = {
+  onCreateStarter: (iconId: string, name: string) => boolean
   animationProps: Pick<AnimateDialogProps, "duration" | "onApply">
   keyframeNotice?: string | null
-  topBarProps: Omit<ComponentProps<typeof AppTopBar>, "onAnimateOpen">
+  topBarProps: Omit<
+    ComponentProps<typeof AppTopBar>,
+    "onAnimateOpen" | "onGettingStarted"
+  >
   viewportProps: Omit<ComponentProps<typeof ViewportStage>, "ref"> & {
-    quickStartController: Pick<
-      QuickStartGuideController,
-      | "openGuide"
-      | "dismissedRecently"
-      | "markExportComplete"
-      | "quickStartProps"
-    >
+    creationJourney: CreationJourney
   }
   inspectorProps: ComponentProps<typeof InspectorSidebar>
   timelineProps: ComponentProps<typeof TimelineDock>
@@ -61,6 +53,7 @@ function useCompactWorkspaceLayout() {
 }
 
 export function AppLayoutView({
+  onCreateStarter,
   animationProps,
   keyframeNotice,
   topBarProps,
@@ -76,6 +69,25 @@ export function AppLayoutView({
   const isCompactLayout = useCompactWorkspaceLayout()
   const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
   const [animateOpen, setAnimateOpen] = useState(false)
+  const [manualWelcomeOpen, setManualWelcomeOpen] = useState(false)
+  const [journeyProjectId, setJourneyProjectId] = useState<string | null>(null)
+  const [startJourney, setStartJourney] = useState(false)
+  const creationJourney = viewportProps.creationJourney
+  useEffect(() => {
+    if (startJourney) {
+      setJourneyProjectId(newProjectDialogProps.currentProjectId)
+      setStartJourney(false)
+    } else if (
+      journeyProjectId &&
+      journeyProjectId !== newProjectDialogProps.currentProjectId
+    ) {
+      setJourneyProjectId(null)
+    }
+  }, [startJourney, journeyProjectId, newProjectDialogProps.currentProjectId])
+  const dismissWelcome = () => {
+    creationJourney.dismissWelcome()
+    setManualWelcomeOpen(false)
+  }
   const [compactPane, setCompactPane] = useState<
     "preview" | "properties" | "timeline"
   >("preview")
@@ -83,9 +95,10 @@ export function AppLayoutView({
     if (topBarProps.zenMode) topBarProps.onZenModeChange(false)
     setCompactPane(pane)
   }
-  const { markExportComplete } = viewportProps.quickStartController
+  const { markExportComplete } = viewportProps.creationJourney
   const exportModalProps = {
     ...exportModalPropsProp,
+    artwork: inspectorProps.transformProps.shapeNavigation,
     // The export checklist step completes only on a real export action,
     // not on opening the surface.
     onExportGltf: async () => {
@@ -104,7 +117,6 @@ export function AppLayoutView({
       await exportModalPropsProp.onExportPng(settings)
       markExportComplete()
     },
-    onCodeCopied: markExportComplete,
   }
 
   return (
@@ -119,6 +131,7 @@ export function AppLayoutView({
         {...topBarProps}
         onZenModeChange={changePanelVisibility}
         onAnimateOpen={() => setAnimateOpen(true)}
+        onGettingStarted={() => setManualWelcomeOpen(true)}
       />
 
       <main
@@ -147,6 +160,10 @@ export function AppLayoutView({
               <ViewportStage
                 ref={canvas3DRef}
                 {...viewportProps}
+                showPlayback={isCompactLayout && compactPane !== "timeline"}
+                onAnimate={
+                  isCompactLayout ? () => setAnimateOpen(true) : undefined
+                }
                 playbackProps={{
                   ...viewportProps.playbackProps,
                   onExitZenMode: () => changePanelVisibility(false),
@@ -159,56 +176,44 @@ export function AppLayoutView({
                     : "workspace"
                 }
               />
+              {inspectorProps.editScopeProps.autoKeyEnabled &&
+                !topBarProps.zenMode && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-3 z-20 rounded-2xl ring-2 ring-red-500/70 ring-inset max-[720px]:inset-0 max-[720px]:rounded-none"
+                  >
+                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-medium text-white">
+                      <span className="size-1.5 rounded-full bg-white" />
+                      Auto-key
+                    </span>
+                  </div>
+                )}
+              {journeyProjectId &&
+                !topBarProps.zenMode &&
+                (!isCompactLayout || compactPane === "preview") && (
+                  <CreationGuide
+                    hasStyle={creationJourney.hasStyle}
+                    hasMotion={creationJourney.hasMotion}
+                    hasPreviewed={creationJourney.hasPreviewed}
+                    completed={creationJourney.exportCompleted}
+                    onStyle={() => {
+                      inspectorProps.onTabChange("design")
+                      showCompactPane("properties")
+                    }}
+                    onAnimate={() => setAnimateOpen(true)}
+                    onPlay={creationJourney.playPreview}
+                    onExport={creationJourney.openExport}
+                    onDismiss={() => setJourneyProjectId(null)}
+                  />
+                )}
             </div>
 
-            {isCompactLayout &&
-              compactPane !== "preview" &&
-              !topBarProps.zenMode && (
-                <CompactEditingControls
-                  playback={viewportProps.playbackProps}
-                  currentTime={timelineProps.timelineProps.currentTime}
-                  duration={timelineProps.timelineProps.duration}
-                  timelineActive={compactPane === "timeline"}
-                  canUndo={topBarProps.canUndo}
-                  canRedo={topBarProps.canRedo}
-                  onUndo={topBarProps.onUndo}
-                  onRedo={topBarProps.onRedo}
-                />
-              )}
             <TimelineDock
               {...timelineProps}
               compactOpen={compactPane === "timeline"}
               timelineProps={{
                 ...timelineProps.timelineProps,
                 compactMode: isCompactLayout,
-                motionPresets: (
-                  <button
-                    type="button"
-                    aria-label="Choose motion presets"
-                    onClick={() => setAnimateOpen(true)}
-                    className="flex min-h-14 w-full items-center gap-3 rounded-xl bg-muted/60 px-3 text-left transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring min-[720px]:max-w-sm"
-                  >
-                    <MotionPresetPreview
-                      preset="tilt"
-                      svgContent={
-                        inspectorProps.transformProps.shapeNavigation
-                          ?.svgContent
-                      }
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium">
-                        Motion presets
-                      </span>
-                      <span className="mt-1 block text-xs text-muted-foreground">
-                        Spin, tilt, or pulse
-                      </span>
-                    </span>
-                    <ChevronRight
-                      aria-hidden="true"
-                      className="size-4 text-muted-foreground"
-                    />
-                  </button>
-                ),
                 renderPropertyValueEditor: (rowId) => {
                   const transform = inspectorProps.transformProps
                   if (rowId === "rotation")
@@ -242,6 +247,10 @@ export function AppLayoutView({
                   return null
                 },
                 onPlayToggle: viewportProps.playbackProps.onPlayToggle,
+                playback: viewportProps.playbackProps,
+                onOpenMotionPresets: () => setAnimateOpen(true),
+                autoKeyEnabled: inspectorProps.editScopeProps.autoKeyEnabled,
+                onAutoKeyChange: inspectorProps.editScopeProps.onAutoKeyChange,
                 onEditKeyframeValue: (selection) => {
                   showCompactPane("properties")
                   if (selection.type === "property")
@@ -285,13 +294,19 @@ export function AppLayoutView({
           </div>
           <InspectorSidebar
             {...inspectorProps}
+            onRemoveIcon={() => {
+              const { shapes, selectedShapeId, onRemoveShape } =
+                timelineProps.timelineProps
+              const id = selectedShapeId ?? shapes[0]?.id
+              if (id && shapes.length > 1) onRemoveShape(id)
+            }}
             compactOpen={compactPane === "properties"}
           />
         </div>
 
         <nav
           aria-label="Workspace views"
-          className="grid h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 grid-cols-4 border-t border-border bg-background p-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] min-[720px]:hidden"
+          className="grid h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 grid-cols-3 border-t border-border bg-background p-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] min-[720px]:hidden"
         >
           {[
             ["preview", "Canvas", Box],
@@ -320,15 +335,6 @@ export function AppLayoutView({
               </button>
             )
           })}
-          <button
-            type="button"
-            aria-label="Animate"
-            onClick={() => setAnimateOpen(true)}
-            className="flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium text-muted-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            <Sparkles aria-hidden="true" className="size-5" />
-            Animate
-          </button>
         </nav>
       </main>
 
@@ -353,6 +359,22 @@ export function AppLayoutView({
       />
       <ExportModal {...exportModalProps} />
       <NewProjectDialog {...newProjectDialogProps} />
+      <WelcomeDialog
+        open={
+          topBarProps.projectStatus !== "restoring" &&
+          (manualWelcomeOpen || creationJourney.welcomeOpen)
+        }
+        onDismiss={dismissWelcome}
+        onCreate={(iconId, name) => {
+          if (!onCreateStarter(iconId, name)) return false
+          dismissWelcome()
+          setStartJourney(true)
+          showCompactPane("preview")
+          inspectorProps.onTabChange("design")
+          return true
+        }}
+        error={newProjectDialogProps.actionError?.message}
+      />
     </div>
   )
 }

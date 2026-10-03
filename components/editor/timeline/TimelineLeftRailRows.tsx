@@ -1,12 +1,13 @@
 "use client"
 
 import React from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { keyframeTimeMatches } from "../EditorKeyframeModel"
 import type {
   EasingType,
   TimelinePropertyRow,
   TimelineTrack,
 } from "../TimelineModel"
-import { EasingPicker } from "./TimelineEasingControls"
 import {
   createPropertyRailMenuItems,
   createTrackRailMenuItems,
@@ -15,11 +16,142 @@ import {
   type TimelineLeftRailMenuProps,
 } from "./TimelineLeftRailMenuModel"
 import { TimelineRailKeyframeButton } from "./TimelineRailKeyframeButton"
+import { TimelineRowIcon } from "./TimelineRowIcon"
+import { formatValueLabel } from "./TimelinePrimitives"
+import { interpolateKeyframes } from "../TimelineModel"
+
+const neighbourTimes = (times: number[], currentTime: number) => {
+  const sorted = [...times].sort((a, b) => a - b)
+  const previous = [...sorted]
+    .reverse()
+    .find(
+      (time) => time < currentTime && !keyframeTimeMatches(time, currentTime)
+    )
+  const next = sorted.find(
+    (time) => time > currentTime && !keyframeTimeMatches(time, currentTime)
+  )
+  return { previous, next }
+}
+
+const navButton =
+  "timeline-keyframe-nav grid h-5 w-4 shrink-0 place-items-center rounded text-muted-foreground/70 transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-25"
+
+/** After Effects-style ‹ ◆ › — jump between this row's keys, or key here. */
+function KeyframeNavigator({
+  name,
+  times,
+  currentTime,
+  onSeek,
+  children,
+}: {
+  name: string
+  times: number[]
+  currentTime: number
+  onSeek: (time: number) => void
+  children: React.ReactNode
+}) {
+  const { previous, next } = neighbourTimes(times, currentTime)
+  return (
+    <span className="flex items-center">
+      <button
+        type="button"
+        aria-label={`Previous ${name} keyframe`}
+        title="Previous keyframe"
+        disabled={previous === undefined}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (previous !== undefined) onSeek(previous)
+        }}
+        className={navButton}
+      >
+        <ChevronLeft className="size-3" />
+      </button>
+      {children}
+      <button
+        type="button"
+        aria-label={`Next ${name} keyframe`}
+        title="Next keyframe"
+        disabled={next === undefined}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (next !== undefined) onSeek(next)
+        }}
+        className={navButton}
+      >
+        <ChevronRight className="size-3" />
+      </button>
+    </span>
+  )
+}
+
+function RailRowFrame({
+  id,
+  name,
+  active,
+  isRevealed,
+  ariaLabel,
+  ariaPressed,
+  onSelect,
+  onContextMenu,
+  value,
+  actions,
+}: {
+  value?: string
+  id: string
+  name: string
+  active: boolean
+  isRevealed: boolean
+  ariaLabel: string
+  ariaPressed?: boolean
+  onSelect: () => void
+  onContextMenu: (event: React.MouseEvent) => void
+  actions: React.ReactNode
+}) {
+  return (
+    <div
+      onContextMenu={onContextMenu}
+      className={`timeline-property-rail group relative flex h-[var(--timeline-property-height)] items-center border-b border-border/50 transition-colors ${
+        isRevealed
+          ? "bg-primary/10"
+          : active
+            ? "bg-(--timeline-accent)/12"
+            : "hover:bg-foreground/[0.03]"
+      }`}
+    >
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-pressed={ariaPressed}
+        onClick={onSelect}
+        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 pr-1 pl-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+      >
+        <TimelineRowIcon
+          id={id}
+          className="size-3.5 shrink-0 text-muted-foreground"
+        />
+        <span
+          className={`flex-1 truncate text-xs ${active ? "text-foreground" : "text-foreground/75"}`}
+        >
+          {name}
+        </span>
+      </button>
+      <span className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-0 pr-1.5">
+        {actions}
+        <span className="timeline-rail-value w-12 shrink-0 truncate pl-1 text-right font-mono text-[11px] text-muted-foreground tabular-nums">
+          {value}
+        </span>
+      </span>
+    </div>
+  )
+}
 
 export function TimelinePropertyRailRow({
   row,
   isRevealed,
+  selected,
+  onSelectRow,
   menu,
+  onSeek,
   onClearSelection,
   onActivePropertyRowChange,
   onClearPropertyRow,
@@ -28,7 +160,10 @@ export function TimelinePropertyRailRow({
 }: {
   row: TimelinePropertyRow
   isRevealed: boolean
+  selected: boolean
+  onSelectRow: () => void
   menu: TimelineLeftRailMenuProps
+  onSeek: (time: number) => void
   onClearSelection: () => void
   onActivePropertyRowChange?: (rowId: string) => void
   onClearPropertyRow?: (rowId: string) => void
@@ -44,13 +179,19 @@ export function TimelinePropertyRailRow({
     menu.currentTime
   )
 
-  const selectRow = () => {
-    onClearSelection()
-    onActivePropertyRowChange?.(row.id)
-  }
-
   return (
-    <div
+    <RailRowFrame
+      id={row.id}
+      name={row.name}
+      active={selected}
+      isRevealed={isRevealed}
+      ariaLabel={`Select ${row.name} property`}
+      ariaPressed={selected}
+      onSelect={() => {
+        onClearSelection()
+        onSelectRow()
+        onActivePropertyRowChange?.(row.id)
+      }}
       onContextMenu={(event) =>
         menu.onOpenContextMenu(
           event,
@@ -65,59 +206,43 @@ export function TimelinePropertyRailRow({
           })
         )
       }
-      className={`timeline-property-rail group flex h-[var(--timeline-property-height)] items-center border-b border-border transition-colors hover:bg-muted/40 ${
-        isRevealed ? "bg-primary/10 ring-1 ring-primary/25 ring-inset" : ""
-      }`}
-    >
-      <button
-        type="button"
-        aria-label={`Select ${row.name} property`}
-        onClick={selectRow}
-        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
-      >
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{ backgroundColor: row.color }}
-        />
-        <span className="flex-1 truncate text-xs font-medium text-muted-foreground">
-          {row.name}
-        </span>
-      </button>
-      <span
-        className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-1.5 pr-3"
-        aria-label={`${row.keyframes.length} keyframes`}
-      >
-        {row.keyframes.length > 0 && onSetPropertyEasing && (
-          <EasingPicker
-            value={row.keyframes[0]?.easing ?? "ease-in-out"}
-            onChange={(easing) => onSetPropertyEasing(row.id, null, easing)}
-            color={row.color}
-            scopeLabel={`All ${row.name} keyframes easing`}
-          />
-        )}
-        {onTogglePropertyKeyframe && (
-          <TimelineRailKeyframeButton
-            color={row.color}
-            isKeyedAtPlayhead={Boolean(keyframeAtPlayhead)}
-            hasKeyframes={row.keyframes.length > 0}
-            isAnimated={false}
-            addLabel={`Add ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
-            removeLabel={`Remove ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
-            onToggle={() =>
-              onTogglePropertyKeyframe(row.id, keyframeAtPlayhead?.id)
-            }
-          />
-        )}
-      </span>
-    </div>
+      actions={
+        <>
+          {onTogglePropertyKeyframe && (
+            <KeyframeNavigator
+              name={row.name}
+              times={row.keyframes.map((keyframe) => keyframe.time)}
+              currentTime={menu.currentTime}
+              onSeek={onSeek}
+            >
+              <TimelineRailKeyframeButton
+                rowId={row.id}
+                color={row.color}
+                isKeyedAtPlayhead={Boolean(keyframeAtPlayhead)}
+                hasKeyframes={row.keyframes.length > 0}
+                isAnimated={false}
+                addLabel={`Add ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+                removeLabel={`Remove ${row.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+                onToggle={() =>
+                  onTogglePropertyKeyframe(row.id, keyframeAtPlayhead?.id)
+                }
+              />
+            </KeyframeNavigator>
+          )}
+        </>
+      }
+    />
   )
 }
 
 export function TimelineTrackRailRow({
   track,
   isRevealed,
+  selected,
+  onSelectRow,
   activeTrackId,
   menu,
+  onSeek,
   onClearSelection,
   onSelectTrack,
   onClearTrackKeyframes,
@@ -126,8 +251,11 @@ export function TimelineTrackRailRow({
 }: {
   track: TimelineTrack
   isRevealed: boolean
+  selected: boolean
+  onSelectRow: () => void
   activeTrackId?: string | null
   menu: TimelineLeftRailMenuProps
+  onSeek: (time: number) => void
   onClearSelection: () => void
   onSelectTrack: (trackId: string) => void
   onClearTrackKeyframes?: (trackId: string) => void
@@ -141,13 +269,23 @@ export function TimelineTrackRailRow({
   const animated = track.keyframes.length > 0
   const keyedAtPlayhead = isTrackKeyedAtPlayhead(track, menu.currentTime)
 
-  const selectTrack = () => {
-    onClearSelection()
-    onSelectTrack(track.id)
-  }
-
   return (
-    <div
+    <RailRowFrame
+      id={track.id}
+      name={track.name}
+      active={selected || isActive}
+      isRevealed={isRevealed}
+      ariaLabel={`Select ${track.name} track`}
+      value={formatValueLabel(
+        track,
+        interpolateKeyframes(menu.currentTime, track)
+      )}
+      ariaPressed={selected || isActive}
+      onSelect={() => {
+        onClearSelection()
+        onSelectRow()
+        onSelectTrack(track.id)
+      }}
       onContextMenu={(event) =>
         menu.onOpenContextMenu(
           event,
@@ -164,50 +302,27 @@ export function TimelineTrackRailRow({
           })
         )
       }
-      className={`timeline-property-rail group flex h-[var(--timeline-property-height)] items-center border-b border-border transition-colors ${
-        isRevealed
-          ? "bg-primary/10 ring-1 ring-primary/25 ring-inset"
-          : isActive
-            ? "bg-muted/70"
-            : "hover:bg-muted/40"
-      }`}
-    >
-      <button
-        type="button"
-        aria-label={`Select ${track.name} track`}
-        aria-pressed={isActive}
-        onClick={selectTrack}
-        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 px-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
-      >
-        <span
-          className="size-2 shrink-0 rounded-full"
-          style={{ backgroundColor: track.color }}
-        />
-        <span
-          className={`flex-1 truncate text-xs font-medium ${isActive ? "text-foreground" : "text-muted-foreground"}`}
-        >
-          {track.name}
-        </span>
-      </button>
-      <span className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-1.5 pr-3">
-        {animated && (
-          <EasingPicker
-            value={track.keyframes[0]?.easing ?? "ease-in-out"}
-            onChange={(easing) => onSetTrackEasing(track.id, easing)}
-            color={track.color}
-            scopeLabel={`All ${track.name} keyframes easing`}
-          />
-        )}
-        <TimelineRailKeyframeButton
-          color={track.color}
-          isKeyedAtPlayhead={keyedAtPlayhead}
-          hasKeyframes={animated}
-          isAnimated={animated}
-          addLabel={`Add ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
-          removeLabel={`Remove ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
-          onToggle={() => onToggleTrackKeyframe(track.id)}
-        />
-      </span>
-    </div>
+      actions={
+        <>
+          <KeyframeNavigator
+            name={track.name}
+            times={track.keyframes.map((keyframe) => keyframe.time)}
+            currentTime={menu.currentTime}
+            onSeek={onSeek}
+          >
+            <TimelineRailKeyframeButton
+              rowId={track.id}
+              color={track.color}
+              isKeyedAtPlayhead={keyedAtPlayhead}
+              hasKeyframes={animated}
+              isAnimated={animated}
+              addLabel={`Add ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+              removeLabel={`Remove ${track.name} keyframe at ${menu.currentTime.toFixed(2)}s`}
+              onToggle={() => onToggleTrackKeyframe(track.id)}
+            />
+          </KeyframeNavigator>
+        </>
+      }
+    />
   )
 }

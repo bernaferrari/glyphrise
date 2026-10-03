@@ -10,6 +10,11 @@ import { isEditableTarget } from "./TimelineGeometry"
 
 type TimelineDeletionOptions = {
   selectedKeyframe: SelectedTimelineKeyframe
+  /** "property:<id>" or "track:<id>" when a whole row is selected. */
+  selectedRow: string | null
+  clipSelected: boolean
+  onClearPropertyRow?: (rowId: string) => void
+  onClearTrackKeyframes?: (trackId: string) => void
   selectedShapeId: string | null
   shapes: ShapeStop[]
   tracks: TimelineTrack[]
@@ -22,6 +27,13 @@ type TimelineDeletionOptions = {
 
 export const useTimelineDeletion = ({
   selectedKeyframe,
+  selectedRow,
+  clipSelected,
+  onClearPropertyRow,
+  onClearTrackKeyframes,
+  selectedShapeId,
+  shapes,
+  onRemoveShape,
   tracks,
   propertyRows,
   onClearSelection,
@@ -30,6 +42,13 @@ export const useTimelineDeletion = ({
 }: TimelineDeletionOptions) => {
   const optionsRef = useLatestRef({
     selectedKeyframe,
+    selectedRow,
+    clipSelected,
+    onClearPropertyRow,
+    onClearTrackKeyframes,
+    selectedShapeId,
+    shapes,
+    onRemoveShape,
     tracks,
     propertyRows,
     onClearSelection,
@@ -52,7 +71,27 @@ export const useTimelineDeletion = ({
         onRemovePropertyKeyframe,
       } = optionsRef.current
 
-      if (!selectedKeyframe) return
+      if (!selectedKeyframe) {
+        const options = optionsRef.current
+        if (options.selectedRow) {
+          const [kind, id] = options.selectedRow.split(":")
+          event.preventDefault()
+          options.onClearSelection()
+          if (kind === "property") options.onClearPropertyRow?.(id)
+          else options.onClearTrackKeyframes?.(id)
+          return
+        }
+        if (
+          options.clipSelected &&
+          options.selectedShapeId &&
+          options.shapes.length > 1
+        ) {
+          event.preventDefault()
+          options.onClearSelection()
+          options.onRemoveShape(options.selectedShapeId)
+        }
+        return
+      }
 
       if (selectedKeyframe.type === "track") {
         const track = tracks.find(

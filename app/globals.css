@@ -116,7 +116,7 @@
   --slider-track-bg: oklch(0.22 0.012 280);
   --slider-thumb-border: #3f3f46;
   --slider-glow: rgba(255, 255, 255, 0.08);
-  --inspector-slider-track: oklch(0.24 0 0);
+  --inspector-slider-track: oklch(0.28 0.004 260);
   --inspector-slider-active: oklch(0.43 0 0);
   --inspector-slider-thumb: oklch(0.68 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
@@ -275,20 +275,55 @@
 }
 
 .timeline-density {
-  --timeline-rail-width: 200px;
-  --timeline-ruler-height: 28px;
-  --timeline-shape-height: 36px;
-  --timeline-property-height: 36px;
+  --timeline-rail-width: 236px;
+  --timeline-ruler-height: 38px;
+  --timeline-shape-height: 46px;
+  --timeline-property-height: 34px;
+  --timeline-playhead: oklch(0.2 0.01 260);
+  --timeline-accent: oklch(0.58 0.17 255);
+  --timeline-surface: oklch(0.975 0.003 260);
+  --timeline-lane: oklch(0.995 0.001 260);
+  --timeline-lane-alt: oklch(0.982 0.002 260);
+  --timeline-clip: color-mix(
+    in oklab,
+    var(--timeline-accent) 18%,
+    var(--timeline-lane)
+  );
+  --timeline-clip-edge: color-mix(
+    in oklab,
+    var(--timeline-accent) 45%,
+    var(--timeline-lane)
+  );
+  --timeline-clip-fg: var(--foreground);
+}
+
+.dark .timeline-density {
+  --timeline-playhead: oklch(0.97 0 0);
+  --timeline-accent: oklch(0.72 0.14 250);
+  --timeline-surface: oklch(0.205 0.006 260);
+  --timeline-lane: oklch(0.18 0.006 260);
+  --timeline-lane-alt: oklch(0.195 0.006 260);
+  --timeline-clip: color-mix(
+    in oklab,
+    var(--timeline-accent) 24%,
+    var(--timeline-lane)
+  );
+  --timeline-clip-edge: color-mix(
+    in oklab,
+    var(--timeline-accent) 50%,
+    var(--timeline-lane)
+  );
+  --timeline-clip-fg: var(--foreground);
 }
 
 /* Rail and lanes share dimensions. Touch controls occupy their own space so
    an expanded hit area cannot steal a neighbouring row's interaction. */
 @media (width <= 720px), (pointer: coarse) {
   .timeline-density {
-    --timeline-rail-width: 156px;
-    --timeline-ruler-height: 44px;
+    --timeline-rail-width: 264px;
+    --timeline-ruler-height: 48px;
     --timeline-shape-height: 52px;
-    --timeline-property-height: 88px;
+    --timeline-property-height: 44px;
   }
 
   .timeline-density button,
@@ -297,40 +332,22 @@
     min-height: 44px;
   }
 
-  .timeline-property-rail {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .timeline-property-name {
-    flex: none;
-    height: 44px;
-  }
-
-  .timeline-property-actions {
-    height: 44px;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 0 8px;
+  /* Rows stay one line; the value moves to the keyframe editor. */
+  .timeline-rail-value {
+    display: none;
   }
 
   .timeline-easing {
     width: auto;
-    gap: 6px;
-    padding: 0 6px;
   }
 
-  .timeline-easing-label {
-    display: inline;
+  /* Phones and tablets step between keys with the shared transport. */
+  .timeline-keyframe-nav {
+    display: none;
   }
 
   .timeline-keyframe {
     width: 44px;
-    height: 44px;
-  }
-
-  .timeline-icon-clip,
-  .timeline-transition {
     height: 44px;
   }
 
@@ -514,5 +531,81 @@
   from {
     opacity: 0;
     transform: translateY(100%);
+  }
+}
+
+.timeline-zoom-slider {
+  appearance: none;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.timeline-zoom-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 18%, transparent);
+}
+
+.timeline-zoom-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 18%, transparent);
+}
+
+.timeline-zoom-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -4.5px;
+  border-radius: 999px;
+  background: var(--foreground);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.timeline-zoom-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--foreground);
+}
+
+.timeline-zoom-slider:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Video-editor trim cursor for transition and clip edges. */
+@utility cursor-trim {
+  cursor:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2724%27%20height%3D%2724%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4%205h5v14H4M20%205h-5v14h5M12%203v18%27%20stroke%3D%27white%27%20stroke-width%3D%273.5%27/%3E%3Cpath%20d%3D%27M4%205h5v14H4M20%205h-5v14h5M12%203v18%27%20stroke%3D%27black%27%20stroke-width%3D%271.5%27/%3E%3C/svg%3E")
+      12 12,
+    ew-resize;
+}
+
+/* Phones: transport has its own row, so the rail can be narrow. */
+@media (width <= 720px) {
+  .timeline-density {
+    --timeline-rail-width: 200px;
+    --timeline-ruler-height: 44px;
+  }
+
+  /* Keep ‹ › narrow so transport fits beside the ruler; Play stays 44px. */
+  .timeline-density .timeline-transport-arrow {
+    min-width: 28px;
+    width: 28px;
+  }
+
+  .timeline-density .timeline-playhead-field {
+    width: 7.5ch;
+    padding: 0;
+    font-size: 11px;
+  }
+
+  /* Names need the room; easing stays in the keyframe editor and menu. */
+  .timeline-property-actions .timeline-easing {
+    display: none;
   }
 }

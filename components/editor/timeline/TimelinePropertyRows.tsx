@@ -12,6 +12,7 @@ type TimelinePropertyRowsProps = {
   revealedRowId: string | null
   selectedKeyframe: SelectedTimelineKeyframe
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onActivePropertyRowChange?: (rowId: string) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void
   onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
@@ -49,6 +50,7 @@ export function TimelinePropertyRows({
   revealedRowId,
   selectedKeyframe,
   onSelectKeyframe,
+  onOpenKeyframeEditor,
   onActivePropertyRowChange,
   onRemovePropertyKeyframe,
   onAddPropertyKeyframeAtTime,
@@ -70,6 +72,7 @@ export function TimelinePropertyRows({
           isRevealed={revealedRowId === `property:${row.id}`}
           selectedKeyframe={selectedKeyframe}
           onSelectKeyframe={onSelectKeyframe}
+          onOpenKeyframeEditor={onOpenKeyframeEditor}
           onActivePropertyRowChange={onActivePropertyRowChange}
           onRemovePropertyKeyframe={onRemovePropertyKeyframe}
           onAddPropertyKeyframeAtTime={onAddPropertyKeyframeAtTime}

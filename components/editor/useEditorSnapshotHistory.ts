@@ -61,6 +61,7 @@ import type {
 } from "./TimelineModel"
 import { useEditorHistory } from "./useEditorHistory"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
+import { createStarterEditorSnapshot } from "./StarterProjectModel"
 
 interface EditorSnapshotHistoryOptions {
   activeRecipeId: string | null
@@ -485,13 +486,10 @@ export function useEditorSnapshotHistory({
 
   const createNewProject = (
     kind: "blank" | "example",
-    requestedName: string
+    requestedName: string,
+    starterIconId?: string
   ) => {
     const baseSnapshot = initialSnapshotRef.current
-    const nextSnapshot: EditorSnapshot =
-      kind === "example"
-        ? baseSnapshot
-        : createBlankEditorSnapshot(baseSnapshot)
     const nextProject = createProjectMetadata(
       normalizeProjectName(
         requestedName ||
@@ -499,6 +497,11 @@ export function useEditorSnapshotHistory({
       )
     )
     try {
+      const nextSnapshot: EditorSnapshot = starterIconId
+        ? createStarterEditorSnapshot(baseSnapshot, starterIconId)
+        : kind === "example"
+          ? baseSnapshot
+          : createBlankEditorSnapshot(baseSnapshot)
       activateProject(
         "create",
         nextSnapshot,

@@ -52,6 +52,14 @@ export function useExportModalController({
   >(["webm"])
 
   useEffect(() => {
+    if (!isOpen) {
+      setActiveTab("options")
+      setJustExported({})
+      setExportError(null)
+    }
+  }, [isOpen])
+
+  useEffect(() => {
     if (typeof MediaRecorder === "undefined") {
       setSupportedVideoContainers([])
       return
@@ -133,13 +141,6 @@ export function useExportModalController({
 
   const flashExported = useCallback((key: string) => {
     setJustExported((current) => ({ ...current, [key]: true }))
-    window.setTimeout(
-      () =>
-        setJustExported((current) =>
-          current[key] ? { ...current, [key]: false } : current
-        ),
-      2000
-    )
   }, [])
 
   const handleGltfExport = useCallback(async () => {
@@ -147,6 +148,7 @@ export function useExportModalController({
     try {
       setExportError(null)
       setIsGltfExporting(true)
+      setJustExported((current) => ({ ...current, gltf: false }))
       await onExportGltf()
       flashExported("gltf")
     } catch (error) {
@@ -165,6 +167,7 @@ export function useExportModalController({
     try {
       setExportError(null)
       setIsPngExporting(true)
+      setJustExported((current) => ({ ...current, png: false }))
       await onExportPng(settings)
       flashExported("png")
     } catch (error) {
@@ -184,6 +187,7 @@ export function useExportModalController({
       setExportError(null)
       setVideoExportCanceled(false)
       setIsRecording(true)
+      setJustExported((current) => ({ ...current, video: false }))
       await onExportVideo(settings)
       flashExported("video")
     } catch (error) {
@@ -191,7 +195,6 @@ export function useExportModalController({
       // expected outcomes, not failures worth an error banner.
       if (error instanceof Error && /cancel|stopped/i.test(error.message)) {
         setVideoExportCanceled(true)
-        window.setTimeout(() => setVideoExportCanceled(false), 2000)
         return
       }
       setExportError(

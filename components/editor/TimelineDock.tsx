@@ -15,7 +15,7 @@ export function TimelineDock({
   compactOpen = false,
   timelineProps,
 }: TimelineDockProps) {
-  const [height, setHeight] = useState(336)
+  const [height, setHeight] = useState(300)
   const [dragging, setDragging] = useState(false)
   return (
     <div

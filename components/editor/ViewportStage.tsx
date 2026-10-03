@@ -1,7 +1,7 @@
 "use client"
 
 import React, { type DragEvent } from "react"
-import { AlertTriangle, Upload, X } from "lucide-react"
+import { AlertTriangle, Sparkles, Upload, X } from "lucide-react"
 import {
   SvgCanvas,
   type SvgCanvasProps,
@@ -16,6 +16,10 @@ import {
 
 type ViewportStageProps = {
   zenMode: boolean
+  /** Show transport over the preview when the timeline is not on screen. */
+  showPlayback?: boolean
+  /** Phones: a visible way into motion presets from the preview. */
+  onAnimate?: () => void
   presentation?: "workspace" | "motion-preview"
   workspaceActive?: boolean
   isDragging: boolean
@@ -32,6 +36,8 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
   (
     {
       zenMode,
+      showPlayback = false,
+      onAnimate,
       workspaceActive = true,
       presentation = "workspace",
       isDragging,
@@ -145,7 +151,18 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
               <span>Live preview</span>
             </div>
           )}
-          {presentation === "workspace" && (
+          {onAnimate && presentation === "workspace" && !zenMode && (
+            <button
+              type="button"
+              onClick={onAnimate}
+              className="absolute top-3 left-3 z-30 flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-black/45 px-3.5 text-xs font-medium text-white backdrop-blur-md hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-white"
+            >
+              <Sparkles aria-hidden="true" className="size-3.5" />
+              Animate
+            </button>
+          )}
+          {/* The timeline toolbar owns transport while it is visible. */}
+          {((presentation === "workspace" && zenMode) || showPlayback) && (
             <PlaybackControls {...playbackProps} />
           )}
         </div>

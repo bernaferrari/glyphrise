@@ -294,6 +294,7 @@ export function ColorPicker({
 
               <ColorGradientPresetsPanel
                 gradientType={gradientType}
+                stops={normalizedStops}
                 onPresetSelect={applyGradientPreset}
                 onShuffleMeshColors={shuffleMeshStops}
                 onShuffleMeshPoints={shuffleMeshPoints}

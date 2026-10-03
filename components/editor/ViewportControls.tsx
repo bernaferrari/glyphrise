@@ -75,9 +75,9 @@ export function ViewOptionsPopover({
           align="end"
           side="bottom"
           sideOffset={8}
-          className="w-60 border-border bg-popover p-2 text-popover-foreground"
+          className="w-60 gap-0 p-1.5"
         >
-          <p className="px-2 pt-1 pb-3 text-xs leading-5 text-muted-foreground">
+          <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
             Drag to orbit · Scroll to zoom. Camera changes affect the preview
             only.
           </p>
@@ -119,8 +119,15 @@ function ViewportToggleRow({
   onCheckedChange,
 }: ViewportToggleRowProps) {
   return (
-    <div className="flex min-h-10 w-full items-center justify-between gap-2 rounded-md px-2 transition-colors hover:bg-muted/60">
-      <span className="text-[11px] text-foreground">{label}</span>
+    // The whole row toggles, not just the switch.
+    <div
+      onClick={(event) => {
+        if ((event.target as HTMLElement).closest('[role="switch"]')) return
+        onCheckedChange(!checked)
+      }}
+      className="flex min-h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 transition-colors select-none hover:bg-muted/60"
+    >
+      <span className="text-xs text-foreground">{label}</span>
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}

@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test"
+import { expect } from "@playwright/test"
+import { test } from "./fixtures"
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/")
@@ -33,6 +34,26 @@ test("direct finish choices change the artwork and undo restores the selected fi
   ).toHaveAttribute("aria-pressed", "true")
 })
 
+test("gradient presets support pointer and keyboard selection with an accurate selected state", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Gradient", exact: true }).click()
+  const presets = page.getByRole("button", { name: /^Use .* gradient$/ })
+  const first = presets.nth(0)
+  const second = presets.nth(1)
+  await first.click()
+  await expect(first).toHaveAttribute("aria-pressed", "true")
+  await second.focus()
+  await second.press("Enter")
+  await expect(second).toHaveAttribute("aria-pressed", "true")
+  await expect(first).toHaveAttribute("aria-pressed", "false")
+  await page.keyboard.press("Escape")
+  await expect(first).toHaveCount(0)
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await page.getByRole("button", { name: "Gradient", exact: true }).click()
+  await expect(first).toHaveAttribute("aria-pressed", "true")
+})
+
 test("inspector navigation supports keyboard use and timeline selections reveal the correct editor", async ({
   page,
 }) => {
@@ -48,7 +69,6 @@ test("inspector navigation supports keyboard use and timeline selections reveal 
   await expect(
     page.getByLabel("Light brightness", { exact: true })
   ).toBeVisible()
-  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   await page
     .getByRole("button", { name: "Select Rotation property", exact: true })
     .click()
@@ -63,32 +83,67 @@ test("inspector navigation supports keyboard use and timeline selections reveal 
   await expect(page.getByLabel("Bevel segments", { exact: true })).toBeVisible()
 })
 
-test("motion presets preview the selected artwork and the labeled keyframe controls are reachable", async ({
+test("Animate previews the selected artwork and timeline points stay reachable", async ({
   page,
 }) => {
-  await expect(
-    page.getByRole("tab", { name: "Motion", exact: true })
-  ).toHaveAttribute("aria-selected", "true")
+  await expect(page.getByText("Motion presets", { exact: true })).toHaveCount(0)
+  await expect(page.locator(".motion-preview")).toHaveCount(0)
   const endpoint = page.getByRole("button", {
-    name: "Edit Rotation keyframe at 5.00s",
-    exact: true,
+    name: /^Select Rotation keyframe.* at 5\.00 seconds$/,
   })
-  await expect(endpoint).toContainText("End")
-  await expect(endpoint).toContainText("5.00s")
-  await endpoint.click()
+  await endpoint.dblclick()
   await expect(
     page.getByLabel("Keyframe rotation Y", { exact: true })
   ).toBeVisible()
-  await page.getByRole("button", { name: "Done", exact: true }).click()
-  await page
-    .getByRole("button", { name: "Choose motion presets", exact: true })
-    .click()
+  await page.keyboard.press("Escape")
+  await page.getByRole("button", { name: "Animate", exact: true }).click()
+  // The stage plus one live tile per preset.
   const choices = page.getByRole("dialog").locator(".motion-preview svg")
-  await expect(choices).toHaveCount(3)
+  await expect(choices).toHaveCount(4)
   await page.getByRole("button", { name: "Tilt", exact: true }).click()
   await page.getByRole("button", { name: "Apply Tilt", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
 })
+
+for (const width of [390, 1280]) {
+  test.describe(`property sliders at ${width}px`, () => {
+    test.use({ viewport: { width, height: 800 }, hasTouch: width < 720 })
+    test("supports pointer and keyboard changes with undo and exact numeric entry", async ({
+      page,
+    }) => {
+      if (width < 720)
+        await page
+          .getByRole("button", { name: "Properties", exact: true })
+          .click()
+      const slider = page.getByRole("slider", {
+        name: "Extrusion depth slider",
+        exact: true,
+      })
+      const number = page.getByLabel("Extrusion depth", { exact: true })
+      await slider.scrollIntoViewIfNeeded()
+      const bounds = (await slider.boundingBox())!
+      expect(bounds.height).toBeGreaterThanOrEqual(44)
+      const original = await number.inputValue()
+      await slider.click({
+        position: { x: bounds.width * 0.75, y: bounds.height / 2 },
+      })
+      await expect(number).not.toHaveValue(original)
+      const clicked = await number.inputValue()
+      await slider.press("ArrowLeft")
+      await expect(number).not.toHaveValue(clicked)
+      const undo = page.getByRole("button", {
+        name: width < 720 ? "Undo edit" : "Undo",
+        exact: true,
+      })
+      await undo.click()
+      await expect(number).toHaveValue(clicked)
+      await number.fill("25.50")
+      await number.press("Enter")
+      await expect(number).toHaveValue("25.50")
+      await expect(slider).toHaveAttribute("aria-valuetext", "25.50")
+    })
+  })
+}
 
 test("the inspector spans the desktop workspace and the icon library returns keyboard focus", async ({
   page,
@@ -150,35 +205,33 @@ for (const width of [320, 390]) {
       await expect(changed).toHaveAttribute("aria-pressed", "true")
       await page.getByRole("button", { name: "Motion", exact: true }).click()
       const secondIcon = page.getByRole("button", {
-        name: "Select Account Circle Off icon at 4.00s",
+        name: "Account Circle Off icon clip",
         exact: true,
       })
       await secondIcon.click()
       await expect(secondIcon).toHaveAttribute("aria-pressed", "true")
       await expect(
         page.getByLabel("Playhead time in seconds", { exact: true })
-      ).toHaveValue("4.00")
+      ).toHaveValue("0:04.00")
       await expect(preview).toBeVisible()
       for (const control of [
         undo,
         page.getByRole("button", { name: "Play timeline", exact: true }),
-        page.getByRole("button", { name: "Animate", exact: true }),
       ]) {
         const box = (await control.boundingBox())!
         expect(box.width).toBeGreaterThanOrEqual(44)
         expect(box.height).toBeGreaterThanOrEqual(44)
       }
+      await page.getByRole("button", { name: "Workspace actions" }).click()
       await page.getByRole("button", { name: "Animate", exact: true }).click()
       await expect(
         page.getByRole("dialog").locator(".motion-preview svg")
-      ).toHaveCount(3)
+      ).toHaveCount(4)
       await expect(
         page.getByRole("button", { name: "Apply Spin", exact: true })
       ).toBeEnabled()
       await page.keyboard.press("Escape")
-      await expect(
-        page.getByRole("button", { name: "Animate", exact: true })
-      ).toBeFocused()
+      await expect(page.getByRole("dialog")).toHaveCount(0)
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth)
       ).toBe(width)

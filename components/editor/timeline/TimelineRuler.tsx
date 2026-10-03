@@ -108,7 +108,7 @@ export const TimelineRuler = React.forwardRef<
         event.preventDefault()
         onKeyboardTimeChange(nextTime)
       }}
-      className="sticky top-0 h-[var(--timeline-ruler-height)] shrink-0 cursor-col-resize touch-none bg-background select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:outline-none focus-visible:ring-inset"
+      className="sticky top-0 h-[var(--timeline-ruler-height)] shrink-0 cursor-ew-resize touch-none bg-(--timeline-surface) select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:outline-none focus-visible:ring-inset"
       style={{ zIndex: TIMELINE_LAYER.ruler }}
     >
       <div
@@ -116,48 +116,49 @@ export const TimelineRuler = React.forwardRef<
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 bg-muted/70 dark:bg-muted/35"
+        className="pointer-events-none absolute inset-y-0 left-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET }}
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 bg-muted/70 dark:bg-muted/35"
+        className="pointer-events-none absolute inset-y-0 right-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET }}
         aria-hidden="true"
       />
-      {ticks.map((tick) => {
-        const isFinalTick = Math.abs(tick.time - duration) < 0.001
-        return (
+      {ticks.map((tick) => (
+        <div
+          key={`ruler-${tick.time}`}
+          className="pointer-events-none absolute top-0 bottom-0"
+          style={{ left: xForFrac(tick.time / duration) }}
+        >
           <div
-            key={`ruler-${tick.time}`}
-            className="pointer-events-none absolute top-0 bottom-0"
-            style={{ left: xForFrac(tick.time / duration) }}
-          >
-            {tick.time > 0 && (
-              <div
-                className={`absolute top-0 w-px ${
-                  tick.major
-                    ? "bottom-0 bg-border"
-                    : "h-2 bg-muted-foreground/25"
-                }`}
-              />
-            )}
-            {tick.major && !isFinalTick && (
-              <span className="absolute top-[13px] pl-1 font-mono text-[11px] leading-none text-muted-foreground">
-                {formatTimelineTick(tick.time)}
-              </span>
-            )}
-          </div>
-        )
-      })}
+            className={`absolute bottom-0 w-px ${
+              tick.major
+                ? "h-2.5 bg-muted-foreground/55"
+                : "h-1 bg-muted-foreground/30"
+            }`}
+          />
+          {tick.major && Math.abs(tick.time - duration) > 0.001 && (
+            <span
+              className={`absolute top-[7px] font-mono text-[10px] leading-none text-muted-foreground tabular-nums ${"left-2"}`}
+            >
+              {formatTimelineTick(tick.time)}
+            </span>
+          )}
+        </div>
+      ))}
       <div
-        className="pointer-events-none absolute top-0 bottom-0 w-px -translate-x-1/2 bg-destructive"
+        className="pointer-events-none absolute top-0 bottom-0 w-px -translate-x-1/2 bg-(--timeline-playhead)"
         style={{ left: playheadX, zIndex: TIMELINE_LAYER.rulerPlayheadLine }}
       >
-        <div
-          className="absolute top-1 left-1/2 h-4 w-4 -translate-x-1/2 rounded-[5px] border border-destructive/70 bg-destructive shadow-[0_2px_6px_rgba(0,0,0,0.28)]"
+        <svg
+          viewBox="0 0 13 17"
+          aria-hidden="true"
+          className="absolute top-1 left-1/2 h-[17px] w-[13px] -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
           style={{ zIndex: TIMELINE_LAYER.rulerPlayheadHandle }}
-        />
+        >
+          <path d="M2.5 0h8A2.5 2.5 0 0 1 13 2.5v8.3a2.5 2.5 0 0 1-.8 1.8L7.4 16.6a1.3 1.3 0 0 1-1.8 0L.8 12.6A2.5 2.5 0 0 1 0 10.8V2.5A2.5 2.5 0 0 1 2.5 0Z" />
+        </svg>
       </div>
     </div>
   )

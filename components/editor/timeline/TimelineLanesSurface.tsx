@@ -19,7 +19,7 @@ export function TimelineLanesSurface({
   return (
     <div
       ref={viewport.timelineScrollRef}
-      className="editor-scrollbar relative min-w-0 flex-1 overflow-auto"
+      className="editor-scrollbar relative min-w-0 flex-1 overflow-auto bg-(--timeline-lane)"
       onScroll={(event) =>
         viewport.syncLeftRailScroll(event.currentTarget.scrollTop)
       }
@@ -61,10 +61,6 @@ export function TimelineLanesSurface({
               duration={viewport.duration}
               secondGridTicks={viewport.secondGridTicks}
             />
-            <div
-              className="relative h-6 border-b border-border bg-muted/35"
-              aria-hidden="true"
-            />
             <TimelineShapeLane
               duration={viewport.duration}
               shapes={shapeLane.shapes}
@@ -94,17 +90,13 @@ export function TimelineLanesSurface({
               onAddShape={shapeLane.onAddShape}
             />
 
-            <div
-              className="relative h-6 border-b border-border bg-muted/35"
-              aria-hidden="true"
-            />
-
             <TimelinePropertyRows
               duration={viewport.duration}
               rows={propertyLane.visiblePropertyRows}
               revealedRowId={propertyLane.revealedRowId}
               selectedKeyframe={propertyLane.selectedKeyframe}
               onSelectKeyframe={propertyLane.onSelectKeyframe}
+              onOpenKeyframeEditor={propertyLane.onOpenKeyframeEditor}
               onActivePropertyRowChange={propertyLane.onActivePropertyRowChange}
               onRemovePropertyKeyframe={propertyLane.onRemovePropertyKeyframe}
               onAddPropertyKeyframeAtTime={
@@ -130,6 +122,7 @@ export function TimelineLanesSurface({
               keyframeDraggedRef={trackLane.keyframeDraggedRef}
               onSelectTrack={trackLane.onSelectTrack}
               onSelectKeyframe={trackLane.onSelectKeyframe}
+              onOpenKeyframeEditor={trackLane.onOpenKeyframeEditor}
               onTimeEditorChange={trackLane.onTimeEditorChange}
               onCommitTimeEditor={trackLane.onCommitTimeEditor}
               onScrubStart={trackLane.onScrubStart}
@@ -149,7 +142,7 @@ export function TimelineLanesSurface({
                 second-grid lines and the playhead are not cut short by empty bg. */}
             {trackLane.showAddPropertyRow && (
               <div
-                className="h-[var(--timeline-property-height)] border-b border-border"
+                className="h-[var(--timeline-property-height)] border-b border-border/60"
                 aria-hidden="true"
               />
             )}

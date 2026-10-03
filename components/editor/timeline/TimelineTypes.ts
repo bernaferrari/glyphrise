@@ -6,6 +6,7 @@ import type {
   TimelineTrack,
 } from "../TimelineModel"
 import type { MotionRecipe } from "../MotionRecipes"
+import type { PlaybackControlsProps } from "../ViewportControls"
 
 export interface ShapeOption {
   id: string
@@ -24,7 +25,6 @@ export interface WipeDirectionOption {
 }
 
 export type TimelinePlaybackProps = {
-  motionPresets?: ReactNode
   duration: number
   onDurationChange: (duration: number) => void
   currentTime: number
@@ -40,6 +40,13 @@ export type TimelinePlaybackProps = {
   isPreviewLoading?: boolean
   loop: boolean
   onLoopChange: (loop: boolean) => void
+  /** Transport shown in the timeline toolbar. */
+  playback?: PlaybackControlsProps
+  /** Record (auto-key): inspector edits create keyframes at the playhead. */
+  autoKeyEnabled?: boolean
+  onAutoKeyChange?: (enabled: boolean) => void
+  /** Opens the motion preset picker (Spin, Tilt, Pulse). */
+  onOpenMotionPresets?: () => void
 }
 
 export type TimelineTrackProps = {

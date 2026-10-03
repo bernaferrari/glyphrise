@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, type Page } from "@playwright/test"
+import { test } from "./fixtures"
 
 const openProjects = async (page: Page) => {
   await page.getByRole("button", { name: "Open project menu" }).click()
@@ -10,6 +11,7 @@ test.beforeEach(async ({ page }) => {
     const isolationKey = "glyphrise.e2e.storage-cleared"
     if (window.sessionStorage.getItem(isolationKey)) return
     window.localStorage.clear()
+    window.localStorage.setItem("glyphrise:quick-start:v1", "dismissed")
     window.sessionStorage.setItem(isolationKey, "true")
   })
   await page.goto("/")
@@ -28,7 +30,6 @@ test("creates a named blank project without example animation", async ({
   await page.getByLabel("New project name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
-  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   const projectName = page.getByLabel("Project name", { exact: true })
   await expect(projectName).toHaveValue("Launch mark")
   await expect(
@@ -152,7 +153,7 @@ test("starts style templates with a clean undo baseline", async ({ page }) => {
 
 test("uploads a custom SVG into the selected icon clip", async ({ page }) => {
   await page.getByRole("button", { name: /Change icon for/ }).click()
-  await page.getByRole("tab", { name: "Upload SVG" }).click()
+  await page.getByRole("tab", { name: "Upload", exact: true }).click()
 
   const fileChooserPromise = page.waitForEvent("filechooser")
   await page.getByRole("button", { name: "Upload SVG", exact: true }).click()
@@ -165,7 +166,6 @@ test("uploads a custom SVG into the selected icon clip", async ({ page }) => {
     ),
   })
 
-  await page.getByRole("tab", { name: "Sequence", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Custom icon clip" })
   ).toBeVisible()
@@ -185,8 +185,11 @@ test("keeps essential workspace actions reachable at compact widths", async ({
   await expect(
     page.getByRole("button", { name: "Download project backup" })
   ).toBeVisible()
+  // The menu entry, not the Animate button on the preview.
   await expect(
-    page.getByRole("button", { name: "Animate", exact: true })
+    page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Animate", exact: true })
   ).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
@@ -267,6 +270,9 @@ test("orbits the camera without editing the document", async ({ page }) => {
 
 test("describes code exports as implementation starters", async ({ page }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
+  await page
+    .getByRole("button", { name: "Developer exports", exact: true })
+    .click()
   await page.getByRole("tab", { name: "React starter" }).click()
 
   await expect(
@@ -283,15 +289,23 @@ test("offers production render controls and an honest fidelity matrix", async ({
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
 
-  await expect(page.getByText("Render settings")).toBeVisible()
+  await expect(page.getByText("Output size")).toBeVisible()
+  await page
+    .getByRole("button", { name: "Video Full animation", exact: true })
+    .click()
+  await page.getByText("More settings", { exact: true }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1080")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
-  await page.getByLabel("Frame rate").selectOption("24")
+  await page
+    .getByRole("radiogroup", { name: "Frame rate" })
+    .getByRole("radio", { name: "24 fps" })
+    .click()
   await expect(page.getByText(/at 24 fps/)).toBeVisible()
   await page.getByRole("button", { name: "Landscape" }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1920")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
 
+  await page.getByText("Format details", { exact: true }).click()
   await expect(page.getByText("Export fidelity")).toBeVisible()
   await expect(page.getByRole("cell", { name: "Full timeline" })).toBeVisible()
   await expect(page.getByRole("cell", { name: "Subset" })).toBeVisible()

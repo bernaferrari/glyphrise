@@ -101,6 +101,7 @@ export type TimelinePropertyLaneProps = {
     easing: EasingType
   ) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onScrubStart?: () => void
   onTimeChange: (time: number) => void
 }
@@ -117,6 +118,7 @@ export type TimelineTrackLaneProps = {
   keyframeDraggedRef: React.MutableRefObject<boolean>
   onSelectTrack: (trackId: string) => void
   onSelectKeyframe: (keyframe: SelectedTimelineKeyframe) => void
+  onOpenKeyframeEditor: (keyframe: SelectedTimelineKeyframe) => void
   onTimeEditorChange: React.Dispatch<
     React.SetStateAction<TrackTimeEditor | null>
   >

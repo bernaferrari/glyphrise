@@ -49,10 +49,10 @@ export function SymbolOptionsPopover({
       <PopoverTrigger
         aria-label="Symbol options"
         title="Symbol options"
-        className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-muted/50 text-muted-foreground transition-colors hover:border-border hover:bg-muted/75 hover:text-foreground focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:outline-none"
+        className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
       >
         <span
-          className={`${materialSymbolClass} text-[21px] leading-none`}
+          className={`${materialSymbolClass} text-[18px] leading-none`}
           style={symbolStyle}
         >
           tune
