@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { bindWindowPointerDrag } from "@/lib/drag-events"
+import { meshNodePoints } from "../../lib/mesh-warp"
 import { parseHexColorInput } from "./color-picker-utils"
 import {
   createGradientStopAtPoint,
@@ -9,9 +10,14 @@ import {
   findInsertedGradientStopIndex,
   gradientRailPointFromClient,
   gradientEditorPreviewCss,
+  addMeshFreePoint,
   insertGradientStop,
+  meshEditorStops,
   normalizedGradientPosition,
   parseGradientStopPositionInput,
+  removeGradientStopAt,
+  removeMeshPointAt,
+  reorderMeshColors,
   updateGradientStopColorById,
   updateGradientStopPositionById,
 } from "./color-gradient-editor-model"
@@ -63,18 +69,18 @@ export function useColorGradientEditor({
 }: UseColorGradientEditorArgs) {
   const gradientRailRef = React.useRef<HTMLDivElement>(null)
 
-  const normalizedStops = React.useMemo(
-    () =>
-      normalizeColorStops(
-        fallbackColorStops({
-          stops,
-          primaryHex,
-          secondaryHex,
-          hasSecondary,
-        })
-      ),
-    [hasSecondary, primaryHex, secondaryHex, stops]
-  )
+  const isMesh = isGradient && gradientType === "mesh"
+  const normalizedStops = React.useMemo(() => {
+    const normalized = normalizeColorStops(
+      fallbackColorStops({
+        stops,
+        primaryHex,
+        secondaryHex,
+        hasSecondary,
+      })
+    )
+    return isMesh ? meshEditorStops(normalized, primaryHex) : normalized
+  }, [hasSecondary, isMesh, primaryHex, secondaryHex, stops])
 
   const {
     activeStop,
@@ -335,13 +341,98 @@ export function useColorGradientEditor({
     setOpenStopEditorAnchor("rail")
   }, [normalizedStops, primaryHex, updateStops])
 
+  const removeStop = React.useCallback(
+    (index: number) => {
+      updateStops(
+        isMesh
+          ? removeMeshPointAt(normalizedStops, index)
+          : removeGradientStopAt(normalizedStops, index)
+      )
+      closeStopEditorAfterGradientMutation()
+    },
+    [closeStopEditorAfterGradientMutation, isMesh, normalizedStops, updateStops]
+  )
+
+  const reorderMeshPoints = React.useCallback(
+    (from: number, to: number) => {
+      updateStops(reorderMeshColors(normalizedStops, from, to))
+      setActiveStop(to)
+      closeStopEditorAfterGradientMutation()
+    },
+    [closeStopEditorAfterGradientMutation, normalizedStops, updateStops]
+  )
+
+  /** Drag a mesh node anywhere; the other eight keep their spots. */
+  const moveMeshPoint = React.useCallback(
+    (index: number, x: number, y: number) => {
+      const points = meshNodePoints(normalizedStops)
+      updateStops(
+        normalizedStops.map((stop, stopIndex) =>
+          stopIndex === index
+            ? { ...stop, x, y }
+            : stopIndex < 9
+              ? { ...stop, ...points[stopIndex] }
+              : stop
+        )
+      )
+    },
+    [normalizedStops, updateStops]
+  )
+
+  const addMeshPoint = React.useCallback(
+    (point?: { x: number; y: number }) => {
+      // Default spot: the emptiest of a few candidates, so a new point is
+      // easy to see and grab.
+      const taken = [
+        ...meshNodePoints(normalizedStops),
+        ...normalizedStops.slice(9).map((stop) => ({
+          x: stop.x ?? 0.5,
+          y: stop.y ?? 0.5,
+        })),
+      ]
+      const candidates = [
+        { x: 0.25, y: 0.25 },
+        { x: 0.75, y: 0.25 },
+        { x: 0.25, y: 0.75 },
+        { x: 0.75, y: 0.75 },
+        { x: 0.5, y: 0.35 },
+        { x: 0.5, y: 0.65 },
+      ]
+      const spot =
+        point ??
+        candidates.reduce((best, candidate) => {
+          const room = (spot: { x: number; y: number }) =>
+            Math.min(
+              ...taken.map((other) =>
+                Math.hypot(other.x - spot.x, other.y - spot.y)
+              )
+            )
+          return room(candidate) > room(best) ? candidate : best
+        })
+      const nextStops = addMeshFreePoint(normalizedStops, spot, primaryHex)
+      updateStops(nextStops)
+      setActiveStop(nextStops.length - 1)
+    },
+    [normalizedStops, primaryHex, updateStops]
+  )
+
+  const resetMeshPoints = React.useCallback(() => {
+    updateStops(
+      normalizedStops.map((stop, index) => {
+        if (index >= 9) return stop
+        const { x: _x, y: _y, ...rest } = stop
+        return rest
+      })
+    )
+  }, [normalizedStops, updateStops])
+
   return {
     activeStop,
     activeValue: normalizedStops[activeStop]?.color ?? value,
     addStopAtMiddle,
     addStopAtRailPosition,
     applyGradientPreset,
-    canRemoveStop: normalizedStops.length > 1,
+    canRemoveStop: normalizedStops.length > (isMesh ? 2 : 1),
     closeStopEditor,
     commitStopColorInput,
     commitStopPositionInput,
@@ -353,12 +444,17 @@ export function useColorGradientEditor({
     openStopEditor,
     openStopEditorAnchor,
     openingStopEditorRef,
+    removeStop,
     setActiveStop,
     setOpenStopEditor,
     setOpenStopEditorAnchor,
     setOpenStopEditorState,
     shuffleMeshPoints,
     shuffleMeshStops,
+    addMeshPoint,
+    moveMeshPoint,
+    reorderMeshPoints,
+    resetMeshPoints,
     updateActiveStopColor,
   }
 }

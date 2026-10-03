@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test"
 import { test } from "./fixtures"
 
-test("everyday-word search surfaces labeled presets and symbols, and Enter chooses a real result", async ({
+test("each tab searches its own content, and Enter chooses a real symbol", async ({
   page,
 }) => {
   await page.goto("/")
@@ -10,35 +10,30 @@ test("everyday-word search surfaces labeled presets and symbols, and Enter choos
     name: "Search Material Symbols",
   })
   await search.fill("heart")
-  await expect(
-    page.getByRole("heading", { name: "Matching presets" })
-  ).toBeVisible()
-  await expect(
-    page.getByRole("button", { name: "Choose Heart", exact: true })
-  ).toBeVisible()
+  // Symbols search only symbols: presets live on their own tab.
   await expect(
     page.getByRole("button", { name: "favorite", exact: true })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Use first result: Heart", exact: true })
-  ).toBeEnabled()
+    page.getByRole("button", { name: "Choose Heart", exact: true })
+  ).toHaveCount(0)
   await search.press("Enter")
   await expect(page.getByRole("dialog")).toHaveCount(0)
-  await expect(
-    page.getByRole("button", { name: "Change icon for Heart" })
-  ).toBeVisible()
-  await page.getByRole("button", { name: "Change icon for Heart" }).click()
+
+  await page.getByRole("button", { name: /Change icon for/ }).click()
   await search.fill("user")
   await expect(
     page.getByRole("button", { name: "person", exact: true })
   ).toBeVisible()
   await search.fill("zzzz_nonexistent")
-  await expect(
-    page.getByRole("button", { name: "Try exact symbol name", exact: true })
-  ).toBeVisible()
+  await expect(page.getByText("No matching symbols.", { exact: false })).toBeVisible()
+
+  await page.getByRole("tab", { name: "Presets", exact: true }).click()
+  const presetSearch = page.getByRole("searchbox", { name: "Search presets" })
+  await presetSearch.fill("heart")
   await expect(
     page.getByRole("button", { name: "Choose Heart", exact: true })
-  ).toHaveCount(0)
+  ).toBeVisible()
 })
 
 for (const width of [390, 1024]) {

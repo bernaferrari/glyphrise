@@ -33,12 +33,7 @@ export function ColorGradientModeToggle({
   onGradientTypeChange,
 }: ColorGradientModeToggleProps) {
   return (
-    <div
-      className={cn(
-        "flex items-center gap-1 rounded-lg border border-border bg-muted/45 p-0.5",
-        isGradient && "mx-2"
-      )}
-    >
+    <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/45 p-0.5">
       <button
         type="button"
         onClick={() => onGradientToggle?.(false)}

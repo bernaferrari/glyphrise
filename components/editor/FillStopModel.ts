@@ -27,7 +27,13 @@ export const googleMeshFillStops = (): FillStop[] =>
   GOOGLE_MESH_FILL_STOPS.map((stop) => ({ ...stop }))
 
 export const normalizeFillStops = (
-  stops: Array<{ id?: string; color: string; position: number }>
+  stops: Array<{
+    id?: string
+    color: string
+    position: number
+    x?: number
+    y?: number
+  }>
 ): FillStop[] => {
   const usedIds = new Set<string>()
   const nextStopId = (id: string | undefined, index: number) => {
@@ -51,6 +57,9 @@ export const normalizeFillStops = (
       id: nextStopId(stop.id, index),
       color: stop.color.startsWith("#") ? stop.color : `#${stop.color}`,
       position: clampNumber(stop.position, 0, 1),
+      ...(Number.isFinite(stop.x) && Number.isFinite(stop.y)
+        ? { x: clampNumber(stop.x!, 0, 1), y: clampNumber(stop.y!, 0, 1) }
+        : {}),
     }))
     .sort((a, b) => a.position - b.position)
 }

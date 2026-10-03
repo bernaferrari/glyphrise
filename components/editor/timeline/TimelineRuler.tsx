@@ -116,6 +116,11 @@ export const TimelineRuler = React.forwardRef<
         aria-hidden="true"
       />
       <div
+        className="pointer-events-none absolute inset-y-0 left-0 bg-foreground/[0.03]"
+        style={{ width: EDGE_INSET }}
+        aria-hidden="true"
+      />
+      <div
         className="pointer-events-none absolute inset-y-0 right-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET }}
         aria-hidden="true"
@@ -135,7 +140,7 @@ export const TimelineRuler = React.forwardRef<
           />
           {tick.major && Math.abs(tick.time - duration) > 0.001 && (
             <span
-              className={`absolute top-[7px] font-mono text-[10px] leading-none text-muted-foreground tabular-nums ${"left-2"}`}
+              className={`absolute top-1.75 font-mono text-[10px] leading-none text-muted-foreground tabular-nums ${"left-2"}`}
             >
               {formatTimelineTick(tick.time)}
             </span>
@@ -149,7 +154,7 @@ export const TimelineRuler = React.forwardRef<
         <svg
           viewBox="0 0 13 17"
           aria-hidden="true"
-          className="absolute top-1 left-1/2 h-[17px] w-[13px] -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+          className="absolute top-1 left-1/2 h-4.25 w-3.25 -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
           style={{ zIndex: TIMELINE_LAYER.rulerPlayheadHandle }}
         >
           <path d="M2.5 0h8A2.5 2.5 0 0 1 13 2.5v8.3a2.5 2.5 0 0 1-.8 1.8L7.4 16.6a1.3 1.3 0 0 1-1.8 0L.8 12.6A2.5 2.5 0 0 1 0 10.8V2.5A2.5 2.5 0 0 1 2.5 0Z" />

@@ -15,14 +15,9 @@ export function ExportCopyButton({
   label = "Copy Code",
 }: ExportCopyButtonProps) {
   return (
-    <Button
-      size="sm"
-      variant="ghost"
-      className="border border-border bg-background/90 text-foreground shadow-sm hover:bg-muted"
-      onClick={onCopy}
-    >
+    <Button size="sm" variant="outline" onClick={onCopy}>
       {copied ? (
-        <Check className="h-3.5 w-3.5 text-green-400" />
+        <Check className="h-3.5 w-3.5 text-success" />
       ) : (
         <Copy className="h-3.5 w-3.5" />
       )}

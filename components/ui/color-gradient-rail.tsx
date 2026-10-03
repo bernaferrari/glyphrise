@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 import type { NormalizedColorStop } from "./color-stop-model"
 import { type ColorStopEditorAnchor } from "./color-gradient-stop-rows"
 import { ColorStopEditorPopover } from "./color-stop-editor-popover"
-import type { SolidColorEditorProps } from "./color-solid-editor"
+import type { StopEditorProps } from "./color-stop-editor-popover"
 
 interface ColorGradientRailProps {
   railRef: React.RefObject<HTMLDivElement | null>
@@ -15,7 +15,7 @@ interface ColorGradientRailProps {
   openStopEditor: number | null
   openStopEditorAnchor: ColorStopEditorAnchor
   stopContentRef: React.RefObject<HTMLDivElement | null>
-  stopEditorProps: SolidColorEditorProps
+  stopEditorProps: StopEditorProps
   onAddStopAtRailPosition: (clientX: number, clientY?: number) => void
   onStopPointerDown: (stop: number, event: React.PointerEvent) => void
   onStopEditorOpenIntent: () => void
@@ -47,7 +47,7 @@ export function ColorGradientRail({
       <div
         ref={railRef}
         title="Click the bar to add a color stop"
-        className="relative mx-5 mt-7 h-9 rounded-md border border-border bg-muted/35"
+        className="relative mx-4 mt-7 h-9 rounded-md border border-border bg-muted/35"
         onPointerDown={(event) => {
           if (event.button !== 0) return
           event.preventDefault()

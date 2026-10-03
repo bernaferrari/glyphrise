@@ -8,7 +8,12 @@ import {
 } from "@/lib/drag-events"
 import type { ShapeStop } from "../TimelineModel"
 import type { SnapTimeOptions } from "./TimelineSnapping"
-import { moveShapeStop, setShapeTransitionFraction } from "./TimelineShapeModel"
+import {
+  adjacentShapeId,
+  moveShapeStop,
+  setShapeTransitionFraction,
+  swapShapeIcons,
+} from "./TimelineShapeModel"
 import type { SelectedTimelineKeyframe } from "./TimelineTypes"
 
 type RawTimeFromClientX = (clientX: number) => number
@@ -62,28 +67,60 @@ export function useTimelineShapeDrag({
     const startX = event.clientX
     const startTime = shapes.find((shape) => shape.id === shapeId)?.time ?? 0
     const grabOffset = rawTimeFromClientX(event.clientX) - startTime
+    // Reorder like a list: once the pointer crosses the middle of the
+    // neighbouring clip (as laid out when the drag began, or at the last
+    // swap), the two trade places and the drag carries on in the new slot.
+    let working = shapes
+    let homeTime = startTime
+    const neighborMiddle = (direction: -1 | 1) => {
+      const neighborId = adjacentShapeId(working, shapeId, direction)
+      const neighbor = working.find((shape) => shape.id === neighborId)
+      if (!neighbor) return null
+      const end =
+        direction === -1
+          ? homeTime
+          : (working.find(
+              (shape) => shape.id === adjacentShapeId(working, neighbor.id, 1)
+            )?.time ?? duration)
+      return { neighbor, middle: neighbor.time + (end - neighbor.time) / 2 }
+    }
+    let previous = neighborMiddle(-1)
+    let next = neighborMiddle(1)
     bindWindowPointerDrag({
       onMove: (moveEvent) => {
         if (Math.abs(moveEvent.clientX - startX) > 3) {
           if (!draggedRef.current) onScrubStart?.()
           draggedRef.current = true
         }
-        const snapped = snapTime(
-          rawTimeFromClientX(moveEvent.clientX) - grabOffset,
-          {
-            bypass: moveEvent.altKey,
-            excludeShapeId: shapeId,
-            snapToPlayhead: true,
-          }
-        )
-        onShapesChange(
-          moveShapeStop({
-            shapes,
-            shapeId,
-            time: snapped,
-            duration,
-          })
-        )
+        const pointerTime = rawTimeFromClientX(moveEvent.clientX)
+        const desired = pointerTime - grabOffset
+        const target =
+          previous && pointerTime < previous.middle
+            ? previous.neighbor
+            : next && pointerTime > next.middle
+              ? next.neighbor
+              : null
+        if (target) {
+          const vacatedSlotTime = homeTime
+          homeTime = target.time
+          working = swapShapeIcons(working, shapeId, target.id).map((shape) =>
+            shape.id === target.id ? { ...shape, time: vacatedSlotTime } : shape
+          )
+          previous = neighborMiddle(-1)
+          next = neighborMiddle(1)
+        }
+        const snapped = snapTime(desired, {
+          bypass: moveEvent.altKey,
+          excludeShapeId: shapeId,
+          snapToPlayhead: true,
+        })
+        working = moveShapeStop({
+          shapes: working,
+          shapeId,
+          time: snapped,
+          duration,
+        })
+        onShapesChange(working)
       },
       onEnd: (endEvent) => {
         if (endEvent instanceof PointerEvent) {

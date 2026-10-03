@@ -15,7 +15,7 @@ import {
   createSvgCamera,
   createSvgRenderer,
 } from "./SvgSceneSetup"
-import { materialLightMultiplier } from "./SvgMaterials"
+import { finishLightMultiplier } from "./MaterialPresets"
 import type { SvgCanvasProps } from "./SvgTypes"
 
 type SceneResourceRefs = {
@@ -54,7 +54,7 @@ export const createSvgSceneResources = ({
   const width = container.clientWidth
   const height = container.clientHeight
   const materialLight =
-    props.keyLightIntensity * materialLightMultiplier(props.materialPreset)
+    props.keyLightIntensity * finishLightMultiplier(props.materialPreset)
   const renderer = createSvgRenderer({ canvas, width, height, materialLight })
   refs.rendererRef.current = renderer
 

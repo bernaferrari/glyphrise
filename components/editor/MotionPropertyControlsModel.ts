@@ -23,6 +23,8 @@ export type MotionPropertyControlsOptions = {
   setRotationAxisKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
   setPreviewRotationOffset: Dispatch<SetStateAction<LightPosition | null>>
   setObjectScale: Dispatch<SetStateAction<number>>
+  activeObjectScale: number
+  objectScaleAxes: LightPosition
   setObjectScaleAxes: Dispatch<SetStateAction<LightPosition>>
   setIsScaleLocked: Dispatch<SetStateAction<boolean>>
   activeMoveOffset: LightPosition

@@ -310,7 +310,7 @@ export const applySuccessfulBackup = ({
 }) => ({
   persistStatus: persistStatusAfterSuccessfulBackup(persistStatus),
   persistMessage:
-    persistStatus === "error" ? persistMessage : "Project downloaded.",
+    persistStatus === "error" ? persistMessage : "Copy downloaded.",
 })
 
 export const chooseDeletionReplacement = ({

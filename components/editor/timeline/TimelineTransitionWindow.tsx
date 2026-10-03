@@ -133,7 +133,7 @@ export function TimelineTransitionWindow({
             ])
           }}
           className={cn(
-            "timeline-transition group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+            "group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
             isCut
               ? "-translate-x-1/2 rounded-md bg-muted"
               : "rounded-md bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_45%,transparent)_0_4px,transparent_4px_8px)] hover:bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_75%,transparent)_0_4px,transparent_4px_8px)]"

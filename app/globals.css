@@ -24,6 +24,9 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-recording: var(--recording);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -63,6 +66,9 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --warning: oklch(0.555 0.163 48.998);
+  --success: oklch(0.527 0.154 150.069);
+  --recording: oklch(0.637 0.237 25.331);
   --border: oklch(0.91 0.004 260);
   --input: oklch(0.91 0.004 260);
   --ring: oklch(0.708 0 0);
@@ -95,7 +101,7 @@
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.27 0.006 260);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.29 0.006 260);
+  --popover: oklch(0.26 0.006 260);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.56 0.18 265);
   --primary-foreground: oklch(0.985 0.002 265);
@@ -106,6 +112,8 @@
   --accent: oklch(0.33 0.006 260);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --warning: oklch(0.828 0.189 84.429);
+  --success: oklch(0.792 0.209 151.711);
   --border: oklch(0.35 0.006 260);
   --input: oklch(0.38 0.006 260);
   --ring: oklch(0.556 0 0);
@@ -377,11 +385,6 @@
     flex: 1;
   }
 
-  .material-symbol-tile .favorite-action {
-    position: static;
-    align-self: center;
-  }
-
   .touch-hit-area::after {
     content: none;
   }
@@ -414,12 +417,6 @@
   scrollbar-color: color-mix(in oklch, var(--muted-foreground) 42%, transparent)
     transparent;
   scrollbar-width: thin;
-}
-
-@media (hover: none), (pointer: coarse) {
-  .favorite-action {
-    opacity: 1;
-  }
 }
 
 /* Glassmorphism panel styling */

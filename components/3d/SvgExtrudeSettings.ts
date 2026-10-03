@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { MAX_BEVEL_SEGMENTS } from "./SvgSceneUtils"
 import { finiteNumber, minContourDimension } from "./SvgGeometry"
-import { isGraphiteCutPreset, isSoftCutPreset } from "./MaterialPresets"
+import { finishCarve } from "./MaterialPresets"
 import type { SvgCanvasProps } from "./SvgTypes"
 
 export type SvgExtrudeBaseSettings = {
@@ -30,13 +30,9 @@ export type SafeShapeExtrudeSettings = {
 export const svgExtrudeBaseSettings = (
   props: SvgCanvasProps
 ): SvgExtrudeBaseSettings => {
-  const forceCrown = isGraphiteCutPreset(props.materialPreset)
-  const crownProfile =
-    props.materialPreset === "cutInner"
-      ? "inset"
-      : props.materialPreset === "cutOuter"
-        ? "outer"
-        : "center"
+  const carve = finishCarve(props.materialPreset)
+  const forceCrown = carve !== null
+  const crownProfile = carve?.profile ?? "center"
   const requestedBevelSize = finiteNumber(props.bevelSize, 0)
   const requestedBevelThickness = finiteNumber(props.bevelThickness, 0)
   const crownAmount = forceCrown
@@ -96,7 +92,7 @@ export const svgExtrudeBaseSettings = (
     crownInset: forceCrown
       ? Math.max(0.06, Math.min(1.25, bevelSize * 0.55))
       : 0,
-    crownMode: isSoftCutPreset(props.materialPreset) ? "native" : "medial",
+    crownMode: carve?.mode ?? "medial",
   }
 }
 

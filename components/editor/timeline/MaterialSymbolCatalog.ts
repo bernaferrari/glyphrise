@@ -67,7 +67,7 @@ const MATERIAL_WIPE_READY_PAIR_INDEX = MATERIAL_WIPE_READY_PAIRS.map(
 export const visibleMaterialSymbols = (
   names: string[],
   query: string,
-  limit = 80
+  limit = Infinity
 ) => {
   const normalizedQuery = materialSymbolQuery(query)
   const source = names.length > 0 ? names : FALLBACK_MATERIAL_SYMBOL_NAMES

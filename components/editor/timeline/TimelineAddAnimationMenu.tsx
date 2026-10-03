@@ -120,7 +120,7 @@ export function TimelineAddAnimationMenu({
               <TimelineRowIcon id={group.id} className="size-3.5" />
               {group.name}
               {group.animated && (
-                <span className="ml-auto rounded bg-amber-500/12 px-1.5 py-px text-[10px] text-amber-600 dark:text-amber-400">
+                <span className="ml-auto rounded bg-warning/12 px-1.5 py-px text-[10px] text-warning">
                   Replaces current
                 </span>
               )}

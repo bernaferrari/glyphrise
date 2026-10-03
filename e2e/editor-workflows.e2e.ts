@@ -2,8 +2,8 @@ import { expect, type Page } from "@playwright/test"
 import { test } from "./fixtures"
 
 const openProjects = async (page: Page) => {
-  await page.getByRole("button", { name: "Open project menu" }).click()
-  await page.getByRole("button", { name: "Open projects" }).click()
+  await page.getByRole("button", { name: "Open file menu" }).click()
+  await page.getByRole("button", { name: "All files" }).click()
 }
 
 test.beforeEach(async ({ page }) => {
@@ -27,10 +27,10 @@ test("creates a named blank project without example animation", async ({
   page,
 }) => {
   await openProjects(page)
-  await page.getByLabel("New project name").fill("Launch mark")
+  await page.getByLabel("New file name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
-  const projectName = page.getByLabel("Project name", { exact: true })
+  const projectName = page.getByLabel("File name", { exact: true })
   await expect(projectName).toHaveValue("Launch mark")
   await expect(
     page.locator(
@@ -49,9 +49,9 @@ test("duplicates projects and recovers after deleting the current project", asyn
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
-    await page.getByLabel("New project name").fill(name)
+    await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
-    await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+    await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
       name
     )
   }
@@ -63,7 +63,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
   await page
     .getByRole("button", { name: "Duplicate Original", exact: true })
     .click()
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Original copy"
   )
 
@@ -74,13 +74,13 @@ test("duplicates projects and recovers after deleting the current project", asyn
   await expect(
     page.getByRole("heading", { name: "Delete “Original copy”?" })
   ).toBeVisible()
-  await page.getByRole("button", { name: "Delete project" }).click()
+  await page.getByRole("button", { name: "Delete file" }).click()
 
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Second project"
   )
   await expect(
-    page.getByRole("button", { name: "Open Original copy, current project" })
+    page.getByRole("button", { name: "Open Original copy, open now" })
   ).toHaveCount(0)
 })
 
@@ -89,9 +89,9 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
-    await page.getByLabel("New project name").fill(name)
+    await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
-    await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+    await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
       name
     )
   }
@@ -102,50 +102,48 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
   }
 
   await openProjects(page)
-  await expect(page.getByLabel("Search saved projects")).toBeVisible()
+  await expect(page.getByLabel("Search files")).toBeVisible()
   await expect(
     page.getByRole("button", {
       name: /^Open (Oldest saved project|Project \d+)(, current project)?$/,
     })
   ).toHaveCount(12)
 
-  await page.getByLabel("Search saved projects").fill("Oldest saved")
+  await page.getByLabel("Search files").fill("Oldest saved")
   await expect(
     page.getByRole("button", { name: "Open Oldest saved project" })
   ).toBeVisible()
   await page.getByRole("button", { name: "Open Oldest saved project" }).click()
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Oldest saved project"
   )
 
   await openProjects(page)
-  await page.getByLabel("Search saved projects").fill("Oldest saved")
+  await page.getByLabel("Search files").fill("Oldest saved")
   await page
     .getByRole("button", { name: "Duplicate Oldest saved project" })
     .click()
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Oldest saved project copy"
   )
 
   await openProjects(page)
-  await page
-    .getByLabel("Search saved projects")
-    .fill("Oldest saved project copy")
+  await page.getByLabel("Search files").fill("Oldest saved project copy")
   await page
     .getByRole("button", { name: "Delete Oldest saved project copy" })
     .click()
-  await page.getByRole("button", { name: "Delete project" }).click()
-  await expect(
-    page.getByLabel("Project name", { exact: true })
-  ).not.toHaveValue("Oldest saved project copy")
+  await page.getByRole("button", { name: "Delete file" }).click()
+  await expect(page.getByLabel("File name", { exact: true })).not.toHaveValue(
+    "Oldest saved project copy"
+  )
 })
 
 test("starts style templates with a clean undo baseline", async ({ page }) => {
   await openProjects(page)
-  await page.getByLabel("New project name").fill("Styled project")
+  await page.getByLabel("New file name").fill("Styled project")
   await page.getByRole("button", { name: "Spectrum Chrome" }).click()
 
-  await expect(page.getByLabel("Project name", { exact: true })).toHaveValue(
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Styled project"
   )
   await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
@@ -178,12 +176,12 @@ test("keeps essential workspace actions reachable at compact widths", async ({
   await page.setViewportSize({ width: 640, height: 700 })
   await page.getByRole("button", { name: "Workspace actions" }).click()
 
-  await expect(page.getByRole("button", { name: "Projects" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "Files" })).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Import project file" })
+    page.getByRole("button", { name: "Open from computer" })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Download project backup" })
+    page.getByRole("button", { name: "Download a copy" })
   ).toBeVisible()
   // The menu entry, not the Animate button on the preview.
   await expect(
@@ -256,7 +254,7 @@ test("orbits the camera without editing the document", async ({ page }) => {
   await expect(rotationX).toHaveValue("0")
   await expect(rotationY).toHaveValue("0")
   await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
-  await page.getByRole("button", { name: "Reset camera", exact: true }).click()
+  await page.getByRole("button", { name: "Reset view", exact: true }).click()
   await expect(rotationY).toHaveValue("0")
   await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
 
@@ -265,6 +263,32 @@ test("orbits the camera without editing the document", async ({ page }) => {
   await rotationY.press("Enter")
   await page.getByRole("button", { name: "Undo" }).click()
   await expect(rotationY).toHaveValue("0")
+})
+
+test("resets artwork rotation, position, and scale together with undo", async ({
+  page,
+}) => {
+  await openProjects(page)
+  await page.getByLabel("New file name").fill("Reset transforms")
+  await page.getByRole("button", { name: "Start blank" }).click()
+  const rotation = page.getByLabel("Rotation Y", { exact: true })
+  const position = page.getByLabel("Position X", { exact: true })
+  const scale = page.getByLabel("Scale", { exact: true })
+  await scale.fill("1.5")
+  await scale.press("Enter")
+  await rotation.fill("25")
+  await rotation.press("Enter")
+  await position.fill("12")
+  await position.press("Enter")
+  await expect(position).toHaveValue("12")
+  await page.getByRole("button", { name: "Reset view", exact: true }).click()
+  await expect(rotation).toHaveValue("0")
+  await expect(position).toHaveValue("0")
+  await expect(scale).toHaveValue("1.00")
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await expect(rotation).toHaveValue("25")
+  await expect(position).toHaveValue("12")
+  await expect(scale).toHaveValue("1.50")
 })
 
 test("describes code exports as implementation starters", async ({ page }) => {

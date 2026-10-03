@@ -367,7 +367,7 @@ export function useEditorSnapshotHistory({
         setProjectStatusMessage(
           error instanceof Error
             ? `Autosave failed: ${error.message}`
-            : "Autosave failed. Download the project to keep a backup."
+            : "Autosave failed. Download a copy to keep a backup."
         )
       }
     },
@@ -431,7 +431,7 @@ export function useEditorSnapshotHistory({
       setProjectStatusMessage(
         error instanceof Error
           ? `Autosave failed: ${error.message}`
-          : "Autosave failed. Download the current project for a backup."
+          : "Autosave failed. Download a copy of this file as a backup."
       )
     }
     setProjectActionError(null)
@@ -479,7 +479,7 @@ export function useEditorSnapshotHistory({
       setProjectStatusMessage(
         error instanceof Error
           ? `Download failed: ${error.message}`
-          : "Project download failed. Try again."
+          : "Download failed. Try again."
       )
     }
   }
@@ -492,8 +492,7 @@ export function useEditorSnapshotHistory({
     const baseSnapshot = initialSnapshotRef.current
     const nextProject = createProjectMetadata(
       normalizeProjectName(
-        requestedName ||
-          (kind === "example" ? "Example project" : "Untitled project")
+        requestedName || (kind === "example" ? "Example" : "Untitled")
       )
     )
     try {
@@ -593,7 +592,7 @@ export function useEditorSnapshotHistory({
     if (!documentFile) {
       setProjectStatus("error")
       setProjectStatusMessage(
-        "That recent project is no longer available locally."
+        "That file is no longer available in this browser."
       )
       setRecentProjects(listPersistedEditorProjects())
       return
@@ -623,9 +622,7 @@ export function useEditorSnapshotHistory({
         : readPersistedEditorProject(projectId)
     if (!documentFile) {
       setProjectStatus("error")
-      setProjectStatusMessage(
-        "That project is no longer available to duplicate."
-      )
+      setProjectStatusMessage("That file is no longer available to duplicate.")
       setRecentProjects(listPersistedEditorProjects())
       return
     }
@@ -735,9 +732,7 @@ export function useEditorSnapshotHistory({
       if (!file) return
       if (file.size > MAX_PROJECT_FILE_BYTES) {
         setProjectStatus("error")
-        setProjectStatusMessage(
-          "That project is larger than the 5 MB file limit."
-        )
+        setProjectStatusMessage("That file is larger than the 5 MB limit.")
         return
       }
 
@@ -759,9 +754,7 @@ export function useEditorSnapshotHistory({
           console.error("Could not open project file:", error)
           setProjectStatus("error")
           setProjectStatusMessage(
-            error instanceof Error
-              ? error.message
-              : "Could not open that project file."
+            error instanceof Error ? error.message : "Could not open that file."
           )
         })
     }

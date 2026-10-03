@@ -58,6 +58,9 @@ export interface GradientStop {
   id?: string
   color: string
   position: number
+  /** Mesh only: where this node was dragged (0–1, y down). */
+  x?: number
+  y?: number
 }
 
 export interface SvgCanvasProps {
@@ -109,6 +112,7 @@ export interface SvgCanvasProps {
   viewInertiaEnabled?: boolean
   showOrientationGizmo?: boolean
   showCenterPoint?: boolean
+  showSelectionOutline?: boolean
   showTransformGizmo?: boolean
   selectedLayerId?: string | null
   /** Color role ("a" | "b") of the shape whose layers selection clicks resolve against. */

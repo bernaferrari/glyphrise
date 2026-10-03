@@ -4,8 +4,8 @@ import { useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
-  ChevronDown,
   Check,
+  ChevronDown,
   CircleHelp,
   Sparkles,
   Download,
@@ -105,19 +105,19 @@ function CompactWorkspaceMenu({
       disabled: false,
     },
     {
-      label: "Projects",
+      label: "Files",
       Icon: FolderClock,
       onClick: action(onProjectNew),
       disabled: false,
     },
     {
-      label: "Import project file",
+      label: "Open from computer",
       Icon: FolderOpen,
       onClick: action(onProjectOpen),
       disabled: false,
     },
     {
-      label: "Download project backup",
+      label: "Download a copy",
       Icon: FileDown,
       onClick: action(onProjectSave),
       disabled: false,
@@ -195,29 +195,14 @@ function ProjectMenu({
     setOpen(false)
     callback()
   }
-  const items = [
-    {
-      label: "Projects on this device",
-      accessibleLabel: "Open projects",
-      description: "Create, switch, duplicate, or delete",
-      Icon: FolderClock,
-      onClick: action(onProjectNew),
-    },
-    {
-      label: "Import project file",
-      accessibleLabel: "Import project file",
-      description: "Open a downloaded Glyphrise backup",
-      Icon: FolderOpen,
-      onClick: action(onProjectOpen),
-    },
-    {
-      label: "Download backup",
-      accessibleLabel: "Download project backup",
-      description: "Save a portable copy of this project",
-      Icon: FileDown,
-      onClick: action(onProjectSave),
-    },
-  ]
+  const statusText =
+    projectStatus === "restoring"
+      ? "Restoring…"
+      : projectStatus === "saving"
+        ? "Saving…"
+        : projectStatus === "error"
+          ? "Autosave needs attention"
+          : "Saved"
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -225,59 +210,90 @@ function ProjectMenu({
         render={
           <button
             type="button"
-            aria-label="Open project menu"
-            title="Projects, import, and backup"
+            aria-label="Open file menu"
+            title="Files"
             className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground md:grid"
           />
         }
       >
         <ChevronDown className="size-3.5" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-1.5">
-        <div className="mb-1 flex items-start gap-2 rounded-lg bg-muted/45 px-2.5 py-2">
-          {projectStatus === "error" ? (
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
-          ) : projectStatus === "restoring" || projectStatus === "saving" ? (
-            <LoaderCircle className="mt-0.5 size-4 shrink-0 animate-spin motion-reduce:animate-none" />
-          ) : (
-            <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-          )}
-          <div className="min-w-0">
-            <div className="text-xs font-medium text-foreground">
-              {projectStatus === "restoring"
-                ? "Restoring project"
-                : projectStatus === "saving"
-                  ? "Saving locally"
-                  : projectStatus === "error"
-                    ? "Autosave needs attention"
-                    : "Saved locally"}
-            </div>
-            <div className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
-              {projectStatusMessage}
-            </div>
+      <PopoverContent align="start" className="w-64 gap-0 p-1">
+        {/* What a project is, in one breath, with the save state inline. */}
+        <div className="px-2.5 pt-2 pb-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+            {projectStatus === "error" ? (
+              <AlertTriangle className="size-3.5 text-destructive" />
+            ) : projectStatus === "saved" ? (
+              <Check className="size-3.5 text-primary" />
+            ) : (
+              <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+            )}
+            {statusText}
           </div>
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+            {projectStatus === "error"
+              ? projectStatusMessage
+              : "Files save automatically in this browser. Download a copy to back one up or move it to another device."}
+          </p>
         </div>
-        {items.map(({ label, accessibleLabel, description, Icon, onClick }) => (
-          <button
-            key={label}
-            type="button"
-            aria-label={accessibleLabel}
-            onClick={onClick}
-            className="flex min-h-14 w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-          >
-            <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-            <span className="min-w-0">
-              <span className="block text-xs font-medium text-foreground">
-                {label}
-              </span>
-              <span className="mt-0.5 block text-[11px] leading-4 text-muted-foreground">
-                {description}
-              </span>
-            </span>
-          </button>
-        ))}
+        <div className="-mx-1 border-t border-border" />
+        <div className="grid gap-0.5 pt-1">
+          <MenuRow
+            label="All files…"
+            accessibleLabel="All files"
+            Icon={FolderClock}
+            onClick={action(onProjectNew)}
+          />
+          <MenuRow
+            label="Download a copy"
+            accessibleLabel="Download a copy"
+            Icon={FileDown}
+            onClick={action(onProjectSave)}
+          />
+          <MenuRow
+            label="Open from computer…"
+            accessibleLabel="Open from computer"
+            Icon={FolderOpen}
+            onClick={action(onProjectOpen)}
+          />
+        </div>
       </PopoverContent>
     </Popover>
+  )
+}
+
+function MenuRow({
+  label,
+  accessibleLabel,
+  hint,
+  Icon,
+  onClick,
+}: {
+  label: string
+  accessibleLabel: string
+  hint?: string
+  Icon: LucideIcon
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={accessibleLabel}
+      onClick={onClick}
+      className="flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+    >
+      <Icon
+        aria-hidden="true"
+        className="size-3.5 shrink-0 text-muted-foreground"
+      />
+      <span className="flex-1">{label}</span>
+      {hint && (
+        <span className="font-mono text-[10px] text-muted-foreground">
+          {hint}
+        </span>
+      )}
+    </button>
   )
 }
 
@@ -305,7 +321,7 @@ export function AppTopBar({
 }: AppTopBarProps) {
   const projectStatusLabel =
     projectStatus === "restoring"
-      ? "Restoring project"
+      ? "Restoring file"
       : projectStatus === "saving"
         ? "Saving locally…"
         : projectStatus === "error"
@@ -313,7 +329,7 @@ export function AppTopBar({
           : "Saved locally"
 
   return (
-    <header className="app-topbar relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl max-[720px]:h-14 sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
+    <header className="relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl max-[720px]:h-14 sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"

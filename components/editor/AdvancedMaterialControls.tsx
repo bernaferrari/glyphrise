@@ -32,7 +32,7 @@ export function AdvancedMaterialControls({
       onOpenChange={onOpenChange}
       badge={
         keyframeCount > 0 ? (
-          <span className="ml-1 size-1.5 rounded-full bg-violet-400" />
+          <span className="ml-1 size-1.5 rounded-full bg-(--timeline-accent)" />
         ) : null
       }
     >

@@ -21,7 +21,7 @@ describe("project save and action status", () => {
       persistMessage: "All changes saved locally.",
     })
     expect(afterSaved.persistStatus).toBe("saved")
-    expect(afterSaved.persistMessage).toBe("Project downloaded.")
+    expect(afterSaved.persistMessage).toBe("Copy downloaded.")
   })
 
   it("associates create, duplicate, and delete failures with the Projects dialog", () => {

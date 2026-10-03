@@ -6,7 +6,10 @@ import type { MaterialPresetId } from "../3d/MaterialPresets"
 import { FillMode, MaterialSettingKey, MaterialSettings } from "./EditorModel"
 import { AdvancedMaterialControls } from "./AdvancedMaterialControls"
 import { FinishPresetStrip } from "./FinishPresetStrip"
-import { MATERIAL_METADATA } from "./FinishRegistry"
+import type { FinishPreviewFill } from "../3d/FinishThumbnails"
+import { isGraphiteCutPreset } from "../3d/MaterialPresets"
+import { CarvedVariantControl } from "./CarvedVariantControl"
+import { MATERIAL_METADATA, finishLabel } from "./FinishRegistry"
 import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
 import type { FillGradientType, FillStop } from "./TimelineModel"
 
@@ -60,6 +63,22 @@ export function StyleInspectorSection({
   onAdvancedMaterialOpenChange,
   onMaterialSettingChange,
 }: StyleInspectorSectionProps) {
+  const previewFill: FinishPreviewFill = {
+    color: selectedShapeFill,
+    gradient:
+      fillMode === "gradient"
+        ? {
+            type: selectedShapeGradientType,
+            stops: selectedShapeFillStops.length
+              ? selectedShapeFillStops
+              : [
+                  { color: selectedShapeFill, position: 0 },
+                  { color: selectedShapeFillSecondary, position: 1 },
+                ],
+          }
+        : undefined,
+  }
+
   return (
     <InspectorSection title="STYLE" action={styleKeyframeControl}>
       <InspectorRow
@@ -95,13 +114,21 @@ export function StyleInspectorSection({
             title={MATERIAL_METADATA[materialPreset].subtitle}
             className="min-w-0 flex-1 truncate text-right text-xs text-foreground"
           >
-            {MATERIAL_METADATA[materialPreset].name}
+            {finishLabel(materialPreset)}
           </span>
         </InspectorRow>
         <FinishPresetStrip
           value={materialPreset}
+          fill={previewFill}
           onChange={onMaterialPresetChange}
         />
+        {isGraphiteCutPreset(materialPreset) ? (
+          <CarvedVariantControl
+            value={materialPreset}
+            onChange={onMaterialPresetChange}
+            className="mt-1.5"
+          />
+        ) : null}
       </div>
       <div>
         <AdvancedMaterialControls

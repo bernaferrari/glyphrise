@@ -45,6 +45,7 @@ export type UseSvgCanvasPropsArgs = {
   zoom: number
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
+  showSelectionOutline: boolean
   showTransformGizmo: boolean
   selectedLayerId?: string | null
   selectedIconColorRole?: SvgCanvasProps["selectedIconColorRole"]
@@ -107,6 +108,7 @@ export function useSvgCanvasProps({
   zoom,
   viewInertiaEnabled,
   showCenterPoint,
+  showSelectionOutline,
   showTransformGizmo,
   selectedLayerId,
   selectedIconColorRole,
@@ -202,6 +204,7 @@ export function useSvgCanvasProps({
       zoom,
       viewInertiaEnabled,
       showCenterPoint,
+      showSelectionOutline,
       showTransformGizmo,
       selectedLayerId,
       selectedIconColorRole,
@@ -287,6 +290,7 @@ export function useSvgCanvasProps({
       zoom,
       viewInertiaEnabled,
       showCenterPoint,
+      showSelectionOutline,
       showTransformGizmo,
       selectedLayerId,
       selectedIconColorRole,

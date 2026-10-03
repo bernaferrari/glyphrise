@@ -21,15 +21,16 @@ export function WipePairsSection({
   if (filteredWipePairs.length === 0) return null
 
   return (
-    <div className={cn("mb-3 border-t border-border pt-2", className)}>
-      <div className="editor-scrollbar grid max-h-[min(36vh,300px)] grid-cols-1 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-2">
+    // Same tiles as the Presets tab: preview on top, name underneath.
+    <div className={cn("mb-3", className)}>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2 pr-1">
         {filteredWipePairs.map((pair) => (
           <button
             key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}
             type="button"
             title={`${pair.label}: ${pair.enabled} -> ${pair.disabled}`}
             onClick={() => onChooseWipePair(stop.id, pair)}
-            className="wipe-pair-option group/pair flex h-11 min-w-0 items-center gap-2 rounded-lg border border-border bg-muted/35 px-2 text-left transition-colors hover:border-ring/45 hover:bg-muted/65 focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:outline-none"
+            className="wipe-pair-option group/pair flex min-h-20 min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-2 py-3 text-center transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
           >
             <WipePairPreview
               pair={pair}
@@ -37,7 +38,7 @@ export function WipePairsSection({
               style={symbolStyle}
               mode={pair.disabled.endsWith("_off") ? "slash" : "real"}
             />
-            <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+            <span className="line-clamp-2 w-full text-xs font-medium text-foreground">
               {pair.label}
             </span>
           </button>

@@ -1,5 +1,11 @@
 import * as THREE from "three"
-import { isGraphiteCutPreset, type MaterialPresetId } from "./MaterialPresets"
+import {
+  finishEmissiveIntensity,
+  finishEnvMapIntensity,
+  finishMetalness,
+  isGraphiteCutPreset,
+  type MaterialPresetId,
+} from "./MaterialPresets"
 import { applyGradientVertexColors, gradientStopsFromFill } from "./SvgColor"
 import { ICON_VIEWBOX_SIZE } from "./SvgSceneUtils"
 import { finiteNumber } from "./SvgGeometry"
@@ -87,20 +93,12 @@ export const updateGroupMaterialSettings = (
   > & { materialPreset: MaterialPresetId }
 ) => {
   if (!group) return
-  const envMapIntensity =
-    materialPreset === "prismChrome"
-      ? Math.max(2.6, reflectance * 3.2)
-      : materialPreset === "gelGlass"
-        ? Math.max(1.45, reflectance * 1.75)
-        : isGraphiteCutPreset(materialPreset)
-          ? Math.max(0.42, reflectance * 1.4)
-          : materialPreset === "chrome"
-            ? Math.max(1.8, reflectance * 2.4)
-            : materialPreset === "holo"
-              ? Math.max(0.9, reflectance * 1.15)
-              : materialPreset === "aura"
-                ? Math.max(1.05, reflectance * 1.3)
-                : reflectance
+  const envMapIntensity = finishEnvMapIntensity(materialPreset, reflectance)
+  const presetMetalness = finishMetalness(materialPreset, metalness)
+  const presetEmissive = finishEmissiveIntensity(
+    materialPreset,
+    emissiveIntensity
+  )
 
   group.traverse((object) => {
     const mesh = object as THREE.Mesh
@@ -126,14 +124,7 @@ export const updateGroupMaterialSettings = (
 
       if (writable.roughness !== undefined) writable.roughness = roughness
       if (writable.metalness !== undefined) {
-        writable.metalness =
-          materialPreset === "prismChrome"
-            ? Math.min(metalness, 0.74)
-            : materialPreset === "chrome"
-              ? Math.min(metalness, 0.52)
-              : materialPreset === "holo"
-                ? Math.min(metalness, 0.08)
-                : metalness
+        writable.metalness = presetMetalness
       }
       if (writable.reflectivity !== undefined)
         writable.reflectivity = reflectance
@@ -148,12 +139,12 @@ export const updateGroupMaterialSettings = (
         writable.transmission = transmission
       if (writable.thickness !== undefined) writable.thickness = thickness
       if (writable.emissiveIntensity !== undefined) {
-        writable.emissiveIntensity = emissiveIntensity
+        writable.emissiveIntensity = presetEmissive
       }
       const surfaceEmissiveUniform = material.userData
         ?.surfaceEmissiveUniform as { value?: number } | undefined
       if (surfaceEmissiveUniform) {
-        surfaceEmissiveUniform.value = emissiveIntensity
+        surfaceEmissiveUniform.value = presetEmissive
       }
       if (writable.wireframe !== wireframe) {
         writable.wireframe = wireframe

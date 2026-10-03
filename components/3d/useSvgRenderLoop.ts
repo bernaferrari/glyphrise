@@ -187,9 +187,10 @@ export function useSvgRenderLoop({
       )
       updateLayerSelectionOutline({
         groups: [iconAGroupRef.current, iconBGroupRef.current],
-        selectedLayerId: exportRenderOptions
-          ? undefined
-          : liveProps.selectedLayerId,
+        selectedLayerId:
+          exportRenderOptions || !liveProps.showSelectionOutline
+            ? undefined
+            : liveProps.selectedLayerId,
       })
       const visibleCenter = shouldUpdateCenterTools
         ? getVisibleIconCenter([iconAGroupRef.current, iconBGroupRef.current])

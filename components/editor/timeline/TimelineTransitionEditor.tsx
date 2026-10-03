@@ -1,6 +1,19 @@
 "use client"
 
-import { Blinds, Blend, SquareSplitHorizontal } from "lucide-react"
+import {
+  ArrowDown,
+  ArrowDownLeft,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpLeft,
+  ArrowUpRight,
+  Blinds,
+  Blend,
+  SquareSplitHorizontal,
+  type LucideIcon,
+} from "lucide-react"
 import type { EasingType, ShapeStop } from "../TimelineModel"
 import type { WipeDirectionOption } from "./TimelineTypes"
 import { NumberField } from "../NumberField"
@@ -80,8 +93,9 @@ export function TimelineTransitionEditor({
     (time - stop.time) / (next.time - stop.time)
 
   return (
-    <div className="grid gap-3">
-      <div className="flex items-center gap-2">
+    // One content width: every row's controls end on the same edge.
+    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+      <div className="flex items-center">
         <div
           role="group"
           aria-label="Transition type"
@@ -100,21 +114,16 @@ export function TimelineTransitionEditor({
             </button>
           ))}
         </div>
-        {mode !== "cut" && (
-          <EasingPicker
-            value={stop.easing}
-            onChange={(easing) => onShapeEasingChange(stop.id, easing)}
-            scopeLabel="Transition easing"
-          />
-        )}
       </div>
 
       <fieldset
         disabled={next.time <= stop.time}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground"
+        className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground"
       >
         <legend className="sr-only">Timing</legend>
-        <span>{mode === "cut" ? "Cut at" : "From"}</span>
+        <span className="w-16 shrink-0">
+          {mode === "cut" ? "Cut at" : "From"}
+        </span>
         <NumberField
           value={startTime}
           min={stop.time}
@@ -122,7 +131,7 @@ export function TimelineTransitionEditor({
           step={0.1}
           precision={2}
           suffix="s"
-          className="h-8 w-[76px]"
+          className="h-8 min-w-0 flex-1"
           ariaLabel={
             mode === "cut"
               ? "Cut time in seconds"
@@ -148,7 +157,7 @@ export function TimelineTransitionEditor({
               step={0.1}
               precision={2}
               suffix="s"
-              className="h-8 w-[76px]"
+              className="h-8 min-w-0 flex-1"
               ariaLabel="Transition end in seconds"
               onChange={(time) =>
                 onShapeBlendChange(stop.id, {
@@ -160,9 +169,25 @@ export function TimelineTransitionEditor({
         )}
       </fieldset>
 
+      {mode !== "cut" && (
+        <div className="flex items-center gap-1.5">
+          <span className="w-16 shrink-0 text-xs text-muted-foreground">
+            Easing
+          </span>
+          <EasingPicker
+            value={stop.easing}
+            onChange={(easing) => onShapeEasingChange(stop.id, easing)}
+            scopeLabel="Transition easing"
+            variant="field"
+          />
+        </div>
+      )}
+
       {mode === "wipe" && (
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-xs text-muted-foreground">Direction</span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-16 shrink-0 text-xs text-muted-foreground">
+            Direction
+          </span>
           <WipeDirectionPicker
             stop={stop}
             wipeDirections={wipeDirections}
@@ -172,6 +197,17 @@ export function TimelineTransitionEditor({
       )}
     </div>
   )
+}
+
+const DIRECTION_ICONS: Record<string, LucideIcon> = {
+  "-1,1": ArrowUpLeft,
+  "0,1": ArrowUp,
+  "1,1": ArrowUpRight,
+  "-1,0": ArrowLeft,
+  "1,0": ArrowRight,
+  "-1,-1": ArrowDownLeft,
+  "0,-1": ArrowDown,
+  "1,-1": ArrowDownRight,
 }
 
 function WipeDirectionPicker({
@@ -184,13 +220,31 @@ function WipeDirectionPicker({
   onShapeBlendChange: TimelineTransitionEditorProps["onShapeBlendChange"]
 }) {
   return (
-    <div className="grid grid-cols-3 gap-0.5">
+    // Compass pad on the same surface as the Fade/Wipe/Cut control above.
+    <div
+      role="group"
+      aria-label="Wipe direction"
+      className="grid grid-cols-3 gap-0.5 rounded-lg bg-muted/60 p-0.5"
+    >
+      {/* Preview: the new icon sweeps in from the filled side. */}
+      <span
+        aria-hidden="true"
+        className="col-start-2 row-start-2 m-auto size-5 rounded-[5px] bg-background/50 ring-1 ring-foreground/10 transition-[background-image] duration-200"
+        style={{
+          backgroundImage: `linear-gradient(${
+            (Math.atan2(stop.wipeDirection.x, stop.wipeDirection.y) * 180) /
+            Math.PI
+          }deg, var(--timeline-accent) 0 45%, transparent 55%)`,
+        }}
+      />
       {wipeDirections
         .filter((dir) => !(dir.x === 0 && dir.y === 0))
-        .sort((a, b) => b.y - a.y || a.x - b.x)
         .map((dir) => {
           const active =
             stop.wipeDirection.x === dir.x && stop.wipeDirection.y === dir.y
+          const Icon =
+            DIRECTION_ICONS[`${Math.sign(dir.x)},${Math.sign(dir.y)}`] ??
+            ArrowRight
 
           return (
             <button
@@ -208,13 +262,13 @@ function WipeDirectionPicker({
                 gridColumn: Math.sign(dir.x) + 2,
                 gridRow: 2 - Math.sign(dir.y),
               }}
-              className={`flex size-7 items-center justify-center rounded-md border text-xs transition-colors pointer-coarse:size-11 ${
-                active
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-muted/50 text-muted-foreground hover:border-ring/50 hover:text-foreground"
-              }`}
+              className="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm pointer-coarse:size-11"
             >
-              {dir.label}
+              <Icon
+                aria-hidden="true"
+                className="size-3.5"
+                strokeWidth={2.25}
+              />
             </button>
           )
         })}

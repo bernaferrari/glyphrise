@@ -85,11 +85,11 @@ export function SolidColorEditor({
     >
       <SelectTrigger
         size="sm"
-        className="h-8 w-[72px] shrink-0 rounded-lg border-border bg-muted/60 px-3 text-[11px] text-foreground hover:bg-muted/75"
+        className="h-8 w-18 shrink-0 rounded-lg border-border bg-muted/60 px-3 text-[11px] text-foreground hover:bg-muted/75"
       >
         <SelectValue>{format}</SelectValue>
       </SelectTrigger>
-      <SelectContent align="start" className="min-w-[72px]">
+      <SelectContent align="start" className="min-w-18">
         <SelectItem value="HEX">HEX</SelectItem>
         <SelectItem value="RGB">RGB</SelectItem>
         <SelectItem value="HSL">HSL</SelectItem>

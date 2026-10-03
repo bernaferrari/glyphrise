@@ -5,6 +5,7 @@ import {
   type EditorSnapshot,
 } from "./EditorModel"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
+import { isMaterialPresetId } from "../3d/MaterialPresets"
 
 export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v2"
 export const EDITOR_RECENT_PROJECTS_KEY = "glyphrise.editor.recent-projects.v2"
@@ -41,25 +42,6 @@ const MAX_STRING_LENGTH = 256
 const EASING_TYPES = new Set(["linear", "ease-in-out", "spring", "bounce"])
 const TRANSITION_TYPES = new Set(["cut", "fade", "wipe"])
 const GRADIENT_TYPES = new Set(["linear", "radial", "conic", "mesh"])
-const MATERIAL_PRESETS = new Set([
-  "frost",
-  "satin",
-  "glass",
-  "aura",
-  "chrome",
-  "pearl",
-  "lacquer",
-  "neon",
-  "holo",
-  "ink",
-  "prismChrome",
-  "gelGlass",
-  "cutInk",
-  "cutInner",
-  "cutOuter",
-  "softCut",
-  "custom",
-])
 
 const isFiniteEditorNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value) && Math.abs(value) <= 1e6
@@ -102,7 +84,9 @@ const isFillStop = (value: unknown) =>
   isObjectRecord(value) &&
   isShortString(value.id) &&
   isShortString(value.color) &&
-  isFiniteEditorNumber(value.position)
+  isFiniteEditorNumber(value.position) &&
+  (value.x === undefined || isFiniteEditorNumber(value.x)) &&
+  (value.y === undefined || isFiniteEditorNumber(value.y))
 
 const isFillKeyframe = (value: unknown) =>
   isObjectRecord(value) &&
@@ -228,7 +212,7 @@ export const isPersistedEditorSnapshot = (
     value.shapes.length > 0 &&
     value.shapes.every(isShapeStop) &&
     typeof value.materialPreset === "string" &&
-    MATERIAL_PRESETS.has(value.materialPreset) &&
+    isMaterialPresetId(value.materialPreset) &&
     isMaterialSettings(value.materialSettings) &&
     isBoundedArray(value.materialKeyframes, 500) &&
     value.materialKeyframes.every(isMaterialKeyframe) &&
@@ -284,7 +268,7 @@ export const normalizeEditorSnapshot = (
 })
 
 export const normalizeProjectName = (value: string) =>
-  value.replace(/\s+/g, " ").trim().slice(0, 80) || "Untitled project"
+  value.replace(/\s+/g, " ").trim().slice(0, 80) || "Untitled"
 
 const IMPORTED_PROJECT_NAME_SUFFIX = " (imported copy)"
 
@@ -296,7 +280,7 @@ const importedProjectCopyName = (value: string) => {
 }
 
 export const createProjectMetadata = (
-  name = "Untitled project",
+  name = "Untitled",
   now = new Date().toISOString()
 ): EditorProjectMetadata => ({
   id: createEditorId("project"),

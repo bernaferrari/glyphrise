@@ -1,5 +1,5 @@
 import { useState, type RefObject } from "react"
-import { Upload } from "lucide-react"
+import { Check, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -31,7 +31,6 @@ export function ShapePickerContent({
   onOpenChange,
   stop,
   visibleShapeOptions,
-  favoriteMaterialSymbols,
   recentMaterialSymbols,
   filteredMaterialSymbols,
   filteredWipePairs,
@@ -46,7 +45,6 @@ export function ShapePickerContent({
   onMaterialSymbolOptionsOpenChange,
   materialSymbolStatus,
   onMaterialSymbolStatusChange,
-  onToggleMaterialSymbolFavorite,
   onImportMaterialSymbol,
   onChooseMaterialSymbol,
   onChooseWipePair,
@@ -59,7 +57,6 @@ export function ShapePickerContent({
   onOpenChange: (open: boolean) => void
   stop: ShapeStop
   visibleShapeOptions: ShapeOption[]
-  favoriteMaterialSymbols: string[]
   recentMaterialSymbols: string[]
   filteredMaterialSymbols: string[]
   filteredWipePairs: MaterialWipeIconPair[]
@@ -77,7 +74,6 @@ export function ShapePickerContent({
   onMaterialSymbolOptionsOpenChange: (open: boolean) => void
   materialSymbolStatus: MaterialSymbolStatus
   onMaterialSymbolStatusChange: (status: MaterialSymbolStatus) => void
-  onToggleMaterialSymbolFavorite: (symbolName: string) => void
   onImportMaterialSymbol: (shapeId: string) => void
   onChooseMaterialSymbol: (shapeId: string, symbolName: string) => void
   onChooseWipePair: (shapeId: string, pair: MaterialWipeIconPair) => void
@@ -89,23 +85,11 @@ export function ShapePickerContent({
   const symbolStyle = shapePickerSymbolStyle(materialSymbolSettings)
   const [activeTab, setActiveTab] = useState("symbols")
   const searching = shapeSearchQuery.trim().length > 0
-  const searchSymbols = [
-    ...favoriteMaterialSymbols,
-    ...recentMaterialSymbols,
-    ...filteredMaterialSymbols,
-  ]
-  const firstSearchResult = searchSymbols.includes(normalizedShapeQuery)
-    ? normalizedShapeQuery.replace(/_/g, " ")
-    : (visibleShapeOptions[0]?.name ?? searchSymbols[0]?.replace(/_/g, " "))
-  const searchActionLabel = firstSearchResult
-    ? `Use first result: ${firstSearchResult}`
-    : "Try exact symbol name"
+  const searchSymbols = [...recentMaterialSymbols, ...filteredMaterialSymbols]
+  // Each tab searches only its own content; Enter picks from Symbols.
   const chooseSearchResult = (shapeId: string) => {
     if (searchSymbols.includes(normalizedShapeQuery)) {
       onChooseMaterialSymbol(shapeId, normalizedShapeQuery)
-    } else if (visibleShapeOptions[0]) {
-      onShapeIconChange(shapeId, visibleShapeOptions[0])
-      onOpenShapePicker(null)
     } else if (searchSymbols[0]) {
       onChooseMaterialSymbol(shapeId, searchSymbols[0])
     } else {
@@ -117,7 +101,7 @@ export function ShapePickerContent({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         finalFocus={finalFocusRef}
-        className="!flex max-h-[min(78vh,620px)] !w-[min(720px,calc(100vw-32px))] !max-w-[min(720px,calc(100vw-32px))] flex-col gap-0 overflow-hidden p-0 shadow-2xl"
+        className="!flex h-[min(78vh,620px)] !w-[min(720px,calc(100vw-32px))] !max-w-[min(720px,calc(100vw-32px))] flex-col gap-0 overflow-hidden p-0 shadow-2xl"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -185,7 +169,6 @@ export function ShapePickerContent({
                 materialSymbolStatus={materialSymbolStatus}
                 normalizedShapeQuery={normalizedShapeQuery}
                 shapeSearchQuery={shapeSearchQuery}
-                searchActionLabel={searchActionLabel}
                 onMaterialSymbolOptionsOpenChange={
                   onMaterialSymbolOptionsOpenChange
                 }
@@ -203,47 +186,14 @@ export function ShapePickerContent({
               </p>
             )}
 
+            {/* The full symbol grid is virtualized and must own its scroll, so
+                this tab is a column: sections on top, the grid fills the rest. */}
             <TabsContent
               value="symbols"
-              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
+              className="flex min-h-0 flex-col overflow-hidden outline-none"
             >
-              {searching && visibleShapeOptions.length > 0 && (
-                <section className="mb-3">
-                  <h3 className="mb-2 text-xs font-medium">Matching presets</h3>
-                  <ShapePresetGrid
-                    stop={stop}
-                    visibleShapeOptions={visibleShapeOptions}
-                    onShapeIconChange={onShapeIconChange}
-                    onOpenShapePicker={onOpenShapePicker}
-                  />
-                  <h3 className="mt-3 text-xs font-medium">Material Symbols</h3>
-                </section>
-              )}
-              {favoriteMaterialSymbols.length > 0 && (
-                <section className="mb-3">
-                  <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
-                    Favorites
-                  </div>
-                  <MaterialSymbolGrid
-                    stop={stop}
-                    filteredMaterialSymbols={favoriteMaterialSymbols}
-                    normalizedShapeQuery={normalizedShapeQuery}
-                    materialSymbolClass={materialSymbolClass}
-                    symbolStyle={symbolStyle}
-                    materialSymbolStatus={materialSymbolStatus}
-                    favoriteMaterialSymbols={favoriteMaterialSymbols}
-                    className="mb-0 max-h-24"
-                    onChooseMaterialSymbol={onChooseMaterialSymbol}
-                    onImportMaterialSymbol={onImportMaterialSymbol}
-                    onToggleMaterialSymbolFavorite={
-                      onToggleMaterialSymbolFavorite
-                    }
-                  />
-                </section>
-              )}
-
               {recentMaterialSymbols.length > 0 && (
-                <section className="mb-3">
+                <section className="mb-3 shrink-0">
                   <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                     Recent
                   </div>
@@ -254,17 +204,24 @@ export function ShapePickerContent({
                     materialSymbolClass={materialSymbolClass}
                     symbolStyle={symbolStyle}
                     materialSymbolStatus={materialSymbolStatus}
-                    favoriteMaterialSymbols={favoriteMaterialSymbols}
                     className="mb-0 max-h-24"
                     onChooseMaterialSymbol={onChooseMaterialSymbol}
                     onImportMaterialSymbol={onImportMaterialSymbol}
-                    onToggleMaterialSymbolFavorite={
-                      onToggleMaterialSymbolFavorite
-                    }
                   />
                 </section>
               )}
 
+              {!searching && (
+                <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                  All symbols
+                  <span className="font-normal tracking-normal normal-case tabular-nums">
+                    {(
+                      filteredMaterialSymbols.length +
+                      recentMaterialSymbols.length
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              )}
               <MaterialSymbolGrid
                 stop={stop}
                 filteredMaterialSymbols={filteredMaterialSymbols}
@@ -272,11 +229,9 @@ export function ShapePickerContent({
                 materialSymbolClass={materialSymbolClass}
                 symbolStyle={symbolStyle}
                 materialSymbolStatus={materialSymbolStatus}
-                favoriteMaterialSymbols={favoriteMaterialSymbols}
-                className="mb-0 max-h-[min(36vh,300px)]"
+                className="mb-0 max-h-none min-h-0 flex-1"
                 onChooseMaterialSymbol={onChooseMaterialSymbol}
                 onImportMaterialSymbol={onImportMaterialSymbol}
-                onToggleMaterialSymbolFavorite={onToggleMaterialSymbolFavorite}
               />
             </TabsContent>
 
@@ -294,7 +249,7 @@ export function ShapePickerContent({
                   onChooseWipePair={onChooseWipePair}
                 />
               ) : (
-                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
+                <div className="flex h-full min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
                   No wipe pairs match
                 </div>
               )}
@@ -308,31 +263,14 @@ export function ShapePickerContent({
                 <ShapePresetGrid
                   stop={stop}
                   visibleShapeOptions={visibleShapeOptions}
-                  className="max-h-[min(36vh,300px)]"
+                  className="max-h-none overflow-visible"
                   onShapeIconChange={onShapeIconChange}
                   onOpenShapePicker={onOpenShapePicker}
                 />
-              ) : !searching || searchSymbols.length === 0 ? (
-                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
+              ) : (
+                <div className="flex h-full min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 text-xs text-muted-foreground">
                   No presets match
                 </div>
-              ) : null}
-              {searching && searchSymbols.length > 0 && (
-                <section className="mt-3">
-                  <h3 className="mb-2 text-xs font-medium">
-                    Matching Material Symbols
-                  </h3>
-                  <MaterialSymbolGrid
-                    stop={stop}
-                    filteredMaterialSymbols={searchSymbols}
-                    normalizedShapeQuery={normalizedShapeQuery}
-                    materialSymbolClass={materialSymbolClass}
-                    symbolStyle={symbolStyle}
-                    materialSymbolStatus={materialSymbolStatus}
-                    onChooseMaterialSymbol={onChooseMaterialSymbol}
-                    onImportMaterialSymbol={onImportMaterialSymbol}
-                  />
-                </section>
               )}
             </TabsContent>
 
@@ -340,39 +278,46 @@ export function ShapePickerContent({
               value="upload"
               className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
             >
-              <div className="flex min-h-40 flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-muted/25 p-6 text-center">
+              <div className="flex h-full min-h-60 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center">
+                <span className="grid size-11 place-items-center rounded-full bg-muted text-foreground">
+                  <Upload aria-hidden="true" className="size-5" />
+                </span>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Clean, path-based SVG
+                    Upload your own SVG
                   </p>
-                  <p className="mt-1 max-w-md text-[11px] leading-relaxed text-muted-foreground">
-                    Use an SVG made from outlined paths and basic shapes.
-                    Scripts, images, text, masks, and external references are
-                    removed or rejected for safe 3D conversion.
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Outlined paths and basic shapes work best.
                   </p>
                 </div>
                 <Button
                   type="button"
-                  size="lg"
-                  variant="outline"
                   onClick={() => {
                     onUploadShape(stop.id)
                     onOpenShapePicker(null)
                   }}
                 >
-                  <Upload className="size-4" />
                   Upload SVG
                 </Button>
-                <div className="max-w-md text-left text-[11px] leading-relaxed text-muted-foreground">
-                  <p className="font-medium text-foreground">
-                    Before uploading
-                  </p>
-                  <p className="mt-1">
-                    Outline text and strokes, flatten masks, and expand{" "}
-                    <code>&lt;use&gt;</code>/<code>&lt;defs&gt;</code> instances
-                    in your vector editor.
-                  </p>
-                </div>
+                <ul className="mt-1 flex flex-wrap justify-center gap-1.5 text-[11px] text-muted-foreground">
+                  {[
+                    "Outline text & strokes",
+                    "Flatten masks",
+                    "Expand <use> and <defs>",
+                  ].map((tip) => (
+                    <li
+                      key={tip}
+                      className="flex items-center gap-1 rounded-full bg-muted/60 px-2 py-1"
+                    >
+                      <Check aria-hidden="true" className="size-3" />
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+                <p className="max-w-sm text-[11px] leading-relaxed text-muted-foreground/70">
+                  Scripts, images, and external references are removed for safe
+                  3D conversion.
+                </p>
               </div>
             </TabsContent>
           </Tabs>

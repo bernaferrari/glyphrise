@@ -44,7 +44,7 @@ export function WelcomeDialog({
           </DialogDescription>
           {currentProjectName && (
             <p className="rounded-lg bg-muted px-3 py-2 text-xs leading-5 text-muted-foreground">
-              This starts a new project. “{currentProjectName}” stays saved, and
+              This starts a new file. “{currentProjectName}” stays saved, and
               you can come back to it anytime.
             </p>
           )}
@@ -64,7 +64,7 @@ export function WelcomeDialog({
             >
               <span
                 aria-hidden="true"
-                className="starter-art grid size-14 place-items-center sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
+                className="grid size-14 place-items-center sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
                 style={{ color: icon.defaultTint }}
                 dangerouslySetInnerHTML={{ __html: icon.svgContent }}
               />

@@ -78,6 +78,7 @@ export type TimelineShapeLaneProps = {
   onOpenShapePicker: (id: string | null) => void
   onShapeIconChange: (id: string, option: ShapeOption) => void
   onUploadShape: (id: string) => void
+  onMoveShapeOrder: (id: string, direction: -1 | 1) => void
   onRemoveShape: (id: string) => void
   onShapeDrag: (event: React.PointerEvent<HTMLElement>, shapeId: string) => void
   onAddShape: () => void

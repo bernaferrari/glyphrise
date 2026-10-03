@@ -32,7 +32,7 @@ export function ProjectNameField({
     <input
       value={draft}
       maxLength={80}
-      aria-label="Project name"
+      aria-label="File name"
       title="Rename project"
       onChange={(event) => setDraft(event.currentTarget.value)}
       onBlur={commit}

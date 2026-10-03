@@ -5,7 +5,7 @@ import type { TimeKeyframe } from "./EditorModel"
 
 const KeyframeDiamond = ({ active }: { active: boolean }) => (
   <span
-    className={`size-[7px] rotate-45 rounded-[1px] border transition-[background-color,border-color] ${
+    className={`size-1.75 rotate-45 rounded-[1px] border transition-[background-color,border-color] ${
       active ? "border-transparent" : "border-muted-foreground"
     }`}
     style={{

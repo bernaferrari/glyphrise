@@ -21,7 +21,7 @@ export function NumberField({
   ariaLabel,
   suffix = "",
   precision = 1,
-  className = "w-[62px]",
+  className = "w-15.5",
   inputClassName = "text-right",
   onChange,
 }: {

@@ -83,7 +83,7 @@ test("phone inspector preserves a live preview without overlaid camera controls"
   ).toHaveCount(0)
   await page.getByRole("button", { name: "Canvas", exact: true }).click()
   await expect(
-    page.getByRole("button", { name: "Reset camera", exact: true })
+    page.getByRole("button", { name: "Reset view", exact: true })
   ).toBeVisible()
 })
 
@@ -150,7 +150,7 @@ test("Space on the timeline toggles playback without scrolling, including key re
   await expect
     .poll(async () => Number(await playhead.getAttribute("aria-valuenow")))
     .toBeGreaterThan(time)
-  const projectName = page.getByLabel("Project name", { exact: true })
+  const projectName = page.getByLabel("File name", { exact: true })
   await projectName.fill("My")
   await projectName.press("Space")
   await expect(projectName).toHaveValue("My ")

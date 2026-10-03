@@ -1,5 +1,6 @@
 "use client"
 
+import { moveShapeOrder, moveShapeStop } from "./TimelineShapeModel"
 import { withStarterAnimation } from "./StarterTrackModel"
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
@@ -452,6 +453,13 @@ export function useTimelineController({
         setClipSelected(false)
         onRemoveShape(selectedShapeId)
       },
+      duration,
+      onTimeChange: (time: number) => {
+        if (!selectedShapeId) return
+        onShapesChange(
+          moveShapeStop({ shapes, shapeId: selectedShapeId, time, duration })
+        )
+      },
     },
     keyframeEditorProps: {
       open:
@@ -519,6 +527,8 @@ export function useTimelineController({
         onOpenShapePicker,
         onShapeIconChange,
         onUploadShape,
+        onMoveShapeOrder: (id: string, direction: -1 | 1) =>
+          onShapesChange(moveShapeOrder(shapes, id, direction)),
         onRemoveShape,
         onShapeDrag: handleShapeDrag,
         onAddShape,

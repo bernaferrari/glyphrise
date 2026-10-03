@@ -16,10 +16,10 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-![Glyphrise in dark mode: a dimensional candy-gradient heart, one-click material finishes, and editable rotation, depth, and scale keyframes](docs/glyphrise-editor.png)
+![A rainbow calendar sculpted in 3D, with a soft Pearl finish and live material, shape, transform, and lighting controls](docs/glyphrise-calendar.png)
 
 <p align="center">
-  <sub>A real editor capture: Candy Mesh color, a Metal finish, and three editable animation tracks.</sub>
+  <sub>Made in Glyphrise: Spectrum Mesh color, a Pearl finish, and depth you can shape in real time.</sub>
 </p>
 
 An SVG is all you need. Pick an icon or bring your own, give it depth and a
@@ -34,8 +34,8 @@ stays focused: **choose → style → animate → export**. No account required.
 
 - **From flat to dimensional.** Extrude SVG paths, soften edges with bevels,
   and adjust depth, scale, and rotation in a live Three.js viewport.
-- **Find your finish.** Try 16 finishes, including satin, glass, metal, pearl,
-  gel, and sculpted cuts. Pair them with solid colors or editable gradients,
+- **Find your finish.** Try 15 finishes, including satin, chrome, brushed metal,
+  holo, glass, gel, toon, and carved graphite. Pair them with solid colors or editable gradients,
   including eight mesh palettes.
 - **Motion in a few clicks.** Apply Spin, Tilt, or Pulse, then refine the
   resulting keyframes. Presets affect their own property, so you can combine
@@ -49,6 +49,8 @@ stays focused: **choose → style → animate → export**. No account required.
 - **Keep creating.** Autosave named projects locally, duplicate ideas, undo
   edits, and download portable backups. Use the full desktop workspace or
   dedicated preview, properties, and motion views on smaller screens.
+
+![The Glyphrise workspace with a live 3D preview, finish presets, and staggered rotation, depth, and scale tracks](docs/glyphrise-editor.png)
 
 ## Get started
 
@@ -78,9 +80,9 @@ a starter icon to your first export.
 4. **Preview and download.** Press **Play**, then **Export**. Choose an image,
    video, 3D asset, or implementation starter.
 
-The [Candy heart sample project](docs/candy-heart.glyphrise.json) contains the
-scene shown above, including its staggered keyframes and Heart → Heart Off wipe.
-Save the JSON file, then choose **Import project file** from the project menu
+The [Calendar sample project](docs/calendar-motion.glyphrise.json) recreates the Pearl calendar look and adds three staggered animation tracks, each
+with only start and end keyframes, plus a Calendar → Calendar Off wipe.
+Save the JSON file, then choose **Open from computer** from the file menu
 to explore it yourself.
 
 On smaller screens, switch between **Preview**, **Properties**, and **Motion**.
@@ -92,7 +94,7 @@ The workspace actions menu also provides **Animate** and project tools.
 | -------------------------------- | -------------------------------------------------------- |
 | Orbit the preview camera         | Drag the preview                                         |
 | Zoom the preview                 | Scroll over the preview                                  |
-| Restore the front view           | **Reset camera** in the preview toolbar                  |
+| Reset the view and object pose   | **Reset view** in the preview toolbar                    |
 | Change the object in your export | Inspector **Transform** controls or **Transform object** |
 | Play or pause                    | **Play**, or `Space` when the workspace has focus        |
 | Undo / redo                      | `⌘/Ctrl Z` / `⌘/Ctrl Shift Z`                            |
@@ -154,16 +156,16 @@ Built with **Next.js 16**, **React 19**, **Three.js**, **TypeScript**,
 **Tailwind CSS 4**, and **Base UI**. React Three Fiber is a generated export
 target; the editor viewport uses Three.js directly.
 
-| Command             | Purpose                                                 |
-| ------------------- | ------------------------------------------------------- |
-| `pnpm dev`          | Start the development server                            |
-| `pnpm test`         | Run Vitest unit tests                                   |
-| `pnpm test:e2e`     | Run Playwright editor workflows; requires Google Chrome |
-| `pnpm typecheck`    | Check TypeScript                                        |
-| `pnpm lint`         | Run Oxlint                                              |
-| `pnpm format:check` | Check formatting with Oxfmt                             |
-| `pnpm build`        | Create a production build                               |
-| `pnpm start`        | Serve the production build                              |
+| Command             | Purpose                                          |
+| ------------------- | ------------------------------------------------ |
+| `pnpm dev`          | Start the development server                     |
+| `pnpm test`         | Run Vitest unit tests                            |
+| `pnpm test:e2e`     | Run Playwright editor workflows; requires Chrome |
+| `pnpm typecheck`    | Check TypeScript                                 |
+| `pnpm lint`         | Run Oxlint                                       |
+| `pnpm format:check` | Check formatting with Oxfmt                      |
+| `pnpm build`        | Create a production build                        |
+| `pnpm start`        | Serve the production build                       |
 
 Tests cover project lifecycle and persistence, SVG import and geometry,
 keyframes and interpolation, undo, export behavior, and desktop and touch

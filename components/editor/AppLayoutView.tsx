@@ -217,9 +217,9 @@ export function AppLayoutView({
                 !topBarProps.zenMode && (
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-3 z-20 rounded-2xl ring-2 ring-red-500/70 ring-inset max-[720px]:inset-0 max-[720px]:rounded-none"
+                    className="pointer-events-none absolute inset-3 z-20 rounded-2xl ring-2 ring-recording/70 ring-inset max-[720px]:inset-0 max-[720px]:rounded-none"
                   >
-                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-medium text-white">
+                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-recording px-2 py-0.5 text-[11px] font-medium text-white">
                       <span className="size-1.5 rounded-full bg-white" />
                       Auto-key
                     </span>

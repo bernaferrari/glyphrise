@@ -22,6 +22,7 @@ function PopoverContent({
   sideOffset = 4,
   anchor,
   collisionPadding,
+  collisionAvoidance,
   ...props
 }: PopoverPrimitive.Popup.Props &
   Pick<
@@ -32,6 +33,7 @@ function PopoverContent({
     | "sideOffset"
     | "anchor"
     | "collisionPadding"
+    | "collisionAvoidance"
   > & {
     animated?: boolean
   }) {
@@ -44,6 +46,7 @@ function PopoverContent({
         sideOffset={sideOffset}
         anchor={anchor}
         collisionPadding={collisionPadding}
+        collisionAvoidance={collisionAvoidance}
         className="isolate z-50"
       >
         <PopoverPrimitive.Popup

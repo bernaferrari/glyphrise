@@ -100,7 +100,7 @@ export function TimelineKeyframeEditor({
             )) as HTMLElement | null
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
-        className="w-[340px] gap-0 p-0"
+        className="w-85 gap-0 p-0"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}

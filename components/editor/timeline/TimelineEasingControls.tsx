@@ -54,20 +54,28 @@ export const EasingPicker: React.FC<{
   color?: string
   showLabel?: boolean
   scopeLabel?: string
+  /** "field": a labelled dropdown that sits in a form row. */
+  variant?: "compact" | "field"
 }> = ({
   value,
   onChange,
   color = "currentColor",
   scopeLabel,
   showLabel = false,
+  variant = "compact",
 }) => {
+  const field = variant === "field"
   const [open, setOpen] = React.useState(false)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         aria-label={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
         title={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
-        className={`${showLabel ? "" : "timeline-easing"} flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5"}`}
+        className={
+          field
+            ? "flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md bg-muted/60 px-2 text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted"
+            : `${showLabel ? "" : "timeline-easing"} flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5"}`
+        }
         onClick={(event) => event.stopPropagation()}
       >
         <svg
@@ -87,14 +95,16 @@ export const EasingPicker: React.FC<{
         </svg>
         <span
           className={
-            showLabel
-              ? "flex-1 text-left text-sm"
-              : "timeline-easing-label hidden text-xs"
+            field
+              ? "flex-1 truncate text-left"
+              : showLabel
+                ? "flex-1 text-left text-sm"
+                : "hidden text-xs"
           }
         >
           {getEasingLabel(value)}
         </span>
-        {showLabel && (
+        {(showLabel || field) && (
           <ChevronDown
             aria-hidden="true"
             className="size-3.5 text-muted-foreground"

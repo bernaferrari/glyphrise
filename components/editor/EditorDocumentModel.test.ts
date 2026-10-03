@@ -216,7 +216,7 @@ describe("EditorDocumentModel", () => {
   })
 
   it("normalizes empty and overly long project names", () => {
-    expect(normalizeProjectName("   ")).toBe("Untitled project")
+    expect(normalizeProjectName("   ")).toBe("Untitled")
     expect(normalizeProjectName(`  My   icon  `)).toBe("My icon")
     expect(normalizeProjectName("a".repeat(100))).toHaveLength(80)
   })

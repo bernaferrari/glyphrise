@@ -63,7 +63,7 @@ export function InspectorSlider({
         precision={precision}
         suffix={suffix}
         ariaLabel={ariaLabel}
-        className={compact ? "w-[64px] shrink-0" : inputClassName}
+        className={compact ? "w-16 shrink-0" : inputClassName}
         onChange={onChange}
       />
       <label
@@ -80,7 +80,7 @@ export function InspectorSlider({
             style={{ width: thumbPosition }}
           />
           <span
-            className="absolute top-1/2 h-3.5 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-[0_0_0_1px_rgba(0,0,0,0.15)]"
+            className="absolute top-1/2 h-3.5 w-0.75 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-[0_0_0_1px_rgba(0,0,0,0.15)]"
             style={{ left: thumbPosition }}
           />
         </span>

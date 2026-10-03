@@ -93,8 +93,6 @@ export function useMaterialEditor({
       const settings = materialDefaultSettings(preset)
       setMaterialPreset(preset)
       onEdit()
-      if (!settings) return
-
       setMaterialBaseSettings(settings)
       setMaterialKeyframes((prev) => {
         if (prev.length === 0 && !autoKeyEnabled) return prev

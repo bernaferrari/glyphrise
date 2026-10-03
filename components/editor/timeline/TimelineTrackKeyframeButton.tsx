@@ -224,7 +224,7 @@ export function TimelineTrackKeyframeButton({
             <span className="pr-2 text-[11px] text-muted-foreground">s</span>
           </div>
           {!timeDraftInvalid && keyframeTimeClampNotice && editingTime ? (
-            <p className="mt-1 text-left text-[10px] text-amber-600">
+            <p className="mt-1 text-left text-[10px] text-warning">
               {keyframeTimeClampNotice}
             </p>
           ) : null}

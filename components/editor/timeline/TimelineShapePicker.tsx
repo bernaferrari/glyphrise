@@ -42,7 +42,6 @@ export function TimelineShapePicker({
       }}
       stop={stop}
       visibleShapeOptions={shapePicker.visibleShapeOptions}
-      favoriteMaterialSymbols={shapePicker.favoriteMaterialSymbols}
       recentMaterialSymbols={shapePicker.recentMaterialSymbols}
       filteredMaterialSymbols={shapePicker.filteredMaterialSymbols}
       filteredWipePairs={shapePicker.filteredWipePairs}
@@ -59,7 +58,6 @@ export function TimelineShapePicker({
       }
       materialSymbolStatus={shapePicker.materialSymbolStatus}
       onMaterialSymbolStatusChange={shapePicker.setMaterialSymbolStatus}
-      onToggleMaterialSymbolFavorite={shapePicker.toggleMaterialSymbolFavorite}
       onImportMaterialSymbol={shapePicker.importMaterialSymbol}
       onChooseMaterialSymbol={shapePicker.chooseMaterialSymbol}
       onChooseWipePair={shapePicker.chooseWipePair}

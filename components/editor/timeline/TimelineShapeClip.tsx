@@ -10,6 +10,8 @@ export type TimelineShapeClipProps = {
   duration: number
   stop: ShapeStop
   shapeCount: number
+  /** Position in time order, for Move earlier/later. */
+  index: number
   selectedShapeId: string | null
   bounds: ShapeClipBounds
   shapeDraggedRef: React.MutableRefObject<boolean>
@@ -18,6 +20,7 @@ export type TimelineShapeClipProps = {
   onSeek: (time: number) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
+  onMoveShapeOrder: (id: string, direction: -1 | 1) => void
   onRemoveShape: (id: string) => void
   onShapeDrag: (event: React.PointerEvent<HTMLElement>, shapeId: string) => void
   onOpenContextMenu: (
@@ -37,6 +40,7 @@ export function TimelineShapeClip({
   duration,
   stop,
   shapeCount,
+  index,
   selectedShapeId,
   bounds,
   shapeDraggedRef,
@@ -45,6 +49,7 @@ export function TimelineShapeClip({
   onSeek,
   onOpenShapePicker,
   onUploadShape,
+  onMoveShapeOrder,
   onRemoveShape,
   onShapeDrag,
   onOpenContextMenu,
@@ -53,6 +58,8 @@ export function TimelineShapeClip({
 }: TimelineShapeClipProps) {
   const selected = stop.id === selectedShapeId
   const isOnly = bounds.isOnly
+  const isFirst = index === 0
+  const isLast = index === shapeCount - 1
 
   return (
     <button
@@ -92,6 +99,17 @@ export function TimelineShapeClip({
           {
             label: "Upload SVG",
             onSelect: () => onUploadShape(stop.id),
+          },
+          { type: "separator" },
+          {
+            label: "Move earlier",
+            disabled: isFirst,
+            onSelect: () => onMoveShapeOrder(stop.id, -1),
+          },
+          {
+            label: "Move later",
+            disabled: isLast,
+            onSelect: () => onMoveShapeOrder(stop.id, 1),
           },
           { type: "separator" },
           {

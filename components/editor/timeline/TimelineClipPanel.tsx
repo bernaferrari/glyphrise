@@ -2,6 +2,7 @@
 
 import { Replace, Trash2, Upload, X } from "lucide-react"
 import { Popover, PopoverContent, PopoverTitle } from "@/components/ui/popover"
+import { NumberField } from "../NumberField"
 import type { ShapeStop } from "../TimelineModel"
 
 const actionButton =
@@ -17,6 +18,8 @@ export function TimelineClipPanel({
   onChangeIcon,
   onUpload,
   onRemove,
+  onTimeChange,
+  duration,
 }: {
   open: boolean
   stop: ShapeStop | undefined
@@ -26,6 +29,8 @@ export function TimelineClipPanel({
   onChangeIcon: () => void
   onUpload: () => void
   onRemove: () => void
+  onTimeChange: (time: number) => void
+  duration: number
 }) {
   return (
     <Popover
@@ -62,9 +67,26 @@ export function TimelineClipPanel({
                 <PopoverTitle className="truncate text-[13px] font-medium">
                   {label}
                 </PopoverTitle>
-                <p className="text-[11px] text-muted-foreground tabular-nums">
-                  Starts at {stop.time.toFixed(2)}s
-                </p>
+                {stop.time === 0 ? (
+                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                    Opens the animation
+                  </p>
+                ) : (
+                  <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    Starts at
+                    <NumberField
+                      value={stop.time}
+                      min={0}
+                      max={duration}
+                      step={0.1}
+                      precision={2}
+                      suffix="s"
+                      className="h-6 w-16 text-[11px]"
+                      ariaLabel={`${label} start time in seconds`}
+                      onChange={onTimeChange}
+                    />
+                  </label>
+                )}
               </div>
               {canRemove && (
                 <button
@@ -100,10 +122,6 @@ export function TimelineClipPanel({
                 Upload SVG
               </button>
             </div>
-            <p className="px-3 pb-2.5 text-[11px] text-muted-foreground">
-              Drag the clip to retime it. Click the striped band to edit the
-              transition.
-            </p>
           </>
         )}
       </PopoverContent>

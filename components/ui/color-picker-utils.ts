@@ -1,3 +1,11 @@
+import {
+  isWarpedMesh,
+  meshBlobWeight,
+  meshExtraPoints,
+  meshNodePoints,
+  meshWarpCoordinates,
+} from "../../lib/mesh-warp"
+
 export type GradientType = "linear" | "radial" | "conic" | "mesh"
 export type ColorFormat = "HEX" | "RGB" | "HSL" | "HSB"
 
@@ -237,9 +245,6 @@ const mixHex = (fromColor: string, toColor: string, t: number) => {
   )
 }
 
-const bezierHex = (a: string, b: string, c: string, t: number) =>
-  mixHex(mixHex(a, b, t), mixHex(b, c, t), t)
-
 export const colorAtStopPosition = (
   stops: Array<{ color: string; position: number }>,
   position: number,
@@ -261,9 +266,74 @@ export const colorAtStopPosition = (
   )
 }
 
+/**
+ * The 3×3 control colors a mesh renders with, row by row. With nine or more
+ * stops the first nine are used as-is; fewer stops are sampled evenly.
+ */
+export const meshGridColors = (
+  stops: Array<{ color: string; position: number }>,
+  fallback: string
+) => {
+  const sortedStops = [...stops].sort((a, b) => a.position - b.position)
+  return Array.from({ length: 9 }, (_, index) =>
+    stops.length >= 9
+      ? (sortedStops[index]?.color ?? fallback)
+      : colorAtStopPosition(stops, index / 8, fallback)
+  )
+}
+
+type Rgb = [number, number, number]
+
+const mixRgb = (a: Rgb, b: Rgb, t: number): Rgb => [
+  a[0] + (b[0] - a[0]) * t,
+  a[1] + (b[1] - a[1]) * t,
+  a[2] + (b[2] - a[2]) * t,
+]
+
+const bezierRgb = (a: Rgb, b: Rgb, c: Rgb, t: number) =>
+  mixRgb(mixRgb(a, b, t), mixRgb(b, c, t), t)
+
+const toRgb = (hex: string): Rgb => {
+  const { r, g, b } = hexToRgb(hex)
+  return [r, g, b]
+}
+
+/**
+ * Resolves everything about a mesh that doesn't depend on the sample point
+ * once, then samples cheaply (RGB 0–255). Use for whole-canvas previews.
+ */
+export const createMeshRgbSampler = (
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>,
+  fallback: string
+) => {
+  const sorted = [...stops].sort((a, b) => a.position - b.position)
+  const palette = meshGridColors(sorted, fallback).map(toRgb)
+  const nodes = meshNodePoints(sorted)
+  const warped = isWarpedMesh(nodes)
+  const extras = meshExtraPoints(sorted).map((extra) => ({
+    ...extra,
+    rgb: toRgb(extra.color),
+  }))
+  return (u: number, v: number): Rgb => {
+    const { s, t } = warped ? meshWarpCoordinates(nodes, u, v) : { s: u, t: v }
+    const x = smoothstep(0.02, 0.98, s)
+    const y = smoothstep(0.02, 0.98, t)
+    let color = bezierRgb(
+      bezierRgb(palette[0], palette[1], palette[2], x),
+      bezierRgb(palette[3], palette[4], palette[5], x),
+      bezierRgb(palette[6], palette[7], palette[8], x),
+      y
+    )
+    for (const extra of extras) {
+      color = mixRgb(color, extra.rgb, meshBlobWeight(extra, u, v))
+    }
+    return color
+  }
+}
+
 export const colorAtGradientPoint = (
   type: GradientType,
-  stops: Array<{ color: string; position: number }>,
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>,
   point: { x: number; y: number },
   fallback: string
 ) => {
@@ -294,18 +364,8 @@ export const colorAtGradientPoint = (
   }
 
   if (type === "mesh") {
-    const sortedStops = [...stops].sort((a, b) => a.position - b.position)
-    const palette = Array.from({ length: 9 }, (_, index) =>
-      stops.length >= 9
-        ? (sortedStops[index]?.color ?? fallback)
-        : colorAtStopPosition(stops, index / 8, fallback)
-    )
-    const x = smoothstep(0.02, 0.98, point.x)
-    const y = smoothstep(0.02, 0.98, point.y)
-    const top = bezierHex(palette[0], palette[1], palette[2], x)
-    const middle = bezierHex(palette[3], palette[4], palette[5], x)
-    const bottom = bezierHex(palette[6], palette[7], palette[8], x)
-    return bezierHex(top, middle, bottom, y)
+    const [r, g, b] = createMeshRgbSampler(stops, fallback)(point.x, point.y)
+    return rgbToHex(r, g, b)
   }
 
   return colorAtStopPosition(stops, point.x, fallback)

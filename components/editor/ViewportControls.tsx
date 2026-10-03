@@ -22,11 +22,13 @@ import {
 export type ViewOptionsPopoverProps = {
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
+  showSelectionOutline: boolean
   showTransformGizmo: boolean
   animatedSeekEnabled: boolean
   onResetView: () => void
   onViewInertiaChange: (enabled: boolean) => void
   onShowCenterPointChange: (visible: boolean) => void
+  onShowSelectionOutlineChange: (visible: boolean) => void
   onShowTransformGizmoChange: (visible: boolean) => void
   onAnimatedSeekChange: (enabled: boolean) => void
 }
@@ -34,11 +36,13 @@ export type ViewOptionsPopoverProps = {
 export function ViewOptionsPopover({
   viewInertiaEnabled,
   showCenterPoint,
+  showSelectionOutline,
   showTransformGizmo,
   animatedSeekEnabled,
   onResetView,
   onViewInertiaChange,
   onShowCenterPointChange,
+  onShowSelectionOutlineChange,
   onShowTransformGizmoChange,
   onAnimatedSeekChange,
 }: ViewOptionsPopoverProps) {
@@ -46,9 +50,9 @@ export function ViewOptionsPopover({
     <div className="absolute top-3 right-3 z-40 flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white backdrop-blur-md">
       <button
         type="button"
-        aria-label="Reset camera"
+        aria-label="Reset view"
         onClick={onResetView}
-        title="Reset preview camera and zoom"
+        title="Reset rotation, position, scale, camera, and zoom"
         className="grid size-10 place-items-center rounded-lg text-white/75 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white pointer-coarse:size-11"
       >
         <RotateCcw aria-hidden="true" className="size-4" />
@@ -90,6 +94,11 @@ export function ViewOptionsPopover({
             label="Center point"
             checked={showCenterPoint}
             onCheckedChange={onShowCenterPointChange}
+          />
+          <ViewportToggleRow
+            label="Selection outline"
+            checked={showSelectionOutline}
+            onCheckedChange={onShowSelectionOutlineChange}
           />
           <ViewportToggleRow
             label="Transform gizmo"
@@ -170,7 +179,10 @@ export function PlaybackControls({
   onExitZenMode,
 }: PlaybackControlsProps) {
   return (
-    <div className="viewport-playback absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl">
+    <div
+      data-slot="viewport-playback"
+      className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl"
+    >
       <Button
         size="icon"
         variant="ghost"
@@ -193,31 +205,38 @@ export function PlaybackControls({
       >
         <ChevronLeft size={16} />
       </Button>
-      <div className="relative grid size-11 place-items-center">
+      <div
+        className={`relative grid place-items-center ${zenMode ? "size-12" : "size-11"}`}
+      >
         {zenMode && (
           <svg
             className="pointer-events-none absolute inset-0 -rotate-90"
-            viewBox="0 0 44 44"
+            viewBox="0 0 48 48"
             aria-hidden="true"
           >
             <circle
-              cx="22"
-              cy="22"
-              r="20"
+              cx="24"
+              cy="24"
+              r="22"
               fill="none"
-              stroke="var(--border)"
-              strokeOpacity="0.5"
+              stroke="currentColor"
+              strokeOpacity="0.15"
               strokeWidth="1.5"
             />
             <circle
-              cx="22"
-              cy="22"
-              r="20"
+              cx="24"
+              cy="24"
+              r="22"
               fill="none"
-              stroke="white"
-              strokeWidth="1.8"
+              stroke="currentColor"
+              strokeOpacity="0.75"
+              strokeWidth="1.5"
               strokeLinecap="round"
-              strokeDasharray={`${(playbackProgress * 125.66).toFixed(2)} 125.66`}
+              pathLength="100"
+              strokeDasharray="100"
+              strokeDashoffset={
+                100 - Math.min(1, Math.max(0, playbackProgress)) * 100
+              }
             />
           </svg>
         )}
@@ -225,7 +244,7 @@ export function PlaybackControls({
           size="icon"
           onClick={onPlayToggle}
           aria-label={isPlaying ? "Pause" : "Play"}
-          className="size-11 rounded-xl bg-white text-black hover:bg-white/90"
+          className={`bg-white text-black hover:bg-white/90 ${zenMode ? "size-10 rounded-full" : "size-11 rounded-xl"}`}
         >
           {isPlaying ? (
             <Pause size={16} className="fill-current" />

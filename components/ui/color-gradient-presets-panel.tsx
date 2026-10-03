@@ -3,7 +3,9 @@
 import { Check, Move, Shuffle } from "lucide-react"
 import { GRADIENT_PRESETS, type GradientPreset } from "./color-gradient-presets"
 import { type GradientType } from "./color-gradient-mode-toggle"
+import { isWarpedMesh, meshNodePoints } from "../../lib/mesh-warp"
 import { gradientPreviewCss } from "./color-picker-utils"
+import { MeshPreviewCanvas } from "./color-mesh-preview"
 import type { EditableColorStop } from "./color-stop-model"
 
 interface ColorGradientPresetsPanelProps {
@@ -22,7 +24,7 @@ export function ColorGradientPresetsPanel({
   onShuffleMeshPoints,
 }: ColorGradientPresetsPanelProps) {
   return (
-    <div className="space-y-1.5 px-2">
+    <div className="space-y-1.5">
       <div className="flex h-6 items-center justify-between">
         <div className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
           Presets
@@ -31,8 +33,8 @@ export function ColorGradientPresetsPanel({
           <div className="flex items-center gap-1">
             <button
               type="button"
-              title="Shuffle mesh point positions"
-              aria-label="Shuffle mesh point positions"
+              title="Scatter point positions"
+              aria-label="Scatter mesh point positions"
               className="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
               onClick={(event) => {
                 event.stopPropagation()
@@ -56,11 +58,12 @@ export function ColorGradientPresetsPanel({
           </div>
         )}
       </div>
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-4 gap-2">
         {GRADIENT_PRESETS.map((preset) => {
           const selected =
             gradientType === preset.type &&
             stops.length === preset.stops.length &&
+            !(preset.type === "mesh" && isWarpedMesh(meshNodePoints(stops))) &&
             stops.every(
               (stop, index) =>
                 stop.color.toLowerCase() ===
@@ -74,7 +77,7 @@ export function ColorGradientPresetsPanel({
               title={preset.name}
               aria-label={`Use ${preset.name} gradient`}
               aria-pressed={selected}
-              className="group relative flex h-11 min-w-0 items-center justify-center rounded-lg py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="group relative h-10 min-w-0 rounded-lg ring-offset-2 ring-offset-popover transition-shadow duration-150 hover:ring-1 hover:ring-foreground/25 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aria-pressed:ring-2 aria-pressed:ring-foreground/85"
               onPointerDown={(event) => {
                 event.preventDefault()
                 event.stopPropagation()
@@ -84,15 +87,30 @@ export function ColorGradientPresetsPanel({
                 onPresetSelect(preset)
               }}
             >
-              <span
-                className="pointer-events-none block h-full w-full rounded-lg transition-opacity group-hover:opacity-85"
-                style={{
-                  background: gradientPreviewCss(preset.type, preset.stops),
-                }}
-              />
+              {preset.type === "mesh" ? (
+                <MeshPreviewCanvas
+                  stops={preset.stops}
+                  width={32}
+                  height={20}
+                  className="pointer-events-none size-full rounded-lg"
+                />
+              ) : (
+                <span
+                  className="pointer-events-none block size-full rounded-lg"
+                  style={{
+                    background: gradientPreviewCss(preset.type, preset.stops),
+                  }}
+                />
+              )}
               {selected && (
-                <span className="pointer-events-none absolute top-1.5 right-1 grid size-4 place-items-center rounded-full bg-white text-black">
-                  <Check aria-hidden="true" className="size-3" />
+                <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                  <span className="grid size-5 place-items-center rounded-full bg-black/45 text-white shadow-sm backdrop-blur-sm">
+                    <Check
+                      aria-hidden="true"
+                      className="size-3"
+                      strokeWidth={3}
+                    />
+                  </span>
                 </span>
               )}
             </button>

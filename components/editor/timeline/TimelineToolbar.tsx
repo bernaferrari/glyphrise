@@ -212,7 +212,7 @@ function MenuSwitch({
           "h-4 w-7 shrink-0 rounded-full p-0.5 transition-colors",
           checked
             ? danger
-              ? "bg-red-500"
+              ? "bg-recording"
               : "bg-foreground"
             : "bg-muted-foreground/30"
         )}
@@ -260,7 +260,7 @@ function OptionsMenu({
       <PopoverTrigger
         aria-label="Timeline options"
         title="Timeline options"
-        className={cn(iconButton, autoKeyEnabled && "text-red-500")}
+        className={cn(iconButton, autoKeyEnabled && "text-recording")}
       >
         <MoreHorizontal className="size-4" />
       </PopoverTrigger>
@@ -483,7 +483,7 @@ function DurationPopover({
             Enter a time in seconds, or press Esc to cancel
           </p>
         ) : durationNotice ? (
-          <p className="mt-1.5 text-[11px] text-amber-600">{durationNotice}</p>
+          <p className="mt-1.5 text-[11px] text-warning">{durationNotice}</p>
         ) : null}
         <div className="mt-2 grid grid-cols-3 gap-1">
           {[3, 5, 10].map((value) => (

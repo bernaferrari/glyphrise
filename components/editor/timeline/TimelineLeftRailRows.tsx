@@ -110,7 +110,7 @@ function RailRowFrame({
   return (
     <div
       onContextMenu={onContextMenu}
-      className={`timeline-property-rail group relative flex h-[var(--timeline-property-height)] items-center border-b border-border/50 transition-colors ${
+      className={`group relative flex h-[var(--timeline-property-height)] items-center border-b border-border/50 transition-colors ${
         isRevealed
           ? "bg-primary/10"
           : active
@@ -123,7 +123,7 @@ function RailRowFrame({
         aria-label={ariaLabel}
         aria-pressed={ariaPressed}
         onClick={onSelect}
-        className="timeline-property-name flex h-full min-w-0 flex-1 items-center gap-2 pr-1 pl-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
+        className="flex h-full min-w-0 flex-1 items-center gap-2 pr-1 pl-3 text-left focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
       >
         <TimelineRowIcon
           id={id}

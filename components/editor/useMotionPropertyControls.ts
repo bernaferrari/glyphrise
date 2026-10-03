@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback } from "react"
+import { SCALE_DEFAULT } from "./EditorModel"
 import type { MotionPropertyControlsOptions } from "./MotionPropertyControlsModel"
 import { useMoveMotionControls } from "./useMoveMotionControls"
 import { useQualityMotionControls } from "./useQualityMotionControls"
@@ -21,6 +22,8 @@ export function useMotionPropertyControls({
   setRotationAxisKeyframes,
   setPreviewRotationOffset,
   setObjectScale,
+  activeObjectScale,
+  objectScaleAxes,
   setObjectScaleAxes,
   setIsScaleLocked,
   activeMoveOffset,
@@ -72,7 +75,7 @@ export function useMotionPropertyControls({
     markCustom,
   })
 
-  const { updateMoveAxis } = useMoveMotionControls({
+  const { updateMoveAxis, resetMovePositionToOrigin } = useMoveMotionControls({
     currentTime,
     duration,
     setSelectedMotionTrackId,
@@ -94,7 +97,37 @@ export function useMotionPropertyControls({
 
   const resetView = useCallback(() => {
     canvas3DRef.current?.resetRotation()
-  }, [canvas3DRef])
+    if (Object.values(activeRotationOffset).some((value) => value !== 0)) {
+      handleViewRotationSet({ x: 0, y: 0, z: 0 })
+    }
+    if (Object.values(activeMoveOffset).some((value) => value !== 0)) {
+      resetMovePositionToOrigin()
+    }
+    if (activeObjectScale !== SCALE_DEFAULT) {
+      handleScaleChange(SCALE_DEFAULT)
+    }
+    if (
+      Object.values(objectScaleAxes).some((value) => value !== SCALE_DEFAULT)
+    ) {
+      markCustom()
+      setObjectScaleAxes({
+        x: SCALE_DEFAULT,
+        y: SCALE_DEFAULT,
+        z: SCALE_DEFAULT,
+      })
+    }
+  }, [
+    canvas3DRef,
+    activeRotationOffset,
+    activeMoveOffset,
+    activeObjectScale,
+    objectScaleAxes,
+    handleViewRotationSet,
+    resetMovePositionToOrigin,
+    handleScaleChange,
+    markCustom,
+    setObjectScaleAxes,
+  ])
 
   return {
     handleDepthChange,

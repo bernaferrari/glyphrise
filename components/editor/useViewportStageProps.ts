@@ -20,6 +20,7 @@ type UseViewportStagePropsArgs = UseSvgCanvasPropsArgs & {
   onResetView: () => void
   onViewInertiaChange: (enabled: boolean) => void
   onShowCenterPointChange: (visible: boolean) => void
+  onShowSelectionOutlineChange: (visible: boolean) => void
   onShowTransformGizmoChange: (visible: boolean) => void
   animatedSeekEnabled: boolean
   onAnimatedSeekChange: (enabled: boolean) => void
@@ -41,6 +42,7 @@ export function useViewportStageProps({
   onResetView,
   onViewInertiaChange,
   onShowCenterPointChange,
+  onShowSelectionOutlineChange,
   onShowTransformGizmoChange,
   animatedSeekEnabled,
   onAnimatedSeekChange,
@@ -58,10 +60,12 @@ export function useViewportStageProps({
     () => ({
       viewInertiaEnabled: canvasArgs.viewInertiaEnabled,
       showCenterPoint: canvasArgs.showCenterPoint,
+      showSelectionOutline: canvasArgs.showSelectionOutline,
       showTransformGizmo: canvasArgs.showTransformGizmo,
       onResetView,
       onViewInertiaChange,
       onShowCenterPointChange,
+      onShowSelectionOutlineChange,
       onShowTransformGizmoChange,
       animatedSeekEnabled,
       onAnimatedSeekChange,
@@ -69,10 +73,12 @@ export function useViewportStageProps({
     [
       canvasArgs.viewInertiaEnabled,
       canvasArgs.showCenterPoint,
+      canvasArgs.showSelectionOutline,
       canvasArgs.showTransformGizmo,
       onResetView,
       onViewInertiaChange,
       onShowCenterPointChange,
+      onShowSelectionOutlineChange,
       onShowTransformGizmoChange,
       animatedSeekEnabled,
       onAnimatedSeekChange,

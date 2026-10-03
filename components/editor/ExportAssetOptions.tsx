@@ -72,7 +72,7 @@ function OutputPreview({
         : `${settings.width} × ${settings.height} · PNG`
   return (
     <div className="flex flex-col items-center justify-center gap-3 bg-muted/40 p-6 max-md:py-4">
-      <div className="grid size-[200px] place-items-center max-md:size-[120px]">
+      <div className="grid size-50 place-items-center max-md:size-30">
         {format === "model" ? (
           <div className="grid size-full place-items-center rounded-xl border border-dashed border-border">
             <Box aria-hidden="true" className="size-14 text-muted-foreground" />

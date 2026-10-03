@@ -83,6 +83,7 @@ export function TimelineLanesSurface({
               onSelectShape={shapeLane.onSelectShape}
               onOpenShapePicker={shapeLane.onOpenShapePicker}
               onUploadShape={shapeLane.onUploadShape}
+              onMoveShapeOrder={shapeLane.onMoveShapeOrder}
               onRemoveShape={shapeLane.onRemoveShape}
               onShapeDrag={shapeLane.onShapeDrag}
               onOpenContextMenu={menu.onOpenContextMenu}

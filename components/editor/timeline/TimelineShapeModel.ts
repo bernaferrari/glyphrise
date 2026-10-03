@@ -94,3 +94,66 @@ export const setShapeTransitionFraction = ({
           ),
         }
   })
+
+/**
+ * What travels with an icon when clips trade places. Times and transition
+ * settings belong to the timeline slot and stay put; the id travels so
+ * selection follows the icon the user moved.
+ */
+const ICON_FIELDS = [
+  "id",
+  "iconId",
+  "iconName",
+  "svgContent",
+  "color",
+  "colorSecondary",
+  "fillStops",
+  "fillGradientType",
+  "fillKeyframes",
+  "pathOverrides",
+] as const satisfies ReadonlyArray<keyof ShapeStop>
+
+const iconFieldsOf = (shape: ShapeStop) =>
+  Object.fromEntries(ICON_FIELDS.map((field) => [field, shape[field]])) as Pick<
+    ShapeStop,
+    (typeof ICON_FIELDS)[number]
+  >
+
+/** Swap two clips' icons, leaving the timeline slots (times) where they are. */
+export const swapShapeIcons = (
+  shapes: ShapeStop[],
+  aId: string,
+  bId: string
+): ShapeStop[] => {
+  const a = shapes.find((shape) => shape.id === aId)
+  const b = shapes.find((shape) => shape.id === bId)
+  if (!a || !b || a === b) return shapes
+  return shapes.map((shape) =>
+    shape.id === aId
+      ? { ...shape, ...iconFieldsOf(b) }
+      : shape.id === bId
+        ? { ...shape, ...iconFieldsOf(a) }
+        : shape
+  )
+}
+
+/** The clip right before or after `shapeId` in time, if any. */
+export const adjacentShapeId = (
+  shapes: ShapeStop[],
+  shapeId: string,
+  direction: -1 | 1
+) => {
+  const sorted = [...shapes].sort((a, b) => a.time - b.time)
+  const index = sorted.findIndex((shape) => shape.id === shapeId)
+  return index < 0 ? undefined : sorted[index + direction]?.id
+}
+
+/** Move a clip one place earlier or later; the icons trade slots. */
+export const moveShapeOrder = (
+  shapes: ShapeStop[],
+  shapeId: string,
+  direction: -1 | 1
+) => {
+  const neighborId = adjacentShapeId(shapes, shapeId, direction)
+  return neighborId ? swapShapeIcons(shapes, shapeId, neighborId) : shapes
+}

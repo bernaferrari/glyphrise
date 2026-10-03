@@ -1,3 +1,4 @@
+import { defaultMeshPoint } from "../../lib/mesh-warp"
 import type { PathOverride } from "../3d/SvgTypes"
 
 export type EasingType = "linear" | "ease-in-out" | "spring" | "bounce"
@@ -14,6 +15,9 @@ export interface FillStop {
   id: string
   color: string
   position: number
+  /** Mesh only: where this node was dragged (0–1, y down). */
+  x?: number
+  y?: number
 }
 
 export type FillGradientType = "linear" | "radial" | "conic" | "mesh"
@@ -203,10 +207,12 @@ export const prepareFillKeyframes = (
 const interpolatePreparedNumber = (
   time: number,
   fallback: number,
-  points: PreparedFillPoint[]
+  points: PreparedFillPoint[],
+  read: (stop: FillStop) => number | undefined = (stop) => stop.position
 ) => {
   if (points.length === 0) return fallback
-  const valueAt = (point: PreparedFillPoint) => point.stop?.position ?? fallback
+  const valueAt = (point: PreparedFillPoint) =>
+    (point.stop ? read(point.stop) : undefined) ?? fallback
   if (time <= points[0].time) return valueAt(points[0])
   if (time >= points[points.length - 1].time)
     return valueAt(points[points.length - 1])
@@ -283,18 +289,32 @@ export const interpolatePreparedFillKeyframes = (
     const fallbackStop =
       fallbackStops[index] ?? fallbackStops[fallbackStops.length - 1]
     const track = prepared.stopTracks[index]
+    const points = track?.points ?? []
+    // Dragged mesh nodes animate too; unmoved ones stay on the default grid.
+    const positioned =
+      fallbackStop.x !== undefined ||
+      points.some((point) => point.stop?.x !== undefined)
+    const gridPoint = defaultMeshPoint(index)
     return {
       id: track?.id ?? fallbackStop.id ?? `stop-${index}`,
-      position: interpolatePreparedNumber(
-        time,
-        fallbackStop.position,
-        track?.points ?? []
-      ),
-      color: interpolatePreparedColor(
-        time,
-        fallbackStop.color,
-        track?.points ?? []
-      ),
+      position: interpolatePreparedNumber(time, fallbackStop.position, points),
+      color: interpolatePreparedColor(time, fallbackStop.color, points),
+      ...(positioned
+        ? {
+            x: interpolatePreparedNumber(
+              time,
+              fallbackStop.x ?? gridPoint.x,
+              points,
+              (stop) => stop.x ?? gridPoint.x
+            ),
+            y: interpolatePreparedNumber(
+              time,
+              fallbackStop.y ?? gridPoint.y,
+              points,
+              (stop) => stop.y ?? gridPoint.y
+            ),
+          }
+        : {}),
     }
   })
 

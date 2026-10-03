@@ -8,6 +8,7 @@ type ViewportOptions = {
   zoom: number
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
+  showSelectionOutline: boolean
   showTransformGizmo: boolean
   zenMode: boolean
   isDragging: boolean
@@ -17,6 +18,7 @@ const DEFAULT_VIEWPORT_OPTIONS: ViewportOptions = {
   zoom: 1,
   viewInertiaEnabled: true,
   showCenterPoint: false,
+  showSelectionOutline: false,
   showTransformGizmo: false,
   zenMode: false,
   isDragging: false,
@@ -37,6 +39,11 @@ export function useViewportOptions() {
     (value) => setOption("showCenterPoint", value),
     [setOption]
   )
+  const setShowSelectionOutline: Dispatch<SetStateAction<boolean>> =
+    useCallback(
+      (value) => setOption("showSelectionOutline", value),
+      [setOption]
+    )
   const setShowTransformGizmo: Dispatch<SetStateAction<boolean>> = useCallback(
     (value) => setOption("showTransformGizmo", value),
     [setOption]
@@ -57,6 +64,8 @@ export function useViewportOptions() {
     setViewInertiaEnabled,
     showCenterPoint: options.showCenterPoint,
     setShowCenterPoint,
+    showSelectionOutline: options.showSelectionOutline,
+    setShowSelectionOutline,
     showTransformGizmo: options.showTransformGizmo,
     setShowTransformGizmo,
     zenMode: options.zenMode,

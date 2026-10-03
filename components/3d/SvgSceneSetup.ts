@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { CAMERA_FOV, framedCameraDistance } from "./SvgSceneUtils"
-import { clamp01Number, materialLightMultiplier } from "./SvgMaterials"
+import { finishLightMultiplier } from "./MaterialPresets"
+import { clamp01Number } from "./SvgMaterials"
 import type { SvgCanvasProps } from "./SvgTypes"
 
 export const createSvgRenderer = ({
@@ -108,7 +109,7 @@ export const createClipPlanes = () => ({
 
 export const createSceneLights = (props: SvgCanvasProps) => {
   const materialLight =
-    props.keyLightIntensity * materialLightMultiplier(props.materialPreset)
+    props.keyLightIntensity * finishLightMultiplier(props.materialPreset)
   const ambientLight = new THREE.AmbientLight(
     props.ambientColor,
     props.ambientIntensity
@@ -159,7 +160,7 @@ export const updateSceneLights = ({
   renderer: THREE.WebGLRenderer | null
 }) => {
   const materialLight =
-    props.keyLightIntensity * materialLightMultiplier(props.materialPreset)
+    props.keyLightIntensity * finishLightMultiplier(props.materialPreset)
   const softness = clamp01Number(props.keyLightSoftness, 0)
 
   if (ambientLight) {

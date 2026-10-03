@@ -30,7 +30,14 @@ export const pathRebuildSignature = (
 
 export const gradientStopsSignature = (stops: GradientStop[] | undefined) =>
   (stops ?? [])
-    .map((stop) => `${stop.color}:${Number(stop.position).toFixed(3)}`)
+    .map(
+      (stop) =>
+        `${stop.color}:${Number(stop.position).toFixed(3)}` +
+        // Moved mesh points must recolor too.
+        (stop.x !== undefined || stop.y !== undefined
+          ? `@${Number(stop.x ?? 0).toFixed(3)},${Number(stop.y ?? 0).toFixed(3)}`
+          : "")
+    )
     .join("|")
 
 export const applySvgModelScale = (group: THREE.Group) => {

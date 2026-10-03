@@ -71,7 +71,7 @@ export function OrientationGizmo({
   return (
     <svg
       viewBox="0 0 80 80"
-      className="group/gizmo pointer-events-auto absolute right-5 bottom-0.5 z-20 h-[84px] w-[84px] select-none"
+      className="group/gizmo pointer-events-auto absolute right-5 bottom-0.5 z-20 h-21 w-21 select-none"
     >
       <line
         ref={refs.lineXRef}

@@ -152,11 +152,16 @@ const shapeFillValue = ({
 }) =>
   interpolatePreparedFillKeyframes(
     currentTime,
+    // The inspector edits the project fill, so once it has stops they win;
+    // otherwise new shapes' seeded stops would hide every Fill edit. Solid
+    // colors stay per shape so alternating recipes keep working.
     {
       color: shape.color || fallback.color,
       colorSecondary: shape.colorSecondary || fallback.colorSecondary,
-      gradientType: shape.fillGradientType ?? fallback.gradientType,
-      stops: shape.fillStops ?? fallback.stops,
+      gradientType: fallback.stops?.length
+        ? fallback.gradientType
+        : (shape.fillGradientType ?? fallback.gradientType),
+      stops: fallback.stops?.length ? fallback.stops : shape.fillStops,
     },
     preparedFillKeyframes
   )

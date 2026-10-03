@@ -1,9 +1,12 @@
+import { defaultMeshPoint, MESH_NODE_COUNT } from "../../lib/mesh-warp"
 import { hexToHsv, hsvToHex, type GradientType } from "./color-picker-utils"
 
 export type GradientStop = {
   id?: string
   color: string
   position: number
+  x?: number
+  y?: number
 }
 
 export type GradientPreset = {
@@ -109,7 +112,7 @@ const NIGHT_MESH_STOPS: GradientStop[] = [
 ]
 
 export const GRADIENT_PRESETS: GradientPreset[] = [
-  { name: "Google Mesh", type: "mesh", stops: GOOGLE_MESH_STOPS },
+  { name: "Spectrum Mesh", type: "mesh", stops: GOOGLE_MESH_STOPS },
   { name: "Ceramic Mesh", type: "mesh", stops: AURORA_MESH_STOPS },
   { name: "Candy Mesh", type: "mesh", stops: CANDY_MESH_STOPS },
   { name: "Lagoon Mesh", type: "mesh", stops: LAGOON_MESH_STOPS },
@@ -117,14 +120,6 @@ export const GRADIENT_PRESETS: GradientPreset[] = [
   { name: "Orchid Mesh", type: "mesh", stops: ORCHID_MESH_STOPS },
   { name: "Opal Mesh", type: "mesh", stops: OPAL_MESH_STOPS },
   { name: "Tropic Mesh", type: "mesh", stops: NIGHT_MESH_STOPS },
-]
-
-const MESH_POSITION_PERMUTATIONS = [
-  [2, 5, 8, 1, 4, 7, 0, 3, 6],
-  [6, 3, 0, 7, 4, 1, 8, 5, 2],
-  [8, 7, 6, 5, 4, 3, 2, 1, 0],
-  [1, 2, 5, 0, 4, 8, 3, 6, 7],
-  [3, 0, 1, 6, 4, 2, 7, 8, 5],
 ]
 
 export const shuffledMeshColors = (stops: GradientStop[]): GradientStop[] => {
@@ -149,21 +144,17 @@ export const shuffledMeshColors = (stops: GradientStop[]): GradientStop[] => {
   })
 }
 
-export const shuffledMeshPositions = (
-  stops: GradientStop[]
-): GradientStop[] => {
-  if (stops.length < 2) return stops
+const MESH_JITTER = 0.16
 
-  const positions = stops.map((stop) => stop.position).sort((a, b) => a - b)
-  const permutation =
-    MESH_POSITION_PERMUTATIONS[
-      Math.floor(Math.random() * MESH_POSITION_PERMUTATIONS.length)
-    ]
-
-  return stops.map((stop, index) => ({
-    ...stop,
-    position:
-      positions[permutation[index % permutation.length] % positions.length] ??
-      stop.position,
-  }))
-}
+/** Nudges every mesh node off its grid spot for an organic, warped blend. */
+export const shuffledMeshPositions = (stops: GradientStop[]): GradientStop[] =>
+  stops.map((stop, index) => {
+    if (index >= MESH_NODE_COUNT) return stop
+    const home = defaultMeshPoint(index)
+    const jitter = () => (Math.random() * 2 - 1) * MESH_JITTER
+    return {
+      ...stop,
+      x: Math.max(0, Math.min(1, home.x + jitter())),
+      y: Math.max(0, Math.min(1, home.y + jitter())),
+    }
+  })

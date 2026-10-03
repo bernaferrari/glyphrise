@@ -14,6 +14,7 @@ export type SvgCanvasLiveRenderProps = {
   objectScaleAxes: NonNullable<SvgCanvasProps["objectScaleAxes"]>
   moveOffset: SvgCanvasProps["moveOffset"]
   showCenterPoint: SvgCanvasProps["showCenterPoint"]
+  showSelectionOutline: SvgCanvasProps["showSelectionOutline"]
   showTransformGizmo: SvgCanvasProps["showTransformGizmo"]
   selectedLayerId: SvgCanvasProps["selectedLayerId"]
   isPlaying: boolean
@@ -32,6 +33,7 @@ const getLiveRenderProps = (
   objectScaleAxes: props.objectScaleAxes ?? { x: 1, y: 1, z: 1 },
   moveOffset: props.moveOffset,
   showCenterPoint: props.showCenterPoint,
+  showSelectionOutline: props.showSelectionOutline,
   showTransformGizmo: props.showTransformGizmo,
   selectedLayerId: props.selectedLayerId,
   isPlaying: props.isPlaying,

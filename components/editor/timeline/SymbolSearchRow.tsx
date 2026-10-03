@@ -1,5 +1,6 @@
-import { CornerDownLeft, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import {
+  getMaterialSymbolNames,
   type MaterialSymbolFontSettings,
   type MaterialSymbolStyle,
 } from "../IconLibrary"
@@ -12,7 +13,6 @@ import { SymbolOptionsPopover } from "./SymbolOptionsPopover"
 
 export function SymbolSearchRow({
   searchScope = "symbols",
-  searchActionLabel = "Try exact symbol name",
   stop,
   materialSymbolClass,
   symbolStyle,
@@ -30,7 +30,6 @@ export function SymbolSearchRow({
   onImportMaterialSymbol,
 }: {
   searchScope?: "symbols" | "presets" | "wipe"
-  searchActionLabel?: string
   stop: ShapeStop
   materialSymbolClass: string
   symbolStyle: React.CSSProperties
@@ -84,30 +83,11 @@ export function SymbolSearchRow({
             ? "Search presets"
             : searchScope === "wipe"
               ? "Search wipe pairs"
-              : "Search 3,000+ symbols"
+              : `Search ${getMaterialSymbolNames().length.toLocaleString()} symbols`
         }
-        className="h-10 w-full min-w-0 rounded-lg bg-muted/70 pr-24 pl-9 text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
+        className="h-10 w-full min-w-0 rounded-lg bg-muted/70 pr-12 pl-9 text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40 sm:text-sm [&::-webkit-search-cancel-button]:hidden"
       />
       <div className="absolute right-1 flex items-center gap-0.5">
-        {searchScope === "symbols" && normalizedShapeQuery && (
-          <button
-            type="button"
-            aria-label={searchActionLabel}
-            title={searchActionLabel}
-            disabled={materialSymbolStatus.state === "loading"}
-            onClick={() => onImportMaterialSymbol(stop.id)}
-            className="flex h-8 items-center gap-1 rounded-md bg-foreground px-2 text-[11px] font-medium text-background hover:bg-foreground/85 disabled:opacity-50"
-          >
-            {materialSymbolStatus.state === "loading" ? (
-              <span className="size-3 animate-pulse rounded-full bg-current" />
-            ) : (
-              <>
-                Use
-                <CornerDownLeft aria-hidden="true" className="size-3" />
-              </>
-            )}
-          </button>
-        )}
         {searchScope !== "presets" && (
           <SymbolOptionsPopover
             materialSymbolClass={materialSymbolClass}

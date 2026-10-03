@@ -151,9 +151,7 @@ function ResultPreview({
       <p
         className={cn(
           "text-[11px] leading-4",
-          existing > 0
-            ? "text-amber-600 dark:text-amber-400"
-            : "text-muted-foreground"
+          existing > 0 ? "text-warning" : "text-muted-foreground"
         )}
       >
         {existing > 0

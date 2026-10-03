@@ -2,9 +2,9 @@ import { expect, type Page } from "@playwright/test"
 import { test } from "./fixtures"
 
 async function backup(page: Page) {
-  await page.getByRole("button", { name: "Open project menu" }).click()
+  await page.getByRole("button", { name: "Open file menu" }).click()
   const downloaded = page.waitForEvent("download")
-  await page.getByRole("button", { name: "Download project backup" }).click()
+  await page.getByRole("button", { name: "Download a copy" }).click()
   const stream = await (await downloaded).createReadStream()
   const chunks: Buffer[] = []
   for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
@@ -151,7 +151,7 @@ test("camera orbit changes the view but preserves exported document state", asyn
   await expect(
     page.getByRole("button", { name: "Undo", exact: true })
   ).toBeDisabled()
-  await page.getByRole("button", { name: "Reset camera", exact: true }).click()
+  await page.getByRole("button", { name: "Reset view", exact: true }).click()
   await expect.poll(async () => (await captureIcon()).equals(image)).toBe(true)
   expect(await backup(page)).toEqual(before)
 })

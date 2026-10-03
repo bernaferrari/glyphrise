@@ -50,7 +50,7 @@ for (const width of [390, 1280]) {
         .getByRole("button", { name: "Create with Star", exact: true })
         .click()
       await expect(
-        page.getByLabel("Project name", { exact: true })
+        page.getByLabel("File name", { exact: true })
       ).toHaveValue("Star motion")
       const guide = page.getByRole("complementary", { name: "Your first icon" })
       await expect(guide).toBeVisible()
@@ -98,7 +98,7 @@ for (const width of [390, 1280]) {
       await page.reload()
       await expect(welcome).toHaveCount(0)
       await expect(
-        page.getByLabel("Project name", { exact: true })
+        page.getByLabel("File name", { exact: true })
       ).toHaveValue("Star motion")
       if (width < 720)
         await page

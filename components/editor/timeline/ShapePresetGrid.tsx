@@ -91,7 +91,7 @@ export function ShapePresetGrid({
               style={active ? { borderColor: option.defaultTint } : undefined}
             >
               <div
-                className="size-[18px] [&_svg]:h-full [&_svg]:w-full [&_svg]:fill-current [&_svg]:stroke-current"
+                className="size-4.5 [&_svg]:h-full [&_svg]:w-full [&_svg]:fill-current [&_svg]:stroke-current"
                 style={{ color: option.defaultTint }}
                 dangerouslySetInnerHTML={{ __html: option.svgContent }}
               />

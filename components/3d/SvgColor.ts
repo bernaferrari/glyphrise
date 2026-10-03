@@ -1,5 +1,12 @@
 import * as THREE from "three"
 import { finiteNumber } from "./SvgGeometry"
+import {
+  isWarpedMesh,
+  meshBlobWeight,
+  meshExtraPoints,
+  meshNodePoints,
+  meshWarpCoordinates,
+} from "../../lib/mesh-warp"
 import type { GradientStop, GradientType } from "./SvgTypes"
 
 const GOOGLE_MESH_PALETTE = [
@@ -79,22 +86,38 @@ const colorAtPalettePosition = (palette: THREE.Color[], t: number) => {
   return palette[start].clone().lerp(palette[end], scaled - start)
 }
 
-const meshGradientColorFromPalette = (
-  palette: THREE.Color[],
-  u: number,
-  v: number
+/**
+ * Everything about a mesh that doesn't depend on the sample point, resolved
+ * once per recolor rather than once per vertex.
+ */
+const createMeshSampler = (
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>
 ) => {
+  const palette = stops.slice(0, 9).map((stop) => new THREE.Color(stop.color))
   const grid = Array.from({ length: 9 }, (_, index) =>
     palette.length >= 9
       ? palette[index]
       : colorAtPalettePosition(palette, index / 8)
   )
-  const x = smoothstep(0.02, 0.98, u)
-  const y = smoothstep(0.02, 0.98, v)
-  const topRow = bezierColor(grid[0], grid[1], grid[2], x)
-  const midRow = bezierColor(grid[3], grid[4], grid[5], x)
-  const bottomRow = bezierColor(grid[6], grid[7], grid[8], x)
-  return saturateIcon3DColor(bezierColor(topRow, midRow, bottomRow, y))
+  const points = meshNodePoints(stops)
+  const warped = isWarpedMesh(points)
+  const extras = meshExtraPoints(stops).map((point) => ({
+    ...point,
+    color: saturateIcon3DColor(new THREE.Color(point.color)),
+  }))
+  return (u: number, v: number) => {
+    const { s, t } = warped ? meshWarpCoordinates(points, u, v) : { s: u, t: v }
+    const x = smoothstep(0.02, 0.98, s)
+    const y = smoothstep(0.02, 0.98, t)
+    const topRow = bezierColor(grid[0], grid[1], grid[2], x)
+    const midRow = bezierColor(grid[3], grid[4], grid[5], x)
+    const bottomRow = bezierColor(grid[6], grid[7], grid[8], x)
+    const color = saturateIcon3DColor(bezierColor(topRow, midRow, bottomRow, y))
+    for (const extra of extras) {
+      color.lerp(extra.color, meshBlobWeight(extra, u, v))
+    }
+    return color
+  }
 }
 
 const gradientColorFromStops = (
@@ -119,17 +142,11 @@ const gradientColorFromStops = (
 
 const iconSpaceGradientColor = (
   type: GradientType,
-  stops: Array<{ color: string; position: number }>,
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>,
   u: number,
   v: number
 ) => {
-  if (type === "mesh") {
-    return meshGradientColorFromPalette(
-      stops.map((stop) => new THREE.Color(stop.color)),
-      u,
-      v
-    )
-  }
+  if (type === "mesh") return createMeshSampler(stops)(u, v)
   if (type === "radial") {
     const cx = 0.5
     const cy = 0.5
@@ -195,6 +212,8 @@ export const gradientStopsFromFill = (
     .map((stop) => ({
       color: stop.color.startsWith("#") ? stop.color : `#${stop.color}`,
       position: Math.max(0, Math.min(1, finiteNumber(stop.position, 0))),
+      x: stop.x,
+      y: stop.y,
     }))
     .sort((a, b) => a.position - b.position)
 }
@@ -202,7 +221,7 @@ export const gradientStopsFromFill = (
 export const applyGradientVertexColors = (
   geometry: THREE.BufferGeometry,
   type: "linear" | "radial" | "conic" | "mesh",
-  stops: Array<{ color: string; position: number }>,
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>,
   iconBounds: THREE.Box2
 ) => {
   const position = geometry.getAttribute("position") as
@@ -213,6 +232,10 @@ export const applyGradientVertexColors = (
   const height = Math.max(0.0001, iconBounds.max.y - iconBounds.min.y)
 
   const colors = new Float32Array(position.count * 3)
+  const sample =
+    type === "mesh"
+      ? createMeshSampler(stops)
+      : (u: number, v: number) => iconSpaceGradientColor(type, stops, u, v)
   for (let index = 0; index < position.count; index += 1) {
     const u = Math.max(
       0,
@@ -222,7 +245,7 @@ export const applyGradientVertexColors = (
       0,
       Math.min(1, (position.getY(index) - iconBounds.min.y) / height)
     )
-    const color = iconSpaceGradientColor(type, stops, u, v)
+    const color = sample(u, v)
     colors[index * 3] = color.r
     colors[index * 3 + 1] = color.g
     colors[index * 3 + 2] = color.b

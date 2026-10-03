@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest"
 import { visibleMaterialSymbols } from "./MaterialSymbolCatalog"
+import { getMaterialSymbolNames } from "../IconLibrary"
 
 describe("symbol discovery", () => {
+  it("includes the full Google catalog and symbols beyond the common shortlist", () => {
+    const catalog = getMaterialSymbolNames()
+    expect(catalog.length).toBeGreaterThan(3000)
+    expect(visibleMaterialSymbols(catalog, "calendar month")[0]).toBe(
+      "calendar_month"
+    )
+    expect(visibleMaterialSymbols(catalog, "zoom out map")[0]).toBe(
+      "zoom_out_map"
+    )
+  })
+
+  it("keeps all results available to the virtualized grid", () => {
+    const catalog = Array.from({ length: 180 }, (_, index) => `symbol_${index}`)
+    expect(visibleMaterialSymbols(catalog, "")).toEqual(catalog)
+    expect(visibleMaterialSymbols(catalog, "symbol")).toHaveLength(180)
+  })
+
   it("finds familiar words and multiword phrases without requiring symbol IDs", () => {
     const catalog = [
       "favorite_off",

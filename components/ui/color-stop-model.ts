@@ -2,12 +2,18 @@ export type EditableColorStop = {
   id?: string
   color: string
   position: number
+  /** Mesh only: where this node was dragged (0–1, y down). */
+  x?: number
+  y?: number
 }
 
 export type NormalizedColorStop = {
   id: string
   color: string
   position: number
+  /** Mesh only: where this node was dragged (0–1, y down). */
+  x?: number
+  y?: number
 }
 
 const normalizeStopId = (
@@ -31,6 +37,14 @@ const normalizeStopId = (
   return nextId
 }
 
+const meshPointFields = (stop: { x?: number; y?: number }) =>
+  Number.isFinite(stop.x) && Number.isFinite(stop.y)
+    ? {
+        x: Math.max(0, Math.min(1, stop.x!)),
+        y: Math.max(0, Math.min(1, stop.y!)),
+      }
+    : {}
+
 export const normalizeColorStops = (
   stops: EditableColorStop[]
 ): NormalizedColorStop[] => {
@@ -40,6 +54,7 @@ export const normalizeColorStops = (
       id: normalizeStopId(stop.id, index, usedIds),
       color: stop.color.startsWith("#") ? stop.color : `#${stop.color}`,
       position: Math.max(0, Math.min(1, stop.position)),
+      ...meshPointFields(stop),
     }))
     .sort((a, b) => a.position - b.position)
 }

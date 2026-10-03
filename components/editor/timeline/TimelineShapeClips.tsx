@@ -18,6 +18,7 @@ export function TimelineShapeClips({
   onSeek,
   onOpenShapePicker,
   onUploadShape,
+  onMoveShapeOrder,
   onRemoveShape,
   onShapeDrag,
   onOpenContextMenu,
@@ -35,6 +36,7 @@ export function TimelineShapeClips({
   onSeek: (time: number) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
+  onMoveShapeOrder: (id: string, direction: -1 | 1) => void
   onRemoveShape: (id: string) => void
   onShapeDrag: (event: React.PointerEvent<HTMLElement>, shapeId: string) => void
   onOpenContextMenu: (
@@ -56,6 +58,7 @@ export function TimelineShapeClips({
         return (
           <TimelineShapeClip
             key={stop.id}
+            index={index}
             duration={duration}
             stop={stop}
             shapeCount={shapes.length}
@@ -67,6 +70,7 @@ export function TimelineShapeClips({
             onSeek={onSeek}
             onOpenShapePicker={onOpenShapePicker}
             onUploadShape={onUploadShape}
+            onMoveShapeOrder={onMoveShapeOrder}
             onRemoveShape={onRemoveShape}
             onShapeDrag={onShapeDrag}
             onOpenContextMenu={onOpenContextMenu}

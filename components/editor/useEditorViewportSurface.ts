@@ -49,6 +49,7 @@ type UseEditorViewportSurfaceArgs = {
   zoom: number
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
+  showSelectionOutline: boolean
   showTransformGizmo: boolean
   selectedLayerId: string
   selectedIconColorRole?: "a" | "b"
@@ -75,6 +76,7 @@ type UseEditorViewportSurfaceArgs = {
   resetView: () => void
   setViewInertiaEnabled: Dispatch<SetStateAction<boolean>>
   setShowCenterPoint: Dispatch<SetStateAction<boolean>>
+  setShowSelectionOutline: Dispatch<SetStateAction<boolean>>
   setShowTransformGizmo: Dispatch<SetStateAction<boolean>>
   setAnimatedSeekEnabled: (enabled: boolean) => void
   handleReset: () => void
@@ -127,6 +129,7 @@ export function useEditorViewportSurface({
   zoom,
   viewInertiaEnabled,
   showCenterPoint,
+  showSelectionOutline,
   showTransformGizmo,
   selectedLayerId,
   selectedIconColorRole,
@@ -153,6 +156,7 @@ export function useEditorViewportSurface({
   resetView,
   setViewInertiaEnabled,
   setShowCenterPoint,
+  setShowSelectionOutline,
   setShowTransformGizmo,
   setAnimatedSeekEnabled,
   handleReset,
@@ -204,6 +208,7 @@ export function useEditorViewportSurface({
     zoom,
     viewInertiaEnabled,
     showCenterPoint,
+    showSelectionOutline,
     showTransformGizmo,
     selectedLayerId,
     selectedIconColorRole,
@@ -229,6 +234,7 @@ export function useEditorViewportSurface({
     onResetView: resetView,
     onViewInertiaChange: setViewInertiaEnabled,
     onShowCenterPointChange: setShowCenterPoint,
+    onShowSelectionOutlineChange: setShowSelectionOutline,
     onShowTransformGizmoChange: setShowTransformGizmo,
     animatedSeekEnabled,
     onAnimatedSeekChange: setAnimatedSeekEnabled,

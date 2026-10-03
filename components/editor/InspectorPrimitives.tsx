@@ -8,7 +8,7 @@ import { usePropertyEditScope } from "./PropertyEditScope"
 // Single source of truth for inspector layout rhythm. Every property row shares
 // one label column width and one control height so columns line up across every
 // section (Style / Shape / Transform / Light).
-export const INSPECTOR_LABEL_WIDTH = "w-[84px]"
+export const INSPECTOR_LABEL_WIDTH = "w-21"
 
 // A section is a FLAT block, not a card — Figma/Framer style. Sections are
 // separated by hairline dividers (see InspectorSidebar's `divide-y`) so the panel

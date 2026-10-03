@@ -20,7 +20,11 @@ export function TimelineLaneBackground({
           aria-hidden="true"
         />
       ))}
-      {/* Only the end is tinted; the rail border already marks the start. */}
+      <div
+        className="pointer-events-none absolute inset-y-0 left-0 bg-foreground/[0.03]"
+        style={{ width: EDGE_INSET, zIndex: TIMELINE_LAYER.rangeGutter }}
+        aria-hidden="true"
+      />
       <div
         className="pointer-events-none absolute inset-y-0 right-0 bg-foreground/[0.03]"
         style={{ width: EDGE_INSET, zIndex: TIMELINE_LAYER.rangeGutter }}
