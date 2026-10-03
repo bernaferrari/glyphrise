@@ -17,7 +17,10 @@ export function WelcomeDialog({
   onDismiss,
   onCreate,
   error,
+  currentProjectName,
 }: {
+  /** Set when reopened from Help: creating starts a separate project. */
+  currentProjectName?: string
   open: boolean
   onDismiss: () => void
   onCreate: (iconId: string, name: string) => boolean
@@ -39,6 +42,12 @@ export function WelcomeDialog({
             Start with an icon. Make it yours with color and depth, add a little
             motion, then download it.
           </DialogDescription>
+          {currentProjectName && (
+            <p className="rounded-lg bg-muted px-3 py-2 text-xs leading-5 text-muted-foreground">
+              This starts a new project. “{currentProjectName}” stays saved, and
+              you can come back to it anytime.
+            </p>
+          )}
         </DialogHeader>
         <div
           className="grid grid-cols-3 gap-2 sm:gap-3"
@@ -88,7 +97,9 @@ export function WelcomeDialog({
             onClick={onDismiss}
             className="min-h-11 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
           >
-            Explore the editor
+            {currentProjectName
+              ? `Keep working on ${currentProjectName}`
+              : "Explore the editor"}
           </button>
         </div>
       </DialogContent>

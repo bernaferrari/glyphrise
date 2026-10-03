@@ -32,28 +32,26 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/")
 })
 
-test("applies adjustable motion while preserving artwork, then undoes it in one step", async ({
+test("a preset picked under its property preserves artwork and undoes in one step", async ({
   page,
 }) => {
   const before = await backup(page)
-  await page.getByRole("button", { name: "Animate", exact: true }).click()
-  await page.getByRole("button", { name: "Tilt", exact: true }).click()
-  await page.getByLabel("Motion duration").fill("4")
-  await page.getByLabel("Motion intensity").fill("0.5")
-  await page.getByRole("button", { name: "Apply Tilt" }).click()
-  await expect(
-    page.getByRole("button", { name: "Play", exact: true })
-  ).toBeVisible()
+  // Presets are listed under the row they animate, across the timeline.
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  await page
+    .getByRole("region", { name: "Rotation" })
+    .getByRole("button", { name: "Tilt", exact: true })
+    .click()
   const after = await backup(page)
-  expect(after.duration).toBe(4)
+  expect(after.duration).toBe(before.duration)
   expect(
     after.rotationAxisKeyframes.map(
       (k: { time: number; value: { z: number } }) => [k.time, k.value.z]
     )
   ).toEqual([
     [0, 0],
-    [2, 12.5],
-    [4, 0],
+    [before.duration / 2, 25],
+    [before.duration, 0],
   ])
   for (const field of [
     "materialPreset",
@@ -73,43 +71,27 @@ test("applies adjustable motion while preserving artwork, then undoes it in one 
   expect(await backup(page)).toEqual(before)
 })
 
-test("explains edits at and between keyframes and creates only an intentional keyframe", async ({
+test("editing an animated property keys the playhead, like a stopwatch", async ({
   page,
 }) => {
-  await page.getByRole("tab", { name: "Transform", exact: true }).click()
-  const row = page.locator('[data-edit-property="Rotation"]')
-  await expect(
-    row.getByText("Keyframe at 0.00s", { exact: true })
-  ).toBeVisible()
   const before = await backup(page)
   const playhead = page.getByRole("slider", { name: "Timeline playhead" })
   await playhead.focus()
   await playhead.press("ArrowRight")
-  await expect(
-    row.getByText("Between keyframes. Choose Edit here to make a change.")
-  ).toBeVisible()
-  await expect(page.getByLabel("Rotation Y", { exact: true })).toBeDisabled()
-  await row.getByRole("button", { name: "Edit Rotation at 0.10s" }).click()
-  await expect(
-    row.getByText("Add keyframe at 0.10s", { exact: true })
-  ).toBeVisible()
-  expect((await backup(page)).rotationAxisKeyframes).toEqual(
-    before.rotationAxisKeyframes
-  )
   const rotation = page.getByLabel("Rotation Y", { exact: true })
+  await expect(rotation).toBeEnabled()
   await rotation.fill("45")
   await rotation.press("Enter")
   const document = await backup(page)
-  expect(document.rotationAxisKeyframes).toHaveLength(3)
+  expect(document.rotationAxisKeyframes).toHaveLength(
+    before.rotationAxisKeyframes.length + 1
+  )
   expect(
     document.rotationAxisKeyframes.some(
       (k: { time: number; value: { y: number } }) =>
         k.time > 0 && k.time < 5 && k.value.y === 45
     )
   ).toBe(true)
-  await expect(
-    row.getByText("Keyframe at 0.10s", { exact: true })
-  ).toBeVisible()
   await page.getByRole("button", { name: "Undo", exact: true }).click()
   expect((await backup(page)).rotationAxisKeyframes).toEqual(
     before.rotationAxisKeyframes
@@ -189,7 +171,7 @@ test("phone workflow reaches motion preview and export with reduced motion", asy
       .evaluate((element) => getComputedStyle(element).animationName)
   ).toBe("none")
   await page.getByRole("button", { name: "Pulse", exact: true }).click()
-  await page.getByRole("button", { name: "Apply Pulse" }).click()
+  await page.getByRole("button", { name: /^Apply Pulse/ }).click()
   await page.getByRole("button", { name: "Play", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Pause", exact: true })

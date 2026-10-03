@@ -31,7 +31,6 @@ export function usePropertyEditScope(property?: string) {
       context.autoKeyEnabled,
       Boolean(definition)
     ),
-    enableEditing: () => context.onAutoKeyChange(true),
     time: context.currentTime.toFixed(2),
   }
 }

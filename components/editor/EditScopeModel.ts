@@ -1,7 +1,7 @@
 import { keyframeTimeMatches } from "./EditorKeyframeModel"
 
 export type PropertyEditScope = {
-  kind: "whole" | "keyframe" | "create" | "animated"
+  kind: "whole" | "keyframe" | "create"
   label: string
   description: string
 }
@@ -23,18 +23,13 @@ export function propertyEditScope(
       description: "Changes update this keyframe.",
     }
   }
-  if (animatable && autoKeyEnabled) {
+  // Animated properties (or Auto-key) key the playhead on edit, as in
+  // Premiere once a property's stopwatch is on.
+  if (animatable && (autoKeyEnabled || times.length > 0)) {
     return {
       kind: "create",
       label: `Add keyframe at ${time}`,
-      description: "Your next edit creates a keyframe here.",
-    }
-  }
-  if (animatable && times.length > 0) {
-    return {
-      kind: "animated",
-      label: "Between keyframes",
-      description: "Choose Edit here to save a new value at this moment.",
+      description: "Your next edit adds a keyframe here.",
     }
   }
   return {

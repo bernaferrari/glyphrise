@@ -32,7 +32,8 @@ export const upsertFillKeyframe = ({
     )
   }
 
-  if (!createIfMissing) return keyframes
+  // Once animated, edits key the playhead (Premiere-style stopwatch).
+  if (!createIfMissing && keyframes.length === 0) return keyframes
 
   return [
     ...keyframes,

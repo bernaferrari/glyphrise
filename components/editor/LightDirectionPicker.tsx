@@ -41,7 +41,6 @@ export function LightDirectionPicker({
 }) {
   const padRef = useRef<HTMLDivElement>(null)
   const scope = usePropertyEditScope("Light direction")
-  const needsKeyframe = scope?.kind === "animated"
   const nx = clampNumber(position.x / LIGHT_RANGE, -1, 1)
   const ny = clampNumber(position.y / LIGHT_RANGE, -1, 1)
   const hx = 50 + nx * 42
@@ -82,7 +81,7 @@ export function LightDirectionPicker({
     <Popover>
       <PopoverTrigger
         title="Light direction & color"
-        className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-lg border-0 bg-foreground/[0.06] pr-2 pl-1.5 text-left text-foreground transition-colors hover:bg-foreground/[0.09] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/30"
+        className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md border-0 bg-muted/80 pr-2 pl-2 text-left text-foreground transition-colors hover:bg-foreground/[0.09] focus:outline-none focus-visible:ring-1 focus-visible:ring-ring/30"
       >
         <span className="relative size-5 shrink-0 overflow-hidden rounded-full border border-border bg-background/50 dark:bg-background/30">
           <span
@@ -124,24 +123,8 @@ export function LightDirectionPicker({
           )}
         </div>
 
-        {scope && (
-          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>{scope.label}</span>
-            {needsKeyframe && (
-              <button
-                type="button"
-                onClick={scope.enableEditing}
-                className="min-h-9 rounded-md bg-primary/10 px-2 font-medium text-primary"
-              >
-                Edit here
-              </button>
-            )}
-          </div>
-        )}
-        <div
-          inert={needsKeyframe ? true : undefined}
-          className={`mt-2.5 aspect-square w-full rounded-full bg-border p-px shadow-inner ${needsKeyframe ? "opacity-65" : ""}`}
-        >
+        {scope && <span className="sr-only">{scope.label}</span>}
+        <div className="mt-2.5 aspect-square w-full rounded-full bg-border p-px shadow-inner">
           <div
             ref={padRef}
             onPointerDown={handlePadDown}
@@ -157,9 +140,7 @@ export function LightDirectionPicker({
           </div>
         </div>
         <p className="mt-2 text-center text-[11px] text-muted-foreground">
-          {needsKeyframe
-            ? "Enable Auto-key to move the light here."
-            : "Drag to move the light"}
+          Drag to move the light
         </p>
 
         <div className="mt-2.5">

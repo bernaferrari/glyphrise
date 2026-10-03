@@ -43,7 +43,7 @@ export function useQualityMotionControls({
           return prev.map((kf) =>
             kf.id === existing.id ? { ...kf, value: clamped } : kf
           )
-        if (autoKeyEnabled) {
+        if (autoKeyEnabled || prev.length > 0) {
           return [
             ...prev,
             {

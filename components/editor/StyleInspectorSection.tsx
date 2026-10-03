@@ -5,8 +5,8 @@ import { ColorPicker } from "@/components/ui/color-picker"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import { FillMode, MaterialSettingKey, MaterialSettings } from "./EditorModel"
 import { AdvancedMaterialControls } from "./AdvancedMaterialControls"
-import { FinishPresetPicker } from "./FinishPresetPicker"
 import { FinishPresetStrip } from "./FinishPresetStrip"
+import { MATERIAL_METADATA } from "./FinishRegistry"
 import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
 import type { FillGradientType, FillStop } from "./TimelineModel"
 
@@ -80,27 +80,29 @@ export function StyleInspectorSection({
             onStopsChange={onStopsChange}
             secondaryValue={selectedShapeFillSecondary}
             onSecondaryChange={(value) => onFillColorChange(value, true)}
-            className="min-h-10 w-full rounded-lg border border-input/60 bg-muted/70 px-3 py-0 text-foreground hover:bg-foreground/[0.09]"
+            className="h-8 min-h-8 w-full rounded-md border-0 bg-muted/80 px-2 py-0 text-xs text-foreground hover:bg-muted"
           />
         </div>
       </InspectorRow>
 
       <div ref={materialRef}>
+        <InspectorRow
+          label="Finish"
+          editProperty="Finish"
+          scopeLabel="Settings"
+        >
+          <span
+            title={MATERIAL_METADATA[materialPreset].subtitle}
+            className="min-w-0 flex-1 truncate text-right text-xs text-foreground"
+          >
+            {MATERIAL_METADATA[materialPreset].name}
+          </span>
+        </InspectorRow>
         <FinishPresetStrip
           value={materialPreset}
           onChange={onMaterialPresetChange}
         />
       </div>
-      <InspectorRow
-        label="All finishes"
-        editProperty="Finish"
-        scopeLabel="Settings"
-      >
-        <FinishPresetPicker
-          value={materialPreset}
-          onChange={onMaterialPresetChange}
-        />
-      </InspectorRow>
       <div>
         <AdvancedMaterialControls
           isOpen={isAdvancedMaterialOpen}

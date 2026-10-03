@@ -109,30 +109,32 @@ export function TimelineShapeClip({
       onPointerDown={
         isOnly ? undefined : (event) => onShapeDrag(event, stop.id)
       }
-      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-none items-stretch overflow-hidden rounded-md border bg-(--timeline-clip) text-left transition-[box-shadow,border-color,filter] duration-100 hover:brightness-[1.06] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-none items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
       } ${
+        // Rings sit inside the clip so neighbours never overlap.
         selected
-          ? "z-[5] border-(--timeline-accent) shadow-[0_0_0_1px_var(--timeline-accent)]"
-          : "border-(--timeline-clip-edge)"
+          ? "z-[5] bg-[color-mix(in_oklab,var(--timeline-accent)_32%,var(--timeline-lane))] shadow-[inset_0_0_0_1.5px_var(--timeline-accent)]"
+          : "bg-(--timeline-clip) shadow-[inset_0_0_0_1px_var(--timeline-clip-edge),inset_0_1px_0_rgb(255_255_255/0.06)] hover:bg-[color-mix(in_oklab,var(--timeline-accent)_24%,var(--timeline-lane))]"
       }`}
       style={{
-        left: xForFrac(bounds.left / duration),
-        width: widthForSpan(Math.max(0, bounds.right - bounds.left) / duration),
-        minWidth: 36,
+        // A hairline gap keeps adjacent clips visibly separate.
+        left: xForFrac(bounds.left / duration, 1),
+        width: `calc(${widthForSpan(Math.max(0, bounds.right - bounds.left) / duration)} - 2px)`,
+        minWidth: 32,
       }}
     >
-      <span className="@container flex h-full w-full min-w-0 items-center gap-1.5 px-2 @max-[44px]:justify-center @max-[44px]:px-0">
+      <span className="@container flex h-full w-full min-w-0 items-center gap-2 pr-2.5 pl-1.5 @max-[48px]:justify-center @max-[48px]:px-0">
         <span
           aria-hidden="true"
-          className="grid size-4 shrink-0 place-items-center text-(--timeline-clip-fg) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
+          className="grid size-6 shrink-0 place-items-center rounded-[5px] bg-black/20 text-(--timeline-clip-fg) [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
           dangerouslySetInnerHTML={{ __html: stop.svgContent }}
         />
-        <span className="min-w-0 truncate text-xs font-medium text-(--timeline-clip-fg) @max-[72px]:hidden">
+        <span className="min-w-0 truncate text-xs font-medium text-(--timeline-clip-fg) @max-[80px]:hidden">
           {shapeLabel(stop)}
         </span>
         {isOnly && (
-          <span className="ml-auto shrink truncate text-[11px] text-(--timeline-clip-fg)/65 @max-[420px]:hidden">
+          <span className="ml-auto shrink truncate text-[11px] text-(--timeline-clip-fg)/60 @max-[420px]:hidden">
             Add another icon to morph between them
           </span>
         )}

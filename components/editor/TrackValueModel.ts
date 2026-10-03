@@ -79,10 +79,7 @@ export const setScalarTrackValueAtTime = ({
         }
       }
 
-      if (!createIfMissing) {
-        return { ...track, defaultValue: nextValue }
-      }
-
+      // Once animated, edits key the playhead (Premiere-style stopwatch).
       return {
         ...track,
         defaultValue: nextValue,

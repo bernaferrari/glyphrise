@@ -20,7 +20,10 @@ import { CreationGuide } from "./CreationGuide"
 
 export type AppLayoutViewProps = {
   onCreateStarter: (iconId: string, name: string) => boolean
-  animationProps: Pick<AnimateDialogProps, "duration" | "onApply">
+  animationProps: Pick<
+    AnimateDialogProps,
+    "duration" | "onApply" | "existingKeyframes"
+  >
   keyframeNotice?: string | null
   topBarProps: Omit<
     ComponentProps<typeof AppTopBar>,
@@ -70,6 +73,20 @@ export function AppLayoutView({
   const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
   const [animateOpen, setAnimateOpen] = useState(false)
   const [manualWelcomeOpen, setManualWelcomeOpen] = useState(false)
+  // Starting a new icon from Help switches projects; keep a way back.
+  const [returnTo, setReturnTo] = useState<{ id: string; name: string } | null>(
+    null
+  )
+  const goBack = () => {
+    if (!returnTo) return
+    newProjectDialogProps.onOpenRecent(returnTo.id)
+    setReturnTo(null)
+  }
+  useEffect(() => {
+    if (!returnTo) return
+    const timer = window.setTimeout(() => setReturnTo(null), 10000)
+    return () => window.clearTimeout(timer)
+  }, [returnTo])
   const [journeyProjectId, setJourneyProjectId] = useState<string | null>(null)
   const [startJourney, setStartJourney] = useState(false)
   const creationJourney = viewportProps.creationJourney
@@ -129,6 +146,11 @@ export function AppLayoutView({
       </a>
       <AppTopBar
         {...topBarProps}
+        canUndo={topBarProps.canUndo || returnTo !== null}
+        onUndo={() => {
+          if (!topBarProps.canUndo && returnTo) goBack()
+          else topBarProps.onUndo()
+        }}
         onZenModeChange={changePanelVisibility}
         onAnimateOpen={() => setAnimateOpen(true)}
         onGettingStarted={() => setManualWelcomeOpen(true)}
@@ -154,6 +176,21 @@ export function AppLayoutView({
         >
           {keyframeNotice ?? ""}
         </div>
+        {returnTo && (
+          <div
+            role="status"
+            className="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-popover py-1.5 pr-1.5 pl-4 text-xs text-popover-foreground shadow-xl max-[720px]:bottom-20"
+          >
+            Started a new project
+            <button
+              type="button"
+              onClick={goBack}
+              className="rounded-full bg-foreground px-3 py-1.5 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              Back to {returnTo.name}
+            </button>
+          </div>
+        )}
         <div className="relative flex min-h-0 flex-1 max-[720px]:flex-col">
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div className="relative flex min-h-0 flex-1 bg-muted/40">
@@ -219,7 +256,6 @@ export function AppLayoutView({
                   if (rowId === "rotation")
                     return (
                       <Vector3NumberFields
-                        size="large"
                         values={transform.rotationOffset}
                         min={ROTATION_MIN}
                         max={ROTATION_MAX}
@@ -234,7 +270,6 @@ export function AppLayoutView({
                   if (rowId === "move")
                     return (
                       <Vector3NumberFields
-                        size="large"
                         values={transform.activeMoveOffset}
                         min={-100}
                         max={100}
@@ -248,7 +283,14 @@ export function AppLayoutView({
                 },
                 onPlayToggle: viewportProps.playbackProps.onPlayToggle,
                 playback: viewportProps.playbackProps,
-                onOpenMotionPresets: () => setAnimateOpen(true),
+                presetArtwork:
+                  inspectorProps.transformProps.shapeNavigation?.svgContent,
+                onApplyMotionPreset: (id) =>
+                  animationProps.onApply(
+                    id,
+                    timelineProps.timelineProps.duration,
+                    1
+                  ),
                 autoKeyEnabled: inspectorProps.editScopeProps.autoKeyEnabled,
                 onAutoKeyChange: inspectorProps.editScopeProps.onAutoKeyChange,
                 onEditKeyframeValue: (selection) => {
@@ -294,6 +336,7 @@ export function AppLayoutView({
           </div>
           <InspectorSidebar
             {...inspectorProps}
+            compact={isCompactLayout}
             onRemoveIcon={() => {
               const { shapes, selectedShapeId, onRemoveShape } =
                 timelineProps.timelineProps
@@ -365,8 +408,19 @@ export function AppLayoutView({
           (manualWelcomeOpen || creationJourney.welcomeOpen)
         }
         onDismiss={dismissWelcome}
+        currentProjectName={
+          manualWelcomeOpen ? topBarProps.projectName : undefined
+        }
         onCreate={(iconId, name) => {
+          const previous =
+            manualWelcomeOpen && newProjectDialogProps.currentProjectId
+              ? {
+                  id: newProjectDialogProps.currentProjectId,
+                  name: topBarProps.projectName,
+                }
+              : null
           if (!onCreateStarter(iconId, name)) return false
+          setReturnTo(previous)
           dismissWelcome()
           setStartJourney(true)
           showCompactPane("preview")

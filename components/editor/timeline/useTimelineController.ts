@@ -31,7 +31,8 @@ export function useTimelineController({
   playback,
   autoKeyEnabled,
   onAutoKeyChange,
-  onOpenMotionPresets,
+  onApplyMotionPreset,
+  presetArtwork,
   tracks,
   onTracksChange,
   propertyRows = [],
@@ -382,7 +383,8 @@ export function useTimelineController({
     leftRailProps: {
       selectedRow,
       onSelectRow: setSelectedRow,
-      onOpenMotionPresets,
+      onApplyMotionPreset,
+      presetArtwork,
       shapeCount: shapes.length,
       onSeek: (time: number) => {
         clearSelection()

@@ -6,6 +6,7 @@ import type {
   TimelineTrack,
 } from "../TimelineModel"
 import type { MotionRecipe } from "../MotionRecipes"
+import type { AnimationPresetId } from "../AnimationPresetModel"
 import type { PlaybackControlsProps } from "../ViewportControls"
 
 export interface ShapeOption {
@@ -45,8 +46,10 @@ export type TimelinePlaybackProps = {
   /** Record (auto-key): inspector edits create keyframes at the playhead. */
   autoKeyEnabled?: boolean
   onAutoKeyChange?: (enabled: boolean) => void
-  /** Opens the motion preset picker (Spin, Tilt, Pulse). */
-  onOpenMotionPresets?: () => void
+  /** Applies a motion preset across the whole timeline. */
+  onApplyMotionPreset?: (id: AnimationPresetId) => void
+  /** Artwork shown in preset previews. */
+  presetArtwork?: string
 }
 
 export type TimelineTrackProps = {

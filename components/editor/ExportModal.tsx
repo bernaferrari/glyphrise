@@ -97,30 +97,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     >
       <DialogContent
         finalFocus={finalFocusRef}
-        className="max-h-[calc(100dvh-32px)] w-[640px] max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-[640px]"
+        className="max-h-[calc(100dvh-32px)] w-[720px] max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-[720px]"
       >
-        <DialogHeader className="border-b border-border p-6 pr-14">
-          {artwork && (
-            <span
-              aria-hidden="true"
-              className="grid size-11 place-items-center rounded-xl bg-muted [&_svg]:size-7 [&_svg_*]:fill-current"
-              style={{ color: artwork.color }}
-              dangerouslySetInnerHTML={{ __html: artwork.svgContent }}
-            />
-          )}
-          <DialogTitle className="text-xl font-semibold tracking-tight text-foreground">
+        <DialogHeader className="flex-row items-center gap-2 border-b border-border px-5 py-3.5 pr-12">
+          <DialogTitle className="text-sm font-semibold text-foreground">
             Export your icon
-            {isRecording ? (
-              <span className="ml-2 inline-flex items-center gap-1.5 align-middle text-xs font-normal text-muted-foreground">
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 animate-pulse rounded-full bg-destructive motion-reduce:animate-none"
-                />
-                Recording {Math.round(videoExportProgress * 100)}%
-              </span>
-            ) : null}
           </DialogTitle>
-          <DialogDescription>
+          {isRecording ? (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+              <span
+                aria-hidden="true"
+                className="size-1.5 animate-pulse rounded-full bg-destructive motion-reduce:animate-none"
+              />
+              Recording {Math.round(videoExportProgress * 100)}%
+            </span>
+          ) : null}
+          <DialogDescription className="sr-only">
             {artwork?.label ? `${artwork.label}. ` : ""}Choose how you’d like to
             use it.
           </DialogDescription>
@@ -190,7 +182,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             ) : null}
             <TabsContent
               value="options"
-              className="editor-scrollbar max-h-[calc(100dvh-260px)] min-w-0 overflow-y-auto p-6 outline-none"
+              className="min-w-0 outline-none max-md:max-h-[calc(100dvh-160px)] max-md:overflow-y-auto"
             >
               <ExportAssetOptions
                 isRecording={isRecording}
@@ -208,6 +200,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 videoExportCanceled={videoExportCanceled}
                 settings={settings}
                 supportedVideoContainers={supportedVideoContainers}
+                artwork={artwork}
                 onSettingsChange={updateSettings}
               />
             </TabsContent>
@@ -230,7 +223,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             </TabsContent>
           </div>
         </Tabs>
-        <div className="border-t border-border bg-muted/20 px-6 py-1">
+        <div className="border-t border-border px-4 py-1">
           <button
             type="button"
             aria-pressed={developerOpen}
@@ -239,9 +232,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               setDeveloperOpen(!developerOpen)
               handleTabChange("options")
             }}
-            className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
+            className="flex min-h-9 items-center gap-2 rounded-md px-1 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
           >
-            <Code2 aria-hidden="true" className="size-4" />
+            <Code2 aria-hidden="true" className="size-3.5" />
             Developer exports
           </button>
         </div>

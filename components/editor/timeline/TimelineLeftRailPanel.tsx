@@ -2,6 +2,7 @@
 
 import React from "react"
 import { TimelineLeftRail } from "./TimelineLeftRail"
+import type { AnimationPresetId } from "../AnimationPresetModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import type {
   EasingType,
@@ -12,7 +13,8 @@ import type {
 type TimelineLeftRailPanelProps = {
   selectedRow: string | null
   onSelectRow: (row: string | null) => void
-  onOpenMotionPresets?: () => void
+  presetArtwork?: string
+  onApplyMotionPreset?: (id: AnimationPresetId) => void
   header?: React.ReactNode
   shapeCount: number
   onSeek: (time: number) => void
@@ -68,7 +70,9 @@ type TimelineLeftRailPanelProps = {
 export function TimelineLeftRailPanel({
   selectedRow,
   onSelectRow,
-  onOpenMotionPresets,
+  presetArtwork,
+  onApplyMotionPreset,
+  duration,
   header,
   shapeCount,
   onSeek,
@@ -110,7 +114,9 @@ export function TimelineLeftRailPanel({
           shapeCount={shapeCount}
           selectedRow={selectedRow}
           onSelectRow={onSelectRow}
-          onOpenMotionPresets={onOpenMotionPresets}
+          duration={duration}
+          presetArtwork={presetArtwork}
+          onApplyMotionPreset={onApplyMotionPreset}
           onSeek={onSeek}
           selectedShapeId={selectedShapeId}
           isPreviewLoading={isPreviewLoading}

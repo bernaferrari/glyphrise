@@ -4,7 +4,7 @@ import { TimeKeyframe, clampNumber } from "./EditorModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 
 const keyframeNavButtonClass =
-  "flex size-10 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring max-[720px]:size-11 pointer-coarse:size-11"
+  "flex h-8 w-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring max-[720px]:size-11 pointer-coarse:size-11"
 
 const getAdjacentKeyframeTimes = (
   keyframes: TimeKeyframe[],
@@ -94,19 +94,20 @@ export const KeyframeNavigator = ({
 
   return (
     <div className="flex shrink-0 items-center justify-end gap-0">
+      {/* ‹ ◆ › — previous, add/remove here, next (After Effects order). */}
       <PropertyKeyframeNavButton
         direction="previous"
         time={previous}
         label={label}
         onJump={onJump}
       />
+      {children}
       <PropertyKeyframeNavButton
         direction="next"
         time={next}
         label={label}
         onJump={onJump}
       />
-      {children}
     </div>
   )
 }

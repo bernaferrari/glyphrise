@@ -46,7 +46,7 @@ describe("setScalarTrackValueAtTime", () => {
     ])
   })
 
-  it("does not add new scalar keyframes to an animated track when auto-key is off", () => {
+  it("keys the playhead on an animated track even when auto-key is off", () => {
     const result = setScalarTrackValueAtTime({
       tracks: [
         scaleTrack([
@@ -65,10 +65,12 @@ describe("setScalarTrackValueAtTime", () => {
       createIfMissing: false,
     })
 
-    expect(result.tracks[0].defaultValue).toBe(1.5)
-    expect(result.tracks[0].keyframes).toHaveLength(1)
+    expect(result.tracks[0].keyframes).toHaveLength(2)
     expect(result.tracks[0].keyframes[0]).toEqual(
       expect.objectContaining({ id: "scale-a", value: 1 })
+    )
+    expect(result.tracks[0].keyframes[1]).toEqual(
+      expect.objectContaining({ time: 1, value: 1.5 })
     )
   })
 

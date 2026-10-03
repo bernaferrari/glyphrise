@@ -128,7 +128,7 @@ export function useLightEditor({
           )
         }
 
-        if (!autoKeyEnabled) return prev
+        if (!autoKeyEnabled && prev.length === 0) return prev
 
         return [
           ...prev,

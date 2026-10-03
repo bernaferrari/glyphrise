@@ -66,9 +66,7 @@ for (const width of [390, 1280]) {
       await guide.getByRole("button", { name: "Choose a motion" }).click()
       await page.getByRole("button", { name: "Tilt", exact: true }).click()
       await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
-      await page
-        .getByRole("button", { name: "Apply Tilt", exact: true })
-        .click()
+      await page.getByRole("button", { name: /^Apply Tilt/ }).click()
       await guide.getByRole("button", { name: "Play your motion" }).click()
       await guide.getByRole("button", { name: "Export your icon" }).click()
       const exporter = page.getByRole("dialog", { name: "Export your icon" })
@@ -130,7 +128,7 @@ test("records and downloads a short video, then offers a separate model export",
     .getByRole("button", { name: "Choose a motion", exact: true })
     .click()
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
-  await page.getByRole("button", { name: "Apply Spin", exact: true }).click()
+  await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await page
     .getByRole("button", { name: "Video Full animation", exact: true })
@@ -170,7 +168,7 @@ test("closing an active recording cancels it and reopening export restores the d
   await page
     .getByRole("button", { name: "Choose a motion", exact: true })
     .click()
-  await page.getByRole("button", { name: "Apply Spin", exact: true }).click()
+  await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await page
     .getByRole("button", { name: "Video Full animation", exact: true })

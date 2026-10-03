@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight, Trash2, X } from "lucide-react"
 import { useRef, type ReactNode } from "react"
 import { Popover, PopoverContent, PopoverTitle } from "@/components/ui/popover"
-import { NumberField } from "../NumberField"
 import { InspectorSlider } from "../InspectorSlider"
 import type { EasingType } from "../TimelineModel"
 import { EasingChoices } from "./TimelineEasingControls"
@@ -101,14 +100,14 @@ export function TimelineKeyframeEditor({
             )) as HTMLElement | null
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
-        className="w-80 gap-0 p-0"
+        className="w-[340px] gap-0 p-0"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
         {row && frame && (
           <>
-            <div className="flex items-center gap-1 border-b border-border py-1.5 pr-1.5 pl-3">
+            <div className="flex items-center gap-0.5 border-b border-border py-1 pr-1 pl-3">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 16 16"
@@ -171,20 +170,18 @@ export function TimelineKeyframeEditor({
               </button>
             </div>
 
-            <div className="grid gap-3 p-3">
+            {/* Same label | control rows as the inspector. */}
+            <div className="grid gap-1.5 px-3 py-2.5">
               {valueEditor ? (
-                <div className="grid gap-1.5">
-                  <span className="text-[11px] text-muted-foreground">
-                    {row.name === "Rotation" ? "Angle" : "Position"}
-                  </span>
+                <PanelRow
+                  label={row.name === "Rotation" ? "Angle" : "Position"}
+                >
                   {valueEditor}
-                </div>
+                </PanelRow>
               ) : row.valueRange && frame.value !== undefined ? (
-                <div className="grid gap-1.5">
-                  <span className="text-[11px] text-muted-foreground">
-                    Value
-                  </span>
+                <PanelRow label="Value">
                   <InspectorSlider
+                    compact
                     value={frame.value}
                     min={row.valueRange.min}
                     max={row.valueRange.max}
@@ -193,50 +190,60 @@ export function TimelineKeyframeEditor({
                     ariaLabel={`${row.name} keyframe value`}
                     onChange={(value) => row.valueRange?.onChange(frame, value)}
                   />
-                </div>
+                </PanelRow>
               ) : row.onEditValue ? (
-                <button
-                  type="button"
-                  onClick={onEditValue}
-                  className="min-h-9 rounded-lg bg-muted text-xs font-medium hover:bg-muted/70 focus-visible:outline-2 focus-visible:outline-ring"
-                >
-                  Edit{" "}
-                  {row.name === "Style" ? "appearance" : row.name.toLowerCase()}{" "}
-                  at this moment
-                </button>
+                <PanelRow label="Value">
+                  <button
+                    type="button"
+                    onClick={onEditValue}
+                    className="h-8 w-full rounded-lg bg-muted text-xs font-medium hover:bg-muted/70 focus-visible:outline-2 focus-visible:outline-ring"
+                  >
+                    Edit{" "}
+                    {row.name === "Style"
+                      ? "appearance"
+                      : row.name.toLowerCase()}
+                  </button>
+                </PanelRow>
               ) : null}
 
-              <label className="flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-                Time
-                <NumberField
+              <PanelRow label="Time">
+                <InspectorSlider
+                  compact
                   value={frame.time}
                   min={0}
                   max={duration}
-                  step={0.1}
+                  step={0.01}
+                  scrubStep={0.05}
                   precision={2}
                   suffix="s"
                   ariaLabel={`${row.name} keyframe time in seconds`}
-                  className="h-8 w-24"
                   onChange={(time) => row.onMove(frame, time)}
                 />
-              </label>
+              </PanelRow>
 
               {row.onEasing && next && (
-                <div className="grid gap-1.5">
-                  <span className="text-[11px] text-muted-foreground">
-                    Ease into next keyframe
-                  </span>
+                <PanelRow label="Ease">
                   <EasingChoices
+                    compact
                     label={`${row.name} keyframe easing`}
                     value={frame.easing ?? "ease-in-out"}
                     onChange={(easing) => row.onEasing?.(frame, easing)}
                   />
-                </div>
+                </PanelRow>
               )}
             </div>
           </>
         )}
       </PopoverContent>
     </Popover>
+  )
+}
+
+function PanelRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid min-h-8 grid-cols-[52px_minmax(0,1fr)] items-center gap-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="min-w-0">{children}</div>
+    </div>
   )
 }

@@ -10,20 +10,26 @@ export const ANIMATION_PRESETS = [
   {
     id: "spin",
     name: "Spin",
-    description: "Turn around the vertical axis.",
+    description: "One full turn around the vertical axis, start to end.",
     property: "Rotation",
+    summary: "One full turn · 2 keyframes",
+    keyframeFractions: [0, 1],
   },
   {
     id: "tilt",
     name: "Tilt",
-    description: "Lean to one side and return.",
+    description: "Leans to one side halfway through, then returns.",
     property: "Rotation",
+    summary: "Lean and return · 3 keyframes",
+    keyframeFractions: [0, 0.5, 1],
   },
   {
     id: "pulse",
     name: "Pulse",
-    description: "Grow gently and return to size.",
+    description: "Grows halfway through, then returns to size.",
     property: "Scale",
+    summary: "Grow and return · 3 keyframes",
+    keyframeFractions: [0, 0.5, 1],
   },
 ] as const
 

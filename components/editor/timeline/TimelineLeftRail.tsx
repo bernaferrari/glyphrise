@@ -1,12 +1,6 @@
 "use client"
 
 import React from "react"
-import { Plus, Sparkles } from "lucide-react"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import type { TimelinePropertyRow, TimelineTrack } from "../TimelineModel"
 import type { EasingType } from "../TimelineModel"
 import {
@@ -14,15 +8,16 @@ import {
   TimelineTrackRailRow,
 } from "./TimelineLeftRailRows"
 import { TimelineShapeHeaderRow } from "./TimelineShapeHeaderRow"
-import { TimelineRowIcon } from "./TimelineRowIcon"
-import { describeStarterMotion } from "./TimelinePrimitives"
-import { starterPeak } from "./StarterTrackModel"
+import { TimelineAddAnimationMenu } from "./TimelineAddAnimationMenu"
+import type { AnimationPresetId } from "../AnimationPresetModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 
 type TimelineLeftRailProps = {
   selectedRow: string | null
   onSelectRow: (row: string | null) => void
-  onOpenMotionPresets?: () => void
+  duration: number
+  presetArtwork?: string
+  onApplyMotionPreset?: (id: AnimationPresetId) => void
   shapeCount: number
   onSeek: (time: number) => void
   selectedShapeId: string | null
@@ -71,7 +66,9 @@ export const TimelineLeftRail = React.forwardRef<
     {
       selectedRow,
       onSelectRow,
-      onOpenMotionPresets,
+      duration,
+      presetArtwork,
+      onApplyMotionPreset,
       shapeCount,
       onSeek,
       selectedShapeId,
@@ -98,7 +95,6 @@ export const TimelineLeftRail = React.forwardRef<
     },
     ref
   ) => {
-    const [addPropertyOpen, setAddPropertyOpen] = React.useState(false)
     const menu = {
       currentTime,
       onOpenContextMenu,
@@ -149,76 +145,22 @@ export const TimelineLeftRail = React.forwardRef<
           />
         ))}
 
-        {(hiddenTracks.length > 0 || onOpenMotionPresets) && (
-          <Popover open={addPropertyOpen} onOpenChange={setAddPropertyOpen}>
-            <PopoverTrigger
-              render={
-                <button
-                  id="timeline-add-property"
-                  type="button"
-                  className="flex h-[var(--timeline-property-height)] w-full items-center gap-2 border-b border-border/60 pl-3.5 text-left text-xs text-muted-foreground transition-colors hover:bg-foreground/[0.03] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none focus-visible:ring-inset"
-                />
-              }
-            >
-              <Plus className="size-3.5" />
-              <span className="sr-only">Add property</span>
-              <span aria-hidden="true">Add animation</span>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              side="right"
-              sideOffset={8}
-              className="w-60 gap-0.5 p-1.5"
-              onMouseDown={(event) => event.stopPropagation()}
-              onClick={(event) => event.stopPropagation()}
-            >
-              {onOpenMotionPresets && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAddPropertyOpen(false)
-                    onOpenMotionPresets()
-                  }}
-                  className="mb-1 flex min-h-11 w-full items-center gap-2.5 rounded-md border-b border-border px-2 pb-1 text-left text-[13px] text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
-                >
-                  <Sparkles
-                    aria-hidden="true"
-                    className="size-4 text-muted-foreground"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block">Motion preset</span>
-                    <span className="block text-[11px] text-muted-foreground">
-                      Spin, tilt, or pulse in one step
-                    </span>
-                  </span>
-                </button>
-              )}
-              {hiddenTracks.map((track) => (
-                <button
-                  key={track.id}
-                  type="button"
-                  aria-label={track.name}
-                  onClick={() => {
-                    onAddProperty(track.id)
-                    setAddPropertyOpen(false)
-                  }}
-                  className="flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] text-foreground transition-colors hover:bg-muted focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
-                >
-                  <TimelineRowIcon
-                    id={track.id}
-                    className="size-4 text-muted-foreground"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{track.name}</span>
-                    <span className="block truncate text-[11px] text-muted-foreground tabular-nums">
-                      {describeStarterMotion(track, starterPeak(track))}
-                    </span>
-                  </span>
-                </button>
-              ))}
-            </PopoverContent>
-          </Popover>
-        )}
+        {/* Adding motion lives on the timeline: a property, or a preset. */}
+        <div className="flex h-[var(--timeline-property-height)] items-center border-b border-border/60 pr-1.5">
+          <TimelineAddAnimationMenu
+            duration={duration}
+            hiddenTracks={hiddenTracks}
+            rotationAnimated={visiblePropertyRows.some(
+              (row) => row.id === "rotation"
+            )}
+            scaleAnimated={tracks.some(
+              (track) => track.id === "scale" && track.keyframes.length > 0
+            )}
+            artwork={presetArtwork}
+            onAddProperty={onAddProperty}
+            onApplyPreset={onApplyMotionPreset}
+          />
+        </div>
       </div>
     )
   }

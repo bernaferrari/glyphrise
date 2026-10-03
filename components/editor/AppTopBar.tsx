@@ -4,6 +4,7 @@ import { useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
+  ChevronDown,
   Check,
   CircleHelp,
   Sparkles,
@@ -222,19 +223,17 @@ function ProjectMenu({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <Button
-            size="sm"
-            variant="ghost"
+          <button
+            type="button"
             aria-label="Open project menu"
-            title="Project"
-            className="hidden h-9 min-w-9 gap-1.5 rounded-lg border border-border bg-muted/50 px-2 text-xs font-medium md:inline-flex"
+            title="Projects, import, and backup"
+            className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground md:grid"
           />
         }
       >
-        <FolderClock className="size-3.5" />
-        <span className="hidden xl:inline">Project</span>
+        <ChevronDown className="size-3.5" />
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-72 p-1.5">
+      <PopoverContent align="start" className="w-72 p-1.5">
         <div className="mb-1 flex items-start gap-2 rounded-lg bg-muted/45 px-2.5 py-2">
           {projectStatus === "error" ? (
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
@@ -323,9 +322,9 @@ export function AppTopBar({
           className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring min-[720px]:block"
         >
           {zenMode ? (
-            <PanelLeftOpen className="mx-auto size-4" />
+            <PanelLeftOpen className="mx-auto size-4.5" />
           ) : (
-            <PanelLeftClose className="mx-auto size-4" />
+            <PanelLeftClose className="mx-auto size-4.5" />
           )}
         </button>
         <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -340,24 +339,37 @@ export function AppTopBar({
             </div>
           </div>
           <span className="hidden h-5 w-px bg-border md:block" />
-          <ProjectNameField
-            value={projectName}
-            onCommit={onProjectNameChange}
-          />
+          <div className="flex min-w-0 items-center">
+            <ProjectNameField
+              value={projectName}
+              onCommit={onProjectNameChange}
+            />
+            <ProjectMenu
+              onProjectNew={onProjectNew}
+              onProjectOpen={onProjectOpen}
+              onProjectSave={onProjectSave}
+              projectStatus={projectStatus}
+              projectStatusMessage={projectStatusMessage}
+            />
+          </div>
         </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
-        {/* Status is text, not an icon that reads as a button. Quiet when
-            saved; visible while saving or when something needs attention. */}
+        {/* Announce successful saves without adding top-bar clutter. Keep
+            saving progress and failures visible. Details live in ProjectMenu. */}
         <span
           aria-live="polite"
           title={projectStatusMessage}
-          className={`flex items-center gap-1.5 px-1.5 text-xs whitespace-nowrap ${
-            projectStatus === "error"
-              ? "text-destructive"
-              : "text-muted-foreground/80"
-          }`}
+          className={
+            projectStatus === "saved"
+              ? "sr-only"
+              : `flex items-center gap-1.5 px-1.5 text-xs whitespace-nowrap ${
+                  projectStatus === "error"
+                    ? "text-destructive"
+                    : "text-muted-foreground/80"
+                }`
+          }
         >
           <span className="sr-only">{projectStatusLabel}</span>
           {projectStatus === "restoring" || projectStatus === "saving" ? (
@@ -368,24 +380,12 @@ export function AppTopBar({
           ) : projectStatus === "error" ? (
             <AlertTriangle aria-hidden="true" className="size-3.5" />
           ) : null}
-          <span
-            aria-hidden="true"
-            className={
-              projectStatus === "saved"
-                ? "hidden lg:inline"
-                : "hidden sm:inline"
-            }
-          >
-            {projectStatus === "saved" ? "Saved" : projectStatusLabel}
-          </span>
+          {projectStatus !== "saved" && (
+            <span aria-hidden="true" className="hidden sm:inline">
+              {projectStatusLabel}
+            </span>
+          )}
         </span>
-        <ProjectMenu
-          onProjectNew={onProjectNew}
-          onProjectOpen={onProjectOpen}
-          onProjectSave={onProjectSave}
-          projectStatus={projectStatus}
-          projectStatusMessage={projectStatusMessage}
-        />
         {/* Phones: undo/redo stay one tap away on every workspace view. */}
         <div className="flex items-center md:hidden">
           <button
@@ -395,7 +395,7 @@ export function AppTopBar({
             disabled={!canUndo}
             className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
           >
-            <Undo2 aria-hidden="true" className="size-4" />
+            <Undo2 aria-hidden="true" className="size-4.5" />
           </button>
           <button
             type="button"
@@ -404,7 +404,7 @@ export function AppTopBar({
             disabled={!canRedo}
             className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
           >
-            <Redo2 aria-hidden="true" className="size-4" />
+            <Redo2 aria-hidden="true" className="size-4.5" />
           </button>
         </div>
         <div className="hidden items-center gap-0.5 md:flex">
@@ -417,7 +417,7 @@ export function AppTopBar({
             disabled={!canUndo}
             className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
-            <Undo2 className="size-3.5" />
+            <Undo2 className="size-4.5" />
           </Button>
           <Button
             size="icon"
@@ -428,20 +428,9 @@ export function AppTopBar({
             disabled={!canRedo}
             className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
-            <Redo2 className="size-3.5" />
+            <Redo2 className="size-4.5" />
           </Button>
         </div>
-        <Button
-          size="icon"
-          variant="ghost"
-          aria-label="Animate"
-          title="Animate"
-          onClick={onAnimateOpen}
-          className="hidden h-9 w-auto gap-1.5 rounded-lg border border-transparent bg-transparent px-3 text-xs text-foreground hover:bg-muted min-[720px]:inline-flex"
-        >
-          <Sparkles className="size-3.5" />
-          <span className="hidden min-[480px]:inline">Animate</span>
-        </Button>
         <button
           type="button"
           aria-label="Getting started"
@@ -460,12 +449,12 @@ export function AppTopBar({
             if (!themeMounted) return
             onThemeChange(isLightTheme ? "dark" : "light")
           }}
-          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground min-[480px]:inline-flex"
+          className="hidden size-11 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground min-[480px]:inline-flex"
         >
           {isLightTheme ? (
-            <Moon className="size-3.5" />
+            <Moon className="size-4.5" />
           ) : (
-            <Sun className="size-3.5" />
+            <Sun className="size-4.5" />
           )}
         </Button>
         <Button
@@ -474,7 +463,7 @@ export function AppTopBar({
           className="h-11 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           onClick={onExportOpen}
         >
-          <Download className="size-3.5" />
+          <Download className="size-4.5" />
           <span className="">Export</span>
         </Button>
         <CompactWorkspaceMenu

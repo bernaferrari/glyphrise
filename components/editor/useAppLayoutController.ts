@@ -822,6 +822,10 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
     animationProps: {
       duration,
+      existingKeyframes: {
+        Rotation: rotationAxisKeyframes.length,
+        Scale: scaleTrack.keyframes.length,
+      },
       onApply: (id, seconds, intensity) => {
         stopPlayback()
         cancelAnimatedSeek()

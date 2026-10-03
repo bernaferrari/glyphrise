@@ -70,9 +70,8 @@ export function useRotationMotionControls({
           value: nextRotation,
           time,
           duration,
-          // Match scalar/property auto-key semantics: when auto-key is off,
-          // edits may update the exact keyframe under the playhead, but must
-          // never create a new one merely because the track is animated.
+          // Without auto-key, an animated track still keys the playhead;
+          // a static one keeps a single value.
           createIfMissing: autoKeyEnabled,
         })
       )

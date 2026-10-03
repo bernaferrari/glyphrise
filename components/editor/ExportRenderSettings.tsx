@@ -4,7 +4,7 @@ import { EXPORT_SIZE_PRESETS, type ExportSettings } from "./ExportSettingsModel"
 import type { VideoContainer } from "../3d/SvgTypes"
 
 const fieldClass =
-  "mt-1 h-11 w-full rounded-lg border border-input bg-background px-3 text-base text-foreground tabular-nums focus-visible:outline-2 focus-visible:outline-ring"
+  "mt-1 h-9 w-full rounded-md bg-muted/80 px-2.5 text-sm text-foreground tabular-nums focus-visible:outline-2 focus-visible:outline-ring"
 
 export function ExportRenderSettings({
   settings,
@@ -20,32 +20,48 @@ export function ExportRenderSettings({
   onChange: (patch: Partial<ExportSettings>) => void
 }) {
   return (
-    <fieldset disabled={disabled} className="grid gap-4 disabled:opacity-60">
+    <fieldset disabled={disabled} className="grid gap-5 disabled:opacity-60">
       <div>
         <p className="mb-2 text-xs font-medium">Output size</p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {EXPORT_SIZE_PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              type="button"
-              aria-pressed={
-                settings.width === preset.width &&
-                settings.height === preset.height
-              }
-              onClick={() =>
-                onChange({ width: preset.width, height: preset.height })
-              }
-              className="flex min-h-14 flex-col items-start justify-center gap-1 rounded-lg border border-border px-3 text-xs hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-primary/50 aria-pressed:bg-primary/5"
-            >
-              <span className="font-medium">{preset.label}</span>
-              <span className="text-[11px] text-muted-foreground tabular-nums">
-                {preset.width} × {preset.height}
-              </span>
-            </button>
-          ))}
+        <div className="grid grid-cols-4 gap-2">
+          {EXPORT_SIZE_PRESETS.map((preset) => {
+            const ratio = preset.width / preset.height
+            return (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={
+                  settings.width === preset.width &&
+                  settings.height === preset.height
+                }
+                onClick={() =>
+                  onChange({ width: preset.width, height: preset.height })
+                }
+                className="group flex flex-col items-center gap-1.5 rounded-lg p-2 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:text-foreground"
+              >
+                <span className="grid size-8 place-items-center">
+                  {/* The ratio itself, drawn to scale. */}
+                  <span
+                    aria-hidden="true"
+                    className="rounded-[3px] border-[1.5px] border-current opacity-60 group-aria-pressed:border-(--timeline-accent) group-aria-pressed:bg-(--timeline-accent)/15 group-aria-pressed:opacity-100"
+                    style={{
+                      width: ratio >= 1 ? 28 : 28 * ratio,
+                      height: ratio >= 1 ? 28 / ratio : 28,
+                    }}
+                  />
+                </span>
+                <span className="font-medium">{preset.label}</span>
+                <span className="-mt-1 text-[10px] tabular-nums opacity-70">
+                  {preset.width}×{preset.height}
+                </span>
+              </button>
+            )
+          })}
         </div>
       </div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2">
+      <div
+        className={`grid items-end gap-2 ${settings.backgroundMode === "color" ? "grid-cols-[minmax(0,1fr)_auto]" : ""}`}
+      >
         <Choice
           label="Background"
           value={settings.backgroundMode}
@@ -56,7 +72,7 @@ export function ExportRenderSettings({
           onChange={(backgroundMode) => onChange({ backgroundMode })}
         />
         {settings.backgroundMode === "color" && (
-          <label className="flex h-10 items-center gap-2 rounded-lg border border-input px-3 text-xs">
+          <label className="flex h-9 items-center gap-2 rounded-lg bg-muted px-2.5 text-xs">
             Color
             <input
               type="color"
@@ -80,11 +96,11 @@ export function ExportRenderSettings({
           onChange={(container) => onChange({ container })}
         />
       )}
-      <details className="rounded-xl border border-border bg-muted/20 px-3">
-        <summary className="flex min-h-11 cursor-pointer items-center text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+      <details className="text-xs">
+        <summary className="flex min-h-8 w-fit cursor-pointer items-center rounded-md px-1 text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
           More settings
         </summary>
-        <div className="grid gap-3 pb-3">
+        <div className="grid gap-3 pt-2">
           <div className="grid grid-cols-2 gap-3">
             <label className="text-xs">
               Width
@@ -171,7 +187,7 @@ function Choice<T extends string | number>({
             role="radio"
             aria-checked={option.value === value}
             onClick={() => onChange(option.value)}
-            className="min-h-9 flex-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-checked:bg-background aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
+            className="min-h-8 flex-1 rounded-md px-2 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-checked:bg-background aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
           >
             {option.label}
           </button>

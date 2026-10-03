@@ -13,12 +13,15 @@ import {
   ANIMATION_PRESETS,
   type AnimationPresetId,
 } from "./AnimationPresetModel"
+import { TimelineRowIcon } from "./timeline/TimelineRowIcon"
 
 export type AnimateDialogProps = {
   svgContent?: string
   open: boolean
   onOpenChange: (open: boolean) => void
   duration: number
+  /** Keyframes each target property already has, keyed by property name. */
+  existingKeyframes?: Partial<Record<"Rotation" | "Scale", number>>
   onApply: (id: AnimationPresetId, duration: number, intensity: number) => void
 }
 
@@ -28,12 +31,14 @@ const AMOUNTS = [
   { label: "Normal", value: 1 },
   { label: "Strong", value: 1.75 },
 ]
+const PROPERTY_ROW_ID = { Rotation: "rotation", Scale: "scale" } as const
 
 export function AnimateDialog({
   svgContent,
   open,
   onOpenChange,
   duration,
+  existingKeyframes,
   onApply,
 }: AnimateDialogProps) {
   return (
@@ -43,6 +48,7 @@ export function AnimateDialog({
           <AnimationChoices
             svgContent={svgContent}
             initialDuration={duration}
+            existingKeyframes={existingKeyframes ?? {}}
             onApply={(id, seconds, intensity) => {
               onApply(id, seconds, intensity)
               onOpenChange(false)
@@ -77,7 +83,7 @@ function Segmented<T extends number>({
           type="button"
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
-          className="min-h-9 flex-1 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+          className="min-h-8 flex-1 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
         >
           {option.label}
         </button>
@@ -86,13 +92,87 @@ function Segmented<T extends number>({
   )
 }
 
+/**
+ * What applying the preset does, drawn the way the timeline will show it:
+ * one property row with its new keyframes across the whole animation.
+ */
+function ResultPreview({
+  property,
+  fractions,
+  length,
+  existing,
+}: {
+  property: "Rotation" | "Scale"
+  fractions: readonly number[]
+  length: number
+  existing: number
+}) {
+  return (
+    <div className="grid gap-2 rounded-xl border border-border bg-muted/30 p-3">
+      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+        <span>On your timeline</span>
+        <span className="tabular-nums">0s → {Number(length.toFixed(2))}s</span>
+      </div>
+      <div className="flex items-center gap-2.5">
+        <span className="flex w-20 shrink-0 items-center gap-1.5 text-xs font-medium">
+          <TimelineRowIcon
+            id={PROPERTY_ROW_ID[property]}
+            className="size-3.5 text-muted-foreground"
+          />
+          {property}
+        </span>
+        <span className="relative h-5 flex-1">
+          <span className="absolute inset-x-1.5 top-1/2 h-px -translate-y-1/2 bg-(--timeline-accent)" />
+          {fractions.map((fraction) => (
+            <svg
+              key={fraction}
+              aria-hidden="true"
+              viewBox="0 0 16 16"
+              className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `calc(6px + (100% - 12px) * ${fraction})` }}
+            >
+              <rect
+                x="4"
+                y="4"
+                width="8"
+                height="8"
+                rx="1.2"
+                transform="rotate(45 8 8)"
+                style={{
+                  fill: "var(--timeline-lane, var(--background))",
+                  stroke: "var(--timeline-accent)",
+                  strokeWidth: 1.5,
+                }}
+              />
+            </svg>
+          ))}
+        </span>
+      </div>
+      <p
+        className={cn(
+          "text-[11px] leading-4",
+          existing > 0
+            ? "text-amber-600 dark:text-amber-400"
+            : "text-muted-foreground"
+        )}
+      >
+        {existing > 0
+          ? `Replaces the ${existing} ${property} keyframe${existing === 1 ? "" : "s"} you have now. Other motion stays.`
+          : `Adds ${fractions.length} ${property} keyframes. Other motion stays.`}
+      </p>
+    </div>
+  )
+}
+
 function AnimationChoices({
   svgContent,
   initialDuration,
+  existingKeyframes,
   onApply,
 }: {
   svgContent?: string
   initialDuration: number
+  existingKeyframes: Partial<Record<"Rotation" | "Scale", number>>
   onApply: AnimateDialogProps["onApply"]
 }) {
   const [selected, setSelected] = useState<AnimationPresetId>("spin")
@@ -105,9 +185,8 @@ function AnimationChoices({
 
   return (
     <>
-      {/* Stage: the selected motion, playing on the user's own icon. */}
-      <div className="relative grid h-44 place-items-center overflow-hidden bg-muted/40 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_70%)]">
-        <div className="scale-[2.2]">
+      <div className="relative grid h-36 place-items-center overflow-hidden bg-muted/40 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_70%)]">
+        <div className="scale-[1.9]">
           <MotionPresetPreview
             key={`${selected}-${previewLength}-${intensity}`}
             preset={selected}
@@ -116,18 +195,15 @@ function AnimationChoices({
             intensity={intensity}
           />
         </div>
-        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-background/80 px-2.5 py-1 text-[11px] text-muted-foreground tabular-nums backdrop-blur">
-          {preset.name} · {previewLength}s loop
-        </span>
       </div>
 
-      <div className="grid gap-5 p-5">
+      <div className="grid gap-4 p-5">
         <div>
           <DialogTitle className="text-base font-semibold">
-            Add motion
+            Motion presets
           </DialogTitle>
           <DialogDescription className="mt-1 text-xs">
-            {preset.description}
+            Animates the whole icon from the start of the timeline to the end.
           </DialogDescription>
         </div>
 
@@ -137,8 +213,9 @@ function AnimationChoices({
               key={item.id}
               type="button"
               aria-pressed={selected === item.id}
+              aria-label={item.name}
               onClick={() => setSelected(item.id)}
-              className="flex flex-col items-center gap-1.5 rounded-xl border border-border bg-background py-2.5 text-xs font-medium transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground/60 aria-pressed:bg-muted"
+              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-background py-2.5 text-xs font-medium transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground/60 aria-pressed:bg-muted"
             >
               <MotionPresetPreview
                 preset={item.id}
@@ -147,12 +224,26 @@ function AnimationChoices({
                 intensity={1}
               />
               {item.name}
+              <span className="text-[10px] font-normal text-muted-foreground">
+                {item.property}
+              </span>
             </button>
           ))}
         </div>
 
+        <p className="-mt-1 text-xs text-muted-foreground">
+          {preset.description}
+        </p>
+
+        <ResultPreview
+          property={preset.property}
+          fractions={preset.keyframeFractions}
+          length={previewLength}
+          existing={existingKeyframes[preset.property] ?? 0}
+        />
+
         <div className="grid gap-2">
-          <span className="text-xs font-medium">Length</span>
+          <span className="text-xs font-medium">Timeline length</span>
           <div className="flex items-center gap-2">
             <Segmented
               label="Motion length"
@@ -162,7 +253,7 @@ function AnimationChoices({
             />
             <label
               className={cn(
-                "flex h-10 w-20 shrink-0 items-center rounded-lg border bg-background pr-2 focus-within:border-ring",
+                "flex h-9 w-20 shrink-0 items-center rounded-lg border bg-background pr-2 focus-within:border-ring",
                 valid ? "border-border" : "border-destructive"
               )}
             >
@@ -196,7 +287,6 @@ function AnimationChoices({
             }
             onChange={setIntensity}
           />
-          {/* Fine control for keyboard and precise values. */}
           <input
             aria-label="Motion intensity"
             type="range"
@@ -209,19 +299,14 @@ function AnimationChoices({
           />
         </div>
 
-        <div className="grid gap-2">
-          <button
-            type="button"
-            disabled={!valid}
-            onClick={() => onApply(selected, length, intensity)}
-            className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.99] disabled:opacity-40"
-          >
-            Apply {preset.name}
-          </button>
-          <p className="text-center text-[11px] text-muted-foreground">
-            Replaces only {preset.property.toLowerCase()} motion · Undo anytime
-          </p>
-        </div>
+        <button
+          type="button"
+          disabled={!valid}
+          onClick={() => onApply(selected, length, intensity)}
+          className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.99] disabled:opacity-40"
+        >
+          Apply {preset.name} to {preset.property}
+        </button>
       </div>
     </>
   )

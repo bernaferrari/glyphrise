@@ -16,6 +16,17 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Glyphrise — 3D icon motion",
   description: "Turn SVG icons into polished 3D motion.",
+  icons: {
+    icon: [
+      {
+        url: "/glyphrise-favicon.ico",
+        type: "image/x-icon",
+        sizes: "16x16 32x32 48x48 64x64 128x128 256x256",
+      },
+      { url: "/glyphrise-icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/glyphrise-apple-touch-icon.png", sizes: "180x180" }],
+  },
 }
 
 export default function RootLayout({

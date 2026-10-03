@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Check, ChevronDown } from "lucide-react"
+import { Check, LayoutGrid } from "lucide-react"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import {
   Popover,
@@ -42,25 +42,17 @@ export function FinishPresetPicker({
 }: FinishPresetPickerProps) {
   const [open, setOpen] = useState(false)
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
-  const selected = MATERIAL_METADATA[value]
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className="flex min-h-11 min-w-0 flex-1 items-center justify-end gap-2 rounded-lg bg-foreground/[0.055] px-2.5 text-left transition-colors hover:bg-foreground/[0.09] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-        <span
-          className="size-6 shrink-0 rounded-full border border-border shadow-[inset_0_1px_2px_rgba(255,255,255,0.35),inset_0_-1px_2px_rgba(0,0,0,0.2)]"
-          style={{ background: MATERIAL_PREVIEW[value] }}
-          aria-hidden="true"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-medium text-foreground">
-            {selected.name}
-          </span>
-          <span className="block truncate text-[11px] text-muted-foreground">
-            {selected.subtitle}
-          </span>
+      <PopoverTrigger
+        aria-label="All finishes"
+        title="All finishes"
+        className="group grid size-9 place-items-center justify-self-center rounded-full text-muted-foreground ring-1 ring-transparent transition-[box-shadow,color,transform] duration-150 hover:text-foreground hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 data-open:text-foreground data-open:ring-2 data-open:ring-foreground/80"
+      >
+        <span className="grid size-7 place-items-center rounded-full border border-foreground/15 bg-muted/60 transition-colors group-hover:bg-muted">
+          <LayoutGrid className="size-3.5" aria-hidden="true" />
         </span>
-        <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
       </PopoverTrigger>
       <PopoverContent
         align="end"

@@ -148,10 +148,13 @@ export const EasingPicker: React.FC<{
 export function EasingChoices({
   value,
   label,
+  compact = false,
   onChange,
 }: {
   value: EasingType
   label: string
+  /** One tight row: curve and name side by side. */
+  compact?: boolean
   onChange: (easing: EasingType) => void
 }) {
   return (
@@ -167,7 +170,7 @@ export function EasingChoices({
           aria-pressed={option.value === value}
           title={option.label}
           onClick={() => onChange(option.value)}
-          className="flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-7 gap-1 text-[11px]" : "min-h-11 flex-col gap-0.5 text-[10px]"}`}
         >
           <svg
             aria-hidden="true"

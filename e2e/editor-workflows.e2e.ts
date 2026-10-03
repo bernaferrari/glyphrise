@@ -238,7 +238,6 @@ test("persists the latest edit during an immediate reload", async ({
 })
 
 test("orbits the camera without editing the document", async ({ page }) => {
-  await page.getByRole("tab", { name: "Transform", exact: true }).click()
   const canvas = page
     .getByRole("region", { name: "3D preview" })
     .locator("canvas")
@@ -300,7 +299,7 @@ test("offers production render controls and an honest fidelity matrix", async ({
     .getByRole("radiogroup", { name: "Frame rate" })
     .getByRole("radio", { name: "24 fps" })
     .click()
-  await expect(page.getByText(/at 24 fps/)).toBeVisible()
+  await expect(page.getByText(/· 24 fps/)).toBeVisible()
   await page.getByRole("button", { name: "Landscape" }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1920")
   await expect(page.getByLabel("Height")).toHaveValue("1080")

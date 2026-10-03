@@ -148,7 +148,8 @@ export const upsertVectorKeyframeAtTime = ({
       keyframe.id === existing.id ? { ...keyframe, value } : keyframe
     )
   }
-  if (!createIfMissing) return keyframes
+  // Once animated, edits key the playhead (Premiere-style stopwatch).
+  if (!createIfMissing && keyframes.length === 0) return keyframes
   return [
     ...keyframes,
     {

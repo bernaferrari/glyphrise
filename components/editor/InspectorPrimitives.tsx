@@ -8,7 +8,7 @@ import { usePropertyEditScope } from "./PropertyEditScope"
 // Single source of truth for inspector layout rhythm. Every property row shares
 // one label column width and one control height so columns line up across every
 // section (Style / Shape / Transform / Light).
-export const INSPECTOR_LABEL_WIDTH = "w-[88px]"
+export const INSPECTOR_LABEL_WIDTH = "w-[84px]"
 
 // A section is a FLAT block, not a card — Figma/Framer style. Sections are
 // separated by hairline dividers (see InspectorSidebar's `divide-y`) so the panel
@@ -31,21 +31,10 @@ export function InspectorSection({
   return (
     <section
       data-active={active ? "" : undefined}
-      className={cn(
-        "relative flex flex-col gap-2 py-3 first:pt-1 last:pb-1",
-        className
-      )}
+      className={cn("relative flex flex-col gap-1", className)}
     >
-      {active ? (
-        <span className="pointer-events-none absolute top-2.5 bottom-2.5 -left-1.5 w-0.5 rounded-full bg-foreground/35" />
-      ) : null}
-      <div className="flex min-h-8 items-center justify-between px-1.5">
-        <span
-          className={cn(
-            "text-sm font-semibold tracking-tight transition-colors",
-            active ? "text-foreground/90" : "text-muted-foreground"
-          )}
-        >
+      <div className="flex min-h-8 items-center justify-between pl-1.5">
+        <span className="text-xs font-semibold text-foreground">
           {{
             STYLE: "Appearance",
             GEOMETRY: "Shape",
@@ -90,7 +79,6 @@ export function InspectorRow({
 }) {
   const scope = usePropertyEditScope(editProperty)
   const scopeId = useId()
-  const needsKeyframe = scope?.kind === "animated"
   return (
     <div
       ref={rowRef}
@@ -99,71 +87,61 @@ export function InspectorRow({
       data-active={active ? "" : undefined}
       data-edit-property={editProperty}
       className={cn(
-        "flex min-h-10 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg px-1.5 py-1.5 transition-colors",
-        onClick && "cursor-pointer hover:bg-foreground/[0.03]",
-        active && "bg-foreground/[0.05]",
+        "flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 rounded-md px-1.5 py-0.5 transition-colors",
         className
       )}
     >
       <div
         className={cn(
-          "flex shrink-0 items-center gap-1 text-[13px] font-medium transition-colors duration-100",
+          "flex shrink-0 items-center gap-1.5 text-xs transition-colors duration-100",
           INSPECTOR_LABEL_WIDTH,
-          active ? "text-foreground" : "text-foreground/80"
+          active ? "text-foreground" : "text-muted-foreground"
         )}
       >
         <span className="min-w-0 text-pretty">{label}</span>
-        {dot ? (
-          <span
-            className="size-1 shrink-0 rounded-full"
-            style={{ backgroundColor: dot }}
-          />
+        {scope && scope.kind !== "whole" ? (
+          // Animated: a diamond, filled when the playhead sits on a keyframe.
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="size-2.5 shrink-0"
+          >
+            <title>{scope.label}</title>
+            <rect
+              x="4"
+              y="4"
+              width="8"
+              height="8"
+              rx="1.2"
+              transform="rotate(45 8 8)"
+              strokeWidth="2"
+              // One keyframe accent everywhere; var() needs style, not attrs.
+              style={{
+                fill:
+                  scope.kind === "keyframe" ? "var(--timeline-accent)" : "none",
+                stroke: "var(--timeline-accent)",
+              }}
+            />
+          </svg>
+        ) : dot ? (
+          <span className="size-1 shrink-0 rounded-full bg-(--timeline-accent)" />
         ) : null}
         {labelAction}
       </div>
       <fieldset
-        disabled={needsKeyframe}
-        inert={needsKeyframe ? true : undefined}
         aria-label={editProperty ? `${editProperty} controls` : undefined}
         aria-describedby={scope ? scopeId : undefined}
-        className={cn(
-          "flex min-w-0 flex-1 items-center gap-2",
-          needsKeyframe && "opacity-65"
-        )}
+        className="flex min-w-0 flex-1 items-center gap-2"
       >
         {children}
       </fieldset>
       {trailing}
+      {/* State lives in the diamond; the words are for screen readers. */}
       {scope && (
-        <div
-          className={cn(
-            "flex w-full items-center justify-between gap-2 text-xs leading-4",
-            scope.kind === "whole" && "sr-only"
-          )}
-        >
-          <span
-            id={scopeId}
-            title={scope.description}
-            className="text-muted-foreground"
-          >
-            {scopeLabel ? `${scopeLabel}: ` : null}
-            {scope.label}
-            {needsKeyframe ? ". Choose Edit here to make a change." : null}
-          </span>
-          {needsKeyframe && (
-            <button
-              type="button"
-              aria-label={`Edit ${editProperty} at ${scope.time}s`}
-              onClick={(event) => {
-                event.stopPropagation()
-                scope.enableEditing()
-              }}
-              className="min-h-8 shrink-0 rounded-md bg-primary/10 px-2 font-medium text-primary hover:bg-primary/15 focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:min-h-11"
-            >
-              Edit here
-            </button>
-          )}
-        </div>
+        <span id={scopeId} className="sr-only">
+          {scopeLabel ? `${scopeLabel}: ` : null}
+          {scope.label}. {scope.description}
+        </span>
       )}
     </div>
   )
@@ -188,7 +166,7 @@ export function InspectorDisclosure({
         type="button"
         aria-expanded={open}
         onClick={() => onOpenChange(!open)}
-        className="flex min-h-10 items-center gap-1.5 rounded-lg px-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
+        className="flex min-h-8 items-center gap-1.5 rounded-md px-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none"
       >
         <ChevronRight
           className={cn(

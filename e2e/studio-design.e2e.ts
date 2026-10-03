@@ -54,28 +54,19 @@ test("gradient presets support pointer and keyboard selection with an accurate s
   await expect(first).toHaveAttribute("aria-pressed", "true")
 })
 
-test("inspector navigation supports keyboard use and timeline selections reveal the correct editor", async ({
+test("desktop inspector shows every section and timeline selections reveal the right one", async ({
   page,
 }) => {
-  const design = page.getByRole("tab", { name: "Design", exact: true })
-  await expect(design).toHaveAttribute("aria-selected", "true")
-  await design.focus()
-  await design.press("ArrowRight")
-  await expect(
-    page.getByRole("tab", { name: "Transform", exact: true })
-  ).toHaveAttribute("aria-selected", "true")
-  await expect(page.getByLabel("Rotation Y", { exact: true })).toBeVisible()
-  await page.getByRole("tab", { name: "Lighting", exact: true }).click()
+  // One scrolling column on desktop, like Figma: no tabs to hunt through.
+  await expect(page.getByRole("tab", { name: "Design" })).toHaveCount(0)
+  await expect(page.getByLabel("Rotation Y", { exact: true })).toBeAttached()
   await expect(
     page.getByLabel("Light brightness", { exact: true })
-  ).toBeVisible()
+  ).toBeAttached()
   await page
     .getByRole("button", { name: "Select Rotation property", exact: true })
     .click()
-  await expect(
-    page.getByRole("tab", { name: "Transform", exact: true })
-  ).toHaveAttribute("aria-selected", "true")
-  await design.click()
+  await expect(page.getByLabel("Rotation Y", { exact: true })).toBeInViewport()
   await expect(page.getByLabel("Bevel segments", { exact: true })).toHaveCount(
     0
   )
@@ -96,12 +87,16 @@ test("Animate previews the selected artwork and timeline points stay reachable",
     page.getByLabel("Keyframe rotation Y", { exact: true })
   ).toBeVisible()
   await page.keyboard.press("Escape")
-  await page.getByRole("button", { name: "Animate", exact: true }).click()
-  // The stage plus one live tile per preset.
-  const choices = page.getByRole("dialog").locator(".motion-preview svg")
-  await expect(choices).toHaveCount(4)
-  await page.getByRole("button", { name: "Tilt", exact: true }).click()
-  await page.getByRole("button", { name: "Apply Tilt", exact: true }).click()
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(endpoint).toBeFocused()
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  // Each preset previews on the user's artwork, grouped by property.
+  const menu = page.getByRole("dialog")
+  await expect(menu.locator(".motion-preview svg")).toHaveCount(3)
+  await menu
+    .getByRole("region", { name: "Rotation" })
+    .getByRole("button", { name: "Tilt", exact: true })
+    .click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
 })
 
@@ -122,7 +117,8 @@ for (const width of [390, 1280]) {
       const number = page.getByLabel("Extrusion depth", { exact: true })
       await slider.scrollIntoViewIfNeeded()
       const bounds = (await slider.boundingBox())!
-      expect(bounds.height).toBeGreaterThanOrEqual(44)
+      // Compact on desktop (matches the number field); finger-sized on phones.
+      expect(bounds.height).toBeGreaterThanOrEqual(width < 720 ? 44 : 32)
       const original = await number.inputValue()
       await slider.click({
         position: { x: bounds.width * 0.75, y: bounds.height / 2 },
@@ -228,7 +224,7 @@ for (const width of [320, 390]) {
         page.getByRole("dialog").locator(".motion-preview svg")
       ).toHaveCount(4)
       await expect(
-        page.getByRole("button", { name: "Apply Spin", exact: true })
+        page.getByRole("button", { name: /^Apply Spin/ })
       ).toBeEnabled()
       await page.keyboard.press("Escape")
       await expect(page.getByRole("dialog")).toHaveCount(0)

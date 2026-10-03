@@ -16,11 +16,16 @@ export function InspectorSlider({
   scrubStep,
   precision,
   className = "flex-1",
-  inputClassName = "w-[68px] shrink-0 max-[720px]:w-[76px]",
+  inputClassName = "w-[60px] shrink-0 max-[720px]:w-[72px]",
   sliderClassName = "flex-1",
   ariaLabel,
+  suffix,
+  compact = false,
   onChange,
 }: {
+  suffix?: string
+  /** Tighter variant for popover panels. */
+  compact?: boolean
   value: number
   min: number
   max: number
@@ -45,7 +50,8 @@ export function InspectorSlider({
           1
         )
       : 0
-  const thumbPosition = `calc(12px + ${progress} * (100% - 24px))`
+  const thumbInset = 6
+  const thumbPosition = `calc(${thumbInset}px + ${progress} * (100% - ${thumbInset * 2}px))`
   return (
     <div className={`flex min-w-0 items-center gap-2 ${className}`}>
       <NumberField
@@ -55,23 +61,26 @@ export function InspectorSlider({
         step={step}
         scrubStep={scrubStep}
         precision={precision}
+        suffix={suffix}
         ariaLabel={ariaLabel}
-        className={inputClassName}
+        className={compact ? "w-[64px] shrink-0" : inputClassName}
         onChange={onChange}
       />
       <label
-        className={`relative flex h-11 min-w-0 items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
+        className={`relative flex h-8 min-w-0 ${compact ? "" : "max-[720px]:h-11 pointer-coarse:h-11"} items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
         onClick={(event) => event.stopPropagation()}
       >
+        {/* A quiet fill with a slim handle — reads like the field beside it. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none relative h-7 w-full rounded-lg"
-          style={{
-            background: `linear-gradient(to right, var(--inspector-slider-active) 0 ${thumbPosition}, var(--inspector-slider-track) ${thumbPosition} 100%)`,
-          }}
+          className="pointer-events-none relative h-full w-full overflow-hidden rounded-md bg-muted/80"
         >
           <span
-            className="absolute inset-y-0 w-6 -translate-x-1/2 rounded-lg bg-[var(--inspector-slider-thumb)] shadow-[inset_0_1px_0_rgba(255,255,255,0.26)]"
+            className="absolute inset-y-0 left-0 bg-(--inspector-slider-active)"
+            style={{ width: thumbPosition }}
+          />
+          <span
+            className="absolute top-1/2 h-3.5 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-[0_0_0_1px_rgba(0,0,0,0.15)]"
             style={{ left: thumbPosition }}
           />
         </span>
