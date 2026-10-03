@@ -16,10 +16,10 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-![A rainbow calendar sculpted in 3D, with a soft Pearl finish and live material, shape, transform, and lighting controls](docs/glyphrise-calendar.png)
+![Glyphrise editing a rainbow 3D calendar with a Satin finish, live shape and lighting controls, and staggered rotation, depth, and scale keyframes](docs/glyphrise-editor.jpg)
 
 <p align="center">
-  <sub>Made in Glyphrise: Spectrum Mesh color, a Pearl finish, and depth you can shape in real time.</sub>
+  <sub>A real editor capture: Spectrum Mesh colors, a Satin finish, and three staggered animation tracks.</sub>
 </p>
 
 An SVG is all you need. Pick an icon or bring your own, give it depth and a
@@ -50,8 +50,6 @@ stays focused: **choose → style → animate → export**. No account required.
   edits, and download portable backups. Use the full desktop workspace or
   dedicated preview, properties, and motion views on smaller screens.
 
-![The Glyphrise workspace with a live 3D preview, finish presets, and staggered rotation, depth, and scale tracks](docs/glyphrise-editor.png)
-
 ## Get started
 
 Use **Node.js 24.x** and **pnpm 11.x** for the documented development setup.
@@ -80,7 +78,7 @@ a starter icon to your first export.
 4. **Preview and download.** Press **Play**, then **Export**. Choose an image,
    video, 3D asset, or implementation starter.
 
-The [Calendar sample project](docs/calendar-motion.glyphrise.json) recreates the Pearl calendar look and adds three staggered animation tracks, each
+The [Calendar sample project](docs/calendar-motion.glyphrise.json) recreates the Satin calendar look and adds three staggered animation tracks, each
 with only start and end keyframes, plus a Calendar → Calendar Off wipe.
 Save the JSON file, then choose **Open from computer** from the file menu
 to explore it yourself.
@@ -92,7 +90,8 @@ The workspace actions menu also provides **Animate** and project tools.
 
 | Action                           | Control                                                  |
 | -------------------------------- | -------------------------------------------------------- |
-| Orbit the preview camera         | Drag the preview                                         |
+| Rotate the icon                  | Drag the preview                                         |
+| Orbit the preview camera         | `Alt` + drag the preview                                 |
 | Zoom the preview                 | Scroll over the preview                                  |
 | Reset the view and object pose   | **Reset view** in the preview toolbar                    |
 | Change the object in your export | Inspector **Transform** controls or **Transform object** |

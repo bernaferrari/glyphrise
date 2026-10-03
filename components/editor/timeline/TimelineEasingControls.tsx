@@ -115,7 +115,7 @@ export const EasingPicker: React.FC<{
         align="end"
         side="top"
         sideOffset={6}
-        className="w-40 border-border bg-popover p-1 text-foreground"
+        className="w-40 p-1 text-foreground"
       >
         {EASING_OPTIONS.map((option) => {
           const active = option.value === value

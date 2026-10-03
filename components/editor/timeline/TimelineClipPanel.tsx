@@ -40,6 +40,7 @@ export function TimelineClipPanel({
       }}
     >
       <PopoverContent
+        density="flush"
         anchor={() =>
           stop ? document.querySelector(`[data-clip-id="${stop.id}"]`) : null
         }
@@ -49,7 +50,6 @@ export function TimelineClipPanel({
         collisionPadding={8}
         initialFocus={false}
         finalFocus={false}
-        className="w-72 gap-0 p-0"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}

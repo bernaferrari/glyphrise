@@ -157,7 +157,6 @@ export function TimelineTransitionWindow({
           align="center"
           side="top"
           sideOffset={10}
-          className="w-72 p-2.5"
           onPointerDown={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}

@@ -32,6 +32,24 @@ Changes to editor interactions should include focused unit or Playwright tests.
 Please document browser-specific behavior, export-fidelity tradeoffs, and any
 SVG compatibility changes in the pull request.
 
+## UI components and lint
+
+Our shadcn components live in `components/ui` and are part of this codebase.
+When several callers repeat the same appearance or spacing overrides, add a
+variant or size to the shared component and migrate those callers together.
+Keep existing defaults intact and check the rendered result.
+
+The lint contracts allow callers to control layout. Unstyled `PopoverTrigger`,
+`DialogTrigger`, `DialogClose`, and `ContextMenuTrigger` also allow appearance
+classes because they do not supply a visual treatment. Styled components still
+own their colors, spacing, and shape. Raw palette colors and arbitrary values
+are checked on triggers too. Explicit `transition-[...]` property lists are
+allowed so transitions can stay limited to the properties that change.
+
+The lint baseline still contains findings, including runtime styles for 3D
+previews and timeline geometry. Inspect each finding rather than replacing
+computed positions or precise geometry just to satisfy a rule.
+
 ## Pull requests
 
 Keep pull requests focused, describe the user-visible outcome, and include a

@@ -245,9 +245,11 @@ test("orbits the camera without editing the document", async ({ page }) => {
   const startX = box.x + box.width * 0.28
   const startY = box.y + box.height * 0.3
   await page.mouse.move(startX, startY)
+  await page.keyboard.down("Alt")
   await page.mouse.down()
   await page.mouse.move(startX + 90, startY + 55, { steps: 8 })
   await page.mouse.up()
+  await page.keyboard.up("Alt")
 
   const rotationX = page.getByLabel("Rotation X", { exact: true })
   const rotationY = page.getByLabel("Rotation Y", { exact: true })

@@ -62,7 +62,7 @@ export function SymbolOptionsPopover({
         align="start"
         side="left"
         sideOffset={8}
-        className="w-64 border-border bg-popover p-2.5 text-foreground shadow-lg"
+        className="w-64 text-foreground shadow-lg"
         {...stopPopoverPropagation}
       >
         <div className="mb-2 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">

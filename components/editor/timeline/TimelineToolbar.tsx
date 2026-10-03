@@ -264,7 +264,12 @@ function OptionsMenu({
       >
         <MoreHorizontal className="size-4" />
       </PopoverTrigger>
-      <PopoverContent align="start" side="bottom" className="w-64 gap-0 p-1">
+      <PopoverContent
+        density="compact"
+        align="start"
+        side="bottom"
+        className="w-64"
+      >
         <div className="flex items-center gap-1 px-1 pb-1">
           <span className="flex-1 px-1.5 text-[13px]">Zoom</span>
           <button

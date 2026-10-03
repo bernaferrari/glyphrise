@@ -1,14 +1,6 @@
 "use client"
 
-import React, {
-  useEffect,
-  useState,
-  forwardRef,
-  useMemo,
-  useCallback,
-  useRef,
-} from "react"
-import * as THREE from "three"
+import React, { useEffect, useState, forwardRef, useMemo, useRef } from "react"
 import { gradientStopsSignature, pathRebuildSignature } from "./SvgSceneUtils"
 import { updateGroupMaterialSettings } from "./SvgMaterialState"
 import { updateSceneLights } from "./SvgSceneSetup"
@@ -19,6 +11,7 @@ import { useSvgCanvasImperativeHandle } from "./useSvgCanvasImperativeHandle"
 import { useSvgCanvasLiveRefs } from "./useSvgCanvasLiveRefs"
 import { useSvgModelGroups } from "./useSvgModelGroups"
 import { useSvgRenderLoop } from "./useSvgRenderLoop"
+import { useSvgRotationDrag } from "./useSvgRotationDrag"
 import { useSvgViewNudge } from "./useSvgViewNudge"
 import { useSvgCanvasSceneLifecycle } from "./useSvgCanvasSceneLifecycle"
 import { useTransformGizmoInteractions } from "./useTransformGizmoInteractions"
@@ -96,6 +89,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       onObjectScaleAxisChangeRef,
       onMoveOffsetChangeRef,
       onRotationAxisChangeRef,
+      onViewRotationSetRef,
     } = useSvgCanvasLiveRefs(props)
 
     const canvasRecorder = useCanvasRecorder()
@@ -144,16 +138,14 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       props.onModelReadyChange?.(modelReady)
     }, [modelReady, props.onModelReadyChange])
 
-    const applyViewRotationDelta = useCallback(
-      (delta: { x: number; y: number }) => {
-        const current = cameraOrbitRef.current
-        onCameraRotationSetRef.current?.({
-          x: current.x + THREE.MathUtils.radToDeg(delta.x),
-          y: current.y + THREE.MathUtils.radToDeg(delta.y),
-        })
-      },
-      []
-    )
+    const { beginViewDrag, applyViewRotationDelta } = useSvgRotationDrag({
+      rotationOffset: props.rotationOffset,
+      cameraOrbitRef,
+      onCameraRotationSet: (rotation) =>
+        onCameraRotationSetRef.current?.(rotation),
+      onObjectRotationSet: (rotation) =>
+        onViewRotationSetRef.current?.(rotation),
+    })
 
     useSvgCanvasImperativeHandle({
       ref,
@@ -223,6 +215,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       beginTransformMove,
       beginTransformRotate,
       setTransformGizmoHighlight,
+      beginViewDrag,
       applyViewRotationDelta,
       cancelViewNudge,
       requestRenderRef,
@@ -333,9 +326,9 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         className="relative h-full min-h-0 w-full overflow-hidden bg-[oklch(0.13_0.012_280)]"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
-          Drag to orbit the camera; scroll to zoom. Camera changes are
-          preview-only. Use Transform controls to rotate the icon in your
-          export.
+          Drag to rotate the icon; scroll to zoom. Hold Alt while dragging to
+          orbit the preview camera. Icon rotation updates Transform properties
+          and your export; camera orbit and zoom affect the preview only.
         </span>
         <canvas
           ref={canvasRef}

@@ -19,9 +19,25 @@
     "*.tsbuildinfo"
   ],
   "rules": {
-    "shadcn/no-restyle": "error",
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": ["layout"],
+        "contracts": [
+          {
+            "pattern": "^(PopoverTrigger|DialogTrigger|DialogClose|ContextMenuTrigger)$",
+            "allow": ["*"]
+          }
+        ]
+      }
+    ],
     "shadcn/no-raw-colors": "error",
-    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-arbitrary-values": [
+      "error",
+      {
+        "allow": ["transition-[*]"]
+      }
+    ],
     "shadcn/no-inline-styles": "error",
     "shadcn/no-unknown-classes": "error",
     "shadcn/require-static-classes": "error"

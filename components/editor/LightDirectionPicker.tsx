@@ -95,9 +95,10 @@ export function LightDirectionPicker({
         <ChevronDown className="size-3 shrink-0 text-muted-foreground/70" />
       </PopoverTrigger>
       <PopoverContent
+        variant="editor"
         align="end"
         sideOffset={6}
-        className="w-60 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-2xl backdrop-blur-xl"
+        className="w-60 p-3"
       >
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">

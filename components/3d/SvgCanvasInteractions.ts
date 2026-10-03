@@ -28,6 +28,7 @@ export type SvgCanvasPointerBindings = {
     hovered: TransformGizmoHandle | null,
     active?: TransformGizmoHandle | null
   ) => void
+  beginViewDrag: (event: PointerEvent) => void
   applyViewRotationDelta: (delta: RotationVelocity) => void
   isDraggingRef: MutableRefObject<boolean>
   isInertiaActiveRef: MutableRefObject<boolean>
@@ -65,6 +66,7 @@ export const bindSvgCanvasPointerInteractions = ({
   beginTransformMove,
   beginTransformRotate,
   setTransformGizmoHighlight,
+  beginViewDrag,
   applyViewRotationDelta,
   isDraggingRef,
   isInertiaActiveRef,
@@ -111,6 +113,9 @@ export const bindSvgCanvasPointerInteractions = ({
       }
     }
 
+    isInertiaActiveRef.current = false
+    rotationVelocityRef.current = { x: 0, y: 0 }
+    beginViewDrag(event)
     isDraggingRef.current = true
     hasViewDragMovedRef.current = false
     activePointerIdRef.current = event.pointerId

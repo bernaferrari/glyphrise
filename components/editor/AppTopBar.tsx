@@ -425,47 +425,46 @@ export function AppTopBar({
         </div>
         <div className="hidden items-center gap-0.5 md:flex">
           <Button
-            size="icon"
-            variant="ghost"
+            size="icon-touch"
+            variant="muted-ghost"
             aria-label="Undo"
             title="Undo (Ctrl/⌘ Z)"
             onClick={onUndo}
             disabled={!canUndo}
-            className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
             <Undo2 className="size-4.5" />
           </Button>
           <Button
-            size="icon"
-            variant="ghost"
+            size="icon-touch"
+            variant="muted-ghost"
             aria-label="Redo"
             title="Redo (Ctrl/⌘ Shift Z)"
             onClick={onRedo}
             disabled={!canRedo}
-            className="size-10 rounded-lg text-muted-foreground hover:text-foreground"
           >
             <Redo2 className="size-4.5" />
           </Button>
         </div>
-        <button
-          type="button"
+        <Button
+          size="icon-touch"
+          variant="muted-ghost"
           aria-label="Getting started"
           title="Getting started"
           onClick={onGettingStarted}
-          className="hidden size-11 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring min-[720px]:grid"
+          className="hidden min-[720px]:inline-flex"
         >
-          <CircleHelp aria-hidden="true" className="size-4" />
-        </button>
+          <CircleHelp aria-hidden="true" className="size-4.5" />
+        </Button>
         <Button
-          size="icon"
-          variant="ghost"
+          size="icon-touch"
+          variant="muted-ghost"
           aria-label={themeToggleLabel}
           title={themeToggleLabel}
           onClick={() => {
             if (!themeMounted) return
             onThemeChange(isLightTheme ? "dark" : "light")
           }}
-          className="hidden size-11 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground min-[480px]:inline-flex"
+          className="hidden min-[480px]:inline-flex"
         >
           {isLightTheme ? (
             <Moon className="size-4.5" />
@@ -474,9 +473,9 @@ export function AppTopBar({
           )}
         </Button>
         <Button
-          size="sm"
+          size="toolbar"
           aria-label="Export"
-          className="h-11 gap-1.5 rounded-lg bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          className="hover:bg-primary/90"
           onClick={onExportOpen}
         >
           <Download className="size-4.5" />

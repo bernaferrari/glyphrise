@@ -70,8 +70,9 @@ function LayerSwitcherComponent({
             <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
           </PopoverTrigger>
           <PopoverContent
+            density="compact"
             align="end"
-            className="max-h-72 w-56 gap-0 overflow-y-auto p-1"
+            className="max-h-72 w-56 overflow-y-auto"
           >
             {[
               { id: ALL_LAYERS_ID, name: "All paths", color: undefined },

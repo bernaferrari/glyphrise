@@ -51,6 +51,8 @@ function DialogContent({
 }) {
   return (
     <DialogPortal>
+      {/* Slot styling is forwarded unchanged; callers own static class strings. */}
+      {/* oxlint-disable-next-line shadcn/require-static-classes */}
       <DialogOverlay className={backdropClassName} />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
@@ -67,8 +69,8 @@ function DialogContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-2 right-2 size-11 rounded-lg"
-                size="icon-sm"
+                className="absolute top-2 right-2"
+                size="icon-touch"
               />
             }
           >

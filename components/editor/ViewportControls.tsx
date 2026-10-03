@@ -76,14 +76,15 @@ export function ViewOptionsPopover({
           <MoreHorizontal className="size-4" />
         </PopoverTrigger>
         <PopoverContent
+          density="menu"
           align="end"
           side="bottom"
           sideOffset={8}
-          className="w-60 gap-0 p-1.5"
+          className="w-60"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to orbit · Scroll to zoom. Camera changes affect the preview
-            only.
+            Drag to rotate · Alt-drag to orbit the camera · Scroll to zoom.
+            Camera orbit and zoom affect the preview only.
           </p>
           <ViewportToggleRow
             label="Inertia"
@@ -184,24 +185,22 @@ export function PlaybackControls({
       className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl"
     >
       <Button
-        size="icon"
-        variant="ghost"
+        size="icon-xl"
+        variant="viewport-ghost"
         onClick={onReset}
         disabled={atTimelineStart}
         aria-label="Go to start"
         title="Go to start"
-        className="size-10 rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
       >
         <SkipBack size={14} />
       </Button>
       <Button
-        size="icon"
-        variant="ghost"
+        size="icon-xl"
+        variant="viewport-ghost"
         onClick={onPreviousKeyMoment}
         disabled={!hasPreviousKeyMoment}
         aria-label="Previous keyframe"
         title="Previous keyframe"
-        className="size-10 rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronLeft size={16} />
       </Button>
@@ -241,10 +240,11 @@ export function PlaybackControls({
           </svg>
         )}
         <Button
-          size="icon"
+          size={zenMode ? "icon-xl" : "icon-touch"}
+          variant="viewport-primary"
           onClick={onPlayToggle}
           aria-label={isPlaying ? "Pause" : "Play"}
-          className={`bg-white text-black hover:bg-white/90 ${zenMode ? "size-10 rounded-full" : "size-11 rounded-xl"}`}
+          className={zenMode ? "rounded-full" : "rounded-xl"}
         >
           {isPlaying ? (
             <Pause size={16} className="fill-current" />
@@ -254,33 +254,30 @@ export function PlaybackControls({
         </Button>
       </div>
       <Button
-        size="icon"
-        variant="ghost"
+        size="icon-xl"
+        variant="viewport-ghost"
         onClick={onNextKeyMoment}
         disabled={!hasNextKeyMoment}
         aria-label="Next keyframe"
         title="Next keyframe"
-        className="size-10 rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
       >
         <ChevronRight size={16} />
       </Button>
       <Button
-        size="icon"
-        variant="ghost"
+        size="icon-xl"
+        variant="viewport-ghost"
         onClick={onGoToEnd}
         disabled={atTimelineEnd}
         aria-label="Go to end"
         title="Go to end"
-        className="size-10 rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30"
       >
         <SkipForward size={14} />
       </Button>
       {zenMode && (
         <Button
-          size="sm"
-          variant="ghost"
+          size="toolbar-sm"
+          variant="viewport-ghost"
           onClick={onExitZenMode}
-          className="h-10 rounded-xl px-3 text-xs text-white/75 hover:bg-white/10 hover:text-white"
         >
           Exit
         </Button>

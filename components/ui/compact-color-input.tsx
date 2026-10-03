@@ -164,10 +164,11 @@ export function CompactColorInput({
           onClick={(event) => event.stopPropagation()}
         />
         <PopoverContent
+          variant="editor"
           align={align}
           side={side}
           sideOffset={8}
-          className="w-52.5 rounded-xl border border-border bg-popover p-3 pb-2 text-popover-foreground shadow-2xl backdrop-blur-xl"
+          className="w-52.5 p-3 pb-2"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
         >

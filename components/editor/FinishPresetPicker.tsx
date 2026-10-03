@@ -158,10 +158,11 @@ export function FinishPresetPicker({
         </span>
       </PopoverTrigger>
       <PopoverContent
+        density="flush"
         align="end"
         side="left"
         sideOffset={10}
-        className="editor-scrollbar max-h-[min(600px,calc(100dvh-32px))] w-[min(340px,calc(100vw-32px))] gap-0 overflow-y-auto p-0"
+        className="editor-scrollbar max-h-[min(600px,calc(100dvh-32px))] w-[min(340px,calc(100vw-32px))] overflow-y-auto"
       >
         <div className="px-3.5 pt-3 pb-1">
           <PopoverTitle className="text-sm">Finish</PopoverTitle>

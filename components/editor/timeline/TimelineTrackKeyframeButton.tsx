@@ -184,7 +184,7 @@ export function TimelineTrackKeyframeButton({
           side="top"
           align="center"
           sideOffset={8}
-          className="w-32 border-border bg-popover p-2 text-popover-foreground"
+          className="w-32 p-2"
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.stopPropagation()}

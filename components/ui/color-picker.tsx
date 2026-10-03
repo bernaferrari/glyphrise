@@ -292,11 +292,9 @@ export function ColorPicker({
       </PopoverTrigger>
 
       <PopoverContent
+        variant="editor"
         ref={rootContentRef}
-        className={cn(
-          "editor-scrollbar z-50 max-h-(--available-height) overflow-x-hidden overflow-y-auto rounded-xl border border-border bg-popover p-0 text-popover-foreground shadow-2xl backdrop-blur-xl select-none",
-          "w-65"
-        )}
+        className="editor-scrollbar max-h-(--available-height) w-65 overflow-x-hidden overflow-y-auto p-0 select-none"
         // Opens beside the inspector and stays there: growing content
         // scrolls instead of flipping the popover to another side.
         side="left"

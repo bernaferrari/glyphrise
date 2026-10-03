@@ -196,7 +196,7 @@ function MotionSegment({
         side="top"
         sideOffset={8}
         initialFocus={false}
-        className="w-72 gap-2 p-2.5"
+        className="gap-2"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}

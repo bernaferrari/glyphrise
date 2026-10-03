@@ -95,11 +95,12 @@ export function TimelineAddAnimationMenu({
         <span aria-hidden="true">Add animation</span>
       </PopoverTrigger>
       <PopoverContent
+        density="menu"
         align="start"
         side="right"
         sideOffset={8}
         collisionPadding={8}
-        className="max-h-(--available-height) w-72 gap-0 overflow-y-auto p-1.5"
+        className="max-h-(--available-height) overflow-y-auto"
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >

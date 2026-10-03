@@ -138,11 +138,13 @@ test("camera orbit changes the view but preserves exported document state", asyn
     })
   const image = await captureIcon()
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3)
+  await page.keyboard.down("Alt")
   await page.mouse.down()
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, {
     steps: 12,
   })
   await page.mouse.up()
+  await page.keyboard.up("Alt")
   expect((await captureIcon()).equals(image)).toBe(false)
   expect(await backup(page)).toEqual(before)
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)

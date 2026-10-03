@@ -27,12 +27,13 @@ export function ColorStopEditorPopover({
 }: ColorStopEditorPopoverProps) {
   return (
     <PopoverContent
+      variant="editor"
       ref={contentRef}
       animated={false}
       align={align}
       side={side}
       sideOffset={12}
-      className="w-52.5 rounded-xl border border-border bg-popover p-3 pb-2 text-popover-foreground shadow-2xl backdrop-blur-xl"
+      className="w-52.5 p-3 pb-2"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >
