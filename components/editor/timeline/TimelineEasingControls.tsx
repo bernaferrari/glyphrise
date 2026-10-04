@@ -171,7 +171,7 @@ export function EasingChoices({
     <div
       role="group"
       aria-label={label}
-      className="grid grid-cols-4 gap-0.5 rounded-lg bg-muted p-0.5"
+      className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1"
     >
       {EASING_OPTIONS.map((option) => (
         <button
@@ -180,7 +180,7 @@ export function EasingChoices({
           aria-pressed={option.value === value}
           title={option.label}
           onClick={() => onChange(option.value)}
-          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-7 gap-1 text-[11px]" : "min-h-11 flex-col gap-0.5 text-[10px]"}`}
+          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-9 gap-1.5 px-2 text-xs" : "min-h-11 flex-col gap-0.5 text-[10px]"}`}
         >
           <svg
             aria-hidden="true"
@@ -188,6 +188,7 @@ export function EasingChoices({
             height="16"
             viewBox="0 0 16 16"
             fill="none"
+            className="shrink-0"
           >
             <path
               d={easingCurvePath(option.value)}

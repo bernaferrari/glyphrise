@@ -31,7 +31,7 @@ export type ListRow = {
 }
 
 const headerButton =
-  "grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
+  "grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
 
 /**
  * The selected keyframe's details, in a small panel anchored to its diamond
@@ -100,14 +100,15 @@ export function TimelineKeyframeEditor({
             )) as HTMLElement | null
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
-        className="w-85 gap-0 p-0"
+        density="flush"
+        className="w-116 max-w-[calc(100vw-16px)]"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
         {row && frame && (
           <>
-            <div className="flex items-center gap-0.5 border-b border-border py-1 pr-1 pl-3">
+            <div className="flex items-center gap-1 border-b border-border px-4 py-2">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 16 16"
@@ -122,7 +123,7 @@ export function TimelineKeyframeEditor({
                   transform="rotate(45 8 8)"
                 />
               </svg>
-              <PopoverTitle className="ml-1 min-w-0 flex-1 truncate text-[13px] font-medium">
+              <PopoverTitle className="ml-1 min-w-0 flex-1 truncate text-sm font-medium">
                 {row.name}
                 <span className="ml-1.5 font-normal text-muted-foreground tabular-nums">
                   {index + 1} of {sorted.length}
@@ -171,7 +172,7 @@ export function TimelineKeyframeEditor({
             </div>
 
             {/* Same label | control rows as the inspector. */}
-            <div className="grid gap-1.5 px-3 py-2.5">
+            <div className="grid gap-3 p-4">
               {valueEditor ? (
                 <PanelRow
                   label={row.name === "Rotation" ? "Angle" : "Position"}
@@ -222,7 +223,7 @@ export function TimelineKeyframeEditor({
               </PanelRow>
 
               {row.onEasing && next && (
-                <PanelRow label="Ease">
+                <PanelRow label="Easing">
                   <EasingChoices
                     compact
                     label={`${row.name} keyframe easing`}
@@ -241,7 +242,7 @@ export function TimelineKeyframeEditor({
 
 function PanelRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid min-h-8 grid-cols-[52px_minmax(0,1fr)] items-center gap-2">
+    <div className="grid min-h-8 grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="min-w-0">{children}</div>
     </div>

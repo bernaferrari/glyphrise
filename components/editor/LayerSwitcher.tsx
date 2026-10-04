@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useState } from "react"
+import { memo, useId, useState } from "react"
 import { Check, ChevronDown, Eye, EyeOff, Layers } from "lucide-react"
 import {
   Popover,
@@ -22,15 +22,38 @@ type LayerSwitcherProps = {
   onDepthChange: (value: number) => void
 }
 
-function LayerSwatch({ color }: { color?: string }) {
-  return color ? (
-    <span
-      className="size-3 shrink-0 rounded-[3px] ring-1 ring-black/15"
-      style={{ backgroundColor: color }}
-      aria-hidden="true"
-    />
-  ) : (
-    <Layers aria-hidden="true" className="size-3.5 shrink-0" />
+function LayerThumbnail({
+  layer,
+  contextId,
+  viewBox,
+}: {
+  layer?: SvgLayer
+  contextId: string
+  viewBox?: string
+}) {
+  if (!viewBox) return <Layers aria-hidden="true" className="size-5 shrink-0" />
+
+  return (
+    <svg viewBox={viewBox} className="size-full" aria-hidden="true">
+      <use
+        href={`#${contextId}`}
+        fill="currentColor"
+        fillRule="evenodd"
+        className={
+          layer ? "text-muted-foreground opacity-30" : "text-foreground"
+        }
+      />
+      {layer?.preview && (
+        <path
+          d={layer.preview.path}
+          fill="currentColor"
+          fillRule="evenodd"
+          stroke="currentColor"
+          strokeWidth="0.3"
+          className="text-foreground"
+        />
+      )}
+    </svg>
   )
 }
 
@@ -49,33 +72,50 @@ function LayerSwitcherComponent({
 
   const [open, setOpen] = useState(false)
   const selected = layers.find((layer) => layer.id === selectedLayerId)
+  const contextId = useId()
+  const viewBox = layers.find((layer) => layer.preview)?.preview?.viewBox
 
   if (layers.length === 0) return null
 
   return (
     <div className="flex flex-col">
+      <svg className="absolute size-0" aria-hidden="true">
+        <defs>
+          <g id={contextId}>
+            {layers.map((layer) => (
+              <path key={layer.id} d={layer.preview?.path} fillRule="evenodd" />
+            ))}
+          </g>
+        </defs>
+      </svg>
       <div className="flex items-center gap-2 px-3 py-1.5">
         <span className="text-[11px] font-medium text-muted-foreground">
-          Paths
+          Layers
         </span>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
-            aria-label={`SVG path: ${selected?.name ?? "All paths"}`}
+            aria-label={`SVG layer: ${selected?.name ?? "All layers"}`}
             className="ml-auto flex h-8 max-w-48 min-w-0 items-center gap-2 rounded-md bg-muted/70 px-2.5 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <LayerSwatch color={selected?.color} />
+            <span className="size-6 shrink-0">
+              <LayerThumbnail
+                layer={selected}
+                contextId={contextId}
+                viewBox={viewBox}
+              />
+            </span>
             <span className="truncate">
-              {selected?.name ?? `All paths · ${layers.length}`}
+              {selected?.name ?? `All layers · ${layers.length}`}
             </span>
             <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
           </PopoverTrigger>
           <PopoverContent
             density="compact"
             align="end"
-            className="max-h-72 w-56 overflow-y-auto"
+            className="max-h-112 w-64 overflow-y-auto"
           >
             {[
-              { id: ALL_LAYERS_ID, name: "All paths", color: undefined },
+              { id: ALL_LAYERS_ID, name: "All layers", color: "" },
               ...layers,
             ].map((layer, index) => (
               <button
@@ -83,16 +123,29 @@ function LayerSwitcherComponent({
                 type="button"
                 aria-pressed={layer.id === selectedLayerId}
                 title={
-                  index > 0 ? `SVG path ${index}: ${layer.name}` : undefined
+                  index > 0 ? `SVG layer ${index}: ${layer.name}` : undefined
                 }
                 onClick={() => {
                   onSelectLayer(layer.id)
                   setOpen(false)
                 }}
-                className="flex min-h-9 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] hover:bg-muted focus-visible:bg-muted focus-visible:outline-none aria-pressed:font-medium"
+                className="flex min-h-12 w-full items-center gap-3 rounded-md px-2 py-1 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:font-medium"
               >
-                <LayerSwatch color={layer.color} />
-                <span className="min-w-0 flex-1 truncate">{layer.name}</span>
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-muted/50 p-0.5">
+                  <LayerThumbnail
+                    layer={layer.id === ALL_LAYERS_ID ? undefined : layer}
+                    contextId={contextId}
+                    viewBox={viewBox}
+                  />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{layer.name}</span>
+                  {"preview" in layer && layer.preview?.position && (
+                    <span className="block truncate text-xs font-normal text-muted-foreground">
+                      {layer.preview.position}
+                    </span>
+                  )}
+                </span>
                 {layer.id === selectedLayerId && (
                   <Check aria-hidden="true" className="size-3.5" />
                 )}
@@ -103,9 +156,9 @@ function LayerSwitcherComponent({
         {showLayerControls && (
           <button
             type="button"
-            aria-label={visible ? "Hide SVG path" : "Show SVG path"}
+            aria-label={visible ? "Hide SVG layer" : "Show SVG layer"}
             aria-pressed={!visible}
-            title={visible ? "Hide path" : "Show path"}
+            title={visible ? "Hide layer" : "Show layer"}
             onClick={onToggleVisibility}
             className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
           >
@@ -129,7 +182,7 @@ function LayerSwitcherComponent({
               step={0.01}
               scrubStep={0.03}
               precision={2}
-              ariaLabel="SVG path scale"
+              ariaLabel="SVG layer scale"
               onChange={onScaleChange}
             />
           </InspectorRow>
@@ -141,7 +194,7 @@ function LayerSwitcherComponent({
               sliderMax={1.8}
               step={0.05}
               precision={2}
-              ariaLabel="SVG path depth"
+              ariaLabel="SVG layer depth"
               onChange={onDepthChange}
             />
           </InspectorRow>

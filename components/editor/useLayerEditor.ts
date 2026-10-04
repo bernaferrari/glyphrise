@@ -7,6 +7,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
 } from "react"
 import type { ShapeStop } from "./TimelineModel"
 import {
@@ -17,6 +18,10 @@ import {
   updatePathOverridesForLayers,
 } from "./SvgLayerModel"
 import { clampNumber } from "./EditorModel"
+
+const subscribeToBrowser = () => () => {}
+const browserSnapshot = () => true
+const serverSnapshot = () => false
 
 export const useLayerEditor = ({
   shapes,
@@ -30,6 +35,13 @@ export const useLayerEditor = ({
   onEdit: () => void
 }) => {
   const [selectedLayerId, setSelectedLayerId] = useState(ALL_LAYERS_ID)
+  // SVGLoader needs DOMParser. Defer parsing until after hydration, matching
+  // the server's empty layer list on the client's first render.
+  const canParseSvg = useSyncExternalStore(
+    subscribeToBrowser,
+    browserSnapshot,
+    serverSnapshot
+  )
   const sortedShapes = useMemo(
     () => [...shapes].sort((a, b) => a.time - b.time),
     [shapes]
@@ -42,8 +54,9 @@ export const useLayerEditor = ({
     [selectedShapeId, shapes, sortedShapes]
   )
   const layers = useMemo(
-    () => extractSvgLayers(selectedShape?.svgContent ?? ""),
-    [selectedShape?.svgContent]
+    () =>
+      canParseSvg ? extractSvgLayers(selectedShape?.svgContent ?? "") : [],
+    [canParseSvg, selectedShape?.svgContent]
   )
   const selectedLayerOverride = useMemo(
     () =>
