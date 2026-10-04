@@ -8,7 +8,6 @@ import {
 } from "react"
 import * as THREE from "three"
 import { applySvgModelScale } from "./SvgSceneUtils"
-import { exportFilamentGltf } from "./SvgExport"
 import { animateSvgViewReset } from "./SvgViewReset"
 import type { SvgCanvasProps, SvgCanvasRef } from "./SvgTypes"
 import type { ExportRenderOptions } from "./SvgTypes"
@@ -124,12 +123,13 @@ export function useSvgCanvasImperativeHandle({
   }
 
   useImperativeHandle(ref, () => ({
-    exportGltf() {
+    async exportGltf() {
       if (!pivotGroupRef.current) {
         return Promise.reject(
           new Error("The 3D preview is not ready to export yet.")
         )
       }
+      const { exportFilamentGltf } = await import("./SvgExport")
       return exportFilamentGltf({
         pivotGroup: pivotGroupRef.current,
         props,

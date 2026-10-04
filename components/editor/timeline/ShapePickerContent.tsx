@@ -24,6 +24,7 @@ import {
 import { SymbolSearchRow } from "./SymbolSearchRow"
 import type { ShapeOption } from "./TimelineTypes"
 import { WipePairsSection } from "./WipePairsSection"
+import { useMaterialSymbolFont } from "./useMaterialSymbolFont"
 
 export function ShapePickerContent({
   open,
@@ -84,6 +85,10 @@ export function ShapePickerContent({
   const materialSymbolClass = `material-symbols-${materialSymbolStyle}`
   const symbolStyle = shapePickerSymbolStyle(materialSymbolSettings)
   const [activeTab, setActiveTab] = useState("symbols")
+  useMaterialSymbolFont(
+    open && (activeTab === "symbols" || activeTab === "wipe"),
+    materialSymbolStyle
+  )
   const searching = shapeSearchQuery.trim().length > 0
   const searchSymbols = [...recentMaterialSymbols, ...filteredMaterialSymbols]
   // Each tab searches only its own content; Enter picks from Symbols.

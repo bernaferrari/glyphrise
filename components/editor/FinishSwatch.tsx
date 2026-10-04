@@ -13,6 +13,37 @@ import { MATERIAL_PREVIEW } from "./FinishRegistry"
 
 type Thumbnails = Partial<Record<MaterialPresetId, string>>
 
+/** CSS-hidden phone panes must not create an offscreen WebGL renderer. */
+export function useFinishThumbnailVisibility() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(element.getClientRects().length > 0)
+      return
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      setVisible(entry.isIntersecting)
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  return { ref, visible }
+}
+
+const scheduleThumbnail = (callback: () => void) => {
+  if (typeof window.requestIdleCallback === "function") {
+    const id = window.requestIdleCallback(callback, { timeout: 500 })
+    return () => window.cancelIdleCallback(id)
+  }
+  // Safari versions without idle callbacks still get a turn to paint and
+  // process input between finishes, rather than a chain of microtasks.
+  const id = window.setTimeout(callback, 32)
+  return () => window.clearTimeout(id)
+}
+
 const readCached = (
   presets: readonly MaterialPresetId[],
   fill: FinishPreviewFill
@@ -32,7 +63,8 @@ const readCached = (
  */
 export function useFinishThumbnails(
   presets: readonly MaterialPresetId[],
-  fill: FinishPreviewFill
+  fill: FinishPreviewFill,
+  enabled = true
 ) {
   const presetsKey = presets.join(",")
   // Keyed by content so a new-but-equal fill object never restarts work.
@@ -47,22 +79,36 @@ export function useFinishThumbnails(
   })
 
   useEffect(() => {
+    if (!enabled || !presetsKey) return
     const queue = (
       presetsKey ? presetsKey.split(",") : []
     ) as MaterialPresetId[]
     let cancelled = false
-    const timeout = window.setTimeout(async () => {
-      for (const preset of queue) {
+    let cancelScheduled = () => {}
+    const renderNext = async () => {
+      if (cancelled) return
+      const preset = queue.shift()
+      if (!preset) return
+      try {
         const url = await renderFinishThumbnail(preset, fillRef.current)
         if (cancelled) return
         if (url) setThumbnails((previous) => ({ ...previous, [preset]: url }))
+      } catch {
+        // The CSS swatch remains usable if the GPU context is unavailable.
       }
+      if (!cancelled && queue.length) {
+        cancelScheduled = scheduleThumbnail(() => void renderNext())
+      }
+    }
+    const timeout = window.setTimeout(() => {
+      cancelScheduled = scheduleThumbnail(() => void renderNext())
     }, 120)
     return () => {
       cancelled = true
       window.clearTimeout(timeout)
+      cancelScheduled()
     }
-  }, [fillKey, presetsKey])
+  }, [enabled, fillKey, presetsKey])
 
   return thumbnails
 }

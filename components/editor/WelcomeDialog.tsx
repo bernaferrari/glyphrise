@@ -30,24 +30,18 @@ export function WelcomeDialog({
   const selected = STARTER_ARTWORK.find((icon) => icon.id === selectedId)!
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onDismiss()}>
-      <DialogContent className="editor-scrollbar max-h-[calc(100dvh-32px)] gap-6 overflow-y-auto p-6 sm:max-w-xl sm:p-8">
-        <DialogHeader className="gap-3 pr-8">
+      <DialogContent className="editor-scrollbar max-h-[calc(100dvh-32px)] gap-5 overflow-y-auto p-5 sm:max-w-xl sm:gap-6 sm:p-8">
+        <DialogHeader className="gap-2 pr-8 sm:gap-3">
           <span className="text-xs font-medium text-primary">
             Glyphrise · Icon motion
           </span>
-          <DialogTitle className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <DialogTitle className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
             Make something move.
           </DialogTitle>
-          <DialogDescription className="max-w-sm leading-6">
+          <DialogDescription className="leading-6 text-pretty sm:max-w-sm">
             Start with an icon. Make it yours with color and depth, add a little
             motion, then download it.
           </DialogDescription>
-          {currentProjectName && (
-            <p className="rounded-lg bg-muted px-3 py-2 text-xs leading-5 text-muted-foreground">
-              This starts a new file. “{currentProjectName}” stays saved, and
-              you can come back to it anytime.
-            </p>
-          )}
         </DialogHeader>
         <div
           className="grid grid-cols-3 gap-2 sm:gap-3"
@@ -60,21 +54,21 @@ export function WelcomeDialog({
               aria-label={`Start with ${icon.name}`}
               aria-pressed={icon.id === selectedId}
               onClick={() => setSelectedId(icon.id)}
-              className="group relative flex min-h-36 flex-col items-center justify-center gap-4 rounded-2xl border border-border bg-muted/30 p-3 text-xs font-medium transition-[background-color,border-color] hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary/60 aria-pressed:bg-primary/5 sm:min-h-44 sm:text-sm"
+              className="group relative flex aspect-square flex-col items-center justify-center gap-2.5 rounded-2xl border border-border bg-muted/30 p-3 text-xs font-medium text-muted-foreground transition-[background-color,border-color,box-shadow,color] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.97] aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground aria-pressed:ring-1 aria-pressed:ring-primary motion-safe:transition-[background-color,border-color,box-shadow,color,scale] sm:aspect-auto sm:min-h-44 sm:gap-4 sm:text-sm"
             >
               <span
                 aria-hidden="true"
-                className="grid size-14 place-items-center sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
+                className="grid size-11 place-items-center transition-transform duration-200 group-aria-pressed:scale-110 sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
                 style={{ color: icon.defaultTint }}
                 dangerouslySetInnerHTML={{ __html: icon.svgContent }}
               />
               {icon.name === "Lightning Bolt" ? "Bolt" : icon.name}
-              {selectedId === icon.id && (
-                <Check
-                  aria-hidden="true"
-                  className="absolute top-3 right-3 size-4 text-primary"
-                />
-              )}
+              <span
+                aria-hidden="true"
+                className="absolute top-2 right-2 grid size-5 scale-50 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 transition-[opacity,scale] duration-150 group-aria-pressed:scale-100 group-aria-pressed:opacity-100 sm:top-3 sm:right-3"
+              >
+                <Check className="size-3" strokeWidth={3} />
+              </span>
             </button>
           ))}
         </div>
@@ -101,6 +95,11 @@ export function WelcomeDialog({
               ? `Keep working on ${currentProjectName}`
               : "Explore the editor"}
           </button>
+          {currentProjectName && (
+            <p className="text-center text-xs leading-5 text-muted-foreground text-pretty">
+              Starts a new file. “{currentProjectName}” stays saved.
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

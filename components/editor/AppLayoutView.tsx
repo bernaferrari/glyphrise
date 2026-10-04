@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState, type ComponentProps, type RefObject } from "react"
+import dynamic from "next/dynamic"
 import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import { usePanelTransition } from "./usePanelTransition"
 import { AppTopBar } from "./AppTopBar"
-import { ExportModal } from "./ExportModal"
+import type { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
 import { TimelineDock } from "./TimelineDock"
 import { ViewportStage } from "./ViewportStage"
@@ -14,9 +15,18 @@ import { NewProjectDialog } from "./NewProjectDialog"
 import type { CreationJourney } from "./useCreationJourney"
 import { Vector3NumberFields } from "./Vector3NumberFields"
 import { ROTATION_MIN, ROTATION_MAX } from "./EditorModel"
-import { AnimateDialog, type AnimateDialogProps } from "./AnimateDialog"
+import type { AnimateDialogProps } from "./AnimateDialog"
 import { WelcomeDialog } from "./WelcomeDialog"
 import { CreationGuide } from "./CreationGuide"
+
+const LazyExportModal = dynamic(
+  () => import("./ExportModal").then((module) => module.ExportModal),
+  { ssr: false }
+)
+const LazyAnimateDialog = dynamic(
+  () => import("./AnimateDialog").then((module) => module.AnimateDialog),
+  { ssr: false }
+)
 
 export type AppLayoutViewProps = {
   onCreateStarter: (iconId: string, name: string) => boolean
@@ -72,6 +82,16 @@ export function AppLayoutView({
   const isCompactLayout = useCompactWorkspaceLayout()
   const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
   const [animateOpen, setAnimateOpen] = useState(false)
+  const [animateMounted, setAnimateMounted] = useState(false)
+  const [exportMounted, setExportMounted] = useState(false)
+  // Keep each dialog mounted after its first use so close animations and
+  // the user's selected export tab/settings still survive reopening.
+  useEffect(() => {
+    if (animateOpen) setAnimateMounted(true)
+  }, [animateOpen])
+  useEffect(() => {
+    if (exportModalPropsProp.isOpen) setExportMounted(true)
+  }, [exportModalPropsProp.isOpen])
   const [manualWelcomeOpen, setManualWelcomeOpen] = useState(false)
   // Starting a new icon from Help switches projects; keep a way back.
   const [returnTo, setReturnTo] = useState<{ id: string; name: string } | null>(
@@ -390,17 +410,21 @@ export function AppLayoutView({
         onChange={onUploadInputChange}
       />
 
-      <AnimateDialog
-        svgContent={inspectorProps.transformProps.shapeNavigation?.svgContent}
-        {...animationProps}
-        open={animateOpen}
-        onOpenChange={setAnimateOpen}
-        onApply={(...args) => {
-          animationProps.onApply(...args)
-          showCompactPane("preview")
-        }}
-      />
-      <ExportModal {...exportModalProps} />
+      {(animateOpen || animateMounted) && (
+        <LazyAnimateDialog
+          svgContent={inspectorProps.transformProps.shapeNavigation?.svgContent}
+          {...animationProps}
+          open={animateOpen}
+          onOpenChange={setAnimateOpen}
+          onApply={(...args) => {
+            animationProps.onApply(...args)
+            showCompactPane("preview")
+          }}
+        />
+      )}
+      {(exportModalProps.isOpen || exportMounted) && (
+        <LazyExportModal {...exportModalProps} />
+      )}
       <NewProjectDialog {...newProjectDialogProps} />
       <WelcomeDialog
         open={

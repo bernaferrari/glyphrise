@@ -30,6 +30,7 @@ import { CarvedVariantControl } from "./CarvedVariantControl"
 type FinishPresetPickerProps = {
   value: MaterialPresetId
   fill: FinishPreviewFill
+  thumbnailsVisible: boolean
   onChange: (preset: MaterialPresetId) => void
 }
 
@@ -82,6 +83,7 @@ const ARROW_STEP: Record<string, number> = {
 export function FinishPresetPicker({
   value,
   fill,
+  thumbnailsVisible,
   onChange,
 }: FinishPresetPickerProps) {
   const [open, setOpen] = useState(false)
@@ -94,10 +96,11 @@ export function FinishPresetPicker({
   const tilePreset = (tile: MaterialPresetId) =>
     tile === activeTile ? value : tile
   const more = morePreview(value)
-  const moreThumbnails = useFinishThumbnails(more, fill)
+  const moreThumbnails = useFinishThumbnails(more, fill, thumbnailsVisible)
   const thumbnails = useFinishThumbnails(
     open || warm ? FINISH_TILES.map(tilePreset) : [],
-    fill
+    fill,
+    open || (warm && thumbnailsVisible)
   )
 
   const detailPreset = previewed ?? value

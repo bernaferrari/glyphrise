@@ -14,17 +14,22 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://glyphrise.vercel.app"),
   title: "Glyphrise — 3D icon motion",
   description: "Turn SVG icons into polished 3D motion.",
+  openGraph: {
+    type: "website",
+    siteName: "Glyphrise",
+    title: "Glyphrise — 3D icon motion",
+    description: "Turn SVG icons into polished 3D motion.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Glyphrise — 3D icon motion",
+    description: "Turn SVG icons into polished 3D motion.",
+  },
   icons: {
-    icon: [
-      {
-        url: "/glyphrise-favicon.ico",
-        type: "image/x-icon",
-        sizes: "16x16 32x32 48x48 64x64 128x128 256x256",
-      },
-      { url: "/glyphrise-icon.png", type: "image/png", sizes: "512x512" },
-    ],
+    icon: [{ url: "/glyphrise-icon.png", type: "image/png", sizes: "512x512" }],
     apple: [{ url: "/glyphrise-apple-touch-icon.png", sizes: "180x180" }],
   },
 }
@@ -45,18 +50,6 @@ export default function RootLayout({
         geist.variable
       )}
     >
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block"
-          rel="stylesheet"
-        />
-      </head>
       <body>
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>

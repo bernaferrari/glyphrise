@@ -4,7 +4,11 @@ import type { FinishPreviewFill } from "../3d/FinishThumbnails"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import { FinishPresetPicker } from "./FinishPresetPicker"
 import { QUICK_FINISHES, finishLabel, finishTile } from "./FinishRegistry"
-import { FinishSwatch, useFinishThumbnails } from "./FinishSwatch"
+import {
+  FinishSwatch,
+  useFinishThumbnails,
+  useFinishThumbnailVisibility,
+} from "./FinishSwatch"
 
 /** The selected finish always has a swatch: it takes the last slot if needed. */
 function visibleFinishes(value: MaterialPresetId) {
@@ -23,10 +27,12 @@ export function FinishPresetStrip({
   onChange: (value: MaterialPresetId) => void
 }) {
   const finishes = visibleFinishes(value)
-  const thumbnails = useFinishThumbnails(finishes, fill)
+  const { ref, visible } = useFinishThumbnailVisibility()
+  const thumbnails = useFinishThumbnails(finishes, fill, visible)
 
   return (
     <div
+      ref={ref}
       className="grid grid-cols-6 gap-1 py-0.5"
       aria-label="Popular finishes"
     >
@@ -47,7 +53,12 @@ export function FinishPresetStrip({
           />
         </button>
       ))}
-      <FinishPresetPicker value={value} fill={fill} onChange={onChange} />
+      <FinishPresetPicker
+        value={value}
+        fill={fill}
+        onChange={onChange}
+        thumbnailsVisible={visible}
+      />
     </div>
   )
 }
