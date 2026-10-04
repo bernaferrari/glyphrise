@@ -133,11 +133,8 @@ export function useShapePickerCatalog({
     [recentMaterialSymbolNames, shapeSearchQuery]
   )
   const filteredMaterialSymbols = useMemo(
-    () =>
-      visibleMaterialSymbols(materialSymbolNames, shapeSearchQuery).filter(
-        (symbolName) => !recentMaterialSymbols.includes(symbolName)
-      ),
-    [materialSymbolNames, recentMaterialSymbols, shapeSearchQuery]
+    () => visibleMaterialSymbols(materialSymbolNames, shapeSearchQuery),
+    [materialSymbolNames, shapeSearchQuery]
   )
   const filteredWipePairs = useMemo(
     () => visibleWipePairs(shapeSearchQuery),

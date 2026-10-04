@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { ShapeStop } from "../TimelineModel"
 import { cn } from "@/lib/utils"
 import type { MaterialSymbolStatus } from "./ShapePickerSymbolModel"
@@ -39,6 +39,10 @@ export function MaterialSymbolGrid({
     viewportHeight: 250,
   })
   const listKey = `${filteredMaterialSymbols.length}:${filteredMaterialSymbols[0] ?? ""}:${filteredMaterialSymbols.at(-1) ?? ""}`
+  const selectedSymbol = stop.iconId.match(
+    /^material-symbol-(?:outlined|rounded|sharp)-(.+?)(?:-slash)?$/
+  )?.[1]
+  const selectedIndex = filteredMaterialSymbols.indexOf(selectedSymbol ?? "")
 
   useEffect(() => {
     const grid = gridRef.current
@@ -66,12 +70,22 @@ export function MaterialSymbolGrid({
     return () => observer.disconnect()
   }, [listKey, normalizedShapeQuery])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const grid = gridRef.current
     if (!grid) return
-    grid.scrollTop = 0
-    setScrollTop(0)
-  }, [normalizedShapeQuery, listKey])
+    // Browse from the current icon; searches always start with their first result.
+    const top =
+      !normalizedShapeQuery && selectedIndex >= 0
+        ? Math.max(
+            0,
+            Math.floor(selectedIndex / gridMetrics.columns) *
+              gridMetrics.rowHeight -
+              (gridMetrics.viewportHeight - gridMetrics.rowHeight) / 2
+          )
+        : 0
+    grid.scrollTop = top
+    setScrollTop(grid.scrollTop)
+  }, [normalizedShapeQuery, listKey, selectedIndex, gridMetrics])
 
   const totalRows = Math.ceil(
     filteredMaterialSymbols.length / gridMetrics.columns
@@ -107,7 +121,7 @@ export function MaterialSymbolGrid({
       ref={gridRef}
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       className={cn(
-        "editor-scrollbar mb-3 grid max-h-62.5 grid-cols-[repeat(auto-fill,minmax(44px,44px))] content-start justify-between gap-2 overflow-y-auto pr-1",
+        "editor-scrollbar grid max-h-62.5 grid-cols-[repeat(auto-fill,minmax(44px,44px))] content-start justify-between gap-2 overflow-y-auto pr-1",
         normalizedShapeQuery &&
           "grid-cols-[repeat(auto-fill,minmax(112px,1fr))]",
         className
@@ -133,8 +147,9 @@ export function MaterialSymbolGrid({
             type="button"
             title={symbolName.replace(/_/g, " ")}
             aria-label={symbolName.replace(/_/g, " ")}
+            aria-pressed={symbolName === selectedSymbol}
             onClick={() => onChooseMaterialSymbol(stop.id, symbolName)}
-            className="flex size-full flex-col items-center justify-center gap-2 rounded-lg border border-transparent p-1 text-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+            className="flex size-full flex-col items-center justify-center gap-2 rounded-lg border border-transparent p-1 text-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-pressed:border-primary/40 aria-pressed:bg-primary/10 aria-pressed:text-primary"
           >
             <span
               aria-hidden="true"

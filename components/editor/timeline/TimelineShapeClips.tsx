@@ -15,7 +15,6 @@ export function TimelineShapeClips({
   shapeLabel,
   shapeDraggedRef,
   onSelectShape,
-  onSeek,
   onOpenShapePicker,
   onUploadShape,
   onMoveShapeOrder,
@@ -33,7 +32,6 @@ export function TimelineShapeClips({
   shapeLabel: (stop: ShapeStop) => string
   shapeDraggedRef: React.MutableRefObject<boolean>
   onSelectShape: (id: string) => void
-  onSeek: (time: number) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
   onMoveShapeOrder: (id: string, direction: -1 | 1) => void
@@ -67,7 +65,6 @@ export function TimelineShapeClips({
             shapeDraggedRef={shapeDraggedRef}
             shapeLabel={shapeLabel}
             onSelectShape={onSelectShape}
-            onSeek={onSeek}
             onOpenShapePicker={onOpenShapePicker}
             onUploadShape={onUploadShape}
             onMoveShapeOrder={onMoveShapeOrder}

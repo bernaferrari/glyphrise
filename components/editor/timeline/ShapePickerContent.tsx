@@ -133,7 +133,7 @@ export function ShapePickerContent({
           </div>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background px-3 pb-3">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background px-3">
           <Tabs
             value={activeTab}
             onValueChange={setActiveTab}
@@ -220,10 +220,7 @@ export function ShapePickerContent({
                 <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
                   All symbols
                   <span className="font-normal tracking-normal normal-case tabular-nums">
-                    {(
-                      filteredMaterialSymbols.length +
-                      recentMaterialSymbols.length
-                    ).toLocaleString()}
+                    {filteredMaterialSymbols.length.toLocaleString()}
                   </span>
                 </div>
               )}

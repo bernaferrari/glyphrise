@@ -133,12 +133,6 @@ export function TimelineShapeLane({
         shapeLabel={shapeLabel}
         shapeDraggedRef={shapeDraggedRef}
         onSelectShape={onSelectShape}
-        onSeek={(time) => {
-          // Selecting the clip already cleared keyframe selection; keep the
-          // clip selected so Delete removes it.
-          onScrubStart?.()
-          onTimeChange(time)
-        }}
         onOpenShapePicker={onOpenShapePicker}
         onUploadShape={onUploadShape}
         onMoveShapeOrder={onMoveShapeOrder}

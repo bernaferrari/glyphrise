@@ -17,7 +17,6 @@ export type TimelineShapeClipProps = {
   shapeDraggedRef: React.MutableRefObject<boolean>
   shapeLabel: (stop: ShapeStop) => string
   onSelectShape: (id: string) => void
-  onSeek: (time: number) => void
   onOpenShapePicker: (id: string | null) => void
   onUploadShape: (id: string) => void
   onMoveShapeOrder: (id: string, direction: -1 | 1) => void
@@ -46,7 +45,6 @@ export function TimelineShapeClip({
   shapeDraggedRef,
   shapeLabel,
   onSelectShape,
-  onSeek,
   onOpenShapePicker,
   onUploadShape,
   onMoveShapeOrder,
@@ -79,7 +77,6 @@ export function TimelineShapeClip({
           return
         }
         onSelectShape(stop.id)
-        onSeek(stop.time)
       }}
       onDoubleClick={() => {
         onSelectShape(stop.id)
