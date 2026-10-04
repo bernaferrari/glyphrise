@@ -54,6 +54,7 @@ export const framedCameraDistance = (camera: THREE.PerspectiveCamera) => {
 }
 
 export const disposeObjectTree = (object: THREE.Object3D | null) => {
+  const textures = new Set<THREE.Texture>()
   object?.traverse((child) => {
     const mesh = child as THREE.Mesh
     const line = child as THREE.LineSegments
@@ -63,8 +64,13 @@ export const disposeObjectTree = (object: THREE.Object3D | null) => {
     const materials = Array.isArray(renderable.material)
       ? renderable.material
       : [renderable.material]
-    materials.forEach((material) => material.dispose())
+    materials.forEach((material) => {
+      const map = (material as THREE.MeshStandardMaterial).map
+      if (map?.userData.glyphriseGradient) textures.add(map)
+      material.dispose()
+    })
   })
+  textures.forEach((texture) => texture.dispose())
 }
 
 export const createStudioEnvironmentTexture = () => {

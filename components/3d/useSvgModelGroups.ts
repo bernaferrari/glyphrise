@@ -107,6 +107,7 @@ export const useSvgModelGroups = ({
     props.geometryQuality,
     props.layerSpacing,
     props.materialPreset,
+    props.enableGradient,
     props.transitionType,
     wipeDirectionX,
     wipeDirectionY,

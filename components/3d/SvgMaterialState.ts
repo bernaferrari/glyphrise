@@ -6,7 +6,12 @@ import {
   isGraphiteCutPreset,
   type MaterialPresetId,
 } from "./MaterialPresets"
-import { applyGradientVertexColors, gradientStopsFromFill } from "./SvgColor"
+import { gradientStopsFromFill } from "./SvgColor"
+import {
+  applyIconGradientUvs,
+  clearIconGradientTexture,
+  iconGradientTexture,
+} from "./SvgGradientTexture"
 import { ICON_VIEWBOX_SIZE } from "./SvgSceneUtils"
 import { finiteNumber } from "./SvgGeometry"
 import type { SvgCanvasProps } from "./SvgTypes"
@@ -177,7 +182,7 @@ export const updateGroupFillColors = (
 ) => {
   if (!group) return
   const forceGraphiteCut = isGraphiteCutPreset(materialPreset)
-  const useVertexColors = Boolean(enableGradient && !forceGraphiteCut)
+  const useGradient = Boolean(enableGradient && !forceGraphiteCut)
   const stops = gradientStopsFromFill(
     colorStops,
     color,
@@ -188,19 +193,22 @@ export const updateGroupFillColors = (
     new THREE.Vector2(ICON_VIEWBOX_SIZE, ICON_VIEWBOX_SIZE)
   )
 
+  const map = useGradient
+    ? iconGradientTexture(
+        group,
+        gradientType ?? "linear",
+        stops,
+        materialPreset
+      )
+    : null
+  if (!useGradient) clearIconGradientTexture(group)
+
   group.traverse((object) => {
     const mesh = object as THREE.Mesh
     if (!mesh.isMesh || !mesh.geometry || !mesh.material) return
 
-    if (useVertexColors) {
-      applyGradientVertexColors(
-        mesh.geometry,
-        gradientType ?? "linear",
-        stops,
-        iconBounds
-      )
-      const colorAttribute = mesh.geometry.getAttribute("color")
-      if (colorAttribute) colorAttribute.needsUpdate = true
+    if (useGradient && !mesh.geometry.userData.iconGradientUvs) {
+      applyIconGradientUvs(mesh.geometry, iconBounds)
     }
 
     const materials = Array.isArray(mesh.material)
@@ -212,21 +220,26 @@ export const updateGroupFillColors = (
         emissive?: THREE.Color
         emissiveIntensity?: number
         vertexColors?: boolean
+        map?: THREE.Texture | null
       }
       let needsUpdate = false
       if (
         writable.vertexColors !== undefined &&
-        writable.vertexColors !== useVertexColors
+        writable.vertexColors !== false
       ) {
-        writable.vertexColors = useVertexColors
+        writable.vertexColors = false
+        needsUpdate = true
+      }
+      if (writable.map !== undefined && writable.map !== map) {
+        writable.map = map
         needsUpdate = true
       }
       if (writable.color) {
         writable.color.set(
-          forceGraphiteCut ? "#2f3031" : useVertexColors ? "#ffffff" : color
+          forceGraphiteCut ? "#2f3031" : useGradient ? "#ffffff" : color
         )
       }
-      if (writable.emissive && emissiveIntensity > 0 && !useVertexColors) {
+      if (writable.emissive && emissiveIntensity > 0 && !useGradient) {
         writable.emissive.set(color)
       }
       if (needsUpdate) material.needsUpdate = true

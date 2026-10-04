@@ -383,9 +383,22 @@ const applySurfaceEmissive = <T extends THREE.Material>(
 const LUMA = [0.2126, 0.7152, 0.0722] as const
 
 /** The JS twin of the grade shader, for solid fills. */
-const gradeColor = (color: THREE.Color, grade: FinishGrade) => {
-  const graded = color.clone()
-  if (grade.mix) graded.lerp(new THREE.Color(grade.mix.color), grade.mix.amount)
+const gradeMixColors = new WeakMap<FinishGrade, THREE.Color>()
+
+const gradeColor = (
+  color: THREE.Color,
+  grade: FinishGrade,
+  inPlace = false
+) => {
+  const graded = inPlace ? color : color.clone()
+  if (grade.mix) {
+    let mix = gradeMixColors.get(grade)
+    if (!mix) {
+      mix = new THREE.Color(grade.mix.color)
+      gradeMixColors.set(grade, mix)
+    }
+    graded.lerp(mix, grade.mix.amount)
+  }
   const luma = graded.r * LUMA[0] + graded.g * LUMA[1] + graded.b * LUMA[2]
   const saturation = grade.saturation ?? 1
   const brightness = grade.brightness ?? 1
@@ -393,6 +406,15 @@ const gradeColor = (color: THREE.Color, grade: FinishGrade) => {
   graded.g = Math.max(0, luma + (graded.g - luma) * saturation) * brightness
   graded.b = Math.max(0, luma + (graded.b - luma) * saturation) * brightness
   return graded
+}
+
+/** Bake the static finish grade into a portable texture, in linear color space. */
+export const gradeFinishSurfaceColor = (
+  preset: MaterialPresetId,
+  color: THREE.Color
+) => {
+  const grade = FINISH_SPECS[preset].grade
+  return grade ? gradeColor(color, grade, true) : color
 }
 
 const glsl = (value: number) => value.toFixed(4)
@@ -692,7 +714,8 @@ export function createThreeMaterial(
     material = physical
   }
 
-  if (usesSurfaceColor && spec.grade) addSurfaceGrade(material, spec.grade)
+  if (usesSurfaceColor && spec.grade && !map?.userData.glyphriseGradient)
+    addSurfaceGrade(material, spec.grade)
   if (usesSurfaceColor) applySurfaceEmissive(material, emissiveIntensity)
   if (spec.shader) addShaderEffect(material, spec.shader)
   return spec.translucency ? withBaseOpacity(material) : material

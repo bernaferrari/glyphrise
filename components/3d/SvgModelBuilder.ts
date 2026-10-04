@@ -1,9 +1,5 @@
 import * as THREE from "three"
-import {
-  applyGradientVertexColors,
-  fallbackGoogleMeshStops,
-  gradientStopsFromFill,
-} from "./SvgColor"
+import { gradientStopsFromFill } from "./SvgColor"
 import {
   ICON_VIEWBOX_SIZE,
   SVG_PATH_LAYER_GAP_MIN,
@@ -12,6 +8,8 @@ import {
   GLYPHRISE_SLASH_FORWARD_RATIO,
   applySvgModelScale,
 } from "./SvgSceneUtils"
+import { applyIconGradientUvs, iconGradientTexture } from "./SvgGradientTexture"
+import { isGraphiteCutPreset } from "./MaterialPresets"
 import { cacheGroupGeometryAnalysis } from "./SvgGeometryAnalysis"
 import { finiteNumber } from "./SvgGeometry"
 import {
@@ -129,7 +127,15 @@ export const buildSvgIconGroup = ({
       ? props.colorASecondary || props.colorA
       : props.colorBSecondary || props.colorB
   )
-  const useGradientVertexColors = Boolean(props.enableGradient)
+  const gradientMap =
+    props.enableGradient && !isGraphiteCutPreset(props.materialPreset)
+      ? iconGradientTexture(
+          group,
+          gradientType,
+          gradientStops,
+          props.materialPreset
+        )
+      : null
 
   // Under cut finishes every visible shape across all paths is welded into
   // one region before roofing: overlapping or abutting strokes then share a
@@ -183,16 +189,7 @@ export const buildSvgIconGroup = ({
   }
 
   const applyGradient = (geometry: THREE.BufferGeometry) => {
-    if (!useGradientVertexColors) return
-    const stops =
-      gradientStops.length > 0
-        ? gradientStops
-        : gradientStopsFromFill(
-            fallbackGoogleMeshStops,
-            props.colorA,
-            props.colorB
-          )
-    applyGradientVertexColors(geometry, gradientType, stops, iconBounds)
+    applyIconGradientUvs(geometry, iconBounds)
   }
 
   // The welded cut body renders as one solid: every piece at z = 0 with one
@@ -245,7 +242,7 @@ export const buildSvgIconGroup = ({
           color: bodyColor,
           isIconA,
           isCrossfade,
-          useGradientVertexColors,
+          gradientMap,
           layerOrder,
           isSlashOverlay: false,
           clippingPlanes,
@@ -297,7 +294,7 @@ export const buildSvgIconGroup = ({
         color: customColor,
         isIconA,
         isCrossfade,
-        useGradientVertexColors,
+        gradientMap,
         layerOrder,
         isSlashOverlay,
         clippingPlanes,

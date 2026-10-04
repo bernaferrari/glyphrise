@@ -243,7 +243,7 @@ const createFilamentSafeMaterial = (source: THREE.Material) => {
     color: baseColor,
     roughness: Math.max(0, Math.min(1, finiteNumber(material.roughness, 0.5))),
     metalness: Math.max(0, Math.min(1, finiteNumber(material.metalness, 0))),
-    map: material.map ?? null,
+    map: material.map?.clone() ?? null,
     vertexColors: hasVertexColors,
     transparent: opacity < 0.999 || transmission > 0,
     opacity: Math.max(0, Math.min(1, opacity)),
@@ -286,7 +286,18 @@ const createFilamentSafeMaterial = (source: THREE.Material) => {
       })
     : new THREE.MeshStandardMaterial(shared)
 
-  if (!hasVertexColors && material.emissive && material.emissiveIntensity > 0) {
+  const surfaceEmission = material.userData?.surfaceEmissiveUniform?.value as
+    | number
+    | undefined
+  if (safeMaterial.map && surfaceEmission && surfaceEmission > 0) {
+    safeMaterial.emissive.set("#ffffff")
+    safeMaterial.emissiveMap = safeMaterial.map
+    safeMaterial.emissiveIntensity = surfaceEmission
+  } else if (
+    !hasVertexColors &&
+    material.emissive &&
+    material.emissiveIntensity > 0
+  ) {
     safeMaterial.emissive = material.emissive.clone()
     safeMaterial.emissiveIntensity = Math.max(
       0,

@@ -105,75 +105,63 @@ const createMeshSampler = (
     ...point,
     color: saturateIcon3DColor(new THREE.Color(point.color)),
   }))
+  const result = new THREE.Color()
   return (u: number, v: number) => {
     const { s, t } = warped ? meshWarpCoordinates(points, u, v) : { s: u, t: v }
     const x = smoothstep(0.02, 0.98, s)
     const y = smoothstep(0.02, 0.98, t)
-    const topRow = bezierColor(grid[0], grid[1], grid[2], x)
-    const midRow = bezierColor(grid[3], grid[4], grid[5], x)
-    const bottomRow = bezierColor(grid[6], grid[7], grid[8], x)
-    const color = saturateIcon3DColor(bezierColor(topRow, midRow, bottomRow, y))
-    for (const extra of extras) {
-      color.lerp(extra.color, meshBlobWeight(extra, u, v))
+    const blend = (channel: "r" | "g" | "b") => {
+      const row = (offset: number) =>
+        (1 - x) ** 2 * grid[offset][channel] +
+        2 * x * (1 - x) * grid[offset + 1][channel] +
+        x ** 2 * grid[offset + 2][channel]
+      return (1 - y) ** 2 * row(0) + 2 * y * (1 - y) * row(3) + y ** 2 * row(6)
     }
-    return color
+    result.setRGB(blend("r"), blend("g"), blend("b"))
+    const luminance = result.r * 0.2126 + result.g * 0.7152 + result.b * 0.0722
+    const grade = (value: number) =>
+      Math.max(
+        0,
+        Math.min(1, (luminance + (value - luminance) * 1.6 - 0.5) * 1.2 + 0.5)
+      )
+    result.setRGB(grade(result.r), grade(result.g), grade(result.b))
+    for (const extra of extras) {
+      result.lerp(extra.color, meshBlobWeight(extra, u, v))
+    }
+    return result
   }
 }
 
-const gradientColorFromStops = (
-  stops: Array<{ color: string; position: number }>,
-  t: number
-) => {
-  if (stops.length === 0) return new THREE.Color("#ffffff")
-  if (stops.length === 1) return new THREE.Color(stops[0].color)
-
-  const position = Math.max(0, Math.min(1, t))
-  const previous =
-    [...stops].reverse().find((stop) => stop.position <= position) ?? stops[0]
-  const next =
-    stops.find((stop) => stop.position >= position) ?? stops[stops.length - 1]
-  const span = Math.max(0.0001, next.position - previous.position)
-  const localT = previous === next ? 0 : (position - previous.position) / span
-  return new THREE.Color(previous.color).lerp(
-    new THREE.Color(next.color),
-    localT
-  )
-}
-
-const iconSpaceGradientColor = (
+/** Resolve palette data once. The returned color is reused on each sample. */
+export const createIconGradientSampler = (
   type: GradientType,
-  stops: Array<{ color: string; position: number; x?: number; y?: number }>,
-  u: number,
-  v: number
+  stops: Array<{ color: string; position: number; x?: number; y?: number }>
 ) => {
-  if (type === "mesh") return createMeshSampler(stops)(u, v)
-  if (type === "radial") {
-    const cx = 0.5
-    const cy = 0.5
-    const farthest = Math.max(
-      Math.hypot(cx, cy),
-      Math.hypot(1 - cx, cy),
-      Math.hypot(cx, 1 - cy),
-      Math.hypot(1 - cx, 1 - cy)
-    )
-    return gradientColorFromStops(stops, Math.hypot(u - cx, v - cy) / farthest)
-  }
-  if (type === "conic") {
-    const angle = Math.atan2(v - 0.5, u - 0.5) / (Math.PI * 2) + 0.5
-    return gradientColorFromStops(stops, angle - Math.floor(angle))
-  }
-
+  if (type === "mesh") return createMeshSampler(stops)
+  const colors = stops.map((stop) => new THREE.Color(stop.color))
+  const result = new THREE.Color()
   const angle = THREE.MathUtils.degToRad(35)
-  const dx = Math.cos(angle)
-  const dy = Math.sin(angle)
-  const projection = u * dx + (1 - v) * dy
-  const corners = [0, dx, dy, dx + dy]
-  const min = Math.min(...corners)
-  const max = Math.max(...corners)
-  return gradientColorFromStops(
-    stops,
-    (projection - min) / Math.max(0.0001, max - min)
-  )
+  const dx = Math.cos(angle),
+    dy = Math.sin(angle)
+  return (u: number, v: number) => {
+    let t = (u * dx + (1 - v) * dy) / (dx + dy)
+    if (type === "radial") t = Math.hypot(u - 0.5, v - 0.5) / Math.SQRT1_2
+    if (type === "conic") {
+      t = Math.atan2(v - 0.5, u - 0.5) / (Math.PI * 2) + 0.5
+      t -= Math.floor(t)
+    }
+    t = Math.max(0, Math.min(1, t))
+    if (!stops.length) return result.set("#ffffff")
+    let next = stops.findIndex((stop) => stop.position >= t)
+    if (next < 0) next = stops.length - 1
+    const previous = Math.max(0, next - 1)
+    const span = stops[next].position - stops[previous].position
+    const local =
+      span > 0
+        ? Math.max(0, Math.min(1, (t - stops[previous].position) / span))
+        : 0
+    return result.copy(colors[previous]).lerp(colors[next], local)
+  }
 }
 
 export const paletteFromStops = (
@@ -232,10 +220,7 @@ export const applyGradientVertexColors = (
   const height = Math.max(0.0001, iconBounds.max.y - iconBounds.min.y)
 
   const colors = new Float32Array(position.count * 3)
-  const sample =
-    type === "mesh"
-      ? createMeshSampler(stops)
-      : (u: number, v: number) => iconSpaceGradientColor(type, stops, u, v)
+  const sample = createIconGradientSampler(type, stops)
   for (let index = 0; index < position.count; index += 1) {
     const u = Math.max(
       0,

@@ -4,6 +4,7 @@ import { useState } from "react"
 import {
   Box,
   Check,
+  ChevronDown,
   Download,
   Image as ImageIcon,
   LoaderCircle,
@@ -203,9 +204,13 @@ export function ExportAssetOptions(props: Props) {
               Enter a width and height between 64 and 4096 pixels.
             </p>
           )}
-          <details className="text-xs text-muted-foreground">
-            <summary className="flex min-h-8 w-fit cursor-pointer items-center rounded-md px-1 hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+          <details className="group text-xs text-muted-foreground">
+            <summary className="flex min-h-11 w-full cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
               Format details
+              <ChevronDown
+                aria-hidden="true"
+                className="size-4 shrink-0 text-muted-foreground group-open:rotate-180"
+              />
             </summary>
             <div className="pt-2">
               <ExportFormatDetails />

@@ -7,7 +7,7 @@ export type SvgPathMaterialOptions = {
   color: string
   isIconA: boolean
   isCrossfade: boolean
-  useGradientVertexColors: boolean
+  gradientMap: THREE.Texture | null
   layerOrder: number
   isSlashOverlay: boolean
   clippingPlanes: THREE.Plane[]
@@ -18,13 +18,13 @@ export const createSvgPathMaterial = ({
   color,
   isIconA,
   isCrossfade,
-  useGradientVertexColors,
+  gradientMap,
   layerOrder,
   isSlashOverlay,
   clippingPlanes,
 }: SvgPathMaterialOptions) => {
   const forceGraphiteCut = isGraphiteCutPreset(props.materialPreset)
-  const materialUsesGradient = useGradientVertexColors && !forceGraphiteCut
+  const map = forceGraphiteCut ? null : gradientMap
   const material = createThreeMaterial(props.materialPreset, {
     color: forceGraphiteCut
       ? "#2f3031"
@@ -47,7 +47,7 @@ export const createSvgPathMaterial = ({
       : isCrossfade
         ? props.transitionProgress
         : 1.0,
-    vertexColors: materialUsesGradient,
+    map: map ?? undefined,
   }) as THREE.MeshStandardMaterial | THREE.MeshPhysicalMaterial
 
   if (
