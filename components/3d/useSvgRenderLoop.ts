@@ -25,6 +25,7 @@ import {
 } from "./SvgRenderLoopModel"
 import { framedCameraDistance } from "./SvgSceneUtils"
 import { applySvgTransitionState } from "./SvgTransitionState"
+import { prepareSvgScene } from "./SvgSceneWarmup"
 import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { ExportRenderOptions } from "./SvgTypes"
 
@@ -204,6 +205,13 @@ export function useSvgRenderLoop({
         iconGroups: [iconAGroupRef.current, iconBGroupRef.current],
       })
       updateTransformGizmoRef.current(visibleCenter, camera)
+
+      prepareSvgScene({
+        renderer,
+        scene,
+        camera,
+        groups: [iconAGroupRef.current, iconBGroupRef.current],
+      })
 
       renderSvgScene({
         isCrossfade,

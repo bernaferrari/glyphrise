@@ -49,6 +49,26 @@ const sample = (texture: THREE.DataTexture, u: number, v: number) => {
 }
 
 describe("portable icon gradient", () => {
+  it("uses one texel for a uniform fill, and safely resizes when colors diverge", () => {
+    const group = new THREE.Group()
+    const solid = [
+      { color: "#426df4", position: 0 },
+      { color: "#426df4", position: 1 },
+    ]
+    const texture = iconGradientTexture(group, "linear", solid)
+    expect(texture.image.width).toBe(1)
+    expect(texture.image.height).toBe(1)
+    expect(sample(texture, 0, 0).getHexString()).toBe("426df4")
+    const dispose = vi.spyOn(texture, "dispose")
+    const gradient = iconGradientTexture(group, "linear", [
+      solid[0],
+      { color: "#ffffff", position: 1 },
+    ])
+    expect(gradient).not.toBe(texture)
+    expect(dispose).toHaveBeenCalledOnce()
+    expect(gradient.image.width).toBe(256)
+    expect(iconGradientTexture(group, "linear", solid).image.width).toBe(1)
+  })
   it.each(["linear", "radial", "conic"] as const)(
     "preserves %s gradient orientation and middle stops",
     (type) => {

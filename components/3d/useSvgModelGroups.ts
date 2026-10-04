@@ -37,9 +37,6 @@ export const useSvgModelGroups = ({
   colorAStopsKey: string
   colorBStopsKey: string
 }) => {
-  const wipeDirectionX = props.wipeDirection.x
-  const wipeDirectionY = props.wipeDirection.y
-
   useEffect(() => {
     const pivot = pivotGroupRef.current
     if (!pivot) return
@@ -108,9 +105,6 @@ export const useSvgModelGroups = ({
     props.layerSpacing,
     props.materialPreset,
     props.enableGradient,
-    props.transitionType,
-    wipeDirectionX,
-    wipeDirectionY,
     pathOverridesASignature,
     pathOverridesBSignature,
     pivotGroupRef,

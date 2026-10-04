@@ -22,11 +22,20 @@ export const iconGradientTexture = (
   const key = JSON.stringify([type, stops, preset])
   let cached = groupTextures.get(group)
   if (cached?.key === key) return cached.texture
+  const size = stops.every((stop) => stop.color === stops[0]?.color)
+    ? 1
+    : TEXTURE_SIZE
+  // Texture dimensions are immutable once uploaded. Replace only when
+  // switching between a uniform fill and a spatial gradient.
+  if (cached && cached.texture.image.width !== size) {
+    cached.texture.dispose()
+    cached = undefined
+  }
   if (!cached) {
     const texture = new THREE.DataTexture(
-      new Uint8Array(TEXTURE_SIZE * TEXTURE_SIZE * 4),
-      TEXTURE_SIZE,
-      TEXTURE_SIZE
+      new Uint8Array(size * size * 4),
+      size,
+      size
     )
     texture.name = "Icon gradient"
     texture.colorSpace = THREE.SRGBColorSpace
@@ -42,11 +51,11 @@ export const iconGradientTexture = (
   const sample = createIconGradientSampler(type, stops)
   const data = cached.texture.image.data!
   const encoded = new THREE.Color()
-  for (let y = 0; y < TEXTURE_SIZE; y++) {
-    for (let x = 0; x < TEXTURE_SIZE; x++) {
-      encoded.copy(sample((x + 0.5) / TEXTURE_SIZE, (y + 0.5) / TEXTURE_SIZE))
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      encoded.copy(sample((x + 0.5) / size, (y + 0.5) / size))
       gradeFinishSurfaceColor(preset, encoded).convertLinearToSRGB()
-      const offset = (y * TEXTURE_SIZE + x) * 4
+      const offset = (y * size + x) * 4
       data[offset] = Math.round(encoded.r * 255)
       data[offset + 1] = Math.round(encoded.g * 255)
       data[offset + 2] = Math.round(encoded.b * 255)

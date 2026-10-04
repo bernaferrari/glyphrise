@@ -100,15 +100,31 @@ export const applySvgTransitionState = ({
   }
 
   const showB = progress >= 0.5
+  // Keep the wipe's shader configuration ready from the first frame. The
+  // inactive planes admit the entire icon; only their uniforms move during
+  // the slash, so its first use does not compile a different shader.
+  const keepWipeClipping =
+    transitionType === "wipe" &&
+    (wipeDirection.x !== 0 || wipeDirection.y !== 0)
+  if (keepWipeClipping) {
+    if (clipPlaneA) clipPlaneA.constant = 1e6
+    if (clipPlaneB) clipPlaneB.constant = 1e6
+  }
   if (iconA) {
     iconA.visible = !showB
     resetModelTransform(iconA)
-    updateGroupMaterialState(iconA, { opacity: 1 })
+    updateGroupMaterialState(iconA, {
+      opacity: 1,
+      clippingPlanes: keepWipeClipping && clipPlaneA ? [clipPlaneA] : null,
+    })
   }
   if (iconB) {
     iconB.visible = showB
     resetModelTransform(iconB)
-    updateGroupMaterialState(iconB, { opacity: 1 })
+    updateGroupMaterialState(iconB, {
+      opacity: 1,
+      clippingPlanes: keepWipeClipping && clipPlaneB ? [clipPlaneB] : null,
+    })
   }
   return { isCrossfade: false }
 }
