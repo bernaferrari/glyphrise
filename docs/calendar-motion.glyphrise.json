@@ -1,0 +1,345 @@
+{
+  "version": 2,
+  "savedAt": "2026-10-03T14:25:49.610Z",
+  "project": {
+    "id": "project-calendar-motion-demo",
+    "name": "Calendar motion",
+    "createdAt": "2026-10-03T14:24:54.614Z",
+    "updatedAt": "2026-10-03T14:25:49.610Z"
+  },
+  "snapshot": {
+    "activeRecipeId": null,
+    "shapes": [
+      {
+        "id": "shape-calendar",
+        "time": 0,
+        "iconId": "material-symbol-outlined-calendar_month",
+        "iconName": "Calendar",
+        "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z\"/></g></svg>",
+        "color": "#FF8000",
+        "colorSecondary": "#00A7FF",
+        "fillGradientType": "mesh",
+        "fillStops": [
+          {
+            "id": "spectrum-top-left",
+            "color": "#FF8000",
+            "position": 0.0
+          },
+          {
+            "id": "spectrum-top-center",
+            "color": "#FF1500",
+            "position": 0.125
+          },
+          {
+            "id": "spectrum-top-right",
+            "color": "#ED00AE",
+            "position": 0.25
+          },
+          {
+            "id": "spectrum-middle-left",
+            "color": "#FFD000",
+            "position": 0.375
+          },
+          {
+            "id": "spectrum-center",
+            "color": "#6300FF",
+            "position": 0.5
+          },
+          {
+            "id": "spectrum-middle-right",
+            "color": "#004AFF",
+            "position": 0.625
+          },
+          {
+            "id": "spectrum-bottom-left",
+            "color": "#14E000",
+            "position": 0.75
+          },
+          {
+            "id": "spectrum-bottom-center",
+            "color": "#00BDAD",
+            "position": 0.875
+          },
+          {
+            "id": "spectrum-bottom-right",
+            "color": "#00A7FF",
+            "position": 1.0
+          }
+        ],
+        "fillKeyframes": [],
+        "pathOverrides": [],
+        "easing": "ease-in-out",
+        "transitionType": "wipe",
+        "wipeDirection": {
+          "x": 0.707,
+          "y": -0.707
+        },
+        "transitionStart": 0.72,
+        "transitionEnd": 0.94
+      },
+      {
+        "id": "shape-calendar-off",
+        "time": 2.15,
+        "iconId": "material-symbol-rounded-calendar_month_off-slash",
+        "iconName": "Calendar Off",
+        "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 -0 24)\"><path d=\"M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-40q0-17 11.5-28.5T280-880q17 0 28.5 11.5T320-840v40h320v-40q0-17 11.5-28.5T680-880q17 0 28.5 11.5T720-840v40h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z\"/></g><path data-glyphrise-slash=\"true\" d=\"M1.29 2.71 2.71 1.29 22.71 21.29 21.29 22.71z\"/></svg>",
+        "color": "#FF8000",
+        "colorSecondary": "#00A7FF",
+        "fillGradientType": "mesh",
+        "fillStops": [
+          {
+            "id": "spectrum-top-left",
+            "color": "#FF8000",
+            "position": 0.0
+          },
+          {
+            "id": "spectrum-top-center",
+            "color": "#FF1500",
+            "position": 0.125
+          },
+          {
+            "id": "spectrum-top-right",
+            "color": "#ED00AE",
+            "position": 0.25
+          },
+          {
+            "id": "spectrum-middle-left",
+            "color": "#FFD000",
+            "position": 0.375
+          },
+          {
+            "id": "spectrum-center",
+            "color": "#6300FF",
+            "position": 0.5
+          },
+          {
+            "id": "spectrum-middle-right",
+            "color": "#004AFF",
+            "position": 0.625
+          },
+          {
+            "id": "spectrum-bottom-left",
+            "color": "#14E000",
+            "position": 0.75
+          },
+          {
+            "id": "spectrum-bottom-center",
+            "color": "#00BDAD",
+            "position": 0.875
+          },
+          {
+            "id": "spectrum-bottom-right",
+            "color": "#00A7FF",
+            "position": 1.0
+          }
+        ],
+        "fillKeyframes": [],
+        "pathOverrides": [],
+        "easing": "ease-in-out",
+        "transitionType": "cut",
+        "wipeDirection": {
+          "x": 0.707,
+          "y": -0.707
+        },
+        "transitionStart": 0.72,
+        "transitionEnd": 0.94
+      }
+    ],
+    "duration": 3,
+    "materialPreset": "satin",
+    "materialSettings": {
+      "roughness": 0.34,
+      "metalness": 0.04,
+      "reflectance": 0.35,
+      "clearcoat": 0.3,
+      "clearcoatRoughness": 0.38,
+      "transmission": 0,
+      "thickness": 0.4,
+      "emissiveIntensity": 0.07
+    },
+    "materialKeyframes": [],
+    "extrusionDepth": 10,
+    "bevelEnabled": true,
+    "bevelThickness": 0.12,
+    "bevelSize": 0.06,
+    "bevelSegments": 12,
+    "geometryQuality": 0.045,
+    "qualityKeyframes": [
+      {
+        "id": "quality-demo-0",
+        "time": 0.35,
+        "value": 0.045,
+        "easing": "ease-in-out"
+      },
+      {
+        "id": "quality-demo-1",
+        "time": 2.5,
+        "value": 0.045,
+        "easing": "ease-in-out"
+      }
+    ],
+    "layerSpacing": 0.16,
+    "innerElementScale": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "innerScaleKeyframes": [],
+    "objectScale": 1,
+    "objectScaleAxes": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "moveOffset": {
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "moveKeyframes": [],
+    "enableGradient": true,
+    "fillMode": "gradient",
+    "fillColor": "#FF9900",
+    "fillColorSecondary": "#00ADF0",
+    "fillGradientType": "mesh",
+    "fillStops": [
+      {
+        "id": "google-top-left",
+        "color": "#FF9900",
+        "position": 0.0
+      },
+      {
+        "id": "google-top-center",
+        "color": "#FF360A",
+        "position": 0.125
+      },
+      {
+        "id": "google-top-right",
+        "color": "#D13AB3",
+        "position": 0.25
+      },
+      {
+        "id": "google-middle-left",
+        "color": "#FFC700",
+        "position": 0.375
+      },
+      {
+        "id": "google-center",
+        "color": "#807AFF",
+        "position": 0.5
+      },
+      {
+        "id": "google-middle-right",
+        "color": "#1759FF",
+        "position": 0.625
+      },
+      {
+        "id": "google-bottom-left",
+        "color": "#63E600",
+        "position": 0.75
+      },
+      {
+        "id": "google-bottom-center",
+        "color": "#00C796",
+        "position": 0.875
+      },
+      {
+        "id": "google-bottom-right",
+        "color": "#00ADF0",
+        "position": 1.0
+      }
+    ],
+    "fillKeyframes": [],
+    "rotationOffset": {
+      "x": 8,
+      "y": 22,
+      "z": -4
+    },
+    "rotationAxisKeyframes": [
+      {
+        "id": "rotation-e82f61b8",
+        "time": 0,
+        "value": {
+          "x": 8,
+          "y": 22,
+          "z": -4
+        },
+        "easing": "ease-in-out"
+      },
+      {
+        "id": "rotation-54a56677",
+        "time": 3,
+        "value": {
+          "x": 8,
+          "y": 22,
+          "z": 9
+        },
+        "easing": "ease-in-out"
+      }
+    ],
+    "keyLightColor": "#ffffff",
+    "keyLightIntensity": 1.1,
+    "keyLightPosition": {
+      "x": 5,
+      "y": 5,
+      "z": 4
+    },
+    "keyLightSoftness": 0.35,
+    "keyLightPositionKeyframes": [],
+    "tracks": [
+      {
+        "id": "extrusion",
+        "name": "Depth",
+        "color": "#4ee2a3",
+        "min": 0.2,
+        "max": 60,
+        "defaultValue": 10,
+        "keyframes": [
+          {
+            "id": "extrusion-03a845c5",
+            "time": 0.35,
+            "value": 10,
+            "easing": "ease-in-out"
+          },
+          {
+            "id": "extrusion-2c202245",
+            "time": 2.5,
+            "value": 15,
+            "easing": "ease-in-out"
+          }
+        ]
+      },
+      {
+        "id": "scale",
+        "name": "Scale",
+        "color": "#a78bfa",
+        "min": 0.1,
+        "max": 3,
+        "defaultValue": 1,
+        "keyframes": [
+          {
+            "id": "scale-3a0999b8",
+            "time": 0.7,
+            "value": 1,
+            "easing": "ease-in-out"
+          },
+          {
+            "id": "scale-d6d059cb",
+            "time": 2.75,
+            "value": 1.25,
+            "easing": "ease-in-out"
+          }
+        ]
+      },
+      {
+        "id": "lighting",
+        "name": "Brightness",
+        "color": "#ff5b9a",
+        "min": 0,
+        "max": 25,
+        "defaultValue": 1.1,
+        "keyframes": []
+      }
+    ]
+  }
+}

@@ -16,7 +16,7 @@
   <a href="CONTRIBUTING.md">Contribute</a>
 </p>
 
-![Glyphrise editing a rainbow 3D calendar with a Satin finish, live shape and lighting controls, and staggered rotation, depth, and scale keyframes](docs/glyphrise-editor.jpg)
+![Glyphrise editing a rainbow 3D calendar with a Satin finish, live shape and lighting controls, and staggered rotation, depth, and scale keyframes](docs/glyphrise-editor.png)
 
 <p align="center">
   <sub>A real editor capture: Spectrum Mesh colors, a Satin finish, and three staggered animation tracks.</sub>

@@ -25,6 +25,11 @@
 .claude/
 *.pem
 
+# local studies and sample projects
+/docs/first-use-study.md
+/docs/prism-gem.glyphrise.json
+/docs/candy-heart.glyphrise.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
