@@ -113,6 +113,7 @@ export const bindSvgSceneResize = ({
   currentZoomRef: MutableRefObject<number>
   requestRender?: () => void
 }) => {
+  const rendererSize = new THREE.Vector2()
   const handleResize = () => {
     const camera = cameraRef.current
     const renderer = rendererRef.current
@@ -121,6 +122,8 @@ export const bindSvgSceneResize = ({
     const width = container.clientWidth
     const height = container.clientHeight
     if (width <= 0 || height <= 0) return
+    renderer.getSize(rendererSize)
+    if (rendererSize.x === width && rendererSize.y === height) return
 
     camera.aspect = width / height
     camera.updateProjectionMatrix()

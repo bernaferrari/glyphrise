@@ -22,14 +22,7 @@ export function SvgCanvasOverlays({
 }: SvgCanvasOverlaysProps) {
   return (
     <>
-      {!modelReady && !modelError ? (
-        <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-background/5 backdrop-blur-[1px]">
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-xs font-medium text-white/75 shadow-2xl">
-            <span className="size-2 animate-pulse rounded-full bg-white/70 motion-reduce:animate-none" />
-            Preparing 3D icon
-          </div>
-        </div>
-      ) : null}
+      {!modelReady && !modelError ? <SvgCanvasLoading /> : null}
       {modelError ? (
         <div
           role="alert"
@@ -55,5 +48,16 @@ export function SvgCanvasOverlays({
 
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[oklch(0.11_0.012_280)]/80 via-transparent to-[oklch(0.18_0.012_280)]/20 mix-blend-overlay" />
     </>
+  )
+}
+
+export function SvgCanvasLoading() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-background/5 backdrop-blur-[1px]">
+      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-xs font-medium text-white/75 shadow-2xl">
+        <span className="size-2 animate-pulse rounded-full bg-white/70 motion-reduce:animate-none" />
+        Preparing 3D icon
+      </div>
+    </div>
   )
 }

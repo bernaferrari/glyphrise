@@ -7,6 +7,7 @@ import {
   type SvgCanvasProps,
   type SvgCanvasRef,
 } from "../3d/SvgCanvas"
+import { SvgCanvasLoading } from "../3d/SvgCanvasOverlays"
 import {
   PlaybackControls,
   type PlaybackControlsProps,
@@ -15,6 +16,7 @@ import {
 } from "./ViewportControls"
 
 type ViewportStageProps = {
+  canvasReady?: boolean
   zenMode: boolean
   /** Show transport over the preview when the timeline is not on screen. */
   showPlayback?: boolean
@@ -35,6 +37,7 @@ type ViewportStageProps = {
 export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
   (
     {
+      canvasReady = true,
       zenMode,
       showPlayback = false,
       onAnimate,
@@ -98,11 +101,17 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
               : "overflow-hidden rounded-2xl border border-border/60 bg-muted/40 shadow-sm"
           }`}
         >
-          <SvgCanvas
-            ref={ref}
-            {...canvasProps}
-            showOrientationGizmo={presentation !== "motion-preview"}
-          />
+          {canvasReady ? (
+            <SvgCanvas
+              ref={ref}
+              {...canvasProps}
+              showOrientationGizmo={presentation !== "motion-preview"}
+            />
+          ) : (
+            <div className="relative h-full w-full bg-preview-background">
+              <SvgCanvasLoading />
+            </div>
+          )}
 
           {svgImportError ? (
             <div

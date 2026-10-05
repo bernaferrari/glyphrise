@@ -44,6 +44,96 @@ test("creates a named blank project without example animation", async ({
   await expect(projectName).toHaveValue("Launch mark")
 })
 
+test("restores the saved file before creating its 3D scene", async ({
+  page,
+}) => {
+  await openProjects(page)
+  await page.getByLabel("New file name").fill("Restored file")
+  await page.getByRole("button", { name: "Start blank" }).click()
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
+    "Restored file"
+  )
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext
+    // Record only connected preview canvases; thumbnails use offscreen canvases.
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args
+    ) {
+      if (
+        args[0] === "webgl2" &&
+        this.isConnected &&
+        document
+          .querySelector("#glyphrise-workspace")
+          ?.getAttribute("aria-busy") === "true"
+      ) {
+        document.documentElement.dataset.earlyWebgl = "true"
+      }
+      return Reflect.apply(getContext, this, args)
+    } as typeof getContext
+  })
+  await page.reload()
+  await expect(page.locator("#glyphrise-workspace")).toHaveAttribute(
+    "aria-busy",
+    "false"
+  )
+  await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
+    "Restored file"
+  )
+  await expect(
+    page.getByRole("region", { name: "3D preview" }).locator("canvas")
+  ).toBeVisible()
+  await expect(
+    page.getByText("Preparing 3D icon", { exact: true })
+  ).toBeHidden()
+  await expect(page.locator("html")).not.toHaveAttribute(
+    "data-early-webgl",
+    "true"
+  )
+})
+
+test("reuses real finish previews on reload without recreating their WebGL stage", async ({
+  page,
+}) => {
+  const satin = page
+    .getByRole("button", { name: "Use Satin finish", exact: true })
+    .locator("img")
+  await expect(satin).toBeVisible()
+  await expect
+    .poll(async () =>
+      page.evaluate(() => {
+        const serialized = localStorage.getItem(
+          "glyphrise:finish-thumbnails:v1"
+        )
+        return serialized
+          ? Object.keys(JSON.parse(serialized).thumbnails).length
+          : 0
+      })
+    )
+    .toBeGreaterThanOrEqual(9)
+  await page.addInitScript(() => {
+    const getContext = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = function (
+      this: HTMLCanvasElement,
+      ...args
+    ) {
+      if (args[0] === "webgl2" && !this.isConnected)
+        document.documentElement.dataset.thumbnailWebgl = "true"
+      return Reflect.apply(getContext, this, args)
+    } as typeof getContext
+  })
+  await page.reload()
+  await expect(page.locator("#glyphrise-workspace")).toHaveAttribute(
+    "aria-busy",
+    "false"
+  )
+  await expect(satin).toBeVisible()
+  await expect(page.locator("html")).not.toHaveAttribute(
+    "data-thumbnail-webgl",
+    "true"
+  )
+})
+
 test("duplicates projects and recovers after deleting the current project", async ({
   page,
 }) => {

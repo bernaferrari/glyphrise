@@ -217,6 +217,7 @@ export function AppLayoutView({
               <ViewportStage
                 ref={canvas3DRef}
                 {...viewportProps}
+                canvasReady={topBarProps.projectStatus !== "restoring"}
                 showPlayback={isCompactLayout && compactPane !== "timeline"}
                 onAnimate={
                   isCompactLayout ? () => setAnimateOpen(true) : undefined

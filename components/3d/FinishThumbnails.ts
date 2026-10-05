@@ -11,6 +11,12 @@ import {
 import { applyGradientVertexColors } from "./SvgColor"
 import { createStudioEnvironmentTexture } from "./SvgSceneUtils"
 
+import {
+  readStoredFinishThumbnails,
+  writeStoredFinishThumbnails,
+  type StoredFinishThumbnails,
+} from "./FinishThumbnailStorage"
+
 const THUMBNAIL_SIZE = 128
 const MAX_CACHED_THUMBNAILS = 320
 const CAMERA_FOV = 28
@@ -43,6 +49,31 @@ type ThumbnailStage = {
 
 let stage: ThumbnailStage | null | undefined
 const cache = new Map<string, string>()
+let stored: StoredFinishThumbnails | null | undefined
+let persistTimeout: number | undefined
+
+function restoreThumbnailCache() {
+  if (stored !== undefined || typeof window === "undefined") return
+  stored = readStoredFinishThumbnails()
+  if (!stored) return
+  for (const [preset, url] of Object.entries(stored.thumbnails)) {
+    if (url) cache.set(`${preset}:${stored.fillKey}`, url)
+  }
+}
+
+function rememberThumbnail(
+  preset: MaterialPresetId,
+  fillKey: string,
+  url: string
+) {
+  if (typeof window === "undefined") return
+  if (stored?.fillKey !== fillKey) stored = { fillKey, thumbnails: {} }
+  stored.thumbnails[preset] = url
+  window.clearTimeout(persistTimeout)
+  persistTimeout = window.setTimeout(() => {
+    if (stored) writeStoredFinishThumbnails(stored)
+  }, 500)
+}
 
 const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i
 const safeColor = (color: string) =>
@@ -222,7 +253,10 @@ const drawHalo = (context: CanvasRenderingContext2D, color: THREE.Color) => {
 export const cachedFinishThumbnail = (
   preset: MaterialPresetId,
   fill: FinishPreviewFill
-) => cache.get(`${preset}:${finishPreviewFillKey(fill)}`) ?? null
+) => {
+  restoreThumbnailCache()
+  return cache.get(`${preset}:${finishPreviewFillKey(fill)}`) ?? null
+}
 
 let queue: Promise<unknown> = Promise.resolve()
 
@@ -320,5 +354,6 @@ const renderNow = async (
     if (oldest) cache.delete(oldest)
   }
   cache.set(key, url)
+  rememberThumbnail(preset, fillKey, url)
   return url
 }

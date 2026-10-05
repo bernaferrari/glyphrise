@@ -323,7 +323,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         role="region"
         aria-label="3D preview"
         aria-describedby="glyphrise-preview-instructions"
-        className="relative h-full min-h-0 w-full overflow-hidden bg-[oklch(0.13_0.012_280)]"
+        className="relative h-full min-h-0 w-full overflow-hidden bg-preview-background"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
           Drag to rotate the icon; scroll to zoom. Hold Alt while dragging to

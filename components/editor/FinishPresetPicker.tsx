@@ -142,6 +142,7 @@ export function FinishPresetPicker({
           {more.map((preset, index) => (
             <span
               key={preset}
+              className="bg-muted"
               style={
                 moreThumbnails[preset]
                   ? {
@@ -149,7 +150,9 @@ export function FinishPresetPicker({
                       backgroundSize: `${MOSAIC_IMAGE}px`,
                       backgroundPosition: QUADRANT_OFFSETS[index],
                     }
-                  : { background: MATERIAL_PREVIEW[preset] }
+                  : moreThumbnails[preset] === null
+                    ? { background: MATERIAL_PREVIEW[preset] }
+                    : undefined
               }
             />
           ))}

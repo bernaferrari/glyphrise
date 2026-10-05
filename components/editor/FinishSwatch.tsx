@@ -11,7 +11,7 @@ import {
 } from "../3d/FinishThumbnails"
 import { MATERIAL_PREVIEW } from "./FinishRegistry"
 
-type Thumbnails = Partial<Record<MaterialPresetId, string>>
+type Thumbnails = Partial<Record<MaterialPresetId, string | null>>
 
 /** CSS-hidden phone panes must not create an offscreen WebGL renderer. */
 export function useFinishThumbnailVisibility() {
@@ -44,22 +44,10 @@ const scheduleThumbnail = (callback: () => void) => {
   return () => window.clearTimeout(id)
 }
 
-const readCached = (
-  presets: readonly MaterialPresetId[],
-  fill: FinishPreviewFill
-) => {
-  const next: Thumbnails = {}
-  presets.forEach((preset) => {
-    const url = cachedFinishThumbnail(preset, fill)
-    if (url) next[preset] = url
-  })
-  return next
-}
-
 /**
  * Renders real 3D swatches in the current fill color. Work is spread over
  * frames so opening the picker never blocks the viewport, and color drags are
- * debounced; the previous swatches stay visible until new ones are ready.
+ * debounced; previous swatches stay visible until the whole batch is decoded.
  */
 export function useFinishThumbnails(
   presets: readonly MaterialPresetId[],
@@ -70,9 +58,8 @@ export function useFinishThumbnails(
   // Keyed by content so a new-but-equal fill object never restarts work.
   const fillKey = finishPreviewFillKey(fill)
   const fillRef = useRef(fill)
-  const [thumbnails, setThumbnails] = useState<Thumbnails>(() =>
-    readCached(presets, fill)
-  )
+  // Start with the same neutral placeholders on the server and client.
+  const [thumbnails, setThumbnails] = useState<Thumbnails>({})
 
   useEffect(() => {
     fillRef.current = fill
@@ -80,29 +67,66 @@ export function useFinishThumbnails(
 
   useEffect(() => {
     if (!enabled || !presetsKey) return
-    const queue = (
-      presetsKey ? presetsKey.split(",") : []
-    ) as MaterialPresetId[]
+    const requested = presetsKey.split(",") as MaterialPresetId[]
+    const previewFill = fillRef.current
+    const queue = requested.filter(
+      (preset) => !cachedFinishThumbnail(preset, previewFill)
+    )
     let cancelled = false
     let cancelScheduled = () => {}
+    let timeout: number | undefined
+    const next: Thumbnails = {}
+    const decodeThumbnail = async (
+      preset: MaterialPresetId,
+      url: string | null
+    ) => {
+      if (url) {
+        try {
+          const image = new Image()
+          image.src = url
+          await image.decode()
+        } catch {
+          url = null
+        }
+      }
+      next[preset] = url
+    }
+    const publish = () => {
+      if (!cancelled) setThumbnails((previous) => ({ ...previous, ...next }))
+    }
     const renderNext = async () => {
       if (cancelled) return
       const preset = queue.shift()
-      if (!preset) return
+      if (!preset) {
+        publish()
+        return
+      }
+      let url: string | null = null
       try {
-        const url = await renderFinishThumbnail(preset, fillRef.current)
-        if (cancelled) return
-        if (url) setThumbnails((previous) => ({ ...previous, [preset]: url }))
+        url = await renderFinishThumbnail(preset, previewFill)
       } catch {
-        // The CSS swatch remains usable if the GPU context is unavailable.
+        // The CSS swatch is reserved for an unavailable GPU, not loading.
       }
-      if (!cancelled && queue.length) {
+      await decodeThumbnail(preset, url)
+      if (cancelled) return
+      if (queue.length)
         cancelScheduled = scheduleThumbnail(() => void renderNext())
-      }
+      else publish()
     }
-    const timeout = window.setTimeout(() => {
-      cancelScheduled = scheduleThumbnail(() => void renderNext())
-    }, 120)
+    // Restore decoded previews immediately; only missing previews wait for idle.
+    void Promise.all(
+      requested.map(async (preset) => {
+        const url = cachedFinishThumbnail(preset, previewFill)
+        if (url) await decodeThumbnail(preset, url)
+      })
+    ).then(() => {
+      if (cancelled) return
+      if (!queue.length) publish()
+      else
+        timeout = window.setTimeout(() => {
+          cancelScheduled = scheduleThumbnail(() => void renderNext())
+        }, 120)
+    })
     return () => {
       cancelled = true
       window.clearTimeout(timeout)
@@ -119,7 +143,7 @@ export function FinishSwatch({
   className,
 }: {
   preset: MaterialPresetId
-  thumbnail?: string
+  thumbnail?: string | null
   className?: string
 }) {
   return (
@@ -134,11 +158,13 @@ export function FinishSwatch({
           draggable={false}
           className="absolute inset-0 size-full select-none"
         />
-      ) : (
+      ) : thumbnail === null ? (
         <span
           className="absolute inset-0 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
           style={{ background: MATERIAL_PREVIEW[preset] }}
         />
+      ) : (
+        <span className="absolute inset-0 rounded-full bg-muted ring-1 ring-border ring-inset" />
       )}
     </span>
   )

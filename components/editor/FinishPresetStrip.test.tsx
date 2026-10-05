@@ -5,13 +5,17 @@ import { createRoot, type Root } from "react-dom/client"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { FinishPresetStrip } from "./FinishPresetStrip"
 
-const { renderThumbnail } = vi.hoisted(() => ({
-  renderThumbnail: vi.fn(async () => "data:image/png;base64,preview"),
+const { renderThumbnail, cachedThumbnail } = vi.hoisted(() => ({
+  renderThumbnail: vi.fn(
+    async (_preset: string): Promise<string | null> =>
+      "data:image/png;base64,preview"
+  ),
+  cachedThumbnail: vi.fn((): string | null => null),
 }))
 
 vi.mock("../3d/FinishThumbnails", () => ({
   THUMBNAIL_SPHERE_FILL: 0.85,
-  cachedFinishThumbnail: () => null,
+  cachedFinishThumbnail: cachedThumbnail,
   finishPreviewFillKey: (fill: { color: string }) => fill.color,
   renderFinishThumbnail: renderThumbnail,
 }))
@@ -35,7 +39,17 @@ describe("finish thumbnail startup work", () => {
         disconnect() {}
       }
     )
-    renderThumbnail.mockClear()
+    renderThumbnail.mockReset()
+    renderThumbnail.mockResolvedValue("data:image/png;base64,preview")
+    cachedThumbnail.mockReset()
+    cachedThumbnail.mockReturnValue(null)
+    vi.stubGlobal(
+      "Image",
+      class {
+        src = ""
+        async decode() {}
+      }
+    )
     container = document.createElement("div")
     document.body.append(container)
     root = createRoot(container)
@@ -64,6 +78,71 @@ describe("finish thumbnail startup work", () => {
         {} as IntersectionObserver
       )
     })
+
+  it("shows a neutral placeholder instead of a different finish while previews load", () => {
+    const swatch = container.querySelector(
+      'button[aria-label="Use Satin finish"]'
+    )!
+    expect(swatch.querySelector("[style]")).toBeNull()
+  })
+
+  it("restores cached previews without waiting for idle or starting WebGL", async () => {
+    cachedThumbnail.mockReturnValue("data:image/png;base64,cached")
+    show(true)
+    await act(async () => {})
+    expect(renderThumbnail).not.toHaveBeenCalled()
+    expect(
+      container
+        .querySelector('button[aria-label="Use Satin finish"] img')
+        ?.getAttribute("src")
+    ).toBe("data:image/png;base64,cached")
+  })
+
+  it("keeps the strip neutral until every real preview in its batch is decoded", async () => {
+    let resolveChrome: () => void = () => {}
+    const chromeDecoded = new Promise<void>((resolve) => {
+      resolveChrome = resolve
+    })
+    renderThumbnail.mockImplementation(
+      async (preset) => `data:image/png;base64,${preset}`
+    )
+    vi.stubGlobal(
+      "Image",
+      class {
+        src = ""
+        decode() {
+          return this.src.endsWith("chrome") ? chromeDecoded : Promise.resolve()
+        }
+      }
+    )
+    show(true)
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(
+      container.querySelector('button[aria-label="Use Satin finish"] img')
+    ).toBeNull()
+    expect(
+      container.querySelector('button[aria-label="Use Chrome finish"] img')
+    ).toBeNull()
+    await act(async () => {
+      resolveChrome()
+    })
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(
+      container.querySelector('button[aria-label="Use Satin finish"] img')
+    ).not.toBeNull()
+    expect(
+      container.querySelector('button[aria-label="Use Chrome finish"] img')
+    ).not.toBeNull()
+  })
+
+  it("uses the CSS fallback only when real rendering is unavailable", async () => {
+    renderThumbnail.mockResolvedValue(null)
+    show(true)
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(
+      container.querySelector('button[aria-label="Use Satin finish"] [style]')
+    ).not.toBeNull()
+  })
 
   it("does no WebGL thumbnail work while the phone inspector is hidden", async () => {
     await act(() => vi.advanceTimersByTimeAsync(1000))

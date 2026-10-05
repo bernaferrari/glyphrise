@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   type Dispatch,
   type MutableRefObject,
   type SetStateAction,
@@ -37,6 +38,13 @@ export const useSvgModelGroups = ({
   colorAStopsKey: string
   colorBStopsKey: string
 }) => {
+  const builtInputsRef = useRef<{
+    a: readonly unknown[]
+    b: readonly unknown[]
+    groupA: THREE.Group
+    groupB: THREE.Group
+  } | null>(null)
+
   useEffect(() => {
     const pivot = pivotGroupRef.current
     if (!pivot) return
@@ -47,29 +55,67 @@ export const useSvgModelGroups = ({
     if (!hadModel) setModelReady(false)
     setModelError(null)
 
-    let groupA: THREE.Group | null = null
-    let groupB: THREE.Group | null = null
+    // Retain the unchanged icon, but commit both candidates together only after
+    // a successful build so a malformed SVG preserves the last valid preview.
+    const sharedInputs = [
+      pivot,
+      props.extrusionDepth,
+      props.bevelEnabled,
+      props.bevelThickness,
+      props.bevelSize,
+      props.bevelSegments,
+      props.geometryQuality,
+      props.layerSpacing,
+      props.materialPreset,
+      props.enableGradient,
+      clipPlaneARef.current,
+      clipPlaneBRef.current,
+    ]
+    const inputsA = [
+      ...sharedInputs,
+      props.iconAContent,
+      pathOverridesASignature,
+    ]
+    const inputsB = [
+      ...sharedInputs,
+      props.iconBContent,
+      pathOverridesBSignature,
+    ]
+    const built = builtInputsRef.current
+    const rebuildA =
+      previousA !== built?.groupA || !sameInputs(inputsA, built?.a)
+    const rebuildB =
+      previousB !== built?.groupB || !sameInputs(inputsB, built?.b)
+
+    let groupA: THREE.Group | null = previousA
+    let groupB: THREE.Group | null = previousB
     try {
-      groupA = buildSvgIconGroup({
-        svgContent: props.iconAContent,
-        isIconA: true,
-        props,
-        clipPlaneA: clipPlaneARef.current,
-        clipPlaneB: clipPlaneBRef.current,
-      })
-      groupB = buildSvgIconGroup({
-        svgContent: props.iconBContent,
-        isIconA: false,
-        props,
-        clipPlaneA: clipPlaneARef.current,
-        clipPlaneB: clipPlaneBRef.current,
-      })
-      if (groupA.children.length === 0 && groupB.children.length === 0) {
+      if (rebuildA)
+        groupA = buildSvgIconGroup({
+          svgContent: props.iconAContent,
+          isIconA: true,
+          props,
+          clipPlaneA: clipPlaneARef.current,
+          clipPlaneB: clipPlaneBRef.current,
+        })
+      if (rebuildB)
+        groupB = buildSvgIconGroup({
+          svgContent: props.iconBContent,
+          isIconA: false,
+          props,
+          clipPlaneA: clipPlaneARef.current,
+          clipPlaneB: clipPlaneBRef.current,
+        })
+      if (
+        !groupA ||
+        !groupB ||
+        (groupA.children.length === 0 && groupB.children.length === 0)
+      ) {
         throw new Error("The SVG has no filled shapes that can become 3D.")
       }
     } catch (error) {
-      if (groupA) disposeObjectTree(groupA)
-      if (groupB) disposeObjectTree(groupB)
+      if (rebuildA && groupA && groupA !== previousA) disposeObjectTree(groupA)
+      if (rebuildB && groupB && groupB !== previousB) disposeObjectTree(groupB)
       setModelReady(hadModel)
       setModelError(
         error instanceof Error
@@ -79,19 +125,20 @@ export const useSvgModelGroups = ({
       return
     }
 
-    if (previousA) {
+    if (rebuildA && previousA) {
       pivot.remove(previousA)
       disposeObjectTree(previousA)
     }
-    if (previousB) {
+    if (rebuildB && previousB) {
       pivot.remove(previousB)
       disposeObjectTree(previousB)
     }
 
-    pivot.add(groupA)
-    pivot.add(groupB)
+    if (rebuildA) pivot.add(groupA)
+    if (rebuildB) pivot.add(groupB)
     iconAGroupRef.current = groupA
     iconBGroupRef.current = groupB
+    builtInputsRef.current = { a: inputsA, b: inputsB, groupA, groupB }
     setModelReady(groupA.children.length > 0 || groupB.children.length > 0)
   }, [
     props.iconAContent,
@@ -149,4 +196,11 @@ export const useSvgModelGroups = ({
     iconAGroupRef,
     iconBGroupRef,
   ])
+}
+
+function sameInputs(next: readonly unknown[], previous?: readonly unknown[]) {
+  return (
+    previous?.length === next.length &&
+    next.every((value, index) => Object.is(value, previous[index]))
+  )
 }
