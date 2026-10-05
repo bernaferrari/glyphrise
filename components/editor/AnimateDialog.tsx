@@ -176,6 +176,8 @@ function AnimationChoices({
   const [selected, setSelected] = useState<AnimationPresetId>("spin")
   const [seconds, setSeconds] = useState(String(initialDuration))
   const [intensity, setIntensity] = useState(1)
+  const [turns, setTurns] = useState(1)
+  const motionAmount = selected === "spin" ? turns : intensity
   const length = Number(seconds)
   const valid = Number.isFinite(length) && length >= 0.5 && length <= 30
   const previewLength = valid ? length : initialDuration
@@ -186,11 +188,11 @@ function AnimationChoices({
       <div className="relative grid h-36 place-items-center overflow-hidden bg-muted/40 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_70%)]">
         <div className="scale-[1.9]">
           <MotionPresetPreview
-            key={`${selected}-${previewLength}-${intensity}`}
+            key={`${selected}-${previewLength}-${motionAmount}`}
             preset={selected}
             svgContent={svgContent}
             duration={previewLength}
-            intensity={intensity}
+            intensity={motionAmount}
           />
         </div>
       </div>
@@ -276,31 +278,37 @@ function AnimationChoices({
         </div>
 
         <div className="grid gap-2">
-          <span className="text-xs font-medium">Amount</span>
+          <span className="text-xs font-medium">
+            {selected === "spin" ? "Turns" : "Amount"}
+          </span>
           <Segmented
-            label="Motion amount"
-            options={AMOUNTS}
-            value={
-              AMOUNTS.some((a) => a.value === intensity) ? intensity : null
+            label={selected === "spin" ? "Spin turns" : "Motion amount"}
+            options={
+              selected === "spin"
+                ? [1, 2, 3].map((value) => ({ label: String(value), value }))
+                : AMOUNTS
             }
-            onChange={setIntensity}
+            value={motionAmount}
+            onChange={selected === "spin" ? setTurns : setIntensity}
           />
-          <input
-            aria-label="Motion intensity"
-            type="range"
-            min="0.25"
-            max="2"
-            step="0.25"
-            value={intensity}
-            onChange={(event) => setIntensity(Number(event.target.value))}
-            className="sr-only"
-          />
+          {selected !== "spin" && (
+            <input
+              aria-label="Motion intensity"
+              type="range"
+              min="0.25"
+              max="2"
+              step="0.25"
+              value={intensity}
+              onChange={(event) => setIntensity(Number(event.target.value))}
+              className="sr-only"
+            />
+          )}
         </div>
 
         <button
           type="button"
           disabled={!valid}
-          onClick={() => onApply(selected, length, intensity)}
+          onClick={() => onApply(selected, length, motionAmount)}
           className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.99] disabled:opacity-40"
         >
           Apply {preset.name} to {preset.property}

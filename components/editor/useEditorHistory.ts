@@ -1,9 +1,21 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
+import {
+  EDITOR_EDIT_BEGIN,
+  EDITOR_EDIT_END,
+  EDITOR_EDIT_CANCEL,
+} from "@/lib/editor-transactions"
 import { useLatestRef } from "@/lib/use-latest-ref"
 import type { EditorSnapshot } from "./EditorModel"
 import {
+  editorSnapshotKey,
   beginEditorHistoryGesture,
   cancelEditorHistoryGesture,
   commitEditorHistoryGesture,
@@ -32,10 +44,6 @@ export const useEditorHistory = ({
   const historyStateRef = useRef(createEditorHistoryState())
   const isRestoringUndoRef = useRef(false)
   const pointerInteractionActiveRef = useRef(false)
-  const pointerCoalescingRef = useRef(false)
-  const pointerFlushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  )
   const snapshotRef = useRef(snapshot)
   const onRestoreRef = useLatestRef(onRestore)
   const isInputDragActiveRef = useLatestRef(isInputDragActive)
@@ -53,8 +61,17 @@ export const useEditorHistory = ({
 
   const syncAvailability = useCallback(() => {
     const next = {
-      canUndo: historyStateRef.current.undoStack.length > 1,
-      canRedo: historyStateRef.current.redoStack.length > 0,
+      canUndo:
+        historyStateRef.current.undoStack.length > 1 ||
+        (historyStateRef.current.gestureActive &&
+          historyStateRef.current.undoStack.length > 0 &&
+          editorSnapshotKey(snapshotRef.current) !==
+            historyStateRef.current.lastSnapshotKey),
+      canRedo:
+        historyStateRef.current.redoStack.length > 0 &&
+        (!historyStateRef.current.gestureActive ||
+          editorSnapshotKey(snapshotRef.current) ===
+            historyStateRef.current.lastSnapshotKey),
     }
     setAvailability((current) =>
       current.canUndo === next.canUndo && current.canRedo === next.canRedo
@@ -63,47 +80,23 @@ export const useEditorHistory = ({
     )
   }, [])
 
-  const flushPendingInteraction = useCallback(() => {
-    if (pointerInteractionActiveRef.current || isInputDragActiveRef.current()) {
-      return
-    }
-    pointerCoalescingRef.current = false
-    const recorded = flushEditorHistoryCommit(
-      historyStateRef.current,
-      snapshotRef.current,
-      maxSize
-    )
-    if (recorded) syncAvailability()
-  }, [maxSize, syncAvailability])
-
-  const scheduleInteractionFlush = useCallback(() => {
-    if (pointerFlushTimeoutRef.current !== null) {
-      clearTimeout(pointerFlushTimeoutRef.current)
-    }
-    pointerCoalescingRef.current = true
-    pointerFlushTimeoutRef.current = setTimeout(() => {
-      pointerFlushTimeoutRef.current = null
-      flushPendingInteraction()
-    }, 180)
-  }, [flushPendingInteraction])
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!canRecord) return
 
     if (isRestoringUndoRef.current) {
       isRestoringUndoRef.current = false
+      syncAvailability()
       return
     }
 
     if (
       isInputDragActiveRef.current() ||
       pointerInteractionActiveRef.current ||
-      pointerCoalescingRef.current ||
       historyStateRef.current.gestureActive ||
       historyStateRef.current.pendingCommit
     ) {
       updateEditorHistoryGesture(historyStateRef.current, snapshot)
-      if (pointerCoalescingRef.current) scheduleInteractionFlush()
+      syncAvailability()
       return
     }
 
@@ -113,16 +106,11 @@ export const useEditorHistory = ({
       maxSize
     )
     if (recorded) syncAvailability()
-  }, [canRecord, maxSize, scheduleInteractionFlush, snapshot, syncAvailability])
+  }, [canRecord, maxSize, snapshot, syncAvailability])
 
   useEffect(() => {
     const beginPointerInteraction = () => {
       pointerInteractionActiveRef.current = true
-      pointerCoalescingRef.current = false
-      if (pointerFlushTimeoutRef.current !== null) {
-        clearTimeout(pointerFlushTimeoutRef.current)
-        pointerFlushTimeoutRef.current = null
-      }
       beginEditorHistoryGesture(
         historyStateRef.current,
         snapshotRef.current,
@@ -131,44 +119,35 @@ export const useEditorHistory = ({
       syncAvailability()
     }
     const endPointerInteraction = () => {
+      if (!historyStateRef.current.gestureActive) return
       pointerInteractionActiveRef.current = false
       commitEditorHistoryGesture(historyStateRef.current, snapshotRef.current)
-      scheduleInteractionFlush()
+      flushEditorHistoryCommit(
+        historyStateRef.current,
+        snapshotRef.current,
+        maxSize
+      )
+      syncAvailability()
     }
     const cancelPointerInteraction = () => {
+      if (!historyStateRef.current.gestureActive) return
       pointerInteractionActiveRef.current = false
-      pointerCoalescingRef.current = false
-      if (pointerFlushTimeoutRef.current !== null) {
-        clearTimeout(pointerFlushTimeoutRef.current)
-        pointerFlushTimeoutRef.current = null
-      }
       const restored = cancelEditorHistoryGesture(historyStateRef.current)
       syncAvailability()
       if (restored) restoreSnapshot(restored)
     }
-    window.addEventListener("pointerdown", beginPointerInteraction, true)
-    window.addEventListener("pointerup", endPointerInteraction, true)
-    window.addEventListener("pointercancel", cancelPointerInteraction, true)
+    window.addEventListener(EDITOR_EDIT_BEGIN, beginPointerInteraction)
+    window.addEventListener(EDITOR_EDIT_END, endPointerInteraction)
+    window.addEventListener(EDITOR_EDIT_CANCEL, cancelPointerInteraction)
     return () => {
-      window.removeEventListener("pointerdown", beginPointerInteraction, true)
-      window.removeEventListener("pointerup", endPointerInteraction, true)
-      window.removeEventListener(
-        "pointercancel",
-        cancelPointerInteraction,
-        true
-      )
-      if (pointerFlushTimeoutRef.current !== null) {
-        clearTimeout(pointerFlushTimeoutRef.current)
-      }
+      window.removeEventListener(EDITOR_EDIT_BEGIN, beginPointerInteraction)
+      window.removeEventListener(EDITOR_EDIT_END, endPointerInteraction)
+      window.removeEventListener(EDITOR_EDIT_CANCEL, cancelPointerInteraction)
     }
-  }, [maxSize, restoreSnapshot, scheduleInteractionFlush, syncAvailability])
+  }, [maxSize, restoreSnapshot, syncAvailability])
 
   const undo = useCallback(() => {
-    if (pointerFlushTimeoutRef.current !== null) {
-      clearTimeout(pointerFlushTimeoutRef.current)
-      pointerFlushTimeoutRef.current = null
-    }
-    pointerCoalescingRef.current = false
+    pointerInteractionActiveRef.current = false
     const previous = undoEditorHistory(
       historyStateRef.current,
       snapshotRef.current,
@@ -179,11 +158,7 @@ export const useEditorHistory = ({
   }, [maxSize, restoreSnapshot, syncAvailability])
 
   const redo = useCallback(() => {
-    if (pointerFlushTimeoutRef.current !== null) {
-      clearTimeout(pointerFlushTimeoutRef.current)
-      pointerFlushTimeoutRef.current = null
-    }
-    pointerCoalescingRef.current = false
+    pointerInteractionActiveRef.current = false
     const next = redoEditorHistory(
       historyStateRef.current,
       snapshotRef.current,
@@ -197,11 +172,6 @@ export const useEditorHistory = ({
     (nextSnapshot: EditorSnapshot, expectStateChange = false) => {
       resetEditorHistoryState(historyStateRef.current, nextSnapshot)
       pointerInteractionActiveRef.current = false
-      pointerCoalescingRef.current = false
-      if (pointerFlushTimeoutRef.current !== null) {
-        clearTimeout(pointerFlushTimeoutRef.current)
-        pointerFlushTimeoutRef.current = null
-      }
       isRestoringUndoRef.current = expectStateChange
       syncAvailability()
     },

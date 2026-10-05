@@ -82,6 +82,7 @@ export function ColorGradientStopRows({
     let latest = 0
     setDrag({ from, offset: 0 })
     bindWindowPointerDrag({
+      documentEdit: true,
       pointerId: event.pointerId,
       onMove: (moveEvent) => {
         latest = moveEvent.clientY - startY

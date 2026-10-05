@@ -16,9 +16,9 @@ test("direct finish choices change the artwork and undo restores the selected fi
     .locator('[aria-label="Popular finishes"] button[aria-pressed="true"]')
     .getAttribute("aria-label")
   const chosenName =
-    originalFinish === "Use Metal finish"
-      ? "Use Glass finish"
-      : "Use Metal finish"
+    originalFinish === "Use Satin finish"
+      ? "Use Frost finish"
+      : "Use Satin finish"
   const metal = page.getByRole("button", {
     name: chosenName,
     exact: true,
@@ -185,9 +185,9 @@ for (const width of [320, 390]) {
         .getAttribute("aria-label")
       const changed = page.getByRole("button", {
         name:
-          originalFinish === "Use Glass finish"
-            ? "Use Metal finish"
-            : "Use Glass finish",
+          originalFinish === "Use Frost finish"
+            ? "Use Satin finish"
+            : "Use Frost finish",
         exact: true,
       })
       await changed.click()

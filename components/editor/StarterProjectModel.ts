@@ -24,3 +24,23 @@ export function createStarterEditorSnapshot(
     objectScaleAxes: { x: 1, y: 1, z: 1 },
   }
 }
+
+export function createImportedEditorSnapshot(
+  base: EditorSnapshot,
+  svgContent: string
+): EditorSnapshot {
+  const blank = createBlankEditorSnapshot(base)
+  return {
+    ...blank,
+    duration: 3,
+    shapes: [
+      {
+        ...createShapeStop(
+          { id: "custom", name: "Custom", svgContent, defaultTint: "#7c5cff" },
+          0
+        ),
+        transitionType: "cut",
+      },
+    ],
+  }
+}

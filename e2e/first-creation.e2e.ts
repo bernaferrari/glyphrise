@@ -49,9 +49,9 @@ for (const width of [390, 1280]) {
       await welcome
         .getByRole("button", { name: "Create with Star", exact: true })
         .click()
-      await expect(
-        page.getByLabel("File name", { exact: true })
-      ).toHaveValue("Star motion")
+      await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
+        "Star motion"
+      )
       const guide = page.getByRole("complementary", { name: "Your first icon" })
       await expect(guide).toBeVisible()
       await expect(
@@ -59,7 +59,7 @@ for (const width of [390, 1280]) {
       ).toBeFocused()
       await guide.getByRole("button", { name: "Style icon" }).click()
       await page
-        .getByRole("button", { name: "Use Metal finish", exact: true })
+        .getByRole("button", { name: "Use Satin finish", exact: true })
         .click()
       if (width < 720)
         await page.getByRole("button", { name: "Canvas", exact: true }).click()
@@ -88,18 +88,18 @@ for (const width of [390, 1280]) {
       expect(png.subarray(1, 4).toString()).toBe("PNG")
       expect(png.readUInt32BE(16)).toBe(128)
       expect(png.readUInt32BE(20)).toBe(128)
-      await expect(exporter.getByRole("status")).toContainText(
-        "Image downloaded"
-      )
+      await expect(
+        exporter.getByRole("status").filter({ hasText: "downloaded" })
+      ).toContainText("Image downloaded")
       await page.keyboard.press("Escape")
       await expect(
         guide.getByRole("heading", { name: "Your icon is ready." })
       ).toBeVisible()
       await page.reload()
       await expect(welcome).toHaveCount(0)
-      await expect(
-        page.getByLabel("File name", { exact: true })
-      ).toHaveValue("Star motion")
+      await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
+        "Star motion"
+      )
       if (width < 720)
         await page
           .getByRole("button", { name: "Properties", exact: true })
@@ -108,7 +108,7 @@ for (const width of [390, 1280]) {
         page.getByRole("button", { name: "Change icon for Star", exact: true })
       ).toBeVisible()
       await expect(
-        page.getByRole("button", { name: "Use Metal finish", exact: true })
+        page.getByRole("button", { name: "Use Satin finish", exact: true })
       ).toHaveAttribute("aria-pressed", "true")
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth)
@@ -146,9 +146,12 @@ test("records and downloads a short video, then offers a separate model export",
   let bytes = 0
   for await (const chunk of stream!) bytes += chunk.length
   expect(bytes).toBeGreaterThan(1000)
-  await expect(page.getByRole("dialog").getByRole("status")).toContainText(
-    "Video downloaded"
-  )
+  await expect(
+    page
+      .getByRole("dialog")
+      .getByRole("status")
+      .filter({ hasText: "downloaded" })
+  ).toContainText("Video downloaded")
   await page.getByRole("button", { name: "3D model GLB", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Download 3D model", exact: true })

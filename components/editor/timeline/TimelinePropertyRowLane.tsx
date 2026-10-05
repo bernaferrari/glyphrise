@@ -194,6 +194,7 @@ export function TimelinePropertyRowLane({
               let activeKeyframeId = keyframe.id
               keyframeDraggedRef.current = false
               bindWindowPointerDrag({
+                documentEdit: true,
                 pointerId,
                 onMove: (moveEvent) => {
                   const time = timeFromClientX(moveEvent.clientX, {

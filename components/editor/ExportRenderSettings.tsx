@@ -65,10 +65,14 @@ export function ExportRenderSettings({
         <Choice
           label="Background"
           value={settings.backgroundMode}
-          options={[
-            { value: "transparent", label: "Transparent" },
-            { value: "color", label: "Solid color" },
-          ]}
+          options={
+            video
+              ? [{ value: "color", label: "Solid color" }]
+              : [
+                  { value: "transparent", label: "Transparent" },
+                  { value: "color", label: "Solid color" },
+                ]
+          }
           onChange={(backgroundMode) => onChange({ backgroundMode })}
         />
         {settings.backgroundMode === "color" && (
@@ -85,6 +89,11 @@ export function ExportRenderSettings({
           </label>
         )}
       </div>
+      {video && (
+        <p className="text-xs text-muted-foreground">
+          Video uses a solid background. Choose PNG for transparency.
+        </p>
+      )}
       {video && (
         <Choice
           label="Video format"

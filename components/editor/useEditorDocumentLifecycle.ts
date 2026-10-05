@@ -106,6 +106,7 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
       canUndo: historySurface.canUndo,
       canRedo: historySurface.canRedo,
     },
+    documentSnapshot: historySurface.snapshot,
     projectFiles: {
       newProject: historySurface.newProject,
       openProjectFile: historySurface.openProjectFile,

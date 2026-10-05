@@ -12,6 +12,9 @@ import {
 import {
   flushAutosaveIfAllowed,
   persistCurrentProjectDeletion,
+  repairPendingProjectDeletion,
+  persistInactiveProjectDeletion,
+  PENDING_DELETION_KEY,
   readRestoredEditorDocument,
 } from "./EditorProjectActivation"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
@@ -180,12 +183,17 @@ describe("persistCurrentProjectDeletion", () => {
     const baseline = createMemoryStorage()
     const seeded = seedTwoProjects(baseline)
 
-    const indexFailStore = failingStore(baseline, { failOnWrite: 3 })
+    const indexFailStore = failingStore(baseline, { failOnWrite: 4 })
     const afterIndexFailure = persistCurrentProjectDeletion({
       deleting: seeded.current.project,
       replacement: seeded.replacement,
       store: indexFailStore,
     })
+    expect(afterIndexFailure.cleanupComplete).toBe(false)
+    expect(repairPendingProjectDeletion(indexFailStore)).toBe(true)
+    expect(
+      readPersistedEditorProject(seeded.current.project.id, indexFailStore)
+    ).toBeNull()
     expect(afterIndexFailure.project.id).toBe(seeded.replacement.project.id)
     expect(afterIndexFailure.blockedAutosaveIds).toContain(
       seeded.current.project.id
@@ -211,6 +219,11 @@ describe("persistCurrentProjectDeletion", () => {
       replacement: seeded.replacement,
       store: removeFailStore,
     })
+    expect(afterRemoveFailure.cleanupComplete).toBe(false)
+    expect(repairPendingProjectDeletion(removeFailStore)).toBe(true)
+    expect(
+      readPersistedEditorProject(seeded.current.project.id, removeFailStore)
+    ).toBeNull()
     expect(
       flushAutosaveIfAllowed(
         seeded.current.snapshot,
@@ -222,6 +235,42 @@ describe("persistCurrentProjectDeletion", () => {
     expect(readCurrentEditorProjectId(removeFailStore)).toBe(
       seeded.replacement.project.id
     )
+  })
+
+  it("journals inactive-project cleanup failures and retries them safely", () => {
+    const baseline = createMemoryStorage()
+    const seeded = seedTwoProjects(baseline)
+    const store = failingStore(baseline, { failOnRemove: 1 })
+    const result = persistInactiveProjectDeletion(
+      seeded.replacement.project.id,
+      store
+    )
+    expect(result.cleanupComplete).toBe(false)
+    expect(store.getItem(PENDING_DELETION_KEY)).not.toBeNull()
+    expect(readCurrentEditorProjectId(store)).toBe(seeded.current.project.id)
+    expect(repairPendingProjectDeletion(store)).toBe(true)
+    expect(store.getItem(PENDING_DELETION_KEY)).toBeNull()
+    expect(
+      readPersistedEditorProject(seeded.replacement.project.id, store)
+    ).toBeNull()
+  })
+
+  it("preserves the old document if switching identity fails after journaling", () => {
+    const baseline = createMemoryStorage()
+    const seeded = seedTwoProjects(baseline)
+    const store = failingStore(baseline, { failOnWrite: 3 })
+    expect(() =>
+      persistCurrentProjectDeletion({
+        deleting: seeded.current.project,
+        replacement: seeded.replacement,
+        store,
+      })
+    ).toThrow()
+    expect(repairPendingProjectDeletion(store)).toBe(true)
+    expect(readCurrentEditorProjectId(store)).toBe(seeded.current.project.id)
+    expect(
+      readPersistedEditorProject(seeded.current.project.id, store)?.snapshot
+    ).toEqual(seeded.current.snapshot)
   })
 
   it("reloads the replacement after a successful delete, not the deleted project", () => {

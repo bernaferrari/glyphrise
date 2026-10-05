@@ -32,6 +32,10 @@ import type { ExportRenderOptions } from "./SvgTypes"
 type NullableRef<T> = MutableRefObject<T | null>
 
 type UseSvgRenderLoopOptions = {
+  exportCaptureRef: MutableRefObject<{
+    onFrame: () => void
+    onCancel: () => void
+  } | null>
   cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
   sceneRef: NullableRef<THREE.Scene>
   rendererRef: NullableRef<THREE.WebGLRenderer>
@@ -60,6 +64,7 @@ type UseSvgRenderLoopOptions = {
 }
 
 export function useSvgRenderLoop({
+  exportCaptureRef,
   cameraOrbitRef,
   sceneRef,
   rendererRef,
@@ -225,6 +230,10 @@ export function useSvgRenderLoop({
           ? null
           : transformGizmoGroupRef.current,
       })
+      // Copy pixels before the browser clears the WebGL drawing buffer.
+      const capture = exportCaptureRef.current
+      exportCaptureRef.current = null
+      capture?.onFrame()
       const shouldRenderContinuously = shouldContinueSvgRenderLoop({
         isPlaying: liveProps.isPlaying,
         isExporting: Boolean(exportRenderOptions),
@@ -251,12 +260,15 @@ export function useSvgRenderLoop({
 
     return () => {
       disposed = true
+      exportCaptureRef.current?.onCancel()
+      exportCaptureRef.current = null
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       requestRenderRef.current = () => undefined
       if (animFrameId !== null) cancelAnimationFrame(animFrameId)
       animFrameId = null
     }
   }, [
+    exportCaptureRef,
     cameraOrbitRef,
     cameraRef,
     centerMarkerRef,

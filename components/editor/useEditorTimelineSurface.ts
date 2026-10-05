@@ -228,7 +228,11 @@ export function useEditorTimelineSurface({
     onActivePropertyRowChange: selectTimelinePropertyRow,
     shapes,
     selectedShapeId,
-    onSelectShape: setSelectedShapeId,
+    onSelectShape: (id) => {
+      setSelectedShapeId(id)
+      const shape = shapes.find((candidate) => candidate.id === id)
+      if (shape) seekToTime(shape.time, { animated: false })
+    },
     onShapesChange: setShapes,
     onAddShape: addShapeAtPlayhead,
     onRemoveShape: removeShape,

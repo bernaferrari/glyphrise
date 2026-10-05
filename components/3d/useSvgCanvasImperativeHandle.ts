@@ -3,9 +3,11 @@
 import {
   ForwardedRef,
   MutableRefObject,
+  useRef,
   RefObject,
   useImperativeHandle,
 } from "react"
+import { flushSync } from "react-dom"
 import * as THREE from "three"
 import { applySvgModelScale } from "./SvgSceneUtils"
 import { animateSvgViewReset } from "./SvgViewReset"
@@ -25,6 +27,11 @@ type CanvasRecorder = {
 }
 
 type SvgCanvasImperativeHandleOptions = {
+  exportCaptureRef: MutableRefObject<{
+    onFrame: () => void
+    onCancel: () => void
+  } | null>
+  setExportFrameProps: (props: SvgCanvasProps | null) => void
   ref: ForwardedRef<SvgCanvasRef>
   props: SvgCanvasProps
   canvasRef: RefObject<HTMLCanvasElement | null>
@@ -49,7 +56,9 @@ type SvgCanvasImperativeHandleOptions = {
 }
 
 export function useSvgCanvasImperativeHandle({
+  exportCaptureRef,
   ref,
+  setExportFrameProps,
   props,
   canvasRef,
   rendererRef,
@@ -71,6 +80,33 @@ export function useSvgCanvasImperativeHandle({
   onViewRotationSet,
   cameraOrbitRef,
 }: SvgCanvasImperativeHandleOptions) {
+  const capturedCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const captureRenderedFrame = () =>
+    new Promise<HTMLCanvasElement>((resolve, reject) => {
+      exportCaptureRef.current?.onCancel()
+      exportCaptureRef.current = {
+        onCancel: () => reject(new Error("Render capture was canceled.")),
+        onFrame: () => {
+          try {
+            const canvas = canvasRef.current
+            if (!canvas) throw new Error("The export canvas is not ready.")
+            const captured =
+              capturedCanvasRef.current ?? document.createElement("canvas")
+            capturedCanvasRef.current = captured
+            captured.width = canvas.width
+            captured.height = canvas.height
+            const context = captured.getContext("2d")
+            if (!context)
+              throw new Error("The browser could not capture this frame.")
+            context.drawImage(canvas, 0, 0)
+            resolve(captured)
+          } catch (error) {
+            reject(error)
+          }
+        },
+      }
+      requestRenderRef.current()
+    })
   const prepareExportRender = (options: ExportRenderOptions) => {
     const renderer = rendererRef.current
     const camera = cameraRef.current
@@ -107,8 +143,11 @@ export function useSvgCanvasImperativeHandle({
   }
 
   const restorePreviewRender = () => {
+    exportCaptureRef.current?.onCancel()
+    exportCaptureRef.current = null
     const renderer = rendererRef.current
     const camera = cameraRef.current
+    setExportFrameProps(null)
     const snapshot = exportRenderSnapshotRef.current
     exportRenderOptionsRef.current = null
     exportRenderSnapshotRef.current = null
@@ -141,15 +180,11 @@ export function useSvgCanvasImperativeHandle({
     async exportPng(options: ExportRenderOptions) {
       prepareExportRender(options)
       try {
-        await new Promise<void>((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-        )
-        const canvas = canvasRef.current
-        if (!canvas) throw new Error("The 3D preview canvas is not ready.")
+        const canvas = await captureRenderedFrame()
         return await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob(
             (blob) =>
-              blob
+              blob && blob.size > 0
                 ? resolve(blob)
                 : reject(new Error("The browser could not create the PNG.")),
             "image/png"
@@ -160,6 +195,10 @@ export function useSvgCanvasImperativeHandle({
       }
     },
 
+    async renderExportFrame(frameProps: SvgCanvasProps) {
+      flushSync(() => setExportFrameProps(frameProps))
+      return captureRenderedFrame()
+    },
     prepareExportRender,
     restorePreviewRender,
 

@@ -181,6 +181,7 @@ export const startTransformPointerDrag = ({
   onStart(handle)
   onMove(event)
   bindWindowPointerDrag({
+    documentEdit: true,
     onMove,
     onEnd: () => {
       document.body.style.cursor = ""

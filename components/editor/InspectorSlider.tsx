@@ -1,5 +1,7 @@
 "use client"
 
+import { flushSync } from "react-dom"
+import { beginDocumentEdit, endDocumentEdit } from "@/lib/editor-transactions"
 import {
   clampInspectorValue,
   useRafNumberChange,
@@ -93,9 +95,20 @@ export function InspectorSlider({
           aria-label={`${ariaLabel} slider`}
           aria-valuetext={value.toFixed(precision)}
           onChange={(event) => schedule(Number(event.currentTarget.value))}
-          onPointerUp={flush}
+          onPointerDown={beginDocumentEdit}
+          onPointerUp={() => {
+            flushSync(flush)
+            endDocumentEdit()
+          }}
+          onPointerCancel={() => {
+            flushSync(flush)
+            endDocumentEdit(true)
+          }}
           onKeyUp={flush}
-          onBlur={flush}
+          onBlur={() => {
+            flushSync(flush)
+            endDocumentEdit()
+          }}
           className="absolute inset-0 h-full w-full cursor-ew-resize touch-none appearance-none opacity-0 [&::-moz-range-thumb]:size-6 [&::-webkit-slider-thumb]:size-6 [&::-webkit-slider-thumb]:appearance-none"
         />
       </label>

@@ -15,11 +15,13 @@ import { ALL_LAYERS_ID } from "./SvgLayerModel"
 import type { AppLayoutViewProps } from "./AppLayoutView"
 import { clampTimelineDuration } from "./TimelineDurationModel"
 import { createAnimationPreset } from "./AnimationPresetModel"
+import { evaluateExportFrame } from "./ExportFrameModel"
 import { useCreationJourney } from "./useCreationJourney"
 
 export function useAppLayoutController(): AppLayoutViewProps {
   const editor = useEditorBaseState()
   const {
+    documentSnapshot,
     projectFiles: {
       newProject,
       openProjectFile,
@@ -495,8 +497,22 @@ export function useAppLayoutController(): AppLayoutViewProps {
   } = useEditorExportSurface({
     selectedShapeId,
     setShapes,
+    previewKey: JSON.stringify([
+      documentSnapshot,
+      currentTime,
+      wireframe,
+      ambientColor,
+      rimLightColor,
+    ]),
     canvasRef: canvas3DRef,
-    exportTimelineVideo,
+    exportTimelineVideo: (settings) => {
+      cancelAnimatedSeek()
+      const frozenDocument = structuredClone(documentSnapshot)
+      const studio = { ...canvasProps }
+      return exportTimelineVideo(settings, (time) =>
+        evaluateExportFrame(frozenDocument, time, studio)
+      )
+    },
     stopVideoExportRecording,
     cancelVideoExport,
     isVideoExporting,
@@ -554,7 +570,11 @@ export function useAppLayoutController(): AppLayoutViewProps {
     togglePlayback: handlePlayToggle,
     hasStyle: sessionStyleChanged,
     hasMotion: sessionMotionAdded && keyframeCount > 0,
-    onExport: openExport,
+    onExport: () => {
+      cancelAnimatedSeek()
+      stopPlayback()
+      openExport()
+    },
   })
 
   const {
@@ -821,8 +841,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
     })
 
   return {
-    onCreateStarter: (iconId, name) => {
-      if (!createNewProject("blank", name, iconId)) return false
+    onCreateStarter: (iconId, name, svgContent) => {
+      if (!createNewProject("blank", name, iconId, svgContent)) return false
       setAutoKeyEnabled(false)
       return true
     },

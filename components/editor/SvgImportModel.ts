@@ -110,12 +110,95 @@ const parseAttributes = (source: string) => {
   return attributes
 }
 
+// Normalize non-rendering export markup before checking the supported drawing
+// subset. References and active content remain forbidden after normalization.
+const normalizeStaticSvg = (source: string) => {
+  const withoutComments = source.replace(/<!--[^]*?-->/g, "")
+  if (/<\s*!(?!\s*--)/.test(withoutComments)) {
+    throw new SvgImportError(
+      "SVG document types and entity declarations are not supported."
+    )
+  }
+  const clean = withoutComments
+    .replace(/^\s*<\?xml\s+[^?]*\?>/i, "")
+    .replace(/<(metadata|title|desc)\b[^>]*>[^]*?<\/\1\s*>/gi, "")
+    .replace(/<(metadata|title|desc|sodipodi:namedview)\b[^>]*\/\s*>/gi, "")
+    .replace(/<defs\s*(?:\/\s*>|>\s*<\/defs\s*>)/gi, "")
+  return clean
+    .replace(
+      /<\s*([A-Za-z][\w:-]*)([^>]*)>/g,
+      (original, tag: string, attributeSource: string) => {
+        const attributes = parseAttributes(attributeSource)
+        let changed = false
+        for (const name of attributes.keys()) {
+          if (
+            name.startsWith("xmlns:") ||
+            name.startsWith("inkscape:") ||
+            name.startsWith("sodipodi:") ||
+            (name.startsWith("data-") &&
+              name !== "data-glyphrise-slash" &&
+              name !== "data-name") ||
+            [
+              "version",
+              "class",
+              "aria-label",
+              "aria-labelledby",
+              "role",
+              "xml:space",
+              "enable-background",
+            ].includes(name)
+          ) {
+            attributes.delete(name)
+            changed = true
+          }
+        }
+        const style = attributes.get("style")
+        if (style !== undefined) {
+          changed = true
+          attributes.delete("style")
+          for (const declaration of style.split(";")) {
+            if (!declaration.trim()) continue
+            const colon = declaration.indexOf(":")
+            const property = declaration.slice(0, colon).trim().toLowerCase()
+            const value = declaration.slice(colon + 1).trim()
+            if (
+              colon < 0 ||
+              !ALLOWED_SVG_ATTRIBUTES.has(property) ||
+              !/^(fill|stroke|opacity)/.test(property) ||
+              /[<>&"']|url\s*\(|expression|!important/i.test(value)
+            ) {
+              throw new SvgImportError(
+                "This SVG contains an unsupported or unsafe style. Export presentation attributes or paths instead."
+              )
+            }
+            // Inline style takes precedence over presentation attributes in SVG.
+            attributes.set(property, value)
+          }
+        }
+        if (!changed) return original
+        const names: Record<string, string> = {
+          viewbox: "viewBox",
+          preserveaspectratio: "preserveAspectRatio",
+        }
+        return `<${tag}${[...attributes]
+          .map(([name, value]) => {
+            if (/[<>&"']/.test(value))
+              throw new SvgImportError("Unsupported XML attribute value.")
+            return ` ${names[name] ?? name}="${value}"`
+          })
+          .join("")}${/\/\s*$/.test(attributeSource) ? "/" : ""}>`
+      }
+    )
+    .trim()
+}
+
 export const validateAndSanitizeSvg = (source: string) => {
-  const svg = source.trim()
+  let svg = source.trim()
   if (!svg) throw new SvgImportError("Choose an SVG file that is not empty.")
   if (svgByteLength(svg) > MAX_SVG_BYTES) {
     throw new SvgImportError("This SVG is larger than the 1 MB import limit.")
   }
+  svg = normalizeStaticSvg(svg)
   const unsupportedConstruct = svg.match(
     /<\s*(text|image|use|defs|mask|clipPath|filter|symbol)\b/i
   )

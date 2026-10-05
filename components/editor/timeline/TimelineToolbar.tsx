@@ -105,7 +105,7 @@ export function TimelineToolbar({
       {playback && (
         <Button
           variant="ghost"
-          size="icon-narrow"
+          size={compactMode ? "icon-touch" : "icon-narrow"}
           type="button"
           aria-label={
             playback.isPlaying

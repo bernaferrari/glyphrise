@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Box,
   Check,
@@ -29,7 +29,7 @@ type Props = {
   videoExportCanceled: boolean
   settings: ExportSettings
   supportedVideoContainers: VideoContainer[]
-  artwork?: { svgContent: string; label: string; color: string }
+  onCapturePreview: (settings: ExportSettings) => Promise<Blob>
   onSettingsChange: (patch: Partial<ExportSettings>) => void
   onExportGltf: () => void
   onExportPng: () => void
@@ -50,14 +50,57 @@ const CHECKERBOARD =
 function OutputPreview({
   format,
   settings,
-  artwork,
+  onCapturePreview,
+  busy,
   durationSeconds,
 }: {
   format: "image" | "video" | "model"
   settings: ExportSettings
-  artwork?: Props["artwork"]
+  busy: boolean
+  onCapturePreview: Props["onCapturePreview"]
   durationSeconds: number
 }) {
+  const [preview, setPreview] = useState<{ url: string; key: string } | null>(
+    null
+  )
+  const [previewError, setPreviewError] = useState(false)
+  const key = JSON.stringify([
+    settings.width,
+    settings.height,
+    settings.backgroundMode,
+    settings.backgroundColor,
+  ])
+  useEffect(() => {
+    if (
+      format === "model" ||
+      busy ||
+      settings.width < 64 ||
+      settings.height < 64 ||
+      settings.width > 4096 ||
+      settings.height > 4096
+    )
+      return
+    let canceled = false
+    let url: string | null = null
+    setPreviewError(false)
+    const timer = window.setTimeout(() => {
+      void onCapturePreview(settings)
+        .then((blob) => {
+          if (canceled) return
+          url = URL.createObjectURL(blob)
+          setPreview({ url, key })
+        })
+        .catch(() => {
+          if (!canceled) setPreviewError(true)
+        })
+    }, 120)
+    return () => {
+      canceled = true
+      clearTimeout(timer)
+      if (url) URL.revokeObjectURL(url)
+    }
+  }, [key, onCapturePreview, format === "model", busy])
+  const ready = preview?.key === key && !previewError
   const ratio =
     Number.isFinite(settings.width / settings.height) && settings.height > 0
       ? settings.width / settings.height
@@ -80,7 +123,6 @@ function OutputPreview({
           </div>
         ) : (
           <div
-            aria-hidden="true"
             className="[container-type:size] grid place-items-center overflow-hidden rounded-md shadow-[0_0_0_1px_var(--border),0_8px_24px_-12px_rgba(0,0,0,0.5)] transition-[width,height] duration-200"
             style={{
               width: `${width}%`,
@@ -91,12 +133,21 @@ function OutputPreview({
                   : CHECKERBOARD,
             }}
           >
-            {artwork && (
-              <span
-                className="grid aspect-square w-[min(50cqw,50cqh)] place-items-center [&_svg]:size-full [&_svg_*]:fill-current"
-                style={{ color: artwork.color }}
-                dangerouslySetInnerHTML={{ __html: artwork.svgContent }}
+            {ready ? (
+              <img
+                src={preview.url}
+                alt="Rendered export frame"
+                className="size-full object-contain"
               />
+            ) : (
+              <span
+                role="status"
+                className="px-3 text-center text-xs text-muted-foreground"
+              >
+                {previewError
+                  ? "Preview unavailable. Try downloading again."
+                  : "Rendering preview…"}
+              </span>
             )}
           </div>
         )}
@@ -145,7 +196,8 @@ export function ExportAssetOptions(props: Props) {
       <OutputPreview
         format={format}
         settings={props.settings}
-        artwork={props.artwork}
+        onCapturePreview={props.onCapturePreview}
+        busy={busy}
         durationSeconds={props.durationSeconds}
       />
 
@@ -164,7 +216,11 @@ export function ExportAssetOptions(props: Props) {
                   aria-label={`${name} ${detail}`}
                   aria-pressed={format === id}
                   disabled={busy}
-                  onClick={() => setFormat(id)}
+                  onClick={() => {
+                    if (id === "video")
+                      props.onSettingsChange({ backgroundMode: "color" })
+                    setFormat(id)
+                  }}
                   className="flex h-9 items-center justify-center gap-1.5 rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
                 >
                   <Icon aria-hidden="true" className="size-3.5" />
@@ -176,7 +232,7 @@ export function ExportAssetOptions(props: Props) {
               {format === "image"
                 ? "A still of the current frame, colors and finish intact."
                 : format === "video"
-                  ? "The whole animation, exactly as rendered. Keep this window open while it records."
+                  ? "The whole animation at the selected frame rate. The preview shows this frame; keep this window open during export."
                   : "An editable 3D file with supported motion. Some gradients and finishes are simplified; icon transitions are left out."}
             </p>
           </div>

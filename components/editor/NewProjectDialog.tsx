@@ -118,77 +118,6 @@ function NewProjectDialogContent({
           </p>
         ) : null}
 
-        <form
-          className="grid gap-3"
-          aria-labelledby="new-project-title"
-          onSubmit={(event) => {
-            event.preventDefault()
-            onCreate("blank", name)
-          }}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h3
-              id="new-project-title"
-              className="text-xs font-medium text-muted-foreground"
-            >
-              New file
-            </h3>
-            <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
-              <span className="sr-only">New file name</span>
-              <input
-                id="new-project-name"
-                aria-label="New file name"
-                value={name}
-                maxLength={80}
-                autoComplete="off"
-                spellCheck={false}
-                data-1p-ignore
-                data-lpignore="true"
-                onChange={(event) => setName(event.currentTarget.value)}
-                className="h-8 w-48 min-w-0 rounded-md bg-muted/60 px-2.5 text-xs text-foreground transition-[background-color,box-shadow] outline-none placeholder:text-muted-foreground hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring/35"
-              />
-            </label>
-          </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
-            <StartTile
-              type="submit"
-              label="Start blank"
-              hint="Empty canvas"
-              preview={
-                <span className="grid size-full place-items-center rounded-lg border border-dashed border-foreground/20 text-muted-foreground">
-                  <FilePlus2 className="size-5" />
-                </span>
-              }
-            />
-            <StartTile
-              label="Use example"
-              hint="Animated pair"
-              onClick={() => onCreate("example", name)}
-              preview={
-                <span className="grid size-full place-items-center rounded-lg bg-muted text-muted-foreground">
-                  <Sparkles className="size-5" />
-                </span>
-              }
-            />
-            {templates.map((template) => (
-              <StartTile
-                key={template.id}
-                label={template.name}
-                hint={template.description}
-                onClick={() => onCreateFromTemplate(template.id, name)}
-                preview={
-                  <span className="grid size-full place-items-center rounded-lg bg-muted/60">
-                    <span
-                      className="size-9 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
-                      style={{ background: template.preview }}
-                    />
-                  </span>
-                }
-              />
-            ))}
-          </div>
-        </form>
-
         {recentProjects.length > 0 ? (
           <section
             className="grid gap-2"
@@ -298,6 +227,31 @@ function NewProjectDialogContent({
             </div>
           </section>
         ) : null}
+        {recentProjects.length > 0 ? (
+          <details className="group">
+            <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
+              <FilePlus2 className="size-4" />
+              Create a new file
+            </summary>
+            <div className="pt-3">
+              <NewProjectForm
+                name={name}
+                setName={setName}
+                templates={templates}
+                onCreate={onCreate}
+                onCreateFromTemplate={onCreateFromTemplate}
+              />
+            </div>
+          </details>
+        ) : (
+          <NewProjectForm
+            name={name}
+            setName={setName}
+            templates={templates}
+            onCreate={onCreate}
+            onCreateFromTemplate={onCreateFromTemplate}
+          />
+        )}
       </div>
 
       <DialogFooter className="m-0 shrink-0 flex-row items-center justify-between gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:justify-between">
@@ -353,6 +307,93 @@ function NewProjectDialogContent({
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+function NewProjectForm({
+  name,
+  setName,
+  templates,
+  onCreate,
+  onCreateFromTemplate,
+}: Pick<
+  NewProjectDialogProps,
+  "templates" | "onCreate" | "onCreateFromTemplate"
+> & {
+  name: string
+  setName: (name: string) => void
+}) {
+  return (
+    <form
+      className="grid gap-3"
+      aria-labelledby="new-project-title"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onCreate("blank", name)
+      }}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h3
+          id="new-project-title"
+          className="text-xs font-medium text-muted-foreground"
+        >
+          New file
+        </h3>
+        <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
+          <span className="sr-only">New file name</span>
+          <input
+            id="new-project-name"
+            aria-label="New file name"
+            value={name}
+            maxLength={80}
+            autoComplete="off"
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
+            onChange={(event) => setName(event.currentTarget.value)}
+            className="h-8 w-48 min-w-0 rounded-md bg-muted/60 px-2.5 text-xs text-foreground transition-[background-color,box-shadow] outline-none placeholder:text-muted-foreground hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring/35"
+          />
+        </label>
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
+        <StartTile
+          type="submit"
+          label="Start blank"
+          hint="Empty canvas"
+          preview={
+            <span className="grid size-full place-items-center rounded-lg border border-dashed border-foreground/20 text-muted-foreground">
+              <FilePlus2 className="size-5" />
+            </span>
+          }
+        />
+        <StartTile
+          label="Use example"
+          hint="Animated pair"
+          onClick={() => onCreate("example", name)}
+          preview={
+            <span className="grid size-full place-items-center rounded-lg bg-muted text-muted-foreground">
+              <Sparkles className="size-5" />
+            </span>
+          }
+        />
+        {templates.map((template) => (
+          <StartTile
+            key={template.id}
+            label={template.name}
+            hint={template.description}
+            onClick={() => onCreateFromTemplate(template.id, name)}
+            preview={
+              <span className="grid size-full place-items-center rounded-lg bg-muted/60">
+                <span
+                  className="size-9 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
+                  style={{ background: template.preview }}
+                />
+              </span>
+            }
+          />
+        ))}
+      </div>
+    </form>
   )
 }
 

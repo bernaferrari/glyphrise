@@ -66,6 +66,7 @@ export function LightDirectionPicker({
     e.preventDefault()
     setFromPointer(e.clientX, e.clientY)
     bindWindowPointerDrag({
+      documentEdit: true,
       onMove: (ev) => setFromPointer(ev.clientX, ev.clientY),
     })
   }

@@ -36,6 +36,32 @@ describe("SvgImportModel", () => {
     ).toThrow(/no supported paths/i)
   })
 
+  it("normalizes Illustrator/Inkscape metadata and static presentation styles", () => {
+    const exported = `<?xml version="1.0" encoding="UTF-8"?>
+      <!-- Exported icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" viewBox="0 0 24 24">
+        <title>Logo &amp; mark</title><desc>A logo</desc>
+        <metadata><rdf:RDF xmlns:rdf="http://example.com"><rdf:Description/></rdf:RDF></metadata>
+        <g inkscape:label="Layer 1" data-editor="test"><path style="fill: #ff4400; stroke: none; fill-rule: evenodd" d="M0 0h10v10H0z"/></g>
+      </svg>`
+    const normalized = validateAndSanitizeSvg(exported)
+    expect(normalized).not.toMatch(/<\?|<!--|metadata|title|inkscape|style=/)
+    expect(normalized).toContain('fill="#ff4400"')
+    expect(normalized).toContain('fill-rule="evenodd"')
+    expect(validateAndSanitizeSvg(normalized)).toBe(normalized)
+  })
+
+  it.each([
+    '<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg><path d="M0 0h1v1z"/></svg>',
+    '<svg><path style="fill:url(#x)" d="M0 0h1v1z"/></svg>',
+    '<svg><path style="position:absolute" d="M0 0h1v1z"/></svg>',
+  ])(
+    "still rejects unsafe XML and unsupported styles during normalization",
+    (svg) => {
+      expect(() => validateAndSanitizeSvg(svg)).toThrow()
+    }
+  )
+
   it("caps file complexity and byte size", () => {
     const tooManyPaths = `<svg>${`<path d="M0 0h1v1z"/>`.repeat(1_001)}</svg>`
     const tooLarge = `<svg><path d="${"M0 0 ".repeat(200_000)}"/></svg>`

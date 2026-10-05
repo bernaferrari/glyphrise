@@ -30,7 +30,11 @@ const LazyAnimateDialog = dynamic(
 )
 
 export type AppLayoutViewProps = {
-  onCreateStarter: (iconId: string, name: string) => boolean
+  onCreateStarter: (
+    iconId: string,
+    name: string,
+    svgContent?: string
+  ) => boolean
   animationProps: Pick<
     AnimateDialogProps,
     "duration" | "onApply" | "existingKeyframes"
@@ -423,7 +427,7 @@ export function AppLayoutView({
         currentProjectName={
           manualWelcomeOpen ? topBarProps.projectName : undefined
         }
-        onCreate={(iconId, name) => {
+        onCreate={(iconId, name, svgContent) => {
           const previous =
             manualWelcomeOpen && newProjectDialogProps.currentProjectId
               ? {
@@ -431,7 +435,7 @@ export function AppLayoutView({
                   name: topBarProps.projectName,
                 }
               : null
-          if (!onCreateStarter(iconId, name)) return false
+          if (!onCreateStarter(iconId, name, svgContent)) return false
           setReturnTo(previous)
           dismissWelcome()
           setStartJourney(true)

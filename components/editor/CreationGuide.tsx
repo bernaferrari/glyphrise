@@ -47,7 +47,7 @@ export function CreationGuide({
       : {
           title: hasStyle ? "Now, bring it to life." : "Make it yours.",
           copy: hasStyle
-            ? "Choose a movement to go with your new look."
+            ? "Add motion, or download your finished look as a still image."
             : "Try a finish, or jump straight into Spin, Tilt, and Pulse.",
           action: "Choose a motion",
           onClick: onAnimate,
@@ -102,6 +102,15 @@ export function CreationGuide({
           </button>
         )}
       </div>
+      {!hasMotion && !completed && (
+        <button
+          type="button"
+          onClick={onExport}
+          className="mt-1 min-h-11 rounded-lg px-2 text-xs text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+        >
+          Export a still image
+        </button>
+      )}
     </aside>
   )
 }

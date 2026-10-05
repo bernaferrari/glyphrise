@@ -27,6 +27,7 @@ test("creates a named blank project without example animation", async ({
   page,
 }) => {
   await openProjects(page)
+  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
@@ -48,6 +49,7 @@ test("restores the saved file before creating its 3D scene", async ({
   page,
 }) => {
   await openProjects(page)
+  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Restored file")
   await page.getByRole("button", { name: "Start blank" }).click()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -139,6 +141,7 @@ test("duplicates projects and recovers after deleting the current project", asyn
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
+    await page.getByText("Create a new file", { exact: true }).click()
     await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
     await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -179,6 +182,7 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
+    await page.getByText("Create a new file", { exact: true }).click()
     await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
     await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -195,7 +199,7 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
   await expect(page.getByLabel("Search files")).toBeVisible()
   await expect(
     page.getByRole("button", {
-      name: /^Open (Oldest saved project|Project \d+)(, current project)?$/,
+      name: /^Open (Oldest saved project|Project \d+)(, open now)?$/,
     })
   ).toHaveCount(12)
 
@@ -230,6 +234,7 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
 
 test("starts style templates with a clean undo baseline", async ({ page }) => {
   await openProjects(page)
+  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Styled project")
   await page.getByRole("button", { name: "Spectrum Chrome" }).click()
 
@@ -361,6 +366,7 @@ test("resets artwork rotation, position, and scale together with undo", async ({
   page,
 }) => {
   await openProjects(page)
+  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Reset transforms")
   await page.getByRole("button", { name: "Start blank" }).click()
   const rotation = page.getByLabel("Rotation Y", { exact: true })

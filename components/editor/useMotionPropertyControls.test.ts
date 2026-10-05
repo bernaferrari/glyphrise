@@ -45,6 +45,7 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
       current: {
         exportGltf: vi.fn(async () => {}),
         exportPng: vi.fn(async () => new Blob()),
+        renderExportFrame: vi.fn(),
         prepareExportRender: vi.fn(),
         restorePreviewRender: vi.fn(),
         startRecording: vi.fn(),

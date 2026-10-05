@@ -88,6 +88,10 @@ export const persistProjectActivation = (
   request: ProjectActivationRequest
 ): ProjectActivationResult => {
   const store = request.store ?? defaultStore()
+  if (!repairPendingProjectDeletion(store))
+    throw new Error(
+      "Deletion cleanup is incomplete. Reopen Files to retry before switching projects."
+    )
   const preserveOutgoing = request.preserveOutgoing !== false
   const incomingId = request.incomingProject.id
 
@@ -220,6 +224,63 @@ export const flushAutosaveIfAllowed = (
   }
 }
 
+export const PENDING_DELETION_KEY = "glyphrise.pending-deletion"
+
+// The journal is written before changing identity. Repair only deletes the old
+// document after the replacement became current, so an interrupted activation
+// cannot destroy the project the user still has open.
+export const repairPendingProjectDeletion = (
+  store: EditorProjectStore = defaultStore()
+) => {
+  try {
+    const raw = store.getItem(PENDING_DELETION_KEY)
+    if (!raw) return true
+    const { deletingId, replacementId } = JSON.parse(raw) as {
+      deletingId: string
+      replacementId: string
+    }
+    if (!deletingId || !replacementId || deletingId === replacementId)
+      return false
+    if (readCurrentEditorProjectId(store) !== replacementId) {
+      store.removeItem(PENDING_DELETION_KEY)
+      return true
+    }
+    const replacement = readPersistedEditorProject(replacementId, store)
+    if (!replacement) return false
+    const remaining = listPersistedEditorProjects(store).filter(
+      (p) => p.id !== deletingId && p.id !== replacementId
+    )
+    store.setItem(
+      EDITOR_RECENT_PROJECTS_KEY,
+      JSON.stringify([replacement.project, ...remaining])
+    )
+    store.removeItem(editorProjectStorageKey(deletingId))
+    store.removeItem(PENDING_DELETION_KEY)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export const persistInactiveProjectDeletion = (
+  projectId: string,
+  store: EditorProjectStore = defaultStore()
+) => {
+  if (!repairPendingProjectDeletion(store))
+    throw new Error("Deletion cleanup is incomplete. Reopen Files to retry.")
+  const replacementId = readCurrentEditorProjectId(store)
+  if (!replacementId || replacementId === projectId)
+    throw new Error("Open a replacement project before deleting this file.")
+  store.setItem(
+    PENDING_DELETION_KEY,
+    JSON.stringify({ deletingId: projectId, replacementId })
+  )
+  return {
+    cleanupComplete: repairPendingProjectDeletion(store),
+    projects: listPersistedEditorProjects(store),
+  }
+}
+
 export const persistCurrentProjectDeletion = ({
   deleting,
   replacement,
@@ -235,6 +296,7 @@ export const persistCurrentProjectDeletion = ({
   snapshot: EditorSnapshot
   project: EditorProjectMetadata
   blockedAutosaveIds: string[]
+  cleanupComplete: boolean
 } => {
   const store = requestedStore ?? defaultStore()
   const replacementListed = isProjectListed(replacement.project.id, store)
@@ -247,30 +309,25 @@ export const persistCurrentProjectDeletion = ({
       store
     )
     replacementWritten = true
+    if (!repairPendingProjectDeletion(store))
+      throw new Error(
+        "Finish the previous deletion by reopening Files before deleting another project."
+      )
+    store.setItem(
+      PENDING_DELETION_KEY,
+      JSON.stringify({
+        deletingId: deleting.id,
+        replacementId: replacementDocument.project.id,
+      })
+    )
     writeCurrentEditorProjectId(replacementDocument.project.id, store)
     const blockedAutosaveIds = [deleting.id]
-    try {
-      const remaining = listPersistedEditorProjects(store).filter(
-        (project) =>
-          project.id !== deleting.id &&
-          project.id !== replacementDocument.project.id
-      )
-      store.setItem(
-        EDITOR_RECENT_PROJECTS_KEY,
-        JSON.stringify([replacementDocument.project, ...remaining])
-      )
-    } catch {
-      // Identity already switched; leftover index repair is best-effort.
-    }
-    try {
-      store.removeItem(editorProjectStorageKey(deleting.id))
-    } catch {
-      // Identity already switched; do not resurrect the deleted project.
-    }
+    const cleanupComplete = repairPendingProjectDeletion(store)
     return {
       snapshot: replacementDocument.snapshot,
       project: replacementDocument.project,
       blockedAutosaveIds,
+      cleanupComplete,
     }
   } catch (error) {
     if (
@@ -336,8 +393,10 @@ export const chooseDeletionReplacement = ({
 export const readRestoredEditorDocument = (
   store: EditorProjectStore = defaultStore()
 ) => {
+  const cleanupComplete = repairPendingProjectDeletion(store)
   const document = readPersistedEditorDocument(store)
   return {
+    cleanupComplete,
     projectId: document?.project.id ?? readCurrentEditorProjectId(store),
     document,
   }

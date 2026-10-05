@@ -147,6 +147,7 @@ export interface SvgCanvasProps {
 export interface SvgCanvasRef {
   exportGltf: () => Promise<void>
   exportPng: (options: ExportRenderOptions) => Promise<Blob>
+  renderExportFrame: (props: SvgCanvasProps) => Promise<HTMLCanvasElement>
   prepareExportRender: (options: ExportRenderOptions) => void
   restorePreviewRender: () => void
   startRecording: (options?: {

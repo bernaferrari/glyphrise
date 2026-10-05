@@ -138,6 +138,7 @@ export function useTimelineTrackKeyframes({
     const startX = e.clientX
     const startY = e.clientY
     bindWindowPointerDrag({
+      documentEdit: true,
       pointerId,
       onMove: (ev) => {
         if (Math.hypot(ev.clientX - startX, ev.clientY - startY) > 3) {
@@ -244,6 +245,7 @@ export function useTimelineTrackKeyframes({
     const initial = track.keyframes.map((k) => ({ id: k.id, time: k.time }))
 
     bindWindowPointerDrag({
+      documentEdit: true,
       pointerId,
       onMove: (ev) => {
         let delta = clampTrackKeyframeBlockDelta({

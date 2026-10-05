@@ -10,9 +10,10 @@ export const ANIMATION_PRESETS = [
   {
     id: "spin",
     name: "Spin",
-    description: "One full turn around the vertical axis, start to end.",
+    description:
+      "Whole turns around the vertical axis, returning to the starting pose.",
     property: "Rotation",
-    summary: "One full turn · 2 keyframes",
+    summary: "Whole turns · 2 keyframes",
     keyframeFractions: [0, 1],
   },
   {
@@ -87,7 +88,15 @@ export function createAnimationPreset({
     id === "spin"
       ? [
           { time: 0, value: rotation },
-          { time: end, value: { ...rotation, y: rotation.y + 360 * amount } },
+          {
+            time: end,
+            value: {
+              ...rotation,
+              y:
+                rotation.y +
+                360 * Math.max(1, Math.min(3, Math.round(intensity))),
+            },
+          },
         ]
       : [
           { time: 0, value: rotation },

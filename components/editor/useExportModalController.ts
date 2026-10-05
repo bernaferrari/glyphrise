@@ -11,9 +11,9 @@ import {
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
 import {
   DEFAULT_EXPORT_SETTINGS,
-  availableVideoContainers,
   type ExportSettings,
 } from "./ExportSettingsModel"
+import { supportedVideoContainers as findVideoContainers } from "./VideoEncoder"
 import type { VideoContainer } from "../3d/SvgTypes"
 
 export type ExportTab = "options" | "r3f" | "android"
@@ -49,7 +49,7 @@ export function useExportModalController({
   const [settings, setSettings] = useState(DEFAULT_EXPORT_SETTINGS)
   const [supportedVideoContainers, setSupportedVideoContainers] = useState<
     VideoContainer[]
-  >(["webm"])
+  >([])
 
   useEffect(() => {
     if (!isOpen) {
@@ -60,18 +60,25 @@ export function useExportModalController({
   }, [isOpen])
 
   useEffect(() => {
-    if (typeof MediaRecorder === "undefined") {
-      setSupportedVideoContainers([])
-      return
+    let canceled = false
+    void findVideoContainers()
+      .then((supported) => {
+        if (canceled) return
+        setSupportedVideoContainers(supported)
+        if (supported.length)
+          setSettings((current) =>
+            supported.includes(current.container)
+              ? current
+              : { ...current, container: supported[0] }
+          )
+      })
+      .catch(() => {
+        if (!canceled) setSupportedVideoContainers([])
+      })
+    return () => {
+      canceled = true
     }
-    const supported = availableVideoContainers((mimeType) =>
-      MediaRecorder.isTypeSupported(mimeType)
-    )
-    setSupportedVideoContainers([...supported])
-    if (supported.length > 0 && !supported.includes(settings.container)) {
-      setSettings((current) => ({ ...current, container: supported[0] }))
-    }
-  }, [settings.container])
+  }, [])
 
   const updateSettings = useCallback((patch: Partial<ExportSettings>) => {
     setSettings((current) => ({ ...current, ...patch }))

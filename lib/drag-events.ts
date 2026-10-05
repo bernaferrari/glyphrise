@@ -1,3 +1,6 @@
+import { flushSync } from "react-dom"
+import { beginDocumentEdit, endDocumentEdit } from "./editor-transactions"
+
 type EndEvent = MouseEvent | PointerEvent | TouchEvent | Event
 
 type MouseDragOptions = {
@@ -6,6 +9,7 @@ type MouseDragOptions = {
 }
 
 type PointerDragOptions = {
+  documentEdit?: boolean
   onMove: (event: PointerEvent) => void
   onEnd?: (event?: EndEvent) => void
   pointerId?: number
@@ -65,8 +69,10 @@ export const bindWindowPointerDrag = ({
   onMove,
   onEnd,
   pointerId,
+  documentEdit = false,
 }: PointerDragOptions) => {
   let active = true
+  if (documentEdit) beginDocumentEdit()
 
   const cleanup = (event?: EndEvent) => {
     if (!active) return
@@ -75,7 +81,10 @@ export const bindWindowPointerDrag = ({
     window.removeEventListener("pointerup", end)
     window.removeEventListener("pointercancel", end)
     window.removeEventListener("blur", cleanup)
-    onEnd?.(event)
+    if (documentEdit) {
+      flushSync(() => onEnd?.(event))
+      endDocumentEdit(event?.type === "pointercancel")
+    } else onEnd?.(event)
   }
 
   const move = (event: PointerEvent) => {

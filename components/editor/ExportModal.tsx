@@ -20,6 +20,7 @@ interface ExportModalProps {
   isOpen: boolean
   onClose: () => void
   onExportGltf: () => Promise<void>
+  onCapturePreview: (settings: ExportSettings) => Promise<Blob>
   onExportPng: (settings: ExportSettings) => Promise<void>
   onExportVideo: (settings: ExportSettings) => Promise<void>
   onCancelVideoExport: () => void
@@ -35,6 +36,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onClose,
   onExportGltf,
   onExportPng,
+  onCapturePreview,
   onExportVideo,
   onCancelVideoExport,
   isVideoExporting,
@@ -200,7 +202,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 videoExportCanceled={videoExportCanceled}
                 settings={settings}
                 supportedVideoContainers={supportedVideoContainers}
-                artwork={artwork}
+                onCapturePreview={onCapturePreview}
                 onSettingsChange={updateSettings}
               />
             </TabsContent>

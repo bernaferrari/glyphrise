@@ -166,43 +166,48 @@ const shapeFillValue = ({
     preparedFillKeyframes
   )
 
-export const useMorphRenderState = ({
-  shapes,
-  currentTime,
-  fillColor,
-  fillColorSecondary,
-  fillGradientType,
-  fillStops,
-  fillKeyframes,
-  fillMode,
-  enableGradient,
-}: MorphRenderStateInput) => {
-  const sortedShapes = useMemo(
-    () => [...shapes].sort((a, b) => a.time - b.time),
-    [shapes]
-  )
+type MorphPreparation = {
+  sortedShapes: ShapeStop[]
+  preparedFillKeyframes: PreparedFillKeyframes
+  preparedShapeFillKeyframes: Map<string, PreparedFillKeyframes>
+}
 
-  const morph = useMemo(
-    () => deriveMorph(sortedShapes, currentTime),
-    [currentTime, sortedShapes]
-  )
-
-  const preparedFillKeyframes = useMemo(
-    () => prepareFillKeyframes(fillKeyframes),
-    [fillKeyframes]
-  )
-  const preparedShapeFillKeyframes = useMemo(() => {
-    const prepared = new Map<string, PreparedFillKeyframes>()
-    shapes.forEach((shape) => {
-      prepared.set(
+const prepareMorphRenderState = (
+  shapes: ShapeStop[],
+  fillKeyframes: FillKeyframe[]
+): MorphPreparation => {
+  const preparedFillKeyframes = prepareFillKeyframes(fillKeyframes)
+  return {
+    sortedShapes: [...shapes].sort((a, b) => a.time - b.time),
+    preparedFillKeyframes,
+    preparedShapeFillKeyframes: new Map(
+      shapes.map((shape) => [
         shape.id,
         shape.fillKeyframes?.length
           ? prepareFillKeyframes(shape.fillKeyframes)
-          : preparedFillKeyframes
-      )
-    })
-    return prepared
-  }, [preparedFillKeyframes, shapes])
+          : preparedFillKeyframes,
+      ])
+    ),
+  }
+}
+
+export const evaluateMorphRenderState = (
+  {
+    shapes,
+    currentTime,
+    fillColor,
+    fillColorSecondary,
+    fillGradientType,
+    fillStops,
+    fillKeyframes,
+    fillMode,
+    enableGradient,
+  }: MorphRenderStateInput,
+  preparation?: MorphPreparation
+) => {
+  const { sortedShapes, preparedFillKeyframes, preparedShapeFillKeyframes } =
+    preparation ?? prepareMorphRenderState(shapes, fillKeyframes)
+  const morph = deriveMorph(sortedShapes, currentTime)
 
   const selectedShapeFillValue = interpolatePreparedFillKeyframes(
     currentTime,
@@ -283,4 +288,24 @@ export const useMorphRenderState = ({
     renderEnableGradient: fillMode === "solid" ? true : enableGradient,
     renderGradientType: renderA.gradientType,
   }
+}
+
+export const useMorphRenderState = (input: MorphRenderStateInput) => {
+  const preparation = useMemo(
+    () => prepareMorphRenderState(input.shapes, input.fillKeyframes),
+    [input.shapes, input.fillKeyframes]
+  )
+  return useMemo(
+    () => evaluateMorphRenderState(input, preparation),
+    [
+      preparation,
+      input.currentTime,
+      input.fillColor,
+      input.fillColorSecondary,
+      input.fillGradientType,
+      input.fillStops,
+      input.fillMode,
+      input.enableGradient,
+    ]
+  )
 }

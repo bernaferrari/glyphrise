@@ -19,11 +19,22 @@ describe("motion presets", () => {
     const result = createAnimationPreset({ ...base, id: "spin" })
     expect(result.rotationKeyframes?.map((k) => [k.time, k.value])).toEqual([
       [0, base.rotation],
-      [4, { x: 10, y: 200, z: 30 }],
+      [4, { x: 10, y: 380, z: 30 }],
     ])
     expect(result.scaleTrack).toBeUndefined()
     expect(base.rotation).toEqual({ x: 10, y: 20, z: 30 })
   })
+  it.each([0.5, 1, 1.75, 2, 3])(
+    "keeps spin seamless at amount %s",
+    (intensity) => {
+      const frames = createAnimationPreset({
+        ...base,
+        id: "spin",
+        intensity,
+      }).rotationKeyframes!
+      expect((frames[1].value.y - frames[0].value.y) % 360).toBe(0)
+    }
+  )
   it("tilts and returns to the original pose", () => {
     const frames = createAnimationPreset({
       ...base,

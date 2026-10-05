@@ -87,6 +87,7 @@ export function useTimelineShapeDrag({
     let previous = neighborMiddle(-1)
     let next = neighborMiddle(1)
     bindWindowPointerDrag({
+      documentEdit: true,
       onMove: (moveEvent) => {
         if (Math.abs(moveEvent.clientX - startX) > 3) {
           if (!draggedRef.current) onScrubStart?.()
@@ -150,6 +151,7 @@ export function useTimelineShapeDrag({
     const startX = event.clientX
     const gap = Math.max(1e-6, toTime - fromTime)
     bindWindowPointerDrag({
+      documentEdit: true,
       onMove: (moveEvent) => {
         if (Math.abs(moveEvent.clientX - startX) > 3) {
           if (!morphResizedRef.current) onScrubStart?.()

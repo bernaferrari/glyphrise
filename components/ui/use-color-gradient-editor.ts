@@ -257,6 +257,7 @@ export function useColorGradientEditor({
       let moved = false
       setActiveStop(stop)
       bindWindowPointerDrag({
+        documentEdit: true,
         onMove: (event) => {
           if (!moved && Math.abs(event.clientX - startX) < 3) return
           moved = true

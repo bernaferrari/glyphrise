@@ -24,7 +24,14 @@ export type {
 } from "./SvgTypes"
 
 export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
-  (props, ref) => {
+  (incomingProps, ref) => {
+    const [exportFrameProps, setExportFrameProps] =
+      useState<SvgCanvasProps | null>(null)
+    const props = exportFrameProps ?? incomingProps
+    const exportCaptureRef = useRef<{
+      onFrame: () => void
+      onCancel: () => void
+    } | null>(null)
     const {
       containerRef,
       canvasRef,
@@ -148,6 +155,8 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
     })
 
     useSvgCanvasImperativeHandle({
+      exportCaptureRef,
+      setExportFrameProps,
       ref,
       props,
       canvasRef,
@@ -287,6 +296,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
     ])
 
     useSvgRenderLoop({
+      exportCaptureRef,
       cameraOrbitRef,
       sceneRef,
       rendererRef,

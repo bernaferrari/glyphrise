@@ -100,6 +100,7 @@ export function NumberField({
     let moved = false
     setInspectorInputDragActive(true)
     bindWindowPointerDrag({
+      documentEdit: true,
       onMove: (ev) => {
         const dx = ev.clientX - startX
         if (Math.abs(dx) > 3) moved = true

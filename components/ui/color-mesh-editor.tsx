@@ -75,6 +75,7 @@ export function ColorMeshEditor({
     }
 
     bindWindowPointerDrag({
+      documentEdit: true,
       pointerId: event.pointerId,
       onMove: (moveEvent) => {
         const rect = surfaceRef.current?.getBoundingClientRect()

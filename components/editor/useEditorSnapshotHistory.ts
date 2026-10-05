@@ -28,7 +28,6 @@ import {
 } from "./EditorModel"
 import {
   createProjectMetadata,
-  deletePersistedEditorProject,
   downloadProjectSnapshot,
   type EditorProjectMetadata,
   listPersistedEditorProjects,
@@ -45,6 +44,8 @@ import {
   createProjectFromTemplateAction,
   flushAutosaveIfAllowed,
   persistCurrentProjectDeletion,
+  persistInactiveProjectDeletion,
+  repairPendingProjectDeletion,
   persistProjectActivation,
   readRestoredEditorDocument,
   type ProjectActionError,
@@ -61,7 +62,10 @@ import type {
 } from "./TimelineModel"
 import { useEditorHistory } from "./useEditorHistory"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
-import { createStarterEditorSnapshot } from "./StarterProjectModel"
+import {
+  createStarterEditorSnapshot,
+  createImportedEditorSnapshot,
+} from "./StarterProjectModel"
 
 interface EditorSnapshotHistoryOptions {
   activeRecipeId: string | null
@@ -422,6 +426,8 @@ export function useEditorSnapshotHistory({
   }
 
   const openProjects = () => {
+    const repaired = repairPendingProjectDeletion()
+    if (repaired) setProjectActionError(null)
     try {
       persistCurrentProjectNow()
       setProjectStatus("saved")
@@ -434,7 +440,14 @@ export function useEditorSnapshotHistory({
           : "Autosave failed. Download a copy of this file as a backup."
       )
     }
-    setProjectActionError(null)
+    if (!repaired)
+      setProjectActionError(
+        createProjectActionError(
+          "delete",
+          "Deletion cleanup is still incomplete. Your open project is safe; reopen Files to retry."
+        )
+      )
+    setRecentProjects(listPersistedEditorProjects())
     setNewProjectDialogOpen(true)
   }
 
@@ -487,7 +500,8 @@ export function useEditorSnapshotHistory({
   const createNewProject = (
     kind: "blank" | "example",
     requestedName: string,
-    starterIconId?: string
+    starterIconId?: string,
+    svgContent?: string
   ) => {
     const baseSnapshot = initialSnapshotRef.current
     const nextProject = createProjectMetadata(
@@ -496,11 +510,13 @@ export function useEditorSnapshotHistory({
       )
     )
     try {
-      const nextSnapshot: EditorSnapshot = starterIconId
-        ? createStarterEditorSnapshot(baseSnapshot, starterIconId)
-        : kind === "example"
-          ? baseSnapshot
-          : createBlankEditorSnapshot(baseSnapshot)
+      const nextSnapshot: EditorSnapshot = svgContent
+        ? createImportedEditorSnapshot(baseSnapshot, svgContent)
+        : starterIconId
+          ? createStarterEditorSnapshot(baseSnapshot, starterIconId)
+          : kind === "example"
+            ? baseSnapshot
+            : createBlankEditorSnapshot(baseSnapshot)
       activateProject(
         "create",
         nextSnapshot,
@@ -658,8 +674,15 @@ export function useEditorSnapshotHistory({
     try {
       const deletingCurrentProject = project.id === projectId
       if (!deletingCurrentProject) {
-        const remaining = deletePersistedEditorProject(projectId)
-        setRecentProjects(remaining)
+        const deletion = persistInactiveProjectDeletion(projectId)
+        setRecentProjects(deletion.projects)
+        if (!deletion.cleanupComplete) {
+          const message =
+            "Your open file is safe. Deletion cleanup is incomplete; reopen Files or reload to retry."
+          setProjectStatusMessage(message)
+          setProjectActionError(createProjectActionError("delete", message))
+          return false
+        }
         setProjectStatus("saved")
         setProjectStatusMessage(`${deleting.name} deleted from this device.`)
         setProjectActionError(null)
@@ -689,14 +712,21 @@ export function useEditorSnapshotHistory({
       markSnapshotPersisted(deleted.snapshot, deleted.project)
       setProject(deleted.project)
       setRecentProjects(listPersistedEditorProjects())
+      const cleanupMessage = `${deleted.project.name} opened safely. Deletion cleanup is incomplete; reopen Files or reload to retry.`
       setProjectStatus("saved")
       setProjectStatusMessage(
-        openedExisting
-          ? `${deleting.name} deleted. ${deleted.project.name} opened.`
-          : `${deleting.name} deleted. A new blank project is ready.`
+        !deleted.cleanupComplete
+          ? cleanupMessage
+          : openedExisting
+            ? `${deleting.name} deleted. ${deleted.project.name} opened.`
+            : `${deleting.name} deleted. A new blank project is ready.`
       )
-      setProjectActionError(null)
-      return true
+      setProjectActionError(
+        deleted.cleanupComplete
+          ? null
+          : createProjectActionError("delete", cleanupMessage)
+      )
+      return deleted.cleanupComplete
     } catch (error) {
       const message =
         error instanceof Error
@@ -780,7 +810,15 @@ export function useEditorSnapshotHistory({
 
   useEffect(() => {
     if (typeof window === "undefined") return
-    const persistedDocument = readRestoredEditorDocument().document
+    const restored = readRestoredEditorDocument()
+    const persistedDocument = restored.document
+    if (!restored.cleanupComplete)
+      setProjectActionError(
+        createProjectActionError(
+          "delete",
+          "Your file was restored safely. Deletion cleanup is incomplete; reopen Files to retry."
+        )
+      )
     if (persistedDocument) {
       skipNextPersistRef.current = true
       restoreSnapshot(persistedDocument.snapshot)
@@ -848,6 +886,7 @@ export function useEditorSnapshotHistory({
 
   return {
     ...history,
+    snapshot,
     newProject: openProjects,
     createNewProject,
     createProjectFromTemplate,

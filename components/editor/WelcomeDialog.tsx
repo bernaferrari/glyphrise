@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { ArrowRight, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,6 +10,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  validateAndSanitizeSvg,
+  isSvgFile,
+  svgImportMessage,
+} from "./SvgImportModel"
 import { STARTER_ARTWORK } from "./StarterProjectModel"
 
 export function WelcomeDialog({
@@ -23,9 +28,12 @@ export function WelcomeDialog({
   currentProjectName?: string
   open: boolean
   onDismiss: () => void
-  onCreate: (iconId: string, name: string) => boolean
+  onCreate: (iconId: string, name: string, svgContent?: string) => boolean
   error?: string
 }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [isImporting, setIsImporting] = useState(false)
   const [selectedId, setSelectedId] = useState("heart")
   const selected = STARTER_ARTWORK.find((icon) => icon.id === selectedId)!
   return (
@@ -77,19 +85,57 @@ export function WelcomeDialog({
             </button>
           ))}
         </div>
-        {error && (
+        {(error || importError) && (
           <p role="alert" className="text-sm text-destructive">
-            {error}
+            {importError || error}
           </p>
         )}
         <div className="grid gap-2">
           <Button
             className="min-h-12 w-full rounded-xl"
+            disabled={isImporting}
             onClick={() => onCreate(selectedId, `${selected.name} motion`)}
           >
             Create with{" "}
             {selected.name === "Lightning Bolt" ? "Bolt" : selected.name}
             <ArrowRight aria-hidden="true" className="size-4" />
+          </Button>
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".svg,image/svg+xml"
+            className="hidden"
+            aria-label="Use my SVG file"
+            onChange={async (event) => {
+              const input = event.currentTarget
+              const file = input.files?.[0]
+              input.value = ""
+              if (!file) return
+              setImportError(null)
+              setIsImporting(true)
+              try {
+                if (!isSvgFile(file))
+                  throw new Error("Choose an SVG file smaller than 1 MB.")
+                const content = validateAndSanitizeSvg(await file.text())
+                onCreate(
+                  "custom",
+                  file.name.replace(/\.svg$/i, "") || "My icon",
+                  content
+                )
+              } catch (error) {
+                setImportError(svgImportMessage(error))
+              } finally {
+                setIsImporting(false)
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            disabled={isImporting}
+            className="min-h-11 w-full rounded-xl"
+            onClick={() => inputRef.current?.click()}
+          >
+            {isImporting ? "Reading your SVG…" : "Use my SVG"}
           </Button>
           <button
             type="button"
