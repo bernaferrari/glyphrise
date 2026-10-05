@@ -1,5 +1,6 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
 import { KeyframeNavigator } from "./KeyframeNavigator"
 import type { TimeKeyframe } from "./EditorModel"
 
@@ -25,7 +26,9 @@ const KeyframeButton = ({
   label: string
   onToggle: () => void
 }) => (
-  <button
+  <Button
+    variant="ghost"
+    size="icon-narrow"
     type="button"
     aria-label={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}
     title={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}
@@ -35,12 +38,10 @@ const KeyframeButton = ({
       event.stopPropagation()
       onToggle()
     }}
-    className={`touch-narrow relative flex h-8 w-5 shrink-0 items-center justify-center rounded-md transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring max-[720px]:h-11 max-[720px]:w-8 pointer-coarse:h-11 pointer-coarse:w-8 ${
-      isKeyedHere ? "" : "hover:bg-muted/40"
-    }`}
+    className="relative"
   >
     <KeyframeDiamond active={isKeyedHere} />
-  </button>
+  </Button>
 )
 
 export function InspectorKeyframeControl({

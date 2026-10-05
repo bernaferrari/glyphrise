@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import {
   ChevronLeft,
   ChevronRight,
@@ -102,7 +103,9 @@ export function TimelineToolbar({
         </button>
       )}
       {playback && (
-        <button
+        <Button
+          variant="ghost"
+          size="icon-narrow"
           type="button"
           aria-label={
             playback.isPlaying
@@ -115,14 +118,13 @@ export function TimelineToolbar({
           }
           title={playback.isPlaying ? "Pause (Space)" : "Play (Space)"}
           onClick={playback.onPlayToggle}
-          className={cn(transportButton, "text-foreground")}
         >
           {playback.isPlaying ? (
             <Pause className="size-3 fill-current" />
           ) : (
             <Play className="size-3 fill-current" />
           )}
-        </button>
+        </Button>
       )}
       {playback && (
         <button

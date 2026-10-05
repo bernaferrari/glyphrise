@@ -347,8 +347,8 @@
     --timeline-property-height: 44px;
   }
 
-  .timeline-density button,
-  .timeline-density [role="button"] {
+  .timeline-density button:not(.touch-narrow),
+  .timeline-density [role="button"]:not(.touch-narrow) {
     min-width: 44px;
     min-height: 44px;
   }
@@ -602,7 +602,7 @@
     --timeline-ruler-height: 44px;
   }
 
-  /* Keep ‹ › narrow so transport fits beside the ruler; Play stays 44px. */
+  /* Keep ‹ › narrow so transport fits beside the ruler. */
   .timeline-density .timeline-transport-arrow {
     min-width: 28px;
     width: 28px;

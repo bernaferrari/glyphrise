@@ -426,3 +426,63 @@ test("offers production render controls and an honest fidelity matrix", async ({
   await expect(page.getByRole("cell", { name: "Subset" })).toBeVisible()
   await expect(page.getByRole("cell", { name: "Compatible PBR" })).toBeVisible()
 })
+
+test.describe("mobile bottom navigation gestures", () => {
+  test.use({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  })
+
+  test("keeps nav drags out of native scrolling while Properties still scrolls", async ({
+    page,
+  }) => {
+    const nav = page.getByRole("navigation", { name: "Workspace views" })
+    await nav.evaluate((element) => {
+      element.addEventListener("pointercancel", () => {
+        element.setAttribute("data-browser-pan", "true")
+      })
+    })
+    const session = await page.context().newCDPSession(page)
+    const swipeUp = async (x: number, y: number, distance: number) => {
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y }],
+      })
+      for (let step = 1; step <= 20; step++) {
+        await session.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ x, y: y - (distance * step) / 20 }],
+        })
+      }
+      await session.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      })
+    }
+    for (const view of ["Canvas", "Properties", "Motion"]) {
+      await page.getByRole("button", { name: view, exact: true }).tap()
+      const before = await nav.boundingBox()
+      expect(before).not.toBeNull()
+      await swipeUp(
+        before!.x + before!.width / 2,
+        before!.y + before!.height / 2,
+        300
+      )
+      await expect(nav).not.toHaveAttribute("data-browser-pan", "true")
+      expect((await nav.boundingBox())!.y).toBe(before!.y)
+      expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    }
+    await page.getByRole("button", { name: "Properties", exact: true }).tap()
+    const scrollPane = page
+      .locator("#glyphrise-properties-pane")
+      .locator(".overflow-y-auto")
+      .filter({ visible: true })
+    const box = await scrollPane.boundingBox()
+    await swipeUp(box!.x + 8, box!.y + box!.height * 0.8, box!.height * 0.5)
+    await expect
+      .poll(() => scrollPane.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(0)
+    await session.detach()
+  })
+})

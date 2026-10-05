@@ -357,7 +357,7 @@ export function AppLayoutView({
 
         <nav
           aria-label="Workspace views"
-          className="grid h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 grid-cols-3 border-t border-border bg-background p-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] min-[720px]:hidden"
+          className="grid h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 touch-pinch-zoom grid-cols-3 border-t border-border bg-background p-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] select-none min-[720px]:hidden"
         >
           {[
             ["preview", "Canvas", Box],

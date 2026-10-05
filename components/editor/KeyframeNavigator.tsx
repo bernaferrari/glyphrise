@@ -1,10 +1,8 @@
+import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { ReactNode } from "react"
 import { TimeKeyframe, clampNumber } from "./EditorModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
-
-const keyframeNavButtonClass =
-  "flex h-8 w-4 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors duration-100 hover:bg-muted/50 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring touch-narrow max-[720px]:h-11 max-[720px]:w-6 pointer-coarse:h-11 pointer-coarse:w-6"
 
 const getAdjacentKeyframeTimes = (
   keyframes: TimeKeyframe[],
@@ -54,7 +52,9 @@ const PropertyKeyframeNavButton = ({
   const Icon = direction === "previous" ? ChevronLeft : ChevronRight
 
   return (
-    <button
+    <Button
+      variant="muted-ghost"
+      size="icon-narrow-sm"
       type="button"
       aria-label={`${direction} ${label} keyframe`}
       title={title}
@@ -63,12 +63,10 @@ const PropertyKeyframeNavButton = ({
         event.stopPropagation()
         if (time !== undefined) onJump(time)
       }}
-      className={`${keyframeNavButtonClass} ${
-        time === undefined ? "invisible" : "opacity-60 hover:opacity-100"
-      }`}
+      className={time === undefined ? "invisible" : undefined}
     >
       <Icon className="size-3" />
-    </button>
+    </Button>
   )
 }
 

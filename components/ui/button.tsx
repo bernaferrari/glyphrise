@@ -44,6 +44,10 @@ const buttonVariants = cva(
         "icon-lg": "size-9",
         "icon-xl": "size-10",
         "icon-touch": "size-11",
+        "icon-narrow":
+          "touch-narrow h-8 w-5 max-[720px]:h-11 max-[720px]:w-8 pointer-coarse:h-11 pointer-coarse:w-8",
+        "icon-narrow-sm":
+          "touch-narrow h-8 w-4 max-[720px]:h-11 max-[720px]:w-6 pointer-coarse:h-11 pointer-coarse:w-6",
         toolbar:
           "h-11 gap-1.5 px-3 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         "toolbar-sm":
