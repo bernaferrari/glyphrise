@@ -28,7 +28,7 @@ export function TimelineDock({
           ? "h-0 border-t-0"
           : `border-t border-border bg-background ${
               compactOpen
-                ? "max-[720px]:h-[min(344px,48dvh)] max-[720px]:min-h-0 max-[720px]:flex-none"
+                ? "max-[720px]:h-(--compact-pane-height) max-[720px]:min-h-0 max-[720px]:flex-none"
                 : "max-[720px]:hidden"
             }`
       }`}
@@ -37,7 +37,7 @@ export function TimelineDock({
           ? {
               height:
                 timelineProps.compactMode && compactOpen
-                  ? "min(344px,48dvh)"
+                  ? "var(--compact-pane-height)"
                   : `${height}px`,
             }
           : undefined

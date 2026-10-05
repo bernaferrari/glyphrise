@@ -102,12 +102,14 @@ export function InspectorSidebar({
       aria-label="Properties inspector"
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-[min(420px,52dvh)] max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
+      className={`flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-(--compact-pane-height) max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
     >
-      <InspectorContextHeader
-        transformProps={transformProps}
-        onRemoveIcon={onRemoveIcon}
-      />
+      {!compact && (
+        <InspectorContextHeader
+          transformProps={transformProps}
+          onRemoveIcon={onRemoveIcon}
+        />
+      )}
       <PropertyEditScopeProvider value={editScopeProps}>
         {compact ? (
           <Tabs
@@ -139,6 +141,12 @@ export function InspectorSidebar({
               </TabsList>
             </div>
             <div className="editor-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
+              {/* Tabs stay on top; what's being edited scrolls with the content. */}
+              <InspectorContextHeader
+                transformProps={transformProps}
+                onRemoveIcon={onRemoveIcon}
+                compact
+              />
               <TabsContent keepMounted value="design">
                 {sections.style}
                 <div className="mt-4 border-t border-border pt-3">

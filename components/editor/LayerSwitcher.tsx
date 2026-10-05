@@ -1,6 +1,6 @@
 "use client"
 
-import { memo, useId, useState } from "react"
+import { memo, useId, useState, type ReactNode } from "react"
 import { Check, ChevronDown, Eye, EyeOff, Layers } from "lucide-react"
 import {
   Popover,
@@ -20,6 +20,8 @@ type LayerSwitcherProps = {
   onToggleVisibility: () => void
   onScaleChange: (value: number) => void
   onDepthChange: (value: number) => void
+  /** Replaces the "Layers" label, letting phones fit the row on one line. */
+  leading?: ReactNode
 }
 
 function LayerThumbnail({
@@ -65,6 +67,7 @@ function LayerSwitcherComponent({
   onToggleVisibility,
   onScaleChange,
   onDepthChange,
+  leading,
 }: LayerSwitcherProps) {
   const isAllLayers = selectedLayerId === ALL_LAYERS_ID
   const visible = selectedLayerOverride?.visible ?? true
@@ -88,14 +91,22 @@ function LayerSwitcherComponent({
           </g>
         </defs>
       </svg>
-      <div className="flex items-center gap-2 px-3 py-1.5">
-        <span className="text-[11px] font-medium text-muted-foreground">
-          Layers
-        </span>
+      <div
+        className={
+          leading
+            ? "flex items-center gap-2"
+            : "flex items-center gap-2 px-3 py-1.5"
+        }
+      >
+        {leading ?? (
+          <span className="text-[11px] font-medium text-muted-foreground">
+            Layers
+          </span>
+        )}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger
             aria-label={`SVG layer: ${selected?.name ?? "All layers"}`}
-            className="ml-auto flex h-8 max-w-48 min-w-0 items-center gap-2 rounded-md bg-muted/70 px-2.5 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+            className="ml-auto flex h-8 max-w-48 min-w-0 shrink-0 items-center gap-2 rounded-md bg-muted/70 px-2.5 text-xs font-medium transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
           >
             <span className="size-6 shrink-0">
               <LayerThumbnail

@@ -271,12 +271,23 @@
   }
 }
 
+/* Properties and Motion share one height on phones so switching panes
+   never moves the preview. */
+:root {
+  --compact-pane-height: min(400px, 50dvh);
+}
+
 @media (pointer: coarse) {
   button,
   [role="button"],
   input[type="range"] {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* Tall enough to tap, narrow enough to sit in a row (e.g. ‹ ◆ ›). */
+  button.touch-narrow {
+    min-width: 0;
   }
 
   input:not([type="range"]),
