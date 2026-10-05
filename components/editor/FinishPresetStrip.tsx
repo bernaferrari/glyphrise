@@ -33,7 +33,7 @@ export function FinishPresetStrip({
   return (
     <div
       ref={ref}
-      className="grid grid-cols-6 gap-1 py-0.5"
+      className="grid grid-cols-6 gap-0.5 py-0.5"
       aria-label="Popular finishes"
     >
       {finishes.map((preset) => (
@@ -44,13 +44,16 @@ export function FinishPresetStrip({
           aria-pressed={value === preset}
           title={finishLabel(preset)}
           onClick={() => onChange(preset)}
-          className="group grid size-9 place-items-center justify-self-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 aria-pressed:ring-[1.5px] aria-pressed:ring-foreground/60"
+          className="group grid size-10 place-items-center justify-self-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
         >
-          <FinishSwatch
-            preset={preset}
-            thumbnail={thumbnails[preset]}
-            className="size-9 transition-transform duration-150 group-hover:scale-105"
-          />
+          {/* The ring hugs the swatch even when touch widens the button. */}
+          <span className="grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-aria-pressed:ring-[1.5px] group-aria-pressed:ring-foreground/60">
+            <FinishSwatch
+              preset={preset}
+              thumbnail={thumbnails[preset]}
+              className="size-8.5 transition-transform duration-150 group-hover:scale-105"
+            />
+          </span>
         </button>
       ))}
       <FinishPresetPicker

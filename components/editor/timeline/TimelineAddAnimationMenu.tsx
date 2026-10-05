@@ -131,13 +131,12 @@ export function TimelineAddAnimationMenu({
                 key={preset.id}
                 ariaLabel={preset.name}
                 icon={
-                  <span className="scale-[0.6]">
-                    <MotionPresetPreview
-                      preset={preset.id}
-                      svgContent={artwork}
-                      duration={2}
-                    />
-                  </span>
+                  <MotionPresetPreview
+                    preset={preset.id}
+                    svgContent={artwork}
+                    duration={2}
+                    size="sm"
+                  />
                 }
                 title={preset.name}
                 description={preset.summary}

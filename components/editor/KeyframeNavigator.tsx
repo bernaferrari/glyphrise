@@ -95,19 +95,24 @@ export const KeyframeNavigator = ({
   return (
     <div className="flex shrink-0 items-center justify-end gap-0">
       {/* ‹ ◆ › — previous, add/remove here, next (After Effects order). */}
-      <PropertyKeyframeNavButton
-        direction="previous"
-        time={previous}
-        label={label}
-        onJump={onJump}
-      />
+      {/* Unanimated properties show only the diamond, flush right. */}
+      {keyframes.length > 0 && (
+        <PropertyKeyframeNavButton
+          direction="previous"
+          time={previous}
+          label={label}
+          onJump={onJump}
+        />
+      )}
       {children}
-      <PropertyKeyframeNavButton
-        direction="next"
-        time={next}
-        label={label}
-        onJump={onJump}
-      />
+      {keyframes.length > 0 && (
+        <PropertyKeyframeNavButton
+          direction="next"
+          time={next}
+          label={label}
+          onJump={onJump}
+        />
+      )}
     </div>
   )
 }

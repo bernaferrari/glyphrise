@@ -2,6 +2,7 @@
 
 import { useRef, useState, type KeyboardEvent } from "react"
 import { Plus } from "lucide-react"
+import { useCompactViewport } from "@/lib/use-compact-viewport"
 import {
   THUMBNAIL_SPHERE_FILL,
   type FinishPreviewFill,
@@ -86,6 +87,7 @@ export function FinishPresetPicker({
   thumbnailsVisible,
   onChange,
 }: FinishPresetPickerProps) {
+  const compact = useCompactViewport()
   const [open, setOpen] = useState(false)
   // Start rendering swatches on hover so the catalog is ready when it opens.
   const [warm, setWarm] = useState(false)
@@ -136,39 +138,44 @@ export function FinishPresetPicker({
         onPointerEnter={() => setWarm(true)}
         onFocus={() => setWarm(true)}
         title="All finishes"
-        className="group relative grid size-9 place-items-center justify-self-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 hover:ring-foreground/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 data-open:ring-[1.5px] data-open:ring-foreground/60"
+        className="group grid size-10 place-items-center justify-self-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
       >
-        <span className="relative grid size-7 grid-cols-2 overflow-hidden rounded-full transition-transform duration-150 group-hover:scale-105">
-          {more.map((preset, index) => (
-            <span
-              key={preset}
-              className="bg-muted"
-              style={
-                moreThumbnails[preset]
-                  ? {
-                      backgroundImage: `url(${moreThumbnails[preset]})`,
-                      backgroundSize: `${MOSAIC_IMAGE}px`,
-                      backgroundPosition: QUADRANT_OFFSETS[index],
-                    }
-                  : moreThumbnails[preset] === null
-                    ? { background: MATERIAL_PREVIEW[preset] }
-                    : undefined
-              }
-            />
-          ))}
-          {/* One soft highlight across the quadrants makes them read as one sphere. */}
-          <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_32%_28%,rgb(255_255_255/30%),transparent_45%)] shadow-[inset_0_1px_2px_rgb(255_255_255/35%),inset_0_-2px_3px_rgb(0_0_0/25%)]" />
-        </span>
-        <span className="absolute right-0 bottom-0 grid size-3.5 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
-          <Plus className="size-2.5" strokeWidth={3} aria-hidden="true" />
+        <span className="relative grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-data-open:ring-[1.5px] group-data-open:ring-foreground/60">
+          <span className="relative grid size-7 grid-cols-2 overflow-hidden rounded-full transition-transform duration-150 group-hover:scale-105">
+            {more.map((preset, index) => (
+              <span
+                key={preset}
+                className="bg-muted"
+                style={
+                  moreThumbnails[preset]
+                    ? {
+                        backgroundImage: `url(${moreThumbnails[preset]})`,
+                        backgroundSize: `${MOSAIC_IMAGE}px`,
+                        backgroundPosition: QUADRANT_OFFSETS[index],
+                      }
+                    : moreThumbnails[preset] === null
+                      ? { background: MATERIAL_PREVIEW[preset] }
+                      : undefined
+                }
+              />
+            ))}
+            {/* One soft highlight across the quadrants makes them read as one sphere. */}
+            <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_32%_28%,rgb(255_255_255/30%),transparent_45%)] shadow-[inset_0_1px_2px_rgb(255_255_255/35%),inset_0_-2px_3px_rgb(0_0_0/25%)]" />
+          </span>
+          <span className="absolute right-0 bottom-0 grid size-3.5 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
+            <Plus className="size-2.5" strokeWidth={3} aria-hidden="true" />
+          </span>
         </span>
       </PopoverTrigger>
       <PopoverContent
         density="flush"
-        align="end"
-        side="left"
-        sideOffset={10}
-        className="editor-scrollbar max-h-[min(600px,calc(100dvh-32px))] w-[min(340px,calc(100vw-32px))] overflow-y-auto"
+        // Desktop opens beside the inspector; phones drop it under the strip.
+        align={compact ? "center" : "end"}
+        side={compact ? "bottom" : "left"}
+        sideOffset={compact ? 6 : 10}
+        collisionPadding={12}
+        collisionAvoidance={{ side: "flip", align: "shift" }}
+        className="editor-scrollbar max-h-[min(600px,var(--available-height))] w-[min(340px,calc(100vw-24px))] overflow-y-auto overscroll-contain max-[720px]:w-[min(24rem,calc(100vw-24px))]"
       >
         <div className="px-3.5 pt-3 pb-1">
           <PopoverTitle className="text-sm">Finish</PopoverTitle>

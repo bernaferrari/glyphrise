@@ -13,6 +13,7 @@ import {
   meshNodePoints,
 } from "../../lib/mesh-warp"
 import { cn } from "@/lib/utils"
+import { useCompactViewport } from "@/lib/use-compact-viewport"
 import { ColorGradientPresetsPanel } from "./color-gradient-presets-panel"
 import {
   ColorGradientModeToggle,
@@ -75,6 +76,7 @@ export function ColorPicker({
   secondaryAlpha,
   onSecondaryAlphaChange,
 }: ColorPickerProps) {
+  const compact = useCompactViewport()
   const supportsGradient = !!onGradientToggle
   const isGradient = !!gradient
   const [isOpen, setIsOpen] = React.useState(false)
@@ -294,14 +296,22 @@ export function ColorPicker({
       <PopoverContent
         variant="editor"
         ref={rootContentRef}
-        className="editor-scrollbar max-h-(--available-height) w-65 overflow-x-hidden overflow-y-auto p-0 select-none"
-        // Opens beside the inspector and stays there: growing content
-        // scrolls instead of flipping the popover to another side.
-        side="left"
-        align="start"
-        sideOffset={12}
+        className={cn(
+          "editor-scrollbar max-h-(--available-height) overflow-x-hidden overflow-y-auto overscroll-contain p-0 select-none",
+          compact ? "w-[min(24rem,calc(100vw-24px))]" : "w-65"
+        )}
+        // Desktop opens beside the inspector and stays there: growing content
+        // scrolls instead of flipping. Phones have no room beside the full-width
+        // inspector, so the editor drops under the row (or above it).
+        side={compact ? "bottom" : "left"}
+        align={compact ? "center" : "start"}
+        sideOffset={compact ? 8 : 12}
         collisionPadding={12}
-        collisionAvoidance={{ side: "none", align: "shift" }}
+        collisionAvoidance={
+          compact
+            ? { side: "flip", align: "shift" }
+            : { side: "none", align: "shift" }
+        }
       >
         <div className="space-y-3 p-3">
           {supportsGradient && (

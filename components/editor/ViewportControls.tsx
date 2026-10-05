@@ -1,9 +1,15 @@
 "use client"
 
+import { useId, type ReactNode } from "react"
 import {
   ChevronLeft,
   ChevronRight,
+  Crosshair,
+  FastForward,
   MoreHorizontal,
+  SquareDashed,
+  Wind,
+  type LucideIcon,
   RotateCcw,
   Move3D,
   Pause,
@@ -80,54 +86,100 @@ export function ViewOptionsPopover({
           align="end"
           side="bottom"
           sideOffset={8}
-          className="w-60"
+          collisionPadding={12}
+          className="max-h-(--available-height) w-[min(18rem,calc(100vw-24px))] overflow-y-auto overscroll-contain"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to rotate · Alt-drag to orbit the camera · Scroll to zoom.
-            Camera orbit and zoom affect the preview only.
+            Drag to rotate.
+            {/* Orbit and zoom need a mouse or trackpad. */}
+            <span className="pointer-coarse:hidden">
+              {" "}
+              Alt-drag to orbit the camera, scroll to zoom. Both affect the
+              preview only.
+            </span>
           </p>
-          <ViewportToggleRow
-            label="Inertia"
-            checked={viewInertiaEnabled}
-            onCheckedChange={onViewInertiaChange}
-          />
-          <ViewportToggleRow
-            label="Center point"
-            checked={showCenterPoint}
-            onCheckedChange={onShowCenterPointChange}
-          />
-          <ViewportToggleRow
-            label="Selection outline"
-            checked={showSelectionOutline}
-            onCheckedChange={onShowSelectionOutlineChange}
-          />
-          <ViewportToggleRow
-            label="Transform gizmo"
-            checked={showTransformGizmo}
-            onCheckedChange={onShowTransformGizmoChange}
-          />
-          <ViewportToggleRow
-            label="Animated seek"
-            checked={animatedSeekEnabled}
-            onCheckedChange={onAnimatedSeekChange}
-          />
+          <ViewportToggleGroup label="Feel">
+            <ViewportToggleRow
+              icon={Wind}
+              label="Inertia"
+              description="Keeps spinning briefly after you let go of a drag."
+              checked={viewInertiaEnabled}
+              onCheckedChange={onViewInertiaChange}
+            />
+            <ViewportToggleRow
+              icon={FastForward}
+              label="Animated seek"
+              description="Glides to a new time instead of jumping there."
+              checked={animatedSeekEnabled}
+              onCheckedChange={onAnimatedSeekChange}
+            />
+          </ViewportToggleGroup>
+          <ViewportToggleGroup label="Show on canvas">
+            <ViewportToggleRow
+              icon={Crosshair}
+              label="Center point"
+              description="Marks the pivot the icon rotates around."
+              checked={showCenterPoint}
+              onCheckedChange={onShowCenterPointChange}
+            />
+            <ViewportToggleRow
+              icon={SquareDashed}
+              label="Selection outline"
+              description="Outlines the selected layer. Never exported."
+              checked={showSelectionOutline}
+              onCheckedChange={onShowSelectionOutlineChange}
+            />
+            <ViewportToggleRow
+              icon={Move3D}
+              label="Transform gizmo"
+              description="Handles to move, scale, and rotate on the canvas."
+              checked={showTransformGizmo}
+              onCheckedChange={onShowTransformGizmoChange}
+            />
+          </ViewportToggleGroup>
         </PopoverContent>
       </Popover>
     </div>
   )
 }
 
-interface ViewportToggleRowProps {
+function ViewportToggleGroup({
+  label,
+  children,
+}: {
   label: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="border-t border-border pt-1.5 pb-1"
+    >
+      <div className="px-2 pb-1 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+        {label}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+interface ViewportToggleRowProps {
+  icon: LucideIcon
+  label: string
+  description: string
   checked: boolean
   onCheckedChange: (checked: boolean) => void
 }
 
 function ViewportToggleRow({
+  icon: Icon,
   label,
+  description,
   checked,
   onCheckedChange,
 }: ViewportToggleRowProps) {
+  const id = useId()
   return (
     // The whole row toggles, not just the switch.
     <div
@@ -135,14 +187,31 @@ function ViewportToggleRow({
         if ((event.target as HTMLElement).closest('[role="switch"]')) return
         onCheckedChange(!checked)
       }}
-      className="flex min-h-8 w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 transition-colors select-none hover:bg-muted/60"
+      className="flex w-full cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors select-none hover:bg-muted/60"
     >
-      <span className="text-xs text-foreground">{label}</span>
+      <span
+        aria-hidden="true"
+        className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground"
+      >
+        <Icon className="size-3.5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-foreground">
+          {label}
+        </span>
+        <span
+          id={id}
+          className="block text-[11px] leading-4 text-pretty text-muted-foreground"
+        >
+          {description}
+        </span>
+      </span>
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
         size="sm"
         aria-label={label}
+        aria-describedby={id}
       />
     </div>
   )
@@ -182,7 +251,7 @@ export function PlaybackControls({
   return (
     <div
       data-slot="viewport-playback"
-      className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl"
+      className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl max-[720px]:bottom-2 max-[720px]:gap-0.5 max-[720px]:p-1"
     >
       <Button
         size="icon-xl"

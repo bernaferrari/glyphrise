@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { PopoverContent } from "@/components/ui/popover"
+import { useCompactViewport } from "@/lib/use-compact-viewport"
 import {
   SolidColorEditor,
   type SolidColorEditorProps,
@@ -25,15 +26,22 @@ export function ColorStopEditorPopover({
   footer,
   ...editorProps
 }: ColorStopEditorPopoverProps) {
+  // Phones have no room beside the gradient editor; stack above or below.
+  const compact = useCompactViewport()
+  const sideways = side === "left" || side === "right"
   return (
     <PopoverContent
       variant="editor"
       ref={contentRef}
       animated={false}
-      align={align}
-      side={side}
-      sideOffset={12}
-      className="w-52.5 p-3 pb-2"
+      align={compact ? "center" : align}
+      side={compact && sideways ? "bottom" : side}
+      sideOffset={compact ? 8 : 12}
+      collisionPadding={12}
+      collisionAvoidance={
+        compact ? { side: "flip", align: "shift" } : undefined
+      }
+      className="max-h-(--available-height) w-52.5 overflow-y-auto overscroll-contain p-3 pb-2"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >

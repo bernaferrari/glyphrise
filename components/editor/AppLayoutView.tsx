@@ -4,6 +4,7 @@ import { useEffect, useState, type ComponentProps, type RefObject } from "react"
 import dynamic from "next/dynamic"
 import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useCompactViewport } from "@/lib/use-compact-viewport"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import { usePanelTransition } from "./usePanelTransition"
 import { AppTopBar } from "./AppTopBar"
@@ -51,20 +52,6 @@ export type AppLayoutViewProps = {
   onUploadInputChange: ComponentProps<"input">["onChange"]
 }
 
-function useCompactWorkspaceLayout() {
-  const [isCompact, setIsCompact] = useState(false)
-
-  useEffect(() => {
-    const query = window.matchMedia("(width < 720px)")
-    const update = () => setIsCompact(query.matches)
-    update()
-    query.addEventListener("change", update)
-    return () => query.removeEventListener("change", update)
-  }, [])
-
-  return isCompact
-}
-
 export function AppLayoutView({
   onCreateStarter,
   animationProps,
@@ -79,7 +66,7 @@ export function AppLayoutView({
   canvas3DRef,
   onUploadInputChange,
 }: AppLayoutViewProps) {
-  const isCompactLayout = useCompactWorkspaceLayout()
+  const isCompactLayout = useCompactViewport()
   const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
   const [animateOpen, setAnimateOpen] = useState(false)
   const [animateMounted, setAnimateMounted] = useState(false)
