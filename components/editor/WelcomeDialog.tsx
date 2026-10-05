@@ -44,7 +44,7 @@ export function WelcomeDialog({
           </DialogDescription>
         </DialogHeader>
         <div
-          className="grid grid-cols-3 gap-2 sm:gap-3"
+          className="grid gap-2 sm:grid-cols-3 sm:gap-3"
           aria-label="Starter artwork"
         >
           {STARTER_ARTWORK.map((icon) => (
@@ -54,20 +54,25 @@ export function WelcomeDialog({
               aria-label={`Start with ${icon.name}`}
               aria-pressed={icon.id === selectedId}
               onClick={() => setSelectedId(icon.id)}
-              className="group relative flex aspect-square flex-col items-center justify-center gap-2.5 rounded-2xl border border-border bg-muted/30 p-3 text-xs font-medium text-muted-foreground transition-[background-color,border-color,box-shadow,color] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.97] aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground aria-pressed:ring-1 aria-pressed:ring-primary motion-safe:transition-[background-color,border-color,box-shadow,color,scale] sm:aspect-auto sm:min-h-44 sm:gap-4 sm:text-sm"
+              className="group relative flex min-h-16 items-center gap-4 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary sm:min-h-44 sm:flex-col sm:justify-center sm:p-3 sm:text-center"
             >
               <span
                 aria-hidden="true"
-                className="grid size-11 place-items-center transition-transform duration-200 group-aria-pressed:scale-110 sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
+                className="grid size-9 shrink-0 place-items-center sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
                 style={{ color: icon.defaultTint }}
                 dangerouslySetInnerHTML={{ __html: icon.svgContent }}
               />
-              {icon.name === "Lightning Bolt" ? "Bolt" : icon.name}
+              <span className="flex-1 sm:flex-none">
+                {icon.name === "Lightning Bolt" ? "Bolt" : icon.name}
+              </span>
               <span
                 aria-hidden="true"
-                className="absolute top-2 right-2 grid size-5 scale-50 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 transition-[opacity,scale] duration-150 group-aria-pressed:scale-100 group-aria-pressed:opacity-100 sm:top-3 sm:right-3"
+                className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-muted-foreground/40 text-primary-foreground transition-[background-color,border-color,opacity] duration-150 group-aria-pressed:border-primary group-aria-pressed:bg-primary sm:absolute sm:top-3 sm:right-3 sm:opacity-0 sm:group-aria-pressed:opacity-100"
               >
-                <Check className="size-3" strokeWidth={3} />
+                <Check
+                  className="size-3 scale-50 opacity-0 transition-[opacity,scale] duration-150 group-aria-pressed:scale-100 group-aria-pressed:opacity-100"
+                  strokeWidth={3}
+                />
               </span>
             </button>
           ))}
@@ -95,11 +100,6 @@ export function WelcomeDialog({
               ? `Keep working on ${currentProjectName}`
               : "Explore the editor"}
           </button>
-          {currentProjectName && (
-            <p className="text-center text-xs leading-5 text-muted-foreground text-pretty">
-              Starts a new file. “{currentProjectName}” stays saved.
-            </p>
-          )}
         </div>
       </DialogContent>
     </Dialog>
