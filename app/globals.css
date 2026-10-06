@@ -37,22 +37,13 @@
   --spacing-shape-picker-height: min(78vh, 620px);
   --spacing-code: 52vh;
   --spacing-dialog-height: calc(100dvh - 32px);
-  --spacing-finish-picker-width: min(340px, calc(100vw - 24px));
   --spacing-finish-picker-height: min(600px, var(--available-height));
   --spacing-files-dialog: min(720px, calc(100dvh - 32px));
   --spacing-export-sheet: calc(100dvh - 40px);
-  --spacing-export-height: min(640px, calc(100dvh - 32px));
   --spacing-safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
   --spacing-dialog-width: calc(100% - 2rem);
-  --spacing-screen-inset-2: calc(100vw - 16px);
-  --spacing-screen-inset-4: calc(100vw - 32px);
   --spacing-timeline-popover: min(30rem, calc(100vw - 1.5rem));
   --spacing-inspector: clamp(300px, 28vw, 352px);
-  --spacing-viewport-menu: min(18rem, calc(100vw - 24px));
-  --spacing-compact-picker: min(24rem, calc(100vw - 24px));
-  --spacing-creation-guide: min(300px, calc(100% - 32px));
-  --spacing-preview-message: min(34rem, calc(100% - 2rem));
-  --spacing-shape-picker: min(720px, calc(100vw - 32px));
   --spacing-safe-tab: calc(0.25rem + env(safe-area-inset-bottom));
   --spacing-safe-left: max(0.5rem, env(safe-area-inset-left));
   --spacing-safe-right: max(0.5rem, env(safe-area-inset-right));
@@ -62,13 +53,9 @@
   --text-3xs: 10px;
   --text-2xs: 11px;
   --text-control: 13px;
-  --text-button-sm: 0.8rem;
   --text-symbol: 22px;
   --tracking-label: 0.12em;
   --tracking-section: 0.14em;
-  --radius-hairline: 1px;
-  --radius-direction: 5px;
-  --radius-inset: 7px;
   --spacing-timecode: 7.5ch;
   --color-preview-shade: oklch(0.11 0.012 280);
   --color-preview-glow: oklch(0.18 0.012 280);
@@ -86,7 +73,6 @@
     inset 0 1px 2px rgb(255 255 255/50%), inset 0 -2px 3px rgb(0 0 0/20%);
 
   --color-preview-background: oklch(0.13 0.012 280);
-  --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
   --color-ring: var(--ring);
   --color-input: var(--input);

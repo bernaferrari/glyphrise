@@ -38,7 +38,9 @@
         "allow": [
           "transition-[*]",
           "grid-cols-[*]",
-          "[background:var(--preview-background)]"
+          "[background:var(--preview-background)]",
+          "max-w-[calc(100vw-1rem)]",
+          "max-w-[calc(100vw-2rem)]"
         ]
       }
     ],

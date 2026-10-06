@@ -29,7 +29,7 @@ const popoverContentVariants = cva(
       size: {
         default: "",
         finish:
-          "max-h-finish-picker-height w-(--spacing-finish-picker-width) max-[720px]:w-(--spacing-compact-picker)",
+          "max-h-finish-picker-height w-85 max-w-(--spacing-toast) max-[720px]:w-96",
       },
       tone: { default: "", foreground: "text-foreground" },
       font: { default: "", sans: "font-sans" },

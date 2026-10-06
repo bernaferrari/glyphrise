@@ -229,7 +229,7 @@ function WipeDirectionPicker({
       {/* Preview: the new icon sweeps in from the filled side. */}
       <span
         aria-hidden="true"
-        className="col-start-2 row-start-2 m-auto size-5 rounded-direction bg-background/50 bg-(image:--preview-image) ring-1 ring-foreground/10 transition-[background-image] duration-200"
+        className="col-start-2 row-start-2 m-auto size-5 rounded-sm bg-background/50 bg-(image:--preview-image) ring-1 ring-foreground/10 transition-[background-image] duration-200"
         style={
           {
             "--preview-image": `linear-gradient(${

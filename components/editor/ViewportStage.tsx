@@ -117,7 +117,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           {svgImportError ? (
             <div
               role="alert"
-              className="absolute top-16 left-1/2 z-40 flex w-(--spacing-preview-message) -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-xl backdrop-blur-md"
+              className="absolute top-16 left-1/2 z-40 flex w-136 max-w-(--spacing-dialog-width) -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-xl backdrop-blur-md"
             >
               <AlertTriangle
                 aria-hidden="true"

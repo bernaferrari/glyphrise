@@ -101,7 +101,7 @@ export function TimelineKeyframeEditor({
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
         density="flush"
-        className="w-116 max-w-(--spacing-screen-inset-2)"
+        className="w-116 max-w-[calc(100vw-1rem)]"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}

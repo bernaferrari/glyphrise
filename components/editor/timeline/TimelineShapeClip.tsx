@@ -154,7 +154,7 @@ export function TimelineShapeClip({
       <span className="@container flex h-full w-full min-w-0 items-center gap-2 pr-2.5 pl-1.5 @max-[48px]:justify-center @max-[48px]:px-0">
         <span
           aria-hidden="true"
-          className="grid size-6 shrink-0 place-items-center rounded-direction bg-black/20 text-foreground [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
+          className="grid size-6 shrink-0 place-items-center rounded-sm bg-black/20 text-foreground [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
           dangerouslySetInnerHTML={{ __html: stop.svgContent }}
         />
         <span className="min-w-0 truncate text-xs font-medium text-foreground @max-[80px]:hidden">

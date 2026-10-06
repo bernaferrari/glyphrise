@@ -9,7 +9,7 @@ import type { TimeKeyframe } from "./EditorModel"
 const KeyframeDiamond = ({ active }: { active: boolean }) => (
   <span
     className={cn(
-      `size-1.75 rotate-45 rounded-hairline border transition-[background-color,border-color] ${
+      `size-1.75 rotate-45 rounded-xs border transition-[background-color,border-color] ${
         active ? "border-transparent" : "border-muted-foreground"
       }`,
       "bg-(--swatch-color)"

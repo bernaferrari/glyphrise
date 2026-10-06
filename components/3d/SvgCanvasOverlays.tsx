@@ -28,7 +28,7 @@ export function SvgCanvasOverlays({
       {modelError ? (
         <div
           role="alert"
-          className="pointer-events-none absolute top-4 left-1/2 z-30 w-(--spacing-preview-message) -translate-x-1/2 rounded-xl border border-destructive/35 bg-black/80 px-4 py-3 text-center text-xs leading-5 text-white shadow-2xl backdrop-blur-md"
+          className="pointer-events-none absolute top-4 left-1/2 z-30 w-136 max-w-(--spacing-dialog-width) -translate-x-1/2 rounded-xl border border-destructive/35 bg-black/80 px-4 py-3 text-center text-xs leading-5 text-white shadow-2xl backdrop-blur-md"
         >
           <span className="font-semibold text-destructive">
             3D preview unavailable.

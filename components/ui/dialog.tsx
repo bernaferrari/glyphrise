@@ -18,7 +18,7 @@ const dialogContentVariants = cva("", {
       welcome: "gap-5 p-5 sm:gap-6 sm:p-8",
       /** Flush card on wide screens, a bottom sheet on phones. */
       sheet:
-        "flex flex-col gap-0 overflow-hidden p-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-h-(--spacing-export-sheet) max-sm:max-w-full max-sm:translate-y-0 max-sm:rounded-b-none sm:h-(--spacing-export-height)",
+        "flex flex-col gap-0 overflow-hidden p-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-h-(--spacing-export-sheet) max-sm:max-w-full max-sm:translate-y-0 max-sm:rounded-b-none sm:h-160 sm:max-h-(--spacing-dialog-height)",
     },
   },
   defaultVariants: { variant: "default" },
@@ -201,7 +201,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "font-heading text-base leading-none font-medium",
+        "font-sans text-base leading-none font-medium",
         dialogTitleVariants({ variant }),
         truncate && "truncate",
         className

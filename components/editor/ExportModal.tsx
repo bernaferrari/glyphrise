@@ -124,7 +124,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       <DialogContent
         variant="sheet"
         finalFocus={finalFocusRef}
-        className="max-h-(--spacing-dialog-height) w-220 max-w-(--spacing-screen-inset-4) sm:max-w-220"
+        className="max-h-(--spacing-dialog-height) w-220 max-w-[calc(100vw-2rem)] sm:max-w-220"
       >
         <DialogHeader variant="export">
           <DialogTitle variant="preset">Export</DialogTitle>

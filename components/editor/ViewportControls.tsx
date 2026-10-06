@@ -90,7 +90,7 @@ export function ViewOptionsPopover({
           side="bottom"
           sideOffset={8}
           collisionPadding={12}
-          className="max-h-(--available-height) w-(--spacing-viewport-menu) overflow-y-auto overscroll-contain"
+          className="max-h-(--available-height) w-72 max-w-(--spacing-toast) overflow-y-auto overscroll-contain"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
             Drag to orbit the preview camera.

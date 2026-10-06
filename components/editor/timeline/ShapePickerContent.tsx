@@ -109,7 +109,7 @@ function ShapePickerDialog({
       <DialogContent
         variant="picker"
         finalFocus={finalFocusRef}
-        className="!flex h-(--spacing-shape-picker-height) !w-(--spacing-shape-picker) !max-w-(--spacing-shape-picker) flex-col overflow-hidden"
+        className="!flex h-(--spacing-shape-picker-height) !w-180 !max-w-[calc(100vw-2rem)] flex-col overflow-hidden"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}

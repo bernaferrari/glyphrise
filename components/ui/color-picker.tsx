@@ -316,7 +316,7 @@ export function ColorPicker({
         ref={rootContentRef}
         className={cn(
           "max-h-(--available-height) overflow-x-hidden overflow-y-auto overscroll-contain select-none",
-          compact ? "w-(--spacing-compact-picker)" : "w-65"
+          compact ? "w-96 max-w-(--spacing-toast)" : "w-65"
         )}
         // Desktop opens beside the inspector and stays there: growing content
         // scrolls instead of flipping. Phones have no room beside the full-width

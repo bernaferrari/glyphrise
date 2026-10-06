@@ -41,7 +41,7 @@ export function EditScopePanel({
           <PopoverContent
             variant="help"
             align="end"
-            className="max-w-(--spacing-screen-inset-4)"
+            className="max-w-[calc(100vw-2rem)]"
           >
             <p className="font-medium">Record edits · Auto-key</p>
             <p>
