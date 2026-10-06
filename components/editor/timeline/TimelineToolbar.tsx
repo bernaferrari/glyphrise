@@ -97,7 +97,10 @@ export function TimelineToolbar({
           title="Previous keyframe (,)"
           disabled={!playback.hasPreviousKeyMoment}
           onClick={playback.onPreviousKeyMoment}
-          className={cn(transportButton, "timeline-transport-arrow")}
+          className={cn(
+            transportButton,
+            "timeline-transport-arrow touch-narrow"
+          )}
         >
           <ChevronLeft className="size-3.5" />
         </button>
@@ -133,7 +136,10 @@ export function TimelineToolbar({
           title="Next keyframe (.)"
           disabled={!playback.hasNextKeyMoment}
           onClick={playback.onNextKeyMoment}
-          className={cn(transportButton, "timeline-transport-arrow")}
+          className={cn(
+            transportButton,
+            "timeline-transport-arrow touch-narrow"
+          )}
         >
           <ChevronRight className="size-3.5" />
         </button>

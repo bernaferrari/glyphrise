@@ -7,14 +7,11 @@ import {
   Check,
   ChevronDown,
   CircleHelp,
-  Sparkles,
-  Download,
   FileDown,
   FolderClock,
   FolderOpen,
   Moon,
   LoaderCircle,
-  MoreHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Redo2,
@@ -48,140 +45,27 @@ interface AppTopBarProps {
   canUndo: boolean
   canRedo: boolean
   onGettingStarted: () => void
-  onAnimateOpen: () => void
   onExportOpen: () => void
 }
 
-function CompactWorkspaceMenu({
-  zenMode,
-  onZenModeChange,
-  themeMounted,
-  isLightTheme,
-  themeToggleLabel,
-  onProjectNew,
-  onProjectOpen,
-  onProjectSave,
-  onGettingStarted,
-  onAnimateOpen,
-  onUndo,
-  onRedo,
-  canUndo,
-  canRedo,
-  onThemeChange,
-}: Pick<
-  AppTopBarProps,
-  | "onAnimateOpen"
-  | "themeMounted"
-  | "isLightTheme"
-  | "themeToggleLabel"
-  | "onProjectNew"
-  | "onProjectOpen"
-  | "onProjectSave"
-  | "onGettingStarted"
-  | "onUndo"
-  | "onRedo"
-  | "canUndo"
-  | "canRedo"
-  | "onZenModeChange"
-  | "zenMode"
-  | "onThemeChange"
->) {
-  const [open, setOpen] = useState(false)
-  const action = (callback: () => void) => () => {
-    setOpen(false)
-    callback()
-  }
-  const items: Array<{
-    label: string
-    Icon: LucideIcon
-    onClick: () => void
-    disabled: boolean
-    pressed?: boolean
-  }> = [
-    {
-      label: "Animate",
-      Icon: Sparkles,
-      onClick: action(onAnimateOpen),
-      disabled: false,
-    },
-    {
-      label: "Files",
-      Icon: FolderClock,
-      onClick: action(onProjectNew),
-      disabled: false,
-    },
-    {
-      label: "Open from computer",
-      Icon: FolderOpen,
-      onClick: action(onProjectOpen),
-      disabled: false,
-    },
-    {
-      label: "Download a copy",
-      Icon: FileDown,
-      onClick: action(onProjectSave),
-      disabled: false,
-    },
-    {
-      label: zenMode ? "Show panels" : "Focus canvas",
-      Icon: PanelLeftClose,
-      onClick: action(() => onZenModeChange(!zenMode)),
-      disabled: false,
-    },
-    { label: "Undo", Icon: Undo2, onClick: action(onUndo), disabled: !canUndo },
-    { label: "Redo", Icon: Redo2, onClick: action(onRedo), disabled: !canRedo },
-    {
-      label: "Getting started",
-      Icon: CircleHelp,
-      onClick: action(onGettingStarted),
-      disabled: false,
-    },
-    {
-      label: themeToggleLabel,
-      Icon: isLightTheme ? Moon : Sun,
-      onClick: action(() => onThemeChange(isLightTheme ? "dark" : "light")),
-      disabled: !themeMounted,
-    },
-  ]
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        aria-label="Workspace actions"
-        title="Workspace actions"
-        className="grid size-11 place-items-center rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:hidden"
-      >
-        <MoreHorizontal className="size-4" />
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-52 p-1.5 md:hidden">
-        {items.map(({ label, Icon, onClick, disabled, pressed }) => (
-          <button
-            key={label}
-            type="button"
-            disabled={disabled}
-            aria-pressed={pressed}
-            onClick={onClick}
-            className={`flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring disabled:text-muted-foreground disabled:opacity-50 ${
-              pressed ? "bg-destructive/10 text-destructive" : "text-foreground"
-            }`}
-          >
-            <Icon
-              aria-hidden="true"
-              className={`size-4 ${pressed ? "text-destructive" : "text-muted-foreground"}`}
-            />
-            {label}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
-  )
-}
-
+/**
+ * The one app menu, anchored to the file name like ShapeShifter's. Phones also
+ * get the workspace actions that desktop keeps in the top bar; nothing here
+ * repeats a button that is already on screen.
+ */
 function ProjectMenu({
   onProjectNew,
   onProjectOpen,
   onProjectSave,
   projectStatus,
   projectStatusMessage,
+  zenMode,
+  onZenModeChange,
+  onGettingStarted,
+  themeMounted,
+  isLightTheme,
+  themeToggleLabel,
+  onThemeChange,
 }: Pick<
   AppTopBarProps,
   | "onProjectNew"
@@ -189,6 +73,13 @@ function ProjectMenu({
   | "onProjectSave"
   | "projectStatus"
   | "projectStatusMessage"
+  | "zenMode"
+  | "onZenModeChange"
+  | "onGettingStarted"
+  | "themeMounted"
+  | "isLightTheme"
+  | "themeToggleLabel"
+  | "onThemeChange"
 >) {
   const [open, setOpen] = useState(false)
   const action = (callback: () => void) => () => {
@@ -212,7 +103,7 @@ function ProjectMenu({
             type="button"
             aria-label="Open file menu"
             title="Files"
-            className="hidden size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground md:grid"
+            className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
           />
         }
       >
@@ -257,6 +148,31 @@ function ProjectMenu({
             Icon={FolderOpen}
             onClick={action(onProjectOpen)}
           />
+        </div>
+        <div className="md:hidden">
+          <div className="-mx-1 my-1 border-t border-border" />
+          <div className="grid gap-0.5">
+            <MenuRow
+              label={zenMode ? "Show panels" : "Focus canvas"}
+              accessibleLabel={zenMode ? "Show panels" : "Focus canvas"}
+              Icon={PanelLeftClose}
+              onClick={action(() => onZenModeChange(!zenMode))}
+            />
+            <MenuRow
+              label="Getting started"
+              accessibleLabel="Getting started"
+              Icon={CircleHelp}
+              onClick={action(onGettingStarted)}
+            />
+            <MenuRow
+              label={themeToggleLabel}
+              accessibleLabel={themeToggleLabel}
+              Icon={isLightTheme ? Moon : Sun}
+              onClick={action(() => {
+                if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
+              })}
+            />
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -316,7 +232,6 @@ export function AppTopBar({
   canUndo,
   canRedo,
   onGettingStarted,
-  onAnimateOpen,
   onExportOpen,
 }: AppTopBarProps) {
   const projectStatusLabel =
@@ -366,6 +281,13 @@ export function AppTopBar({
               onProjectSave={onProjectSave}
               projectStatus={projectStatus}
               projectStatusMessage={projectStatusMessage}
+              zenMode={zenMode}
+              onZenModeChange={onZenModeChange}
+              onGettingStarted={onGettingStarted}
+              themeMounted={themeMounted}
+              isLightTheme={isLightTheme}
+              themeToggleLabel={themeToggleLabel}
+              onThemeChange={onThemeChange}
             />
           </div>
         </div>
@@ -409,7 +331,7 @@ export function AppTopBar({
             aria-label="Undo edit"
             onClick={onUndo}
             disabled={!canUndo}
-            className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
+            className="grid size-11 place-items-center rounded-lg text-muted-foreground transition-[color,background-color,opacity] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Undo2 aria-hidden="true" className="size-4.5" />
           </button>
@@ -418,12 +340,12 @@ export function AppTopBar({
             aria-label="Redo edit"
             onClick={onRedo}
             disabled={!canRedo}
-            className="grid size-11 place-items-center rounded-lg text-foreground hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring disabled:text-muted-foreground/35"
+            className="grid size-11 place-items-center rounded-lg text-muted-foreground transition-[color,background-color,opacity] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Redo2 aria-hidden="true" className="size-4.5" />
           </button>
         </div>
-        <div className="hidden items-center gap-0.5 md:flex">
+        <div className="hidden items-center md:flex">
           <Button
             size="icon-touch"
             variant="muted-ghost"
@@ -472,32 +394,17 @@ export function AppTopBar({
             <Sun className="size-4.5" />
           )}
         </Button>
-        <Button
-          size="toolbar"
+        {/* Same compact Export as ShapeShifter, inside a full-height tap area. */}
+        <button
+          type="button"
           aria-label="Export"
-          className="hover:bg-primary/90"
           onClick={onExportOpen}
+          className="group grid h-11 shrink-0 place-items-center rounded-lg px-0.5 outline-none"
         >
-          <Download className="size-4.5" />
-          <span className="">Export</span>
-        </Button>
-        <CompactWorkspaceMenu
-          zenMode={zenMode}
-          onZenModeChange={onZenModeChange}
-          themeMounted={themeMounted}
-          isLightTheme={isLightTheme}
-          themeToggleLabel={themeToggleLabel}
-          onProjectNew={onProjectNew}
-          onProjectOpen={onProjectOpen}
-          onProjectSave={onProjectSave}
-          onGettingStarted={onGettingStarted}
-          onAnimateOpen={onAnimateOpen}
-          onUndo={onUndo}
-          onRedo={onRedo}
-          canUndo={canUndo}
-          canRedo={canRedo}
-          onThemeChange={onThemeChange}
-        />
+          <span className="flex h-8 items-center rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-[background-color,transform] group-hover:bg-primary/90 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background group-active:translate-y-px">
+            Export
+          </span>
+        </button>
       </div>
       {projectStatus === "error" ? (
         <div

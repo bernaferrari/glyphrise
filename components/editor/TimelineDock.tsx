@@ -23,7 +23,7 @@ export function TimelineDock({
       aria-label="Motion timeline"
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`relative shrink-0 overflow-hidden ${
+      className={`compact-sheet-pane relative shrink-0 overflow-hidden ${
         zenMode
           ? "h-0 border-t-0"
           : `border-t border-border bg-background ${

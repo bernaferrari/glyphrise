@@ -91,7 +91,9 @@ export function NumberField({
   }
 
   const startScrub = (e: React.PointerEvent) => {
-    if (e.button !== 0) return
+    // Touch is a plain field: the browser focuses it on a real tap and never
+    // on a scroll. Drag-to-adjust is a mouse and pen affordance.
+    if (e.pointerType === "touch" || e.button !== 0) return
     e.preventDefault()
     e.currentTarget.setPointerCapture?.(e.pointerId)
     const startX = e.clientX
@@ -115,12 +117,13 @@ export function NumberField({
         setDraft(rounded.toFixed(precision))
         scheduleScrubChange(rounded)
       },
-      onEnd: () => {
+      onEnd: (endEvent) => {
         flushScrubChange()
         setInspectorInputDragActive(false)
         document.body.style.cursor = ""
         if (moved) setDraft(null)
-        if (!moved) inputRef.current?.focus()
+        // Only a completed click types; a cancelled press does nothing.
+        else if (endEvent?.type === "pointerup") inputRef.current?.focus()
       },
     })
   }
@@ -133,7 +136,7 @@ export function NumberField({
       }}
       title={feedback ?? "Drag to adjust · click to type"}
       className={cn(
-        "flex h-8 cursor-ew-resize items-center rounded-md bg-muted/80 px-2 text-foreground transition-colors focus-within:bg-muted hover:bg-muted max-[720px]:min-h-11 pointer-coarse:min-h-11",
+        "flex h-8 cursor-ew-resize items-center rounded-md bg-muted/80 px-2 text-foreground transition-colors focus-within:bg-muted hover:bg-muted max-[720px]:min-h-11 pointer-coarse:min-h-11 pointer-coarse:cursor-text",
         feedback
           ? "ring-1 ring-destructive/50 focus-within:ring-destructive/50"
           : "focus-within:ring-1 focus-within:ring-ring",

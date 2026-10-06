@@ -15,7 +15,45 @@ import {
   isSvgFile,
   svgImportMessage,
 } from "./SvgImportModel"
-import { STARTER_ARTWORK } from "./StarterProjectModel"
+import { MotionPresetPreview } from "./MotionPresetPreview"
+import {
+  STARTERS,
+  slashedIcon,
+  type StarterMotion,
+} from "./StarterProjectModel"
+import type { PresetIcon } from "./IconLibrary"
+
+/** Each card shows its motion, so choosing reads as "how should it move?". */
+function StarterPreview({
+  motion,
+  icon,
+}: {
+  motion: StarterMotion
+  icon: PresetIcon
+}) {
+  if (motion !== "slash")
+    return (
+      <span style={{ color: icon.defaultTint }}>
+        <MotionPresetPreview preset={motion} svgContent={icon.svgContent} />
+      </span>
+    )
+  return (
+    <span
+      aria-hidden="true"
+      className="relative grid size-12 shrink-0 place-items-center [&_svg]:size-9 [&_svg_*]:fill-current"
+      style={{ color: icon.defaultTint }}
+    >
+      <span
+        className="col-start-1 row-start-1 grid place-items-center"
+        dangerouslySetInnerHTML={{ __html: icon.svgContent }}
+      />
+      <span
+        className="starter-slash-off col-start-1 row-start-1 grid place-items-center"
+        dangerouslySetInnerHTML={{ __html: slashedIcon(icon).svgContent }}
+      />
+    </span>
+  )
+}
 
 export function WelcomeDialog({
   open,
@@ -34,8 +72,10 @@ export function WelcomeDialog({
   const inputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
-  const [selectedId, setSelectedId] = useState("heart")
-  const selected = STARTER_ARTWORK.find((icon) => icon.id === selectedId)!
+  const [selectedMotion, setSelectedMotion] = useState<StarterMotion>("spin")
+  const selected = STARTERS.find(
+    (starter) => starter.motion === selectedMotion
+  )!
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onDismiss()}>
       <DialogContent className="editor-scrollbar max-h-[calc(100dvh-32px)] gap-5 overflow-y-auto p-5 sm:max-w-xl sm:gap-6 sm:p-8">
@@ -47,31 +87,28 @@ export function WelcomeDialog({
             Make something move.
           </DialogTitle>
           <DialogDescription className="leading-6 text-pretty sm:max-w-sm">
-            Start with an icon. Make it yours with color and depth, add a little
-            motion, then download it.
+            Pick how it moves. Make it yours with color and depth, then download
+            it.
           </DialogDescription>
         </DialogHeader>
         <div
           className="grid gap-2 sm:grid-cols-3 sm:gap-3"
-          aria-label="Starter artwork"
+          aria-label="Starter motion"
         >
-          {STARTER_ARTWORK.map((icon) => (
+          {STARTERS.map(({ motion, label, hint, icon }) => (
             <button
               type="button"
-              key={icon.id}
-              aria-label={`Start with ${icon.name}`}
-              aria-pressed={icon.id === selectedId}
-              onClick={() => setSelectedId(icon.id)}
-              className="group relative flex min-h-16 items-center gap-4 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary sm:min-h-44 sm:flex-col sm:justify-center sm:p-3 sm:text-center"
+              key={motion}
+              aria-pressed={motion === selectedMotion}
+              onClick={() => setSelectedMotion(motion)}
+              className="group relative flex min-h-16 items-center gap-4 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary sm:min-h-44 sm:flex-col sm:justify-center sm:gap-3 sm:p-3 sm:text-center"
             >
-              <span
-                aria-hidden="true"
-                className="grid size-9 shrink-0 place-items-center sm:size-18 [&_svg]:size-full [&_svg_*]:fill-current"
-                style={{ color: icon.defaultTint }}
-                dangerouslySetInnerHTML={{ __html: icon.svgContent }}
-              />
-              <span className="flex-1 sm:flex-none">
-                {icon.name === "Lightning Bolt" ? "Bolt" : icon.name}
+              <StarterPreview motion={motion} icon={icon} />
+              <span className="flex flex-1 flex-col gap-0.5 sm:flex-none">
+                <span>{label}</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {hint}
+                </span>
               </span>
               <span
                 aria-hidden="true"
@@ -94,10 +131,14 @@ export function WelcomeDialog({
           <Button
             className="min-h-12 w-full rounded-xl"
             disabled={isImporting}
-            onClick={() => onCreate(selectedId, `${selected.name} motion`)}
+            onClick={() =>
+              onCreate(
+                selected.icon.id,
+                `${selected.icon.name} ${selected.label.toLowerCase()}`
+              )
+            }
           >
-            Create with{" "}
-            {selected.name === "Lightning Bolt" ? "Bolt" : selected.name}
+            Start with {selected.label}
             <ArrowRight aria-hidden="true" className="size-4" />
           </Button>
           <input

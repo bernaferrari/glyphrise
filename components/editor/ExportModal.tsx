@@ -99,7 +99,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     >
       <DialogContent
         finalFocus={finalFocusRef}
-        className="max-h-[calc(100dvh-32px)] w-180 max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-180"
+        className="max-h-[calc(100dvh-32px)] w-190 max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-190"
       >
         <DialogHeader className="flex-row items-center gap-2 border-b border-border px-5 py-3.5 pr-12">
           <DialogTitle className="text-sm font-semibold text-foreground">

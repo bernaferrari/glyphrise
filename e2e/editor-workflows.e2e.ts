@@ -269,20 +269,20 @@ test("keeps essential workspace actions reachable at compact widths", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 640, height: 700 })
-  await page.getByRole("button", { name: "Workspace actions" }).click()
+  // One app menu, anchored to the file name (as in ShapeShifter).
+  await page.getByRole("button", { name: "Open file menu" }).click()
 
-  await expect(page.getByRole("button", { name: "Files" })).toBeVisible()
+  await expect(page.getByRole("button", { name: "All files" })).toBeVisible()
   await expect(
     page.getByRole("button", { name: "Open from computer" })
   ).toBeVisible()
   await expect(
     page.getByRole("button", { name: "Download a copy" })
   ).toBeVisible()
-  // The menu entry, not the Animate button on the preview.
+  // Animate lives on the preview, so the menu never repeats it.
+  await page.keyboard.press("Escape")
   await expect(
-    page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Animate", exact: true })
+    page.getByRole("button", { name: "Animate", exact: true })
   ).toBeVisible()
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth))
@@ -410,7 +410,7 @@ test("offers production render controls and an honest fidelity matrix", async ({
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
 
-  await expect(page.getByText("Output size")).toBeVisible()
+  await expect(page.getByText("Size", { exact: true })).toBeVisible()
   await page
     .getByRole("button", { name: "Video Full animation", exact: true })
     .click()

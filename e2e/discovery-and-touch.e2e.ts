@@ -186,6 +186,12 @@ test.describe("touch intent on the phone timeline", () => {
   }) => {
     await page.goto("/")
     await page.getByRole("button", { name: "Motion", exact: true }).click()
+    // The Motion sheet rises from the tab bar; aim once it has settled.
+    const pane = page.locator("#glyphrise-timeline-pane")
+    await expect
+      .poll(async () => (await pane.boundingBox())?.height ?? 0)
+      .toBeGreaterThan(300)
+    await page.waitForTimeout(250)
     const cdp = await page.context().newCDPSession(page)
     const touch = (
       type: "touchStart" | "touchMove" | "touchEnd",

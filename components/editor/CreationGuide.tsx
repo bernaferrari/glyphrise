@@ -39,8 +39,8 @@ export function CreationGuide({
             onClick: onExport,
           }
         : {
-            title: "Give it a play.",
-            copy: "See your motion in the preview before you download it.",
+            title: "It already moves.",
+            copy: "Give it a play, then make it yours with a finish or a different motion.",
             action: "Play your motion",
             onClick: onPlay,
           }
@@ -67,14 +67,7 @@ export function CreationGuide({
       </button>
       <span className="flex items-center gap-1.5 pr-6 text-[11px] text-white/60">
         {completed && <Check aria-hidden="true" className="size-3" />}Your first
-        icon ·{" "}
-        {completed
-          ? "Done"
-          : hasMotion
-            ? hasPreviewed
-              ? "3 of 3"
-              : "2 of 3"
-            : "1 of 3"}
+        icon{completed ? " · Done" : ""}
       </span>
       <h2 className="mt-2 text-sm font-semibold max-[720px]:mt-1">
         {step.title}
@@ -92,7 +85,7 @@ export function CreationGuide({
           {step.action}
           <ArrowRight aria-hidden="true" className="size-3.5" />
         </button>
-        {!hasMotion && !completed && (
+        {!completed && !hasPreviewed && (
           <button
             type="button"
             onClick={onStyle}
@@ -102,6 +95,15 @@ export function CreationGuide({
           </button>
         )}
       </div>
+      {hasMotion && !hasPreviewed && !completed && (
+        <button
+          type="button"
+          onClick={onAnimate}
+          className="mt-1 min-h-11 rounded-lg px-2 text-xs text-white/80 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+        >
+          Change motion
+        </button>
+      )}
       {!hasMotion && !completed && (
         <button
           type="button"

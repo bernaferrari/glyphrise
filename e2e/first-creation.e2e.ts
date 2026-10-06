@@ -7,7 +7,7 @@ test.describe("short phone creation", () => {
   }) => {
     await page.goto("/")
     const create = page.getByRole("button", {
-      name: "Create with Heart",
+      name: "Start with Spin",
       exact: true,
     })
     await expect(create).toBeInViewport({ ratio: 1 })
@@ -43,19 +43,22 @@ for (const width of [390, 1280]) {
       await page.goto("/")
       const welcome = page.getByRole("dialog", { name: "Make something move." })
       await expect(welcome).toBeVisible()
+      // The intro starts from motion; Spin is the default first choice.
+      const spin = welcome.getByRole("button", { name: /^Spin/ })
+      await expect(spin).toHaveAttribute("aria-pressed", "true")
+      await welcome.getByRole("button", { name: /^Pulse/ }).click()
+      await spin.click()
       await welcome
-        .getByRole("button", { name: "Start with Star", exact: true })
-        .click()
-      await welcome
-        .getByRole("button", { name: "Create with Star", exact: true })
+        .getByRole("button", { name: "Start with Spin", exact: true })
         .click()
       await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-        "Star motion"
+        "Star spin"
       )
       const guide = page.getByRole("complementary", { name: "Your first icon" })
       await expect(guide).toBeVisible()
+      // Starters arrive already moving: play first, restyle or re-time freely.
       await expect(
-        guide.getByRole("button", { name: "Choose a motion" })
+        guide.getByRole("button", { name: "Play your motion" })
       ).toBeFocused()
       await guide.getByRole("button", { name: "Style icon" }).click()
       await page
@@ -63,7 +66,7 @@ for (const width of [390, 1280]) {
         .click()
       if (width < 720)
         await page.getByRole("button", { name: "Canvas", exact: true }).click()
-      await guide.getByRole("button", { name: "Choose a motion" }).click()
+      await guide.getByRole("button", { name: "Change motion" }).click()
       await page.getByRole("button", { name: "Tilt", exact: true }).click()
       await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
       await page.getByRole("button", { name: /^Apply Tilt/ }).click()
@@ -98,7 +101,7 @@ for (const width of [390, 1280]) {
       await page.reload()
       await expect(welcome).toHaveCount(0)
       await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-        "Star motion"
+        "Star spin"
       )
       if (width < 720)
         await page
@@ -122,11 +125,9 @@ test("records and downloads a short video, then offers a separate model export",
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Create with Heart", exact: true })
+    .getByRole("button", { name: "Start with Spin", exact: true })
     .click()
-  await page
-    .getByRole("button", { name: "Choose a motion", exact: true })
-    .click()
+  await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
@@ -166,11 +167,9 @@ test("closing an active recording cancels it and reopening export restores the d
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Create with Heart", exact: true })
+    .getByRole("button", { name: "Start with Spin", exact: true })
     .click()
-  await page
-    .getByRole("button", { name: "Choose a motion", exact: true })
-    .click()
+  await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await page

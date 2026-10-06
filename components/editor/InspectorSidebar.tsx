@@ -102,7 +102,7 @@ export function InspectorSidebar({
       aria-label="Properties inspector"
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-(--compact-pane-height) max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
+      className={`compact-sheet-pane flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-(--compact-pane-height) max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
     >
       {!compact && (
         <InspectorContextHeader

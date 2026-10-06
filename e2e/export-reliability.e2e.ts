@@ -10,11 +10,9 @@ async function bytes(download: Download) {
 async function createMotion(page: Page) {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Create with Heart", exact: true })
+    .getByRole("button", { name: "Start with Spin", exact: true })
     .click()
-  await page
-    .getByRole("button", { name: "Choose a motion", exact: true })
-    .click()
+  await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
@@ -177,7 +175,7 @@ test("immediately undoes the first edit through the button and keyboard", async 
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Create with Heart", exact: true })
+    .getByRole("button", { name: "Start with Spin", exact: true })
     .click()
   const undo = page.getByRole("button", { name: "Undo", exact: true })
   await expect(undo).toBeDisabled()
@@ -206,7 +204,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Create with Heart", exact: true })
+    .getByRole("button", { name: "Start with Spin", exact: true })
     .click()
   await page
     .getByRole("button", { name: "Open file menu", exact: true })
@@ -235,7 +233,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   }, deletedId)
   await page.getByRole("button", { name: "Delete file", exact: true }).click()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-    "Heart motion"
+    "Star spin"
   )
   await expect(page.getByRole("alert")).toContainText(
     "Deletion cleanup is incomplete"
@@ -247,7 +245,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   ).not.toBeNull()
   await page.reload()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-    "Heart motion"
+    "Star spin"
   )
   expect(
     await page.evaluate(

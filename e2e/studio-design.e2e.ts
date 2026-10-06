@@ -165,6 +165,52 @@ for (const width of [390, 1280]) {
   })
 }
 
+test.describe("number fields on a phone", () => {
+  test.use({ viewport: { width: 390, height: 800 }, hasTouch: true })
+  test("scrolling over a field neither focuses it nor scrubs; a tap types", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    const number = page.getByLabel("Extrusion depth", { exact: true })
+    await number.scrollIntoViewIfNeeded()
+    const original = await number.inputValue()
+    const box = (await number.boundingBox())!
+    const cdp = await page.context().newCDPSession(page)
+    const swipe = async (dx: number, dy: number) => {
+      const x = box.x + box.width / 2
+      const y = box.y + box.height / 2
+      const point = (t: number) => [
+        { x: x + dx * t, y: y + dy * t, id: 1, radiusX: 5, radiusY: 5 },
+      ]
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: point(0),
+      })
+      for (const t of [0.2, 0.5, 1])
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: point(t),
+        })
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchEnd",
+        touchPoints: [],
+      })
+    }
+    const focused = () =>
+      number.evaluate((input) => input === document.activeElement)
+
+    await swipe(0, -120)
+    expect(await focused()).toBe(false)
+    await swipe(80, 0)
+    expect(await focused()).toBe(false)
+    await expect(number).toHaveValue(original)
+
+    await number.tap()
+    expect(await focused()).toBe(true)
+  })
+})
+
 test("the inspector spans the desktop workspace and the icon library returns keyboard focus", async ({
   page,
 }) => {
@@ -198,12 +244,15 @@ for (const width of [320, 390]) {
       const inspector = page.getByRole("complementary", {
         name: "Properties inspector",
       })
-      const previewBox = (await preview.boundingBox())!
-      const inspectorBox = (await inspector.boundingBox())!
-      expect(previewBox.y + previewBox.height).toBeLessThanOrEqual(
-        inspectorBox.y
-      )
-      expect(previewBox.height).toBeGreaterThan(200)
+      // The sheet rises from the tab bar; measure once it has settled.
+      await expect
+        .poll(async () => {
+          const previewBox = (await preview.boundingBox())!
+          const inspectorBox = (await inspector.boundingBox())!
+          return previewBox.y + previewBox.height - inspectorBox.y
+        })
+        .toBeLessThanOrEqual(0)
+      expect((await preview.boundingBox())!.height).toBeGreaterThan(200)
       const originalFinish = await page
         .locator('[aria-label="Popular finishes"] button[aria-pressed="true"]')
         .getAttribute("aria-label")
@@ -242,7 +291,7 @@ for (const width of [320, 390]) {
         expect(box.width).toBeGreaterThanOrEqual(44)
         expect(box.height).toBeGreaterThanOrEqual(44)
       }
-      await page.getByRole("button", { name: "Workspace actions" }).click()
+      await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await page.getByRole("button", { name: "Animate", exact: true }).click()
       await expect(
         page.getByRole("dialog").locator(".motion-preview svg")

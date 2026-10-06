@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test"
 import { test } from "./fixtures"
 
 async function backup(page: Page) {
-  await page.getByRole("button", { name: "Workspace actions" }).click()
+  await page.getByRole("button", { name: "Open file menu" }).click()
   const downloaded = page.waitForEvent("download")
   await page.getByRole("button", { name: "Download a copy" }).click()
   const stream = await (await downloaded).createReadStream()
@@ -213,8 +213,7 @@ test.describe("phone style keyframe recovery", () => {
     await expect(
       page.getByRole("button", { name: "Add property", exact: true })
     ).toBeFocused()
-    await page.getByRole("button", { name: "Workspace actions" }).click()
-    await page.getByRole("button", { name: "Undo", exact: true }).click()
+    await page.getByRole("button", { name: "Undo edit", exact: true }).click()
     await openKeyframe(page, "Style", "1.20")
     await expect(
       page.getByLabel("Style keyframe time in seconds", { exact: true })

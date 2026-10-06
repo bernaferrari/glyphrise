@@ -4,18 +4,15 @@ import { useEffect, useState } from "react"
 import {
   Box,
   Check,
-  ChevronDown,
   Download,
   Image as ImageIcon,
   LoaderCircle,
   Video,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import type { VideoContainer } from "../3d/SvgTypes"
 import type { ExportSettings } from "./ExportSettingsModel"
 import { ExportRenderSettings } from "./ExportRenderSettings"
-import { ExportFormatDetails } from "./ExportFormatDetails"
 
 type Props = {
   isRecording: boolean
@@ -43,6 +40,14 @@ const FORMATS = [
   { id: "model", name: "3D model", detail: "GLB", Icon: Box },
 ] as const
 
+const DESCRIPTIONS = {
+  image: "This frame, exactly as rendered.",
+  video:
+    "The whole animation, start to finish. Keep this window open while it records.",
+  model:
+    "An editable 3D file. Some gradients and finishes are simplified; icon transitions are left out.",
+} as const
+
 const CHECKERBOARD =
   "repeating-conic-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 0 25%, transparent 0 50%) 0 0 / 14px 14px"
 
@@ -64,27 +69,36 @@ function OutputPreview({
     null
   )
   const [previewError, setPreviewError] = useState(false)
+  // A model has no frame or background of its own: show the artwork cut out.
+  const shown: ExportSettings =
+    format === "model"
+      ? {
+          ...settings,
+          width: 1080,
+          height: 1080,
+          backgroundMode: "transparent",
+        }
+      : settings
   const key = JSON.stringify([
-    settings.width,
-    settings.height,
-    settings.backgroundMode,
-    settings.backgroundColor,
+    shown.width,
+    shown.height,
+    shown.backgroundMode,
+    shown.backgroundColor,
   ])
   useEffect(() => {
     if (
-      format === "model" ||
       busy ||
-      settings.width < 64 ||
-      settings.height < 64 ||
-      settings.width > 4096 ||
-      settings.height > 4096
+      shown.width < 64 ||
+      shown.height < 64 ||
+      shown.width > 4096 ||
+      shown.height > 4096
     )
       return
     let canceled = false
     let url: string | null = null
     setPreviewError(false)
     const timer = window.setTimeout(() => {
-      void onCapturePreview(settings)
+      void onCapturePreview(shown)
         .then((blob) => {
           if (canceled) return
           url = URL.createObjectURL(blob)
@@ -99,11 +113,12 @@ function OutputPreview({
       clearTimeout(timer)
       if (url) URL.revokeObjectURL(url)
     }
-  }, [key, onCapturePreview, format === "model", busy])
+    // `shown` is fully described by `key`.
+  }, [key, onCapturePreview, busy])
   const ready = preview?.key === key && !previewError
   const ratio =
-    Number.isFinite(settings.width / settings.height) && settings.height > 0
-      ? settings.width / settings.height
+    Number.isFinite(shown.width / shown.height) && shown.height > 0
+      ? shown.width / shown.height
       : 1
   // Percent of a square stage, so the frame scales with the stage size.
   const width = ratio >= 1 ? 100 : 100 * ratio
@@ -115,44 +130,43 @@ function OutputPreview({
         ? `${settings.width} × ${settings.height} · ${durationSeconds.toFixed(1)}s · ${settings.frameRate} fps`
         : `${settings.width} × ${settings.height} · PNG`
   return (
-    <div className="flex flex-col items-center justify-center gap-3 bg-muted/40 p-6 max-md:py-4">
-      <div className="grid size-50 place-items-center max-md:size-30">
-        {format === "model" ? (
-          <div className="grid size-full place-items-center rounded-xl border border-dashed border-border">
-            <Box aria-hidden="true" className="size-14 text-muted-foreground" />
-          </div>
-        ) : (
-          <div
-            className="[container-type:size] grid place-items-center overflow-hidden rounded-md shadow-[0_0_0_1px_var(--border),0_8px_24px_-12px_rgba(0,0,0,0.5)] transition-[width,height] duration-200"
-            style={{
-              width: `${width}%`,
-              height: `${height}%`,
-              background:
-                settings.backgroundMode === "color"
-                  ? settings.backgroundColor
-                  : CHECKERBOARD,
-            }}
-          >
-            {ready ? (
-              <img
-                src={preview.url}
-                alt="Rendered export frame"
-                className="size-full object-contain"
-              />
-            ) : (
-              <span
-                role="status"
-                className="px-3 text-center text-xs text-muted-foreground"
-              >
-                {previewError
-                  ? "Preview unavailable. Try downloading again."
-                  : "Rendering preview…"}
-              </span>
-            )}
-          </div>
-        )}
+    <div className="flex flex-col items-center justify-center gap-3 bg-muted/40 p-6 max-md:flex-row max-md:justify-start max-md:gap-4 max-md:px-5 max-md:py-4">
+      <div className="grid size-56 place-items-center max-md:size-24">
+        <div
+          className="relative grid place-items-center overflow-hidden rounded-lg shadow-[0_0_0_1px_var(--border),0_12px_32px_-16px_rgba(0,0,0,0.55)] transition-[width,height] duration-200"
+          style={{
+            width: `${width}%`,
+            height: `${height}%`,
+            background:
+              shown.backgroundMode === "color"
+                ? shown.backgroundColor
+                : CHECKERBOARD,
+          }}
+        >
+          {ready ? (
+            <img
+              src={preview.url}
+              alt="Rendered export frame"
+              className="size-full object-contain"
+            />
+          ) : (
+            <span
+              role="status"
+              aria-label={
+                previewError ? "Preview unavailable" : "Rendering preview"
+              }
+              className={
+                previewError
+                  ? "px-3 text-center text-xs text-muted-foreground"
+                  : "size-full animate-pulse bg-foreground/5 motion-reduce:animate-none"
+              }
+            >
+              {previewError ? "Preview unavailable" : null}
+            </span>
+          )}
+        </div>
       </div>
-      <p className="text-center text-[11px] text-muted-foreground tabular-nums">
+      <p className="text-center text-xs text-muted-foreground tabular-nums max-md:text-left">
         {caption}
       </p>
     </div>
@@ -192,7 +206,7 @@ export function ExportAssetOptions(props: Props) {
   const progress = Math.max(0, Math.min(1, props.progress))
 
   return (
-    <div className="grid md:grid-cols-[248px_minmax(0,1fr)]">
+    <div className="grid md:grid-cols-[288px_minmax(0,1fr)]">
       <OutputPreview
         format={format}
         settings={props.settings}
@@ -202,12 +216,12 @@ export function ExportAssetOptions(props: Props) {
       />
 
       <div className="flex min-w-0 flex-col">
-        <div className="editor-scrollbar grid gap-5 p-5 md:max-h-[min(460px,calc(100dvh-240px))] md:overflow-y-auto">
-          <div className="grid gap-2">
+        <div className="editor-scrollbar grid gap-5 p-5 md:max-h-[min(480px,calc(100dvh-220px))] md:overflow-y-auto">
+          <div className="grid gap-3">
             <div
               role="group"
               aria-label="Export format"
-              className="grid grid-cols-3 gap-0.5 rounded-lg bg-muted p-0.5"
+              className="grid grid-cols-3 gap-2"
             >
               {FORMATS.map(({ id, name, detail, Icon }) => (
                 <button
@@ -221,19 +235,25 @@ export function ExportAssetOptions(props: Props) {
                       props.onSettingsChange({ backgroundMode: "color" })
                     setFormat(id)
                   }}
-                  className="flex h-9 items-center justify-center gap-1.5 rounded-md text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+                  className="flex min-h-16 flex-col items-start justify-center gap-1 rounded-xl border border-border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-[inset_0_0_0_1px_var(--primary)]"
                 >
-                  <Icon aria-hidden="true" className="size-3.5" />
-                  {name}
+                  <span className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-foreground">
+                    <Icon
+                      aria-hidden="true"
+                      className="size-4 shrink-0 text-muted-foreground max-[440px]:hidden"
+                    />
+                    {name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {id === "video"
+                      ? `${props.durationSeconds.toFixed(1)}s`
+                      : detail}
+                  </span>
                 </button>
               ))}
             </div>
             <p className="text-xs leading-5 text-muted-foreground">
-              {format === "image"
-                ? "A still of the current frame, colors and finish intact."
-                : format === "video"
-                  ? "The whole animation at the selected frame rate. The preview shows this frame; keep this window open during export."
-                  : "An editable 3D file with supported motion. Some gradients and finishes are simplified; icon transitions are left out."}
+              {DESCRIPTIONS[format]}
             </p>
           </div>
 
@@ -260,21 +280,9 @@ export function ExportAssetOptions(props: Props) {
               Enter a width and height between 64 and 4096 pixels.
             </p>
           )}
-          <details className="group text-xs text-muted-foreground">
-            <summary className="flex min-h-11 w-full cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-              Format details
-              <ChevronDown
-                aria-hidden="true"
-                className="size-4 shrink-0 text-muted-foreground group-open:rotate-180"
-              />
-            </summary>
-            <div className="pt-2">
-              <ExportFormatDetails />
-            </div>
-          </details>
         </div>
 
-        <div className="sticky bottom-0 mt-auto grid gap-2 border-t border-border bg-popover p-4 md:static md:bg-transparent">
+        <div className="sticky bottom-0 mt-auto grid gap-2 border-t border-border bg-popover px-5 py-4 md:static md:bg-transparent">
           {saved && (
             <p
               role="status"
@@ -302,15 +310,13 @@ export function ExportAssetOptions(props: Props) {
                 (format === "video" && !videoSupported))
             }
             onClick={props.isRecording ? props.onCancelVideoExport : action}
-            className={cn(
-              "relative min-h-11 w-full overflow-hidden rounded-lg"
-            )}
+            className="relative min-h-11 w-full overflow-hidden rounded-xl"
           >
             {props.isRecording ? (
               <>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 origin-left bg-white/15"
+                  className="absolute inset-0 origin-left bg-white/15 transition-transform"
                   style={{ transform: `scaleX(${progress})` }}
                 />
                 <span className="relative tabular-nums">

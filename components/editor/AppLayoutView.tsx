@@ -40,10 +40,7 @@ export type AppLayoutViewProps = {
     "duration" | "onApply" | "existingKeyframes"
   >
   keyframeNotice?: string | null
-  topBarProps: Omit<
-    ComponentProps<typeof AppTopBar>,
-    "onAnimateOpen" | "onGettingStarted"
-  >
+  topBarProps: Omit<ComponentProps<typeof AppTopBar>, "onGettingStarted">
   viewportProps: Omit<ComponentProps<typeof ViewportStage>, "ref"> & {
     creationJourney: CreationJourney
   }
@@ -119,10 +116,22 @@ export function AppLayoutView({
   const [compactPane, setCompactPane] = useState<
     "preview" | "properties" | "timeline"
   >("preview")
+  // Phones: Properties and Motion rise from the tab bar like ShapeShifter's
+  // sheet. The last pane stays mounted while it slides away; switching
+  // between open panes swaps instantly.
+  const [sheetPane, setSheetPane] = useState<"properties" | "timeline">(
+    "properties"
+  )
+  const [sheetMotion, setSheetMotion] = useState<"entering" | "open">("open")
   const showCompactPane = (pane: "preview" | "properties" | "timeline") => {
     if (topBarProps.zenMode) topBarProps.onZenModeChange(false)
+    if (pane !== "preview") {
+      setSheetMotion(compactPane === "preview" ? "entering" : "open")
+      setSheetPane(pane)
+    }
     setCompactPane(pane)
   }
+  const compactSheet = compactPane === "preview" ? "closed" : sheetMotion
   const { markExportComplete } = viewportProps.creationJourney
   const exportModalProps = {
     ...exportModalPropsProp,
@@ -163,7 +172,6 @@ export function AppLayoutView({
           else topBarProps.onUndo()
         }}
         onZenModeChange={changePanelVisibility}
-        onAnimateOpen={() => setAnimateOpen(true)}
         onGettingStarted={() => setManualWelcomeOpen(true)}
       />
 
@@ -202,7 +210,10 @@ export function AppLayoutView({
             </button>
           </div>
         )}
-        <div className="relative flex min-h-0 flex-1 max-[720px]:flex-col">
+        <div
+          data-compact-sheet={compactSheet}
+          className="relative flex min-h-0 flex-1 max-[720px]:flex-col"
+        >
           <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <div className="relative flex min-h-0 flex-1 bg-muted/40">
               <ViewportStage
@@ -259,7 +270,7 @@ export function AppLayoutView({
 
             <TimelineDock
               {...timelineProps}
-              compactOpen={compactPane === "timeline"}
+              compactOpen={sheetPane === "timeline"}
               timelineProps={{
                 ...timelineProps.timelineProps,
                 compactMode: isCompactLayout,
@@ -355,7 +366,7 @@ export function AppLayoutView({
               const id = selectedShapeId ?? shapes[0]?.id
               if (id && shapes.length > 1) onRemoveShape(id)
             }}
-            compactOpen={compactPane === "properties"}
+            compactOpen={sheetPane === "properties"}
           />
         </div>
 

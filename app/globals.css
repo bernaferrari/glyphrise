@@ -277,6 +277,29 @@
   --compact-pane-height: min(400px, 50dvh);
 }
 
+/* The phone sheet: same timing and curve as ShapeShifter's. Opening from the
+   canvas grows the pane from the tab bar; closing lowers it before it hides. */
+@media (width < 720px) {
+  .compact-sheet-pane {
+    transition:
+      height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s;
+  }
+  [data-compact-sheet="closed"] .compact-sheet-pane {
+    height: 0 !important;
+    border-top-width: 0;
+    visibility: hidden;
+    transition:
+      height 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s 220ms;
+  }
+  @starting-style {
+    [data-compact-sheet="entering"] .compact-sheet-pane {
+      height: 0 !important;
+    }
+  }
+}
+
 @media (pointer: coarse) {
   button,
   [role="button"],
@@ -477,9 +500,31 @@
 .motion-preview-pulse {
   animation: motion-preview-pulse 3s ease-in-out infinite;
 }
+/* Welcome "Slash" card: the slashed icon (the same glyph plus a bar) wipes in
+   over the still original, holds, and wipes back, like the transition it creates. */
+@keyframes starter-slash-off {
+  0%,
+  15% {
+    clip-path: polygon(0 0, 0 0, 0 0);
+  }
+  45%,
+  70% {
+    clip-path: polygon(0 0, 200% 0, 0 200%);
+  }
+  100% {
+    clip-path: polygon(0 0, 0 0, 0 0);
+  }
+}
+.starter-slash-off {
+  animation: starter-slash-off 3s ease-in-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-  .motion-preview {
+  .motion-preview,
+  .starter-slash-off {
     animation: none;
+  }
+  .starter-slash-off {
+    display: none;
   }
 }
 
@@ -595,10 +640,10 @@
     ew-resize;
 }
 
-/* Phones: transport has its own row, so the rail can be narrow. */
+/* Phones: the rail holds only names and the transport, so lanes get the room. */
 @media (width <= 720px) {
   .timeline-density {
-    --timeline-rail-width: 200px;
+    --timeline-rail-width: 168px;
     --timeline-ruler-height: 44px;
   }
 

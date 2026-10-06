@@ -74,10 +74,15 @@ test("phone inspector preserves a live preview without overlaid camera controls"
   ).toHaveCount(0)
   const preview = page.getByRole("region", { name: "3D preview" })
   await expect(preview).toBeVisible()
-  const previewBox = (await preview.boundingBox())!
-  const inspectorBox = (await inspector.boundingBox())!
-  expect(previewBox.y + previewBox.height).toBeLessThanOrEqual(inspectorBox.y)
-  expect(previewBox.height).toBeGreaterThan(120)
+  // The sheet rises from the tab bar; measure once it has settled.
+  await expect
+    .poll(async () => {
+      const previewBox = (await preview.boundingBox())!
+      const inspectorBox = (await inspector.boundingBox())!
+      return previewBox.y + previewBox.height - inspectorBox.y
+    })
+    .toBeLessThanOrEqual(0)
+  expect((await preview.boundingBox())!.height).toBeGreaterThan(120)
   await expect(
     page.getByRole("button", { name: "View options", exact: true })
   ).toHaveCount(0)
