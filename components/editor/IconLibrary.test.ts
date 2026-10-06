@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest"
-import { fetchMaterialSymbolIcon } from "./IconLibrary"
+import { fetchMaterialSymbolIcon, getMaterialSymbolNames, PRESET_ICONS } from "./IconLibrary"
+import { STARTERS } from "./StarterProjectModel"
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -20,4 +21,12 @@ it("imports a font alias through the equivalent canonical SVG", async () => {
   expect(fetch).toHaveBeenNthCalledWith(2, expect.stringContaining("/alarm/"))
   expect(icon.name).toBe("Access Alarm")
   expect(icon.svgContent).toContain("<path")
+})
+
+it("uses catalog symbol identities for every preset and starter", () => {
+  const catalog = new Set(getMaterialSymbolNames())
+  for (const icon of [...PRESET_ICONS, ...STARTERS.map((starter) => starter.icon)]) {
+    expect(icon.id, icon.name).toMatch(/^material-symbol-outlined-/)
+    expect(catalog.has(icon.id.replace("material-symbol-outlined-", "")), icon.name).toBe(true)
+  }
 })

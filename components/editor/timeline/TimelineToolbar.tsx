@@ -112,15 +112,7 @@ export function TimelineToolbar({
           variant="ghost"
           size="icon-sm"
           type="button"
-          aria-label={
-            playback.isPlaying
-              ? compactMode
-                ? "Pause timeline"
-                : "Pause"
-              : compactMode
-                ? "Play timeline"
-                : "Play"
-          }
+          aria-label={playback.isPlaying ? "Pause timeline" : "Play timeline"}
           title={playback.isPlaying ? "Pause (Space)" : "Play (Space)"}
           onClick={() => {
             onFocusTimeline?.()

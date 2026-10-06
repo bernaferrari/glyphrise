@@ -18,7 +18,7 @@ import {
 type ViewportStageProps = {
   canvasReady?: boolean
   zenMode: boolean
-  /** Show transport over the preview when the timeline is not on screen. */
+  /** Show transport over the preview alongside the desktop timeline. */
   showPlayback?: boolean
   /** Phones: a visible way into motion presets from the preview. */
   onAnimate?: () => void
@@ -99,7 +99,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           className={`relative min-h-0 flex-1 transition-[background-color,border-color] duration-150 ${
             zenMode || presentation === "motion-preview"
               ? "rounded-none border-0"
-              : "overflow-hidden rounded-2xl border border-border/60 bg-muted/40 shadow-sm"
+              : "overflow-hidden rounded-2xl bg-muted/40 shadow-sm"
           }`}
         >
           {canvasReady ? (
@@ -153,7 +153,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          {/* The timeline toolbar owns transport while it is visible. */}
+          {/* Canvas transport stays available on desktop and outside phone Motion. */}
           {((presentation === "workspace" && zenMode) || showPlayback) && (
             <PlaybackControls {...playbackProps} />
           )}

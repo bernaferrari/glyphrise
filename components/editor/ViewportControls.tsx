@@ -220,6 +220,7 @@ function ViewportToggleRow({
 }
 
 export type PlaybackControlsProps = {
+  controls?: "play" | "transport"
   zenMode: boolean
   isPlaying: boolean
   playbackProgress: number
@@ -236,6 +237,7 @@ export type PlaybackControlsProps = {
 }
 
 export function PlaybackControls({
+  controls = "transport",
   zenMode,
   isPlaying,
   playbackProgress,
@@ -260,26 +262,30 @@ export function PlaybackControls({
       data-timeline-step-surface
       className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl max-[720px]:bottom-2 max-[720px]:gap-0.5 max-[720px]:p-1"
     >
-      <Button
-        size="icon-lg"
-        variant="viewport-ghost"
-        onClick={onReset}
-        disabled={atTimelineStart}
-        aria-label="Go to start"
-        title="Go to start"
-      >
-        <SkipBack size={14} />
-      </Button>
-      <Button
-        size="icon-lg"
-        variant="viewport-ghost"
-        onClick={onPreviousKeyMoment}
-        disabled={!hasPreviousKeyMoment}
-        aria-label="Previous keyframe"
-        title="Previous keyframe"
-      >
-        <ChevronLeft size={16} />
-      </Button>
+      {controls === "transport" && (
+        <>
+          <Button
+            size="icon-lg"
+            variant="viewport-ghost"
+            onClick={onReset}
+            disabled={atTimelineStart}
+            aria-label="Go to start"
+            title="Go to start"
+          >
+            <SkipBack size={14} />
+          </Button>
+          <Button
+            size="icon-lg"
+            variant="viewport-ghost"
+            onClick={onPreviousKeyMoment}
+            disabled={!hasPreviousKeyMoment}
+            aria-label="Previous keyframe"
+            title="Previous keyframe"
+          >
+            <ChevronLeft size={16} />
+          </Button>
+        </>
+      )}
       <div
         className={`relative grid place-items-center ${zenMode ? "size-12" : "size-11"}`}
       >
@@ -329,26 +335,30 @@ export function PlaybackControls({
           )}
         </Button>
       </div>
-      <Button
-        size="icon-lg"
-        variant="viewport-ghost"
-        onClick={onNextKeyMoment}
-        disabled={!hasNextKeyMoment}
-        aria-label="Next keyframe"
-        title="Next keyframe"
-      >
-        <ChevronRight size={16} />
-      </Button>
-      <Button
-        size="icon-lg"
-        variant="viewport-ghost"
-        onClick={onGoToEnd}
-        disabled={atTimelineEnd}
-        aria-label="Go to end"
-        title="Go to end"
-      >
-        <SkipForward size={14} />
-      </Button>
+      {controls === "transport" && (
+        <>
+          <Button
+            size="icon-lg"
+            variant="viewport-ghost"
+            onClick={onNextKeyMoment}
+            disabled={!hasNextKeyMoment}
+            aria-label="Next keyframe"
+            title="Next keyframe"
+          >
+            <ChevronRight size={16} />
+          </Button>
+          <Button
+            size="icon-lg"
+            variant="viewport-ghost"
+            onClick={onGoToEnd}
+            disabled={atTimelineEnd}
+            aria-label="Go to end"
+            title="Go to end"
+          >
+            <SkipForward size={14} />
+          </Button>
+        </>
+      )}
       {zenMode && (
         <Button size="sm" variant="viewport-ghost" onClick={onExitZenMode}>
           Exit

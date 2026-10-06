@@ -239,12 +239,16 @@ export function AppLayoutView({
                 ref={canvas3DRef}
                 {...viewportProps}
                 canvasReady={topBarProps.projectStatus !== "restoring"}
-                showPlayback={isCompactLayout && compactPane !== "timeline"}
+                showPlayback={!isCompactLayout || compactPane !== "timeline"}
                 onAnimate={
                   isCompactLayout ? () => setAnimateOpen(true) : undefined
                 }
                 playbackProps={{
                   ...viewportProps.playbackProps,
+                  controls:
+                    !isCompactLayout && !topBarProps.zenMode
+                      ? "play"
+                      : "transport",
                   onExitZenMode: () => changePanelVisibility(false),
                 }}
                 presentation={

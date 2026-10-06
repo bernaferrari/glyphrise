@@ -1,0 +1,392 @@
+[
+  {
+    "name": "Heart",
+    "defaultTint": "#ff5b9a",
+    "category": "Social",
+    "tags": [
+      "favorite",
+      "outlined",
+      "love",
+      "like"
+    ],
+    "id": "material-symbol-outlined-favorite",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m480-120-58-52q-101-91-167-157T150-447.5Q111-500 95.5-544T80-634q0-94 63-157t157-63q52 0 99 22t81 62q34-40 81-62t99-22q94 0 157 63t63 157q0 46-15.5 90T810-447.5Q771-395 705-329T538-172l-58 52Zm0-108q96-86 158-147.5t98-107q36-45.5 50-81t14-70.5q0-60-40-100t-100-40q-47 0-87 26.5T518-680h-76q-15-41-55-67.5T300-774q-60 0-100 40t-40 100q0 35 14 70.5t50 81q36 45.5 98 107T480-228Zm0-273Z\"/></g></svg>"
+  },
+  {
+    "name": "Star",
+    "defaultTint": "#ffcc4d",
+    "category": "Status",
+    "tags": [
+      "star",
+      "outlined",
+      "favorite",
+      "rating",
+      "featured"
+    ],
+    "id": "material-symbol-outlined-star",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m354-287 126-76 126 77-33-144 111-96-146-13-58-136-58 135-146 13 111 97-33 143ZM233-120l65-281L80-590l288-25 112-265 112 265 288 25-218 189 65 281-247-149-247 149Zm247-350Z\"/></g></svg>"
+  },
+  {
+    "name": "Bell",
+    "defaultTint": "#f1ad36",
+    "category": "Alerts",
+    "tags": [
+      "notifications",
+      "outlined",
+      "notification",
+      "alarm",
+      "ring"
+    ],
+    "id": "material-symbol-outlined-notifications",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M160-200v-80h80v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h80v80H160Zm320-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-280h320v-280q0-66-47-113t-113-47q-66 0-113 47t-47 113v280Z\"/></g></svg>"
+  },
+  {
+    "name": "Calendar Month",
+    "defaultTint": "#ff5a5f",
+    "category": "Objects",
+    "tags": [
+      "calendar_month",
+      "outlined",
+      "date",
+      "event",
+      "schedule",
+      "today"
+    ],
+    "id": "material-symbol-outlined-calendar_month",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z\"/></g></svg>"
+  },
+  {
+    "name": "Wi-Fi",
+    "defaultTint": "#3d8bff",
+    "category": "Devices",
+    "tags": [
+      "wifi",
+      "outlined",
+      "wireless",
+      "signal",
+      "network",
+      "internet"
+    ],
+    "id": "material-symbol-outlined-wifi",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-120q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM254-346l-84-86q59-59 138.5-93.5T480-560q92 0 171.5 35T790-430l-84 84q-44-44-102-69t-124-25q-66 0-124 25t-102 69ZM84-516 0-600q92-94 215-147t265-53q142 0 265 53t215 147l-84 84q-77-77-178.5-120.5T480-680q-116 0-217.5 43.5T84-516Z\"/></g></svg>"
+  },
+  {
+    "name": "Cloud",
+    "defaultTint": "#bcd1ff",
+    "category": "Objects",
+    "tags": [
+      "cloud",
+      "outlined",
+      "weather",
+      "storage",
+      "sync"
+    ],
+    "id": "material-symbol-outlined-cloud",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M260-160q-91 0-155.5-63T40-377q0-78 47-139t123-78q25-92 100-149t170-57q117 0 198.5 81.5T760-520q69 8 114.5 59.5T920-340q0 75-52.5 127.5T740-160H260Zm0-80h480q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-80q0-83-58.5-141.5T480-720q-83 0-141.5 58.5T280-520h-20q-58 0-99 41t-41 99q0 58 41 99t99 41Zm220-240Z\"/></g></svg>"
+  },
+  {
+    "name": "Gift",
+    "defaultTint": "#a48bff",
+    "category": "Objects",
+    "tags": [
+      "redeem",
+      "outlined",
+      "present",
+      "reward",
+      "box"
+    ],
+    "id": "material-symbol-outlined-redeem",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M160-280v80h640v-80H160Zm0-440h88q-5-9-6.5-19t-1.5-21q0-50 35-85t85-35q30 0 55.5 15.5T460-826l20 26 20-26q18-24 44-39t56-15q50 0 85 35t35 85q0 11-1.5 21t-6.5 19h88q33 0 56.5 23.5T880-640v440q0 33-23.5 56.5T800-120H160q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720Zm0 320h640v-240H596l84 114-64 46-136-184-136 184-64-46 82-114H160v240Zm200-320q17 0 28.5-11.5T400-760q0-17-11.5-28.5T360-800q-17 0-28.5 11.5T320-760q0 17 11.5 28.5T360-720Zm240 0q17 0 28.5-11.5T640-760q0-17-11.5-28.5T600-800q-17 0-28.5 11.5T560-760q0 17 11.5 28.5T600-720Z\"/></g></svg>"
+  },
+  {
+    "name": "Sparkle",
+    "defaultTint": "#ff8fc5",
+    "category": "Effects",
+    "tags": [
+      "auto_awesome",
+      "outlined",
+      "magic",
+      "shine",
+      "highlight"
+    ],
+    "id": "material-symbol-outlined-auto_awesome",
+    "svgContent": "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"24\" width=\"24\"><path d=\"m19 9-1.25-2.75L15 5l2.75-1.25L19 1l1.25 2.75L23 5l-2.75 1.25Zm0 14-1.25-2.75L15 19l2.75-1.25L19 15l1.25 2.75L23 19l-2.75 1.25ZM9 20l-2.5-5.5L1 12l5.5-2.5L9 4l2.5 5.5L17 12l-5.5 2.5Zm0-4.85L10 13l2.15-1L10 11 9 8.85 8 11l-2.15 1L8 13ZM9 12Z\"/></svg>"
+  },
+  {
+    "name": "Trophy",
+    "defaultTint": "#ffd700",
+    "category": "Status",
+    "tags": [
+      "emoji_events",
+      "outlined",
+      "award",
+      "winner",
+      "achievement"
+    ],
+    "id": "material-symbol-outlined-emoji_events",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z\"/></g></svg>"
+  },
+  {
+    "name": "Shield",
+    "defaultTint": "#4ee2a3",
+    "category": "Security",
+    "tags": [
+      "shield",
+      "outlined",
+      "safe",
+      "protect",
+      "verified"
+    ],
+    "id": "material-symbol-outlined-shield",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-80q-139-35-229.5-159.5T160-516v-244l320-120 320 120v244q0 152-90.5 276.5T480-80Zm0-84q104-33 172-132t68-220v-189l-240-90-240 90v189q0 121 68 220t172 132Zm0-316Z\"/></g></svg>"
+  },
+  {
+    "name": "Lightning Bolt",
+    "defaultTint": "#ffd23f",
+    "category": "Effects",
+    "tags": [
+      "bolt",
+      "outlined",
+      "energy",
+      "power",
+      "fast"
+    ],
+    "id": "material-symbol-outlined-bolt",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m422-232 207-248H469l29-227-185 267h139l-30 208ZM320-80l40-280H160l360-520h80l-40 320h240L400-80h-80Zm151-390Z\"/></g></svg>"
+  },
+  {
+    "name": "Smile",
+    "defaultTint": "#5bc0be",
+    "category": "Social",
+    "tags": [
+      "mood",
+      "outlined",
+      "face",
+      "happy"
+    ],
+    "id": "material-symbol-outlined-mood",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M620-520q25 0 42.5-17.5T680-580q0-25-17.5-42.5T620-640q-25 0-42.5 17.5T560-580q0 25 17.5 42.5T620-520Zm-280 0q25 0 42.5-17.5T400-580q0-25-17.5-42.5T340-640q-25 0-42.5 17.5T280-580q0 25 17.5 42.5T340-520Zm140 260q68 0 123.5-38.5T684-400H276q25 63 80.5 101.5T480-260Zm0 180q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-400Zm0 320q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z\"/></g></svg>"
+  },
+  {
+    "name": "Crown",
+    "defaultTint": "#ffc94d",
+    "category": "Status",
+    "tags": [
+      "crown",
+      "outlined",
+      "king",
+      "premium",
+      "vip"
+    ],
+    "id": "material-symbol-outlined-crown",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M200-160v-80h560v80H200Zm0-140-51-321q-2 0-4.5.5t-4.5.5q-25 0-42.5-17.5T80-680q0-25 17.5-42.5T140-740q25 0 42.5 17.5T200-680q0 7-1.5 13t-3.5 11l125 56 125-171q-11-8-18-21t-7-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820q0 15-7 28t-18 21l125 171 125-56q-2-5-3.5-11t-1.5-13q0-25 17.5-42.5T820-740q25 0 42.5 17.5T880-680q0 25-17.5 42.5T820-620q-2 0-4.5-.5t-4.5-.5l-51 321H200Zm68-80h424l26-167-105 46-133-183-133 183-105-46 26 167Zm212 0Z\"/></g></svg>"
+  },
+  {
+    "name": "Gem",
+    "defaultTint": "#5ad8ff",
+    "category": "Status",
+    "tags": [
+      "diamond",
+      "outlined",
+      "jewel",
+      "premium"
+    ],
+    "id": "material-symbol-outlined-diamond",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-120 80-600l120-240h560l120 240-400 480Zm-95-520h190l-60-120h-70l-60 120Zm55 347v-267H218l222 267Zm80 0 222-267H520v267Zm144-347h106l-60-120H604l60 120Zm-474 0h106l60-120H250l-60 120Z\"/></g></svg>"
+  },
+  {
+    "name": "Rocket",
+    "defaultTint": "#ff6b6b",
+    "category": "Effects",
+    "tags": [
+      "rocket_launch",
+      "outlined",
+      "launch",
+      "startup",
+      "fast"
+    ],
+    "id": "material-symbol-outlined-rocket_launch",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m226-559 78 33q14-28 29-54t33-52l-56-11-84 84Zm142 83 114 113q42-16 90-49t90-75q70-70 109.5-155.5T806-800q-72-5-158 34.5T492-656q-42 42-75 90t-49 90Zm178-65q-23-23-23-56.5t23-56.5q23-23 57-23t57 23q23 23 23 56.5T660-541q-23 23-57 23t-57-23Zm19 321 84-84-11-56q-26 18-52 32.5T532-299l33 79Zm313-653q19 121-23.5 235.5T708-419l20 99q4 20-2 39t-20 33L538-80l-84-197-171-171-197-84 167-168q14-14 33.5-20t39.5-2l99 20q104-104 218-147t235-24ZM157-321q35-35 85.5-35.5T328-322q35 35 34.5 85.5T327-151q-25 25-83.5 43T82-76q14-103 32-161.5t43-83.5Zm57 56q-10 10-20 36.5T180-175q27-4 53.5-13.5T270-208q12-12 13-29t-11-29q-12-12-29-11.5T214-265Z\"/></g></svg>"
+  },
+  {
+    "name": "Flame",
+    "defaultTint": "#ff7a2f",
+    "category": "Effects",
+    "tags": [
+      "local_fire_department",
+      "outlined",
+      "fire",
+      "hot",
+      "trending"
+    ],
+    "id": "material-symbol-outlined-local_fire_department",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M240-400q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-39 33-69 68.5t-50.5 72Q261-513 250.5-475T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Zm0-492v132q0 34 23.5 57t57.5 23q18 0 33.5-7.5T622-658l18-22q74 42 117 117t43 163q0 134-93 227T480-80q-134 0-227-93t-93-227q0-129 86.5-245T480-840Z\"/></g></svg>"
+  },
+  {
+    "name": "Moon",
+    "defaultTint": "#9db4ff",
+    "category": "Nature",
+    "tags": [
+      "dark_mode",
+      "outlined",
+      "night",
+      "dark",
+      "sleep"
+    ],
+    "id": "material-symbol-outlined-dark_mode",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z\"/></g></svg>"
+  },
+  {
+    "name": "Sun",
+    "defaultTint": "#ffb703",
+    "category": "Nature",
+    "tags": [
+      "light_mode",
+      "outlined",
+      "day",
+      "light",
+      "weather"
+    ],
+    "id": "material-symbol-outlined-light_mode",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-360q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35Zm0 80q-83 0-141.5-58.5T280-480q0-83 58.5-141.5T480-680q83 0 141.5 58.5T680-480q0 83-58.5 141.5T480-280ZM200-440H40v-80h160v80Zm720 0H760v-80h160v80ZM440-760v-160h80v160h-80Zm0 720v-160h80v160h-80ZM256-650l-101-97 57-59 96 100-52 56Zm492 496-97-101 53-55 101 97-57 59Zm-98-550 97-101 59 57-100 96-56-52ZM154-212l101-97 55 53-97 101-59-57Zm326-268Z\"/></g></svg>"
+  },
+  {
+    "name": "Music Note",
+    "defaultTint": "#c77dff",
+    "category": "Media",
+    "tags": [
+      "music_note",
+      "outlined",
+      "song",
+      "audio",
+      "sound"
+    ],
+    "id": "material-symbol-outlined-music_note",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M400-120q-66 0-113-47t-47-113q0-66 47-113t113-47q23 0 42.5 5.5T480-418v-422h240v160H560v400q0 66-47 113t-113 47Z\"/></g></svg>"
+  },
+  {
+    "name": "Camera",
+    "defaultTint": "#7aa2ff",
+    "category": "Media",
+    "tags": [
+      "photo_camera",
+      "outlined",
+      "photo",
+      "picture",
+      "capture"
+    ],
+    "id": "material-symbol-outlined-photo_camera",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z\"/></g></svg>"
+  },
+  {
+    "name": "Play",
+    "defaultTint": "#ff4d6d",
+    "category": "Media",
+    "tags": [
+      "play_circle",
+      "outlined",
+      "video",
+      "start",
+      "media"
+    ],
+    "id": "material-symbol-outlined-play_circle",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m380-300 280-180-280-180v360ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z\"/></g></svg>"
+  },
+  {
+    "name": "Lock",
+    "defaultTint": "#8f9bff",
+    "category": "Security",
+    "tags": [
+      "lock",
+      "outlined",
+      "secure",
+      "private",
+      "password"
+    ],
+    "id": "material-symbol-outlined-lock",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm0-80h480v-400H240v400Zm240-120q33 0 56.5-23.5T560-360q0-33-23.5-56.5T480-440q-33 0-56.5 23.5T400-360q0 33 23.5 56.5T480-280ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80ZM240-160v-400 400Z\"/></g></svg>"
+  },
+  {
+    "name": "Location Pin",
+    "defaultTint": "#ff5a5f",
+    "category": "Objects",
+    "tags": [
+      "location_on",
+      "outlined",
+      "map",
+      "place",
+      "location"
+    ],
+    "id": "material-symbol-outlined-location_on",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M480-480q33 0 56.5-23.5T560-560q0-33-23.5-56.5T480-640q-33 0-56.5 23.5T400-560q0 33 23.5 56.5T480-480Zm0 294q122-112 181-203.5T720-552q0-109-69.5-178.5T480-800q-101 0-170.5 69.5T240-552q0 71 59 162.5T480-186Zm0 106Q319-217 239.5-334.5T160-552q0-150 96.5-239T480-880q127 0 223.5 89T800-552q0 100-79.5 217.5T480-80Zm0-480Z\"/></g></svg>"
+  },
+  {
+    "name": "Chat",
+    "defaultTint": "#4cc9f0",
+    "category": "Social",
+    "tags": [
+      "chat_bubble",
+      "outlined",
+      "message",
+      "comment",
+      "talk"
+    ],
+    "id": "material-symbol-outlined-chat_bubble",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M80-80v-720q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v480q0 33-23.5 56.5T800-240H240L80-80Zm126-240h594v-480H160v525l46-45Zm-46 0v-480 480Z\"/></g></svg>"
+  },
+  {
+    "name": "Thumbs Up",
+    "defaultTint": "#3fd47a",
+    "category": "Social",
+    "tags": [
+      "thumb_up",
+      "outlined",
+      "like",
+      "approve",
+      "good"
+    ],
+    "id": "material-symbol-outlined-thumb_up",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M720-120H280v-520l280-280 50 50q7 7 11.5 19t4.5 23v14l-44 174h258q32 0 56 24t24 56v80q0 7-2 15t-4 15L794-168q-9 20-30 34t-44 14Zm-360-80h360l120-280v-80H480l54-220-174 174v406Zm0-406v406-406Zm-80-34v80H160v360h120v80H80v-520h200Z\"/></g></svg>"
+  },
+  {
+    "name": "Check",
+    "defaultTint": "#34d399",
+    "category": "Status",
+    "tags": [
+      "check_circle",
+      "outlined",
+      "done",
+      "success",
+      "complete"
+    ],
+    "id": "material-symbol-outlined-check_circle",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z\"/></g></svg>"
+  },
+  {
+    "name": "Leaf",
+    "defaultTint": "#6bd968",
+    "category": "Nature",
+    "tags": [
+      "eco",
+      "outlined",
+      "plant",
+      "green"
+    ],
+    "id": "material-symbol-outlined-eco",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M216-176q-45-45-70.5-104T120-402q0-63 24-124.5T222-642q35-35 86.5-60t122-39.5Q501-756 591.5-759t202.5 7q8 106 5 195t-16.5 160.5q-13.5 71.5-38 125T684-182q-53 53-112.5 77.5T450-80q-65 0-127-25.5T216-176Zm112-16q29 17 59.5 24.5T450-160q46 0 91-18.5t86-59.5q18-18 36.5-50.5t32-85Q709-426 716-500.5t2-177.5q-49-2-110.5-1.5T485-670q-61 9-116 29t-90 55q-45 45-62 89t-17 85q0 59 22.5 103.5T262-246q42-80 111-153.5T534-520q-72 63-125.5 142.5T328-192Zm0 0Zm0 0Z\"/></g></svg>"
+  },
+  {
+    "name": "Coffee",
+    "defaultTint": "#c08552",
+    "category": "Objects",
+    "tags": [
+      "coffee",
+      "outlined",
+      "cup",
+      "break",
+      "drink"
+    ],
+    "id": "material-symbol-outlined-coffee",
+    "svgContent": "<svg viewBox=\"0 0 24 24\"><g transform=\"matrix(0.025 0 0 0.025 0 24)\"><path d=\"M440-240q-117 0-198.5-81.5T160-520v-240q0-33 23.5-56.5T240-840h500q58 0 99 41t41 99q0 58-41 99t-99 41h-20v40q0 117-81.5 198.5T440-240ZM240-640h400v-120H240v120Zm200 320q83 0 141.5-58.5T640-520v-40H240v40q0 83 58.5 141.5T440-320Zm280-320h20q25 0 42.5-17.5T800-700q0-25-17.5-42.5T740-760h-20v120ZM160-120v-80h640v80H160Zm280-440Z\"/></g></svg>"
+  }
+]
