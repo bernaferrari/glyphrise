@@ -30,6 +30,7 @@ export { validateAndSanitizeSvg } from ${JSON.stringify(join(root, "components/e
     resolve: { alias: { "@": root } },
     build: {
       outDir: join(temporary, "bundle"),
+      emptyOutDir: true,
       lib: { entry, formats: ["es"], fileName: () => "normalize.mjs" },
     },
   })

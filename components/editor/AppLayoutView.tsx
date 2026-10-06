@@ -245,10 +245,6 @@ export function AppLayoutView({
                 }
                 playbackProps={{
                   ...viewportProps.playbackProps,
-                  controls:
-                    !isCompactLayout && !topBarProps.zenMode
-                      ? "play"
-                      : "transport",
                   onExitZenMode: () => changePanelVisibility(false),
                 }}
                 presentation={

@@ -1,5 +1,4 @@
 import type { MaterialPresetId } from "../3d/MaterialPresets"
-import { appendGlyphriseSlash } from "../3d/SvgText"
 import { createAnimationPreset } from "./AnimationPresetModel"
 import {
   createEditorId,
@@ -9,13 +8,18 @@ import {
 } from "./EditorModel"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
 import { materialDefaultSettings } from "./FinishRegistry"
-import { PRESET_ICONS, type PresetIcon } from "./IconLibrary"
+import {
+  appendMaterialSymbolSlash,
+  PRESET_ICONS,
+  type PresetIcon,
+} from "./IconLibrary"
 import { createInitialTimelineTracks } from "./PropertyRegistry"
 import { createShapeStop } from "./ShapeSequenceModel"
 import { completePathOverride } from "./SvgLayerModel"
 import type { EasingType, FillGradientType, FillStop } from "./TimelineModel"
 
-const icon = (id: string) => PRESET_ICONS.find((item) => item.id === id)!
+const icon = (id: string) =>
+  PRESET_ICONS.find((item) => item.id === `material-symbol-outlined-${id}`)!
 
 export type StarterMotion = "spin" | "pulse" | "slash-turn" | "ring"
 
@@ -68,11 +72,7 @@ export const STARTERS: Starter[] = [
     hint: "Spins",
     motion: "spin",
     duration: 3.6,
-    // The Material Symbol itself, so the icon picker shows it as selected.
-    icon: {
-      ...icon("calendar"),
-      id: "material-symbol-outlined-calendar_month",
-    },
+    icon: icon("calendar_month"),
     finish: "satin",
     fill: CANDY,
   },
@@ -82,7 +82,7 @@ export const STARTERS: Starter[] = [
     hint: "Pulses",
     motion: "pulse",
     duration: 3,
-    icon: icon("heart"),
+    icon: icon("favorite"),
     finish: "satin",
     fill: mesh("rose", [
       "#FFD1E3",
@@ -123,7 +123,7 @@ export const STARTERS: Starter[] = [
     hint: "Rings",
     motion: "ring",
     duration: 3,
-    icon: icon("bell"),
+    icon: icon("notifications"),
     finish: "satin",
     fill: mesh("gold", [
       "#FFF3C4",
@@ -140,12 +140,7 @@ export const STARTERS: Starter[] = [
 ]
 
 /** The slashed partner of a starter icon, drawn the same way as wipe pairs. */
-export const slashedIcon = (base: PresetIcon): PresetIcon => ({
-  ...base,
-  id: `${base.id}-off`,
-  name: `${base.name} Off`,
-  svgContent: appendGlyphriseSlash(base.svgContent),
-})
+export const slashedIcon = appendMaterialSymbolSlash
 
 const rotationKeys = (
   values: Array<[time: number, rotation: Partial<Vec3>]>,
@@ -181,7 +176,7 @@ export function createStarterEditorSnapshot(
   const blank = createBlankEditorSnapshot(base)
   const { fill, duration } = starter
   const shapeLook = {
-    color: fill.stops[0].color,
+    color: fill.stops[Math.floor(fill.stops.length / 2)].color,
     colorSecondary: fill.stops.at(-1)!.color,
     fillGradientType: fill.type,
     fillStops: fill.stops.map((stop) => ({ ...stop })),

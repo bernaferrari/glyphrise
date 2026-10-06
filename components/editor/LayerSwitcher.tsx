@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import type { PathOverride } from "../3d/SvgTypes"
+import { cn } from "@/lib/utils"
 import { InspectorRow } from "./InspectorPrimitives"
 import { InspectorSlider } from "./InspectorSlider"
 import { ALL_LAYERS_ID, type SvgLayer } from "./SvgLayerModel"
@@ -72,6 +73,12 @@ function LayerSwitcherComponent({
   const isAllLayers = selectedLayerId === ALL_LAYERS_ID
   const visible = selectedLayerOverride?.visible ?? true
   const showLayerControls = !isAllLayers && selectedLayerOverride
+  const modified = Boolean(
+    selectedLayerOverride &&
+    (!visible ||
+      (selectedLayerOverride.scale?.x ?? 1) !== 1 ||
+      selectedLayerOverride.depthMultiplier !== 1)
+  )
 
   const [open, setOpen] = useState(false)
   const selected = layers.find((layer) => layer.id === selectedLayerId)
@@ -164,47 +171,54 @@ function LayerSwitcherComponent({
             ))}
           </PopoverContent>
         </Popover>
-        {showLayerControls && (
-          <button
-            type="button"
-            aria-label={visible ? "Hide SVG layer" : "Show SVG layer"}
-            aria-pressed={!visible}
-            title={visible ? "Hide layer" : "Show layer"}
-            onClick={onToggleVisibility}
-            className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            {visible ? (
-              <Eye className="size-4" />
-            ) : (
-              <EyeOff className="size-4" />
-            )}
-          </button>
-        )}
       </div>
 
       {showLayerControls ? (
         <section
           aria-label={`${selected?.name ?? "Layer"} settings`}
-          className={
-            leading
-              ? "mb-1 rounded-xl bg-muted/40 ring-1 ring-primary/25"
-              : "mx-3 mb-1 rounded-xl bg-muted/40 ring-1 ring-primary/25"
-          }
+          className={cn(
+            "mb-1 rounded-xl bg-muted/30 ring-1 ring-border",
+            !leading && "mx-3"
+          )}
         >
-          <div className="flex items-center gap-2 border-b border-border/50 py-1.5 pr-1 pl-2.5">
-            <span className="size-5 shrink-0 text-primary">
+          <div className="flex items-center gap-2 border-b border-border py-1 pr-1 pl-2.5">
+            <span className="size-5 shrink-0 text-foreground">
               <LayerThumbnail
                 layer={selected}
                 contextId={contextId}
                 viewBox={viewBox}
               />
             </span>
-            <span className="min-w-0 flex-1 truncate text-xs">
-              <span className="text-muted-foreground">Only </span>
-              <span className="font-medium text-foreground">
-                {selected?.name}
-              </span>
+            <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+              {selected?.name}
             </span>
+            {modified && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!visible) onToggleVisibility()
+                  onScaleChange(1)
+                  onDepthChange(1)
+                }}
+                className="h-7 shrink-0 rounded-md px-2 text-2xs text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                Reset
+              </button>
+            )}
+            <button
+              type="button"
+              aria-label={visible ? "Hide SVG layer" : "Show SVG layer"}
+              aria-pressed={!visible}
+              title={visible ? "Hide layer" : "Show layer"}
+              onClick={onToggleVisibility}
+              className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:text-foreground"
+            >
+              {visible ? (
+                <Eye aria-hidden="true" className="size-3.5" />
+              ) : (
+                <EyeOff aria-hidden="true" className="size-3.5" />
+              )}
+            </button>
             <button
               type="button"
               aria-label="Back to all layers"
@@ -215,7 +229,12 @@ function LayerSwitcherComponent({
               <X aria-hidden="true" className="size-3.5" />
             </button>
           </div>
-          <div className="flex flex-col gap-0.5 pt-1 pb-1.5">
+          <div
+            className={cn(
+              "flex flex-col gap-0.5 pt-1 pb-1.5 transition-opacity",
+              !visible && "opacity-50"
+            )}
+          >
             <InspectorRow label="Scale">
               <InspectorSlider
                 value={selectedLayerOverride.scale?.x ?? 1}

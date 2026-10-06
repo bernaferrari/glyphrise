@@ -4,309 +4,202 @@
     "name": "Heart",
     "defaultTint": "#ff5b9a",
     "category": "Social",
-    "tags": [
-      "love",
-      "like",
-      "favorite"
-    ]
+    "tags": ["love", "like", "favorite"]
   },
   {
     "symbol": "star",
     "name": "Star",
     "defaultTint": "#ffcc4d",
     "category": "Status",
-    "tags": [
-      "favorite",
-      "rating",
-      "featured"
-    ]
+    "tags": ["favorite", "rating", "featured"]
   },
   {
     "symbol": "notifications",
     "name": "Bell",
     "defaultTint": "#f1ad36",
     "category": "Alerts",
-    "tags": [
-      "notification",
-      "alarm",
-      "ring"
-    ]
+    "tags": ["notification", "alarm", "ring"]
   },
   {
     "symbol": "calendar_month",
     "name": "Calendar Month",
     "defaultTint": "#ff5a5f",
     "category": "Objects",
-    "tags": [
-      "date",
-      "event",
-      "schedule",
-      "today"
-    ]
+    "tags": ["date", "event", "schedule", "today"]
   },
   {
     "symbol": "wifi",
     "name": "Wi-Fi",
     "defaultTint": "#3d8bff",
     "category": "Devices",
-    "tags": [
-      "wireless",
-      "signal",
-      "network",
-      "internet"
-    ]
+    "tags": ["wireless", "signal", "network", "internet"]
   },
   {
     "symbol": "cloud",
     "name": "Cloud",
     "defaultTint": "#bcd1ff",
     "category": "Objects",
-    "tags": [
-      "weather",
-      "storage",
-      "sync"
-    ]
+    "tags": ["weather", "storage", "sync"]
   },
   {
     "symbol": "redeem",
     "name": "Gift",
     "defaultTint": "#a48bff",
     "category": "Objects",
-    "tags": [
-      "present",
-      "reward",
-      "box"
-    ]
+    "tags": ["present", "reward", "box"]
   },
   {
     "symbol": "auto_awesome",
     "name": "Sparkle",
     "defaultTint": "#ff8fc5",
     "category": "Effects",
-    "tags": [
-      "magic",
-      "shine",
-      "highlight"
-    ]
+    "tags": ["magic", "shine", "highlight"]
   },
   {
     "symbol": "emoji_events",
     "name": "Trophy",
     "defaultTint": "#ffd700",
     "category": "Status",
-    "tags": [
-      "award",
-      "winner",
-      "achievement"
-    ]
+    "tags": ["award", "winner", "achievement"]
   },
   {
     "symbol": "shield",
     "name": "Shield",
     "defaultTint": "#4ee2a3",
     "category": "Security",
-    "tags": [
-      "safe",
-      "protect",
-      "verified"
-    ]
+    "tags": ["safe", "protect", "verified"]
   },
   {
     "symbol": "bolt",
     "name": "Lightning Bolt",
     "defaultTint": "#ffd23f",
     "category": "Effects",
-    "tags": [
-      "energy",
-      "power",
-      "fast"
-    ]
+    "tags": ["energy", "power", "fast"]
   },
   {
     "symbol": "mood",
     "name": "Smile",
     "defaultTint": "#5bc0be",
     "category": "Social",
-    "tags": [
-      "face",
-      "happy",
-      "mood"
-    ]
+    "tags": ["face", "happy", "mood"]
   },
   {
     "symbol": "crown",
     "name": "Crown",
     "defaultTint": "#ffc94d",
     "category": "Status",
-    "tags": [
-      "king",
-      "premium",
-      "vip"
-    ]
+    "tags": ["king", "premium", "vip"]
   },
   {
     "symbol": "diamond",
     "name": "Gem",
     "defaultTint": "#5ad8ff",
     "category": "Status",
-    "tags": [
-      "diamond",
-      "jewel",
-      "premium"
-    ]
+    "tags": ["diamond", "jewel", "premium"]
   },
   {
     "symbol": "rocket_launch",
     "name": "Rocket",
     "defaultTint": "#ff6b6b",
     "category": "Effects",
-    "tags": [
-      "launch",
-      "startup",
-      "fast"
-    ]
+    "tags": ["launch", "startup", "fast"]
   },
   {
     "symbol": "local_fire_department",
     "name": "Flame",
     "defaultTint": "#ff7a2f",
     "category": "Effects",
-    "tags": [
-      "fire",
-      "hot",
-      "trending"
-    ]
+    "tags": ["fire", "hot", "trending"]
   },
   {
     "symbol": "dark_mode",
     "name": "Moon",
     "defaultTint": "#9db4ff",
     "category": "Nature",
-    "tags": [
-      "night",
-      "dark",
-      "sleep"
-    ]
+    "tags": ["night", "dark", "sleep"]
   },
   {
     "symbol": "light_mode",
     "name": "Sun",
     "defaultTint": "#ffb703",
     "category": "Nature",
-    "tags": [
-      "day",
-      "light",
-      "weather"
-    ]
+    "tags": ["day", "light", "weather"]
   },
   {
     "symbol": "music_note",
     "name": "Music Note",
     "defaultTint": "#c77dff",
     "category": "Media",
-    "tags": [
-      "song",
-      "audio",
-      "sound"
-    ]
+    "tags": ["song", "audio", "sound"]
   },
   {
     "symbol": "photo_camera",
     "name": "Camera",
     "defaultTint": "#7aa2ff",
     "category": "Media",
-    "tags": [
-      "photo",
-      "picture",
-      "capture"
-    ]
+    "tags": ["photo", "picture", "capture"]
   },
   {
     "symbol": "play_circle",
     "name": "Play",
     "defaultTint": "#ff4d6d",
     "category": "Media",
-    "tags": [
-      "video",
-      "start",
-      "media"
-    ]
+    "tags": ["video", "start", "media"]
   },
   {
     "symbol": "lock",
     "name": "Lock",
     "defaultTint": "#8f9bff",
     "category": "Security",
-    "tags": [
-      "secure",
-      "private",
-      "password"
-    ]
+    "tags": ["secure", "private", "password"]
   },
   {
     "symbol": "location_on",
     "name": "Location Pin",
     "defaultTint": "#ff5a5f",
     "category": "Objects",
-    "tags": [
-      "map",
-      "place",
-      "location"
-    ]
+    "tags": ["map", "place", "location"]
   },
   {
     "symbol": "chat_bubble",
     "name": "Chat",
     "defaultTint": "#4cc9f0",
     "category": "Social",
-    "tags": [
-      "message",
-      "comment",
-      "talk"
-    ]
+    "tags": ["message", "comment", "talk"]
   },
   {
     "symbol": "thumb_up",
     "name": "Thumbs Up",
     "defaultTint": "#3fd47a",
     "category": "Social",
-    "tags": [
-      "like",
-      "approve",
-      "good"
-    ]
+    "tags": ["like", "approve", "good"]
   },
   {
     "symbol": "check_circle",
     "name": "Check",
     "defaultTint": "#34d399",
     "category": "Status",
-    "tags": [
-      "done",
-      "success",
-      "complete"
-    ]
+    "tags": ["done", "success", "complete"]
   },
   {
     "symbol": "eco",
     "name": "Leaf",
     "defaultTint": "#6bd968",
     "category": "Nature",
-    "tags": [
-      "eco",
-      "plant",
-      "green"
-    ]
+    "tags": ["eco", "plant", "green"]
   },
   {
     "symbol": "coffee",
     "name": "Coffee",
     "defaultTint": "#c08552",
     "category": "Objects",
-    "tags": [
-      "cup",
-      "break",
-      "drink"
-    ]
+    "tags": ["cup", "break", "drink"]
+  },
+  {
+    "symbol": "account_circle",
+    "name": "Account Circle",
+    "defaultTint": "#4285F4",
+    "category": "Social",
+    "tags": ["account", "user", "profile", "avatar"]
   }
 ]

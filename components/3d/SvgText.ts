@@ -4,9 +4,19 @@ export const extractSvgInner = (svgContent: string) =>
     .replace(/<\/svg>\s*$/i, "")
     .trim()
 
-export const normalizeSvgToIconViewBox = (svgContent: string) => {
+export const normalizeSvgToIconViewBox = (svgContent: string): string => {
   const viewBoxMatch = svgContent.match(/viewBox=["']([^"']+)["']/i)
-  if (!viewBoxMatch) return svgContent
+  if (!viewBoxMatch) {
+    // Some official symbols declare dimensions without a viewBox.
+    const root = svgContent.match(/^<svg\b[^>]*>/i)?.[0] ?? ""
+    const width = root.match(/\bwidth=["'](\d+(?:\.\d+)?)(?:px)?["']/i)?.[1]
+    const height = root.match(/\bheight=["'](\d+(?:\.\d+)?)(?:px)?["']/i)?.[1]
+    if (!width || !height || Number(width) <= 0 || Number(height) <= 0)
+      return svgContent
+    return normalizeSvgToIconViewBox(
+      svgContent.replace(/^<svg\b/i, `<svg viewBox="0 0 ${width} ${height}"`)
+    )
+  }
 
   const [minX, minY, width, height] = viewBoxMatch[1]
     .trim()
