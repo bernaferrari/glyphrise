@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { usePressType } from "@/lib/touch-intent"
 import type { EasingType, TimelineTrack } from "../TimelineModel"
 import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
@@ -91,6 +92,13 @@ export function TimelineTrackRow({
 }: TimelineTrackRowProps) {
   const animated = track.keyframes.length > 0
   const { ghostX, laneHandlers } = useLaneGhost()
+  const press = usePressType()
+  const seekRow = (clientX: number) => {
+    onSelectKeyframe(null)
+    onScrubStart?.()
+    onSelectTrack(track.id)
+    onTimeChange(timeFromClientX(clientX))
+  }
   const rowSelected =
     selectedKeyframe?.type === "track" && selectedKeyframe.trackId === track.id
 
@@ -105,12 +113,15 @@ export function TimelineTrackRow({
       }`}
       {...laneHandlers}
       title="Double-click to add a keyframe"
+      onPointerDownCapture={press.onPointerDownCapture}
+      // A finger landing here may be starting a scroll; only a tap seeks.
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return
-        onSelectKeyframe(null)
-        onScrubStart?.()
-        onSelectTrack(track.id)
-        onTimeChange(timeFromClientX(event.clientX))
+        if (event.pointerType === "touch") return
+        seekRow(event.clientX)
+      }}
+      onClick={(event) => {
+        if (press.ref.current === "touch") seekRow(event.clientX)
       }}
       onContextMenu={(event) => {
         const time = timeFromClientX(event.clientX, {

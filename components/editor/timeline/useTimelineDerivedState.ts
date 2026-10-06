@@ -12,7 +12,7 @@ import {
   computeTransitionWindows,
   computeShapeClipBounds,
 } from "./TimelineLayoutModel"
-import { TIMELINE_ZOOM_MAX } from "./TimelineGeometry"
+import { TIMELINE_FRAME_SNAP_ZOOM } from "./TimelineGeometry"
 import type { ShapeOption } from "./TimelineTypes"
 
 export const useTimelineDerivedState = ({
@@ -51,7 +51,7 @@ export const useTimelineDerivedState = ({
     () => tracks.filter((track) => !visibleTracks.includes(track)),
     [tracks, visibleTracks]
   )
-  const frameSnapActive = timelineZoom >= TIMELINE_ZOOM_MAX - 0.001
+  const frameSnapActive = timelineZoom >= TIMELINE_FRAME_SNAP_ZOOM - 0.001
 
   const transitionWindows = useMemo(
     () =>

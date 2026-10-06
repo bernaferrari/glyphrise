@@ -37,7 +37,7 @@ export type TimelineViewportProps = {
   timeFromClientX: TimelineTimeFromClientX
   handleScrubStart: (event: React.PointerEvent<HTMLElement>) => void
   syncLeftRailScroll: (scrollTop: number) => void
-  onAdjustTimelineZoom: (direction: number) => void
+  onAdjustTimelineZoom: (factor: number) => void
   onFitTimeline: () => void
 }
 

@@ -1,4 +1,5 @@
 import React from "react"
+import { holdToDrag } from "@/lib/touch-intent"
 import {
   Popover,
   PopoverContent,
@@ -147,7 +148,7 @@ function MotionSegment({
         title={`${getEasingLabel(easing)} · click to change easing${onDragStart ? ", drag to move" : ""}`}
         className={`group/segment absolute top-1/2 flex h-4 -translate-y-1/2 items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           onDragStart
-            ? "cursor-grab touch-none active:cursor-grabbing"
+            ? "cursor-grab touch-pan-x touch-pan-y active:cursor-grabbing"
             : "cursor-pointer"
         }`}
         style={{ left, width }}
@@ -155,7 +156,7 @@ function MotionSegment({
           if (!event.isPrimary || event.button !== 0) return
           event.stopPropagation()
           pressRef.current = { x: event.clientX }
-          onDragStart?.(event)
+          if (onDragStart) holdToDrag(onDragStart)(event)
         }}
         onPointerUp={(event) => {
           draggedRef.current = Boolean(

@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { holdToDrag, usePressType } from "@/lib/touch-intent"
 import {
   bindWindowPointerDrag,
   safelyReleasePointerCapture,
@@ -78,6 +79,12 @@ export function TimelinePropertyRowLane({
   const keyframeDraggedRef = React.useRef(false)
   const wasSelectedOnPressRef = React.useRef(false)
   const { ghostX, laneHandlers } = useLaneGhost()
+  const press = usePressType()
+  const seekRow = (clientX: number) => {
+    onSelectKeyframe(null)
+    onScrubStart?.()
+    onTimeChange(timeFromClientX(clientX))
+  }
   const rowSelected =
     selectedKeyframe?.type === "property" && selectedKeyframe.rowId === row.id
 
@@ -101,11 +108,15 @@ export function TimelinePropertyRowLane({
         event.preventDefault()
         onAddPropertyKeyframeAtTime(row.id, timeFromClientX(event.clientX))
       }}
+      onPointerDownCapture={press.onPointerDownCapture}
+      // A finger landing here may be starting a scroll; only a tap seeks.
       onPointerDown={(event) => {
         if (!event.isPrimary || event.button !== 0) return
-        onSelectKeyframe(null)
-        onScrubStart?.()
-        onTimeChange(timeFromClientX(event.clientX))
+        if (event.pointerType === "touch") return
+        seekRow(event.clientX)
+      }}
+      onClick={(event) => {
+        if (press.ref.current === "touch") seekRow(event.clientX)
       }}
       onContextMenu={(event) => {
         const time = timeFromClientX(event.clientX, {
@@ -170,7 +181,7 @@ export function TimelinePropertyRowLane({
             aria-pressed={selected}
             data-keyframe-row={row.id}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
+            className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
             style={{
               left: xForFrac(keyframe.time / duration),
               zIndex: selected
@@ -182,46 +193,55 @@ export function TimelinePropertyRowLane({
               event.stopPropagation()
               wasSelectedOnPressRef.current =
                 selected && event.pointerType === "touch"
-              onSelectKeyframe(nextSelection)
-              onActivePropertyRowChange?.(row.id)
-              onTimeChange(keyframe.time)
-              if (event.button !== 0 || !onMovePropertyKeyframe) return
-              const pointerTarget = event.currentTarget
-              const pointerId = event.pointerId
-              safelySetPointerCapture(pointerTarget, pointerId)
-              const startX = event.clientX
-              const startY = event.clientY
-              let activeKeyframeId = keyframe.id
-              keyframeDraggedRef.current = false
-              bindWindowPointerDrag({
-                documentEdit: true,
-                pointerId,
-                onMove: (moveEvent) => {
-                  const time = timeFromClientX(moveEvent.clientX, {
-                    bypass: moveEvent.altKey,
-                  })
-                  if (
-                    Math.hypot(
-                      moveEvent.clientX - startX,
-                      moveEvent.clientY - startY
-                    ) > 3
-                  ) {
-                    keyframeDraggedRef.current = true
-                    onScrubStart?.()
-                  }
-                  onTimeChange(time)
-                  onMovePropertyKeyframe(row.id, activeKeyframeId, time)
-                  if (row.id === "style") {
-                    activeKeyframeId = `style-${time.toFixed(3)}`
-                  }
-                },
-                onEnd: (endEvent) => {
-                  safelyReleasePointerCapture(pointerTarget, pointerId)
-                  if (endEvent?.type !== "pointerup") {
-                    keyframeDraggedRef.current = false
-                  }
-                },
-              })
+              const select = () => {
+                onSelectKeyframe(nextSelection)
+                onActivePropertyRowChange?.(row.id)
+                onTimeChange(keyframe.time)
+              }
+              if (event.button !== 0 || !onMovePropertyKeyframe) {
+                // Touch selects on tap (onClick), so a scroll never selects.
+                if (event.pointerType !== "touch") select()
+                return
+              }
+              holdToDrag<React.PointerEvent<HTMLButtonElement>>((event) => {
+                select()
+                const pointerTarget = event.currentTarget
+                const pointerId = event.pointerId
+                safelySetPointerCapture(pointerTarget, pointerId)
+                const startX = event.clientX
+                const startY = event.clientY
+                let activeKeyframeId = keyframe.id
+                keyframeDraggedRef.current = false
+                bindWindowPointerDrag({
+                  documentEdit: true,
+                  pointerId,
+                  onMove: (moveEvent) => {
+                    const time = timeFromClientX(moveEvent.clientX, {
+                      bypass: moveEvent.altKey,
+                    })
+                    if (
+                      Math.hypot(
+                        moveEvent.clientX - startX,
+                        moveEvent.clientY - startY
+                      ) > 3
+                    ) {
+                      keyframeDraggedRef.current = true
+                      onScrubStart?.()
+                    }
+                    onTimeChange(time)
+                    onMovePropertyKeyframe(row.id, activeKeyframeId, time)
+                    if (row.id === "style") {
+                      activeKeyframeId = `style-${time.toFixed(3)}`
+                    }
+                  },
+                  onEnd: (endEvent) => {
+                    safelyReleasePointerCapture(pointerTarget, pointerId)
+                    if (endEvent?.type !== "pointerup") {
+                      keyframeDraggedRef.current = false
+                    }
+                  },
+                })
+              })(event)
             }}
             onDoubleClick={(event) => {
               event.stopPropagation()

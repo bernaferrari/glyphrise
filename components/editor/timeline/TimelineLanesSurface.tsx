@@ -19,7 +19,8 @@ export function TimelineLanesSurface({
   return (
     <div
       ref={viewport.timelineScrollRef}
-      className="editor-scrollbar relative min-w-0 flex-1 overflow-auto bg-(--timeline-lane)"
+      // Native one-finger scrolling in both axes; two fingers belong to pinch zoom.
+      className="editor-scrollbar relative min-w-0 flex-1 touch-pan-x touch-pan-y overflow-auto bg-(--timeline-lane)"
       onScroll={(event) =>
         viewport.syncLeftRailScroll(event.currentTarget.scrollTop)
       }

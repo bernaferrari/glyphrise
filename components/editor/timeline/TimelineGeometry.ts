@@ -4,8 +4,11 @@ export const SNAP_THRESHOLD_SECONDS = 0.08
 export const PLAYHEAD_SNAP_THRESHOLD_SECONDS = 0.06
 export const SECOND_SNAP_THRESHOLD_SECONDS = 0.035
 export const TIMELINE_ZOOM_MIN = 1
-export const TIMELINE_ZOOM_MAX = 3
-export const TIMELINE_ZOOM_STEP = 0.25
+export const TIMELINE_ZOOM_MAX = 8
+/** Each zoom step multiplies, matching ShapeShifter: two steps double. */
+export const TIMELINE_ZOOM_FACTOR = Math.SQRT2
+/** Past this zoom single frames are wide enough to target, so edits snap to them. */
+export const TIMELINE_FRAME_SNAP_ZOOM = 4
 export const TIMELINE_FRAME_RATE = 60
 export const TIMELINE_EDGE_SCROLL_ZONE = 44
 export const TIMELINE_EDGE_SCROLL_MAX = 14
@@ -27,21 +30,29 @@ export const formatTimecode = (time: number) => {
   return `${minutes}:${seconds.toFixed(2).padStart(5, "0")}`
 }
 
-const MAJOR_TICK_STEPS = [0.1, 0.25, 0.5, 1, 2, 5, 10]
+const MAJOR_TICK_STEPS = [0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10]
+/** Room for a label like "0.25s" plus breathing space, on any screen width. */
+const MIN_LABEL_SPACING_PX = 44
 
 export const createTimelineTicks = ({
   duration,
   timelineZoom,
   frameSnapActive,
+  viewportWidth,
 }: {
   duration: number
   timelineZoom: number
   frameSnapActive: boolean
+  /** Visible lane width; label density follows pixels, not a fixed count. */
+  viewportWidth: number
 }) => {
-  // Aim for roughly eight labelled ticks across the visible lane.
-  const visibleSeconds = duration / Math.max(timelineZoom, 0.001)
+  const pixelsPerSecond =
+    (Math.max(1, viewportWidth - EDGE_INSET * 2) * Math.max(timelineZoom, 1)) /
+    Math.max(duration, 0.001)
   const majorTickStep =
-    MAJOR_TICK_STEPS.find((step) => step >= visibleSeconds / 8) ?? 10
+    MAJOR_TICK_STEPS.find(
+      (step) => step * pixelsPerSecond >= MIN_LABEL_SPACING_PX
+    ) ?? 10
   const minorTickStep = frameSnapActive
     ? 1 / TIMELINE_FRAME_RATE
     : majorTickStep / (majorTickStep === 1 || majorTickStep === 2 ? 4 : 5)

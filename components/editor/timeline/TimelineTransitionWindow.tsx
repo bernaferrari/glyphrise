@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { holdToDrag } from "@/lib/touch-intent"
 import {
   Popover,
   PopoverContent,
@@ -211,8 +212,8 @@ function TransitionEdgeHandle({
   return (
     <div
       title={title}
-      onPointerDown={onPointerDown}
-      className="timeline-transition-edge group/edge absolute inset-y-1.5 z-[6] flex w-3 -translate-x-1/2 cursor-trim touch-none items-center justify-center"
+      onPointerDown={holdToDrag(onPointerDown)}
+      className="timeline-transition-edge group/edge absolute inset-y-1.5 z-[6] flex w-3 -translate-x-1/2 cursor-trim touch-pan-x touch-pan-y items-center justify-center"
       style={{ left }}
     >
       <span className="h-full w-0.5 rounded-full bg-(--timeline-playhead) opacity-0 transition-opacity group-hover/edge:opacity-80" />

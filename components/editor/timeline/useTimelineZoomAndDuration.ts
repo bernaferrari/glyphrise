@@ -4,7 +4,7 @@ import { RefObject, useCallback, useEffect, useRef, useState } from "react"
 import {
   TIMELINE_ZOOM_MAX,
   TIMELINE_ZOOM_MIN,
-  TIMELINE_ZOOM_STEP,
+  TIMELINE_ZOOM_FACTOR,
   isEditableTarget,
 } from "./TimelineGeometry"
 import { clampTimelineDuration } from "../TimelineDurationModel"
@@ -95,8 +95,9 @@ export function useTimelineZoomAndDuration({
     [settleDurationValue]
   )
 
-  const adjustTimelineZoom = useCallback((delta: number) => {
-    setTimelineZoom((zoom) => clampTimelineZoom(zoom + delta))
+  /** Multiply zoom by `factor` (> 1 zooms in). */
+  const adjustTimelineZoom = useCallback((factor: number) => {
+    setTimelineZoom((zoom) => clampTimelineZoom(zoom * factor))
   }, [])
 
   useEffect(
@@ -114,11 +115,11 @@ export function useTimelineZoomAndDuration({
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (event.key === "+" || event.key === "=") {
         event.preventDefault()
-        adjustTimelineZoom(TIMELINE_ZOOM_STEP)
+        adjustTimelineZoom(TIMELINE_ZOOM_FACTOR)
       }
       if (event.key === "-" || event.key === "_") {
         event.preventDefault()
-        adjustTimelineZoom(-TIMELINE_ZOOM_STEP)
+        adjustTimelineZoom(1 / TIMELINE_ZOOM_FACTOR)
       }
       if (event.key === "0") {
         event.preventDefault()

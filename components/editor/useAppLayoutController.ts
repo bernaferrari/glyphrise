@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react"
 import { useEditorBaseState } from "./useEditorBaseState"
 import { useEditorDocumentLifecycle } from "./useEditorDocumentLifecycle"
 import { useEditorTimelineSurface } from "./useEditorTimelineSurface"
+import { useTimelineStepShortcuts } from "./useEditorShortcuts"
+import { TIMELINE_FRAME_RATE } from "./timeline/TimelineGeometry"
 import { useEditorViewportSurface } from "./useEditorViewportSurface"
 import { useEditorExportSurface } from "./useEditorExportSurface"
 import { useEditorInspectorSurface } from "./useEditorInspectorSurface"
@@ -647,6 +649,19 @@ export function useAppLayoutController(): AppLayoutViewProps {
       triggerShapeUpload,
     },
     markCustom,
+  })
+  useTimelineStepShortcuts({
+    onPreviousKeyframe: goToPreviousKeyMoment,
+    onNextKeyframe: goToNextKeyMoment,
+    onStepFrames: (frames) => {
+      stopPlayback()
+      setCurrentTime(
+        Math.max(
+          0,
+          Math.min(duration, currentTime + frames / TIMELINE_FRAME_RATE)
+        )
+      )
+    },
   })
 
   const { canvasProps, viewOptionsProps, playbackProps } =

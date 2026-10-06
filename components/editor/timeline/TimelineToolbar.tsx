@@ -22,7 +22,7 @@ import {
   formatTimecode,
   TIMELINE_ZOOM_MAX,
   TIMELINE_ZOOM_MIN,
-  TIMELINE_ZOOM_STEP,
+  TIMELINE_ZOOM_FACTOR,
 } from "./TimelineGeometry"
 
 export type TimelineToolbarProps = {
@@ -278,7 +278,7 @@ function OptionsMenu({
             type="button"
             aria-label="Zoom timeline out"
             disabled={zoom <= TIMELINE_ZOOM_MIN}
-            onClick={() => onZoomChange(zoom - TIMELINE_ZOOM_STEP)}
+            onClick={() => onZoomChange(zoom / TIMELINE_ZOOM_FACTOR)}
             className={iconButton}
           >
             <ZoomOut className="size-3.5" />
@@ -296,7 +296,7 @@ function OptionsMenu({
             type="button"
             aria-label="Zoom timeline in"
             disabled={zoom >= TIMELINE_ZOOM_MAX}
-            onClick={() => onZoomChange(zoom + TIMELINE_ZOOM_STEP)}
+            onClick={() => onZoomChange(zoom * TIMELINE_ZOOM_FACTOR)}
             className={iconButton}
           >
             <ZoomIn className="size-3.5" />

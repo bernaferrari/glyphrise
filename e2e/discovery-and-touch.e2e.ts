@@ -26,7 +26,9 @@ test("each tab searches its own content, and Enter chooses a real symbol", async
     page.getByRole("button", { name: "person", exact: true })
   ).toBeVisible()
   await search.fill("zzzz_nonexistent")
-  await expect(page.getByText("No matching symbols.", { exact: false })).toBeVisible()
+  await expect(
+    page.getByText("No matching symbols.", { exact: false })
+  ).toBeVisible()
 
   await page.getByRole("tab", { name: "Presets", exact: true }).click()
   const presetSearch = page.getByRole("searchbox", { name: "Search presets" })
@@ -174,5 +176,75 @@ test.describe("touch transition editing", () => {
     await expect(
       page.getByRole("button", { name: "Left to Right", exact: true })
     ).toHaveAttribute("aria-pressed", "true")
+  })
+})
+
+test.describe("touch intent on the phone timeline", () => {
+  test.use({ viewport: { width: 390, height: 800 }, hasTouch: true })
+  test("swipes scroll, taps select, holds drag, and two fingers zoom", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await page.getByRole("button", { name: "Motion", exact: true }).click()
+    const cdp = await page.context().newCDPSession(page)
+    const touch = (
+      type: "touchStart" | "touchMove" | "touchEnd",
+      points: { x: number; y: number }[]
+    ) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: points.map((point, index) => ({
+          ...point,
+          id: index + 1,
+          radiusX: 5,
+          radiusY: 5,
+        })),
+      })
+    const keyframe = page.getByRole("button", {
+      name: /^Select Rotation keyframe.* at 5\.00 seconds$/,
+    })
+    const playhead = page.getByLabel("Playhead time in seconds", {
+      exact: true,
+    })
+    const startTime = await playhead.inputValue()
+    const box = (await keyframe.boundingBox())!
+    const center = { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+
+    // A swipe that starts on a keyframe is a scroll: no selection, no seek.
+    await touch("touchStart", [center])
+    for (const dy of [14, 40, 80])
+      await touch("touchMove", [{ x: center.x, y: center.y + dy }])
+    await touch("touchEnd", [])
+    await expect(keyframe).toHaveAttribute("aria-pressed", "false")
+    await expect(playhead).toHaveValue(startTime)
+
+    // A tap selects it and moves the playhead there.
+    await page.touchscreen.tap(center.x, center.y)
+    await expect(keyframe).toHaveAttribute("aria-pressed", "true")
+    await expect(playhead).not.toHaveValue(startTime)
+
+    // Holding still picks it up; then it follows the finger.
+    await touch("touchStart", [center])
+    await page.waitForTimeout(450)
+    for (const dx of [-12, -30, -50])
+      await touch("touchMove", [{ x: center.x + dx, y: center.y }])
+    await touch("touchEnd", [])
+    await expect(keyframe).toHaveCount(0)
+
+    // Two fingers spreading on the lanes zoom time around them.
+    const ruler = page.getByRole("slider", { name: "Timeline playhead" })
+    const before = (await ruler.boundingBox())!.width
+    const y = center.y + 60
+    await touch("touchStart", [
+      { x: center.x - 20, y },
+      { x: center.x + 20, y },
+    ])
+    for (const spread of [40, 70, 100])
+      await touch("touchMove", [
+        { x: center.x - spread, y },
+        { x: center.x + spread, y },
+      ])
+    await touch("touchEnd", [])
+    expect((await ruler.boundingBox())!.width).toBeGreaterThan(before * 1.5)
   })
 })

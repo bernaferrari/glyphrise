@@ -1,7 +1,9 @@
 "use client"
 
+import { useRef } from "react"
 import { flushSync } from "react-dom"
 import { beginDocumentEdit, endDocumentEdit } from "@/lib/editor-transactions"
+import { horizontalIntent } from "@/lib/touch-intent"
 import {
   clampInspectorValue,
   useRafNumberChange,
@@ -54,6 +56,47 @@ export function InspectorSlider({
       : 0
   const thumbInset = 6
   const thumbPosition = `calc(${thumbInset}px + ${progress} * (100% - ${thumbInset * 2}px))`
+  // Touch never lands on the native range (it jumps on contact and blocks
+  // scrolling). The track reads the finger instead: sideways drags edit,
+  // taps set, and vertical swipes scroll the panel.
+  const pressRef = useRef<{
+    pointerId: number
+    x: number
+    y: number
+    editing: boolean
+  } | null>(null)
+  const valueAt = (clientX: number, track: Element) => {
+    const rect = track.getBoundingClientRect()
+    const fraction = clampInspectorValue(
+      (clientX - rect.left - thumbInset) /
+        Math.max(1, rect.width - thumbInset * 2),
+      0,
+      1
+    )
+    const raw = sliderMin + fraction * (sliderMax - sliderMin)
+    const stepped = step > 0 ? Math.round(raw / step) * step : raw
+    return clampInspectorValue(
+      Number(stepped.toFixed(precision)),
+      sliderMin,
+      sliderMax
+    )
+  }
+  const startEditing = (event: React.PointerEvent<HTMLLabelElement>) => {
+    const press = pressRef.current
+    if (!press || press.editing) return
+    press.editing = true
+    beginDocumentEdit()
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {}
+  }
+  const finishPress = (cancelled: boolean) => {
+    const press = pressRef.current
+    pressRef.current = null
+    if (!press?.editing) return
+    flushSync(flush)
+    endDocumentEdit(cancelled)
+  }
   return (
     <div className={`flex min-w-0 items-center gap-2 ${className}`}>
       <NumberField
@@ -69,8 +112,47 @@ export function InspectorSlider({
         onChange={onChange}
       />
       <label
-        className={`relative flex h-8 min-w-0 ${compact ? "" : "max-[720px]:h-11 pointer-coarse:h-11"} items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
+        className={`relative flex h-8 min-w-0 cursor-ew-resize touch-pan-y ${compact ? "" : "max-[720px]:h-11 pointer-coarse:h-11"} items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
         onClick={(event) => event.stopPropagation()}
+        onPointerDown={(event) => {
+          // Mouse and pen use the native range input underneath.
+          if (event.target !== event.currentTarget || !event.isPrimary) return
+          pressRef.current = {
+            pointerId: event.pointerId,
+            x: event.clientX,
+            y: event.clientY,
+            editing: false,
+          }
+          if (event.pointerType !== "touch") {
+            startEditing(event)
+            schedule(valueAt(event.clientX, event.currentTarget))
+          }
+        }}
+        onPointerMove={(event) => {
+          const press = pressRef.current
+          if (!press || press.pointerId !== event.pointerId) return
+          if (!press.editing) {
+            const intent = horizontalIntent(press, {
+              x: event.clientX,
+              y: event.clientY,
+            })
+            if (intent === "scroll") pressRef.current = null
+            if (intent !== "drag") return
+            startEditing(event)
+          }
+          schedule(valueAt(event.clientX, event.currentTarget))
+        }}
+        onPointerUp={(event) => {
+          const press = pressRef.current
+          if (!press || press.pointerId !== event.pointerId) return
+          if (!press.editing) {
+            // A tap sets the value where the finger landed.
+            startEditing(event)
+            schedule(valueAt(event.clientX, event.currentTarget))
+          }
+          finishPress(false)
+        }}
+        onPointerCancel={() => finishPress(true)}
       >
         {/* A quiet fill with a slim handle — reads like the field beside it. */}
         <span
@@ -109,7 +191,7 @@ export function InspectorSlider({
             flushSync(flush)
             endDocumentEdit()
           }}
-          className="absolute inset-0 h-full w-full cursor-ew-resize touch-none appearance-none opacity-0 [&::-moz-range-thumb]:size-6 [&::-webkit-slider-thumb]:size-6 [&::-webkit-slider-thumb]:appearance-none"
+          className="absolute inset-0 h-full w-full cursor-ew-resize touch-pan-y appearance-none opacity-0 pointer-coarse:pointer-events-none [&::-moz-range-thumb]:size-6 [&::-webkit-slider-thumb]:size-6 [&::-webkit-slider-thumb]:appearance-none"
         />
       </label>
     </div>

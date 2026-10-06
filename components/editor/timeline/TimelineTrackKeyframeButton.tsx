@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { holdToDrag } from "@/lib/touch-intent"
 import {
   Popover,
   PopoverContent,
@@ -108,7 +109,7 @@ export function TimelineTrackKeyframeButton({
         aria-pressed={selected}
         data-keyframe-row={track.id}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
+        className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
         style={{
           left: xForFrac(keyframe.time / duration),
           zIndex: selected
@@ -120,9 +121,11 @@ export function TimelineTrackKeyframeButton({
           event.stopPropagation()
           wasSelectedOnPressRef.current =
             selected && event.pointerType === "touch"
-          selectKeyframe()
-          if (event.button !== 0) return
-          onKeyframeDrag(event, track.id, keyframe.id)
+          if (event.button !== 0) return selectKeyframe()
+          holdToDrag<React.PointerEvent<HTMLButtonElement>>((press) => {
+            selectKeyframe()
+            onKeyframeDrag(press, track.id, keyframe.id)
+          })(event)
         }}
         onContextMenu={(event) => {
           event.stopPropagation()

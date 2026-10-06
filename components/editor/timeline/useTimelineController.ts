@@ -10,6 +10,7 @@ import { useTimelineContextMenu } from "./useTimelineContextMenu"
 import { useTimelineDeletion } from "./useTimelineDeletion"
 import { useTimelineDerivedState } from "./useTimelineDerivedState"
 import { useTimelinePlayheadFollow } from "./useTimelinePlayheadFollow"
+import { useTimelinePinchZoom } from "./useTimelinePinchZoom"
 import { useTimelineRailScrollSync } from "./useTimelineRailScrollSync"
 import { useTimelineScrubbing } from "./useTimelineScrubbing"
 import { useTimelineSelectionGuards } from "./useTimelineSelectionGuards"
@@ -264,7 +265,13 @@ export function useTimelineController({
       duration,
       timelineZoom,
       frameSnapActive,
+      timelineScrollRef,
     })
+  useTimelinePinchZoom({
+    scrollRef: timelineScrollRef,
+    zoom: timelineZoom,
+    setZoom,
+  })
 
   useTimelinePlayheadFollow({
     duration,

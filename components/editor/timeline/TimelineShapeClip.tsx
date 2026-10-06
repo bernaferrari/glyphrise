@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { holdToDrag } from "@/lib/touch-intent"
 import type { ShapeStop } from "../TimelineModel"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
 import type { ShapeClipBounds } from "./TimelineLayoutModel"
@@ -122,9 +123,13 @@ export function TimelineShapeClip({
         ])
       }
       onPointerDown={
-        isOnly ? undefined : (event) => onShapeDrag(event, stop.id)
+        isOnly
+          ? undefined
+          : holdToDrag((event: React.PointerEvent<HTMLButtonElement>) =>
+              onShapeDrag(event, stop.id)
+            )
       }
-      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-none items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
         isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
       } ${
         // Rings sit inside the clip so neighbours never overlap.

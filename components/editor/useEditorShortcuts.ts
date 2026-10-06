@@ -60,3 +60,46 @@ export const useEditorShortcuts = ({
     return () => window.removeEventListener("keydown", handleEditorShortcut)
   }, [])
 }
+
+/**
+ * Stepping matches ShapeShifter: `,` and `.` jump between keyframes (the ‹ ›
+ * transport buttons), `<` and `>` (Shift) move one frame.
+ */
+export const useTimelineStepShortcuts = ({
+  onPreviousKeyframe,
+  onNextKeyframe,
+  onStepFrames,
+}: {
+  onPreviousKeyframe: () => void
+  onNextKeyframe: () => void
+  onStepFrames: (frames: number) => void
+}) => {
+  const callbacksRef = useLatestRef({
+    onPreviousKeyframe,
+    onNextKeyframe,
+    onStepFrames,
+  })
+
+  useEffect(() => {
+    const handleStep = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return
+      if (event.metaKey || event.ctrlKey || event.altKey) return
+      if (isEditableShortcutTarget(event.target)) return
+      if (document.querySelector('[role="dialog"], [role="alertdialog"]'))
+        return
+      const callbacks = callbacksRef.current
+      if (event.key === "<" || event.key === ">") {
+        event.preventDefault()
+        callbacks.onStepFrames(event.key === "<" ? -1 : 1)
+      } else if (event.key === ",") {
+        event.preventDefault()
+        callbacks.onPreviousKeyframe()
+      } else if (event.key === ".") {
+        event.preventDefault()
+        callbacks.onNextKeyframe()
+      }
+    }
+    window.addEventListener("keydown", handleStep)
+    return () => window.removeEventListener("keydown", handleStep)
+  }, [])
+}

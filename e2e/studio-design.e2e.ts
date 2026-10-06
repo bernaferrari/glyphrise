@@ -120,9 +120,33 @@ for (const width of [390, 1280]) {
       // Compact on desktop (matches the number field); finger-sized on phones.
       expect(bounds.height).toBeGreaterThanOrEqual(width < 720 ? 44 : 32)
       const original = await number.inputValue()
-      await slider.click({
-        position: { x: bounds.width * 0.75, y: bounds.height / 2 },
-      })
+      if (width < 720) {
+        // A finger that lands on the slider to scroll the panel edits nothing.
+        const cdp = await page.context().newCDPSession(page)
+        const x = bounds.x + bounds.width * 0.75
+        const y = bounds.y + bounds.height / 2
+        const swipe = (
+          type: "touchStart" | "touchMove" | "touchEnd",
+          dy: number
+        ) =>
+          cdp.send("Input.dispatchTouchEvent", {
+            type,
+            touchPoints:
+              type === "touchEnd"
+                ? []
+                : [{ x, y: y + dy, id: 1, radiusX: 5, radiusY: 5 }],
+          })
+        await swipe("touchStart", 0)
+        for (const dy of [-12, -40, -90]) await swipe("touchMove", dy)
+        await swipe("touchEnd", -90)
+        await expect(number).toHaveValue(original)
+        // A tap sets the value under the finger.
+        await page.touchscreen.tap(x, bounds.y + bounds.height / 2)
+      } else {
+        await slider.click({
+          position: { x: bounds.width * 0.75, y: bounds.height / 2 },
+        })
+      }
       await expect(number).not.toHaveValue(original)
       const clicked = await number.inputValue()
       await slider.press("ArrowLeft")
