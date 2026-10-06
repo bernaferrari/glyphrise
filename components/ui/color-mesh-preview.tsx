@@ -54,8 +54,8 @@ export function MeshPreviewCanvas({
       className={cn(
         "block",
         variant === "preset" && "rounded-lg",
-        variant === "swatch" && "rounded-preview shadow-sm",
-        variant === "editor" && "rounded-lg shadow-mesh-preview",
+        variant === "swatch" && "rounded shadow-sm",
+        variant === "editor" && "rounded-lg inset-ring inset-ring-white/10",
         className
       )}
     />

@@ -132,13 +132,13 @@ export function TimelineShapeClip({
             )
       }
       className={cn(
-        `group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring compact-timeline:focus-visible:-outline-offset-2 ${
+        `group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring max-md:focus-visible:-outline-offset-2 ${
           isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
         } ${
           // Rings sit inside the clip so neighbours never overlap.
           selected
-            ? "z-5 bg-timeline-keyframe shadow-timeline-selection"
-            : "bg-(--timeline-clip) shadow-timeline-clip hover:bg-timeline-keyframe-hover"
+            ? "z-5 bg-timeline-keyframe inset-ring-(length:--editor-ring-width) inset-ring-(--timeline-accent)"
+            : "bg-(--timeline-clip) inset-ring inset-ring-(--timeline-clip-edge) hover:bg-timeline-keyframe-hover"
         }`,
         "left-(--position-x) w-(--element-width) min-w-(--element-min-width)"
       )}
@@ -154,14 +154,14 @@ export function TimelineShapeClip({
       <span className="@container flex h-full w-full min-w-0 items-center gap-2 pr-2.5 pl-1.5 @max-[48px]:justify-center @max-[48px]:px-0">
         <span
           aria-hidden="true"
-          className="grid size-6 shrink-0 place-items-center rounded-direction bg-black/20 text-(--timeline-clip-fg) [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
+          className="grid size-6 shrink-0 place-items-center rounded-direction bg-black/20 text-foreground [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
           dangerouslySetInnerHTML={{ __html: stop.svgContent }}
         />
-        <span className="min-w-0 truncate text-xs font-medium text-(--timeline-clip-fg) @max-[80px]:hidden">
+        <span className="min-w-0 truncate text-xs font-medium text-foreground @max-[80px]:hidden">
           {shapeLabel(stop)}
         </span>
         {isOnly && (
-          <span className="ml-auto shrink truncate text-2xs text-(--timeline-clip-fg)/60 @max-[420px]:hidden">
+          <span className="ml-auto shrink truncate text-2xs text-foreground/60 @max-[420px]:hidden">
             Add another icon to morph between them
           </span>
         )}

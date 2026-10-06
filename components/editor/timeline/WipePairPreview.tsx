@@ -42,7 +42,7 @@ export const WipePairPreview: React.FC<{
         {disabledUsesSlash && (
           <span
             aria-hidden="true"
-            className="absolute top-1/2 left-1/2 h-6.25 w-0.5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-foreground shadow-wipe-slash"
+            className="absolute top-1/2 left-1/2 h-6.25 w-0.5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-foreground ring-1 ring-background"
           />
         )}
       </span>

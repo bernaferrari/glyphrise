@@ -137,7 +137,7 @@ export function ColorGradientStopRows({
                 ? "grid-cols-[16px_minmax(0,1fr)_24px]"
                 : "grid-cols-[52px_minmax(0,1fr)_28px]",
               dragging
-                ? "z-10 bg-muted shadow-mesh-handle"
+                ? "z-10 bg-muted shadow-md shadow-black/35"
                 : drag
                   ? "transition-transform duration-150"
                   : active
@@ -194,7 +194,7 @@ export function ColorGradientStopRows({
                 }}
               >
                 <PopoverTrigger
-                  className="size-4.5 shrink-0 rounded-preview border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
+                  className="size-4.5 shrink-0 rounded border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
                   style={{ "--swatch-color": stopColor } as React.CSSProperties}
                   onPointerDown={(event) => {
                     event.stopPropagation()

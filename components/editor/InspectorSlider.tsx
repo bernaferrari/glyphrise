@@ -170,7 +170,7 @@ export function InspectorSlider({
             }
           />
           <span
-            className="absolute top-1/2 left-(--position-x) h-3.5 w-0.75 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-slider-thumb"
+            className="absolute top-1/2 left-(--position-x) h-3.5 w-0.75 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) ring-1 ring-black/15"
             style={
               {
                 "--position-x": cssLength(thumbPosition),

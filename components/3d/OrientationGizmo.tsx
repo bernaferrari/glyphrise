@@ -122,7 +122,7 @@ export function OrientationGizmo({
     >
       <svg
         viewBox="0 0 80 80"
-        className="pointer-events-none absolute inset-0 m-auto size-20 drop-shadow-gizmo"
+        className="pointer-events-none absolute inset-0 m-auto size-20 drop-shadow-xs drop-shadow-black/35"
       >
         <line
           ref={refs.lineXRef}
@@ -218,12 +218,14 @@ const AxisMarker = React.forwardRef<
       cx="0"
       cy="0"
       r="7"
-      className={`${colorClass} stroke-black/40 stroke-hairline transition-[filter] group-hover/axis:brightness-125 group-focus-visible/axis:stroke-white`}
+      strokeWidth={0.75}
+      className={`${colorClass} stroke-black/40 transition-[filter] group-hover/axis:brightness-125 group-focus-visible/axis:stroke-white`}
     />
     <text
       x="0"
       y="0.4"
-      className="fill-white font-sans text-gizmo font-bold select-none"
+      fontSize={7}
+      className="fill-white font-sans font-bold select-none"
       textAnchor="middle"
       dominantBaseline="central"
     >

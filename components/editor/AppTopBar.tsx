@@ -295,7 +295,7 @@ export function AppTopBar({
   return (
     <header
       aria-label="Editor toolbar"
-      className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl"
+      className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-right pl-safe-left backdrop-blur-xl"
     >
       <div className="flex min-w-0 flex-1 items-center gap-1">
         <ProjectMenu
@@ -379,7 +379,7 @@ export function AppTopBar({
       {projectStatus === "error" ? (
         <div
           role="alert"
-          className="absolute top-popover-arrow right-3 flex max-w-(--spacing-timeline-popover) items-start gap-2 rounded-lg border border-destructive/35 bg-background/95 px-3 py-2 text-xs leading-5 text-foreground shadow-xl backdrop-blur-md"
+          className="absolute top-full right-3 flex max-w-(--spacing-timeline-popover) translate-y-2 items-start gap-2 rounded-lg border border-destructive/35 bg-background/95 px-3 py-2 text-xs leading-5 text-foreground shadow-xl backdrop-blur-md"
         >
           <AlertTriangle
             aria-hidden="true"

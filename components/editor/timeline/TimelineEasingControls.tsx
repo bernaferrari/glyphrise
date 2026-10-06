@@ -75,7 +75,7 @@ export const EasingPicker: React.FC<{
         className={
           field
             ? "flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md bg-muted/60 px-2 text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted"
-            : `flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5 compact-timeline:w-auto"}`
+            : `flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5 max-md:w-auto"}`
         }
         onClick={(event) => event.stopPropagation()}
       >

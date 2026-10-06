@@ -9,30 +9,24 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { hexToRgb, type ColorFormat } from "./color-picker-utils"
+import type { ColorFormat } from "./color-picker-utils"
 import {
   formatSolidColorValueEdit,
   getSolidColorFormatValues,
 } from "./color-solid-editor-model"
-
-const ENABLE_ALPHA = false
 
 export interface SolidColorEditorProps {
   h: number
   s: number
   v: number
   hex: string
-  alpha: number
   inputText: string
   format: ColorFormat
   setFormat: (format: ColorFormat) => void
   canvasRef: React.RefObject<HTMLDivElement | null>
   hueRef: React.RefObject<HTMLDivElement | null>
-  alphaRef: React.RefObject<HTMLDivElement | null>
   handleCanvasStart: (e: React.MouseEvent | React.TouchEvent) => void
   handleHueStart: (e: React.MouseEvent | React.TouchEvent) => void
-  handleAlphaStart: (e: React.MouseEvent | React.TouchEvent) => void
-  handleAlphaChange: (value: string) => void
   handleTextChange: (value: string) => void
   handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void
   handleBlur: () => void
@@ -45,24 +39,19 @@ export function SolidColorEditor({
   s,
   v,
   hex,
-  alpha,
   inputText,
   format,
   setFormat,
   canvasRef,
   hueRef,
-  alphaRef,
   handleCanvasStart,
   handleHueStart,
-  handleAlphaStart,
-  handleAlphaChange,
   handleTextChange,
   handleKeyDown,
   handleBlur,
   framed = true,
   compact = false,
 }: SolidColorEditorProps) {
-  const rgb = hexToRgb(hex)
   const formatValues = getSolidColorFormatValues({ format, hex, h, s, v })
 
   const updateFormatValue = (index: number, rawValue: string) => {
@@ -112,7 +101,7 @@ export function SolidColorEditor({
         onMouseDown={handleCanvasStart}
         onTouchStart={handleCanvasStart}
         className={cn(
-          "relative w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-muted shadow-color-area select-none",
+          "relative w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-muted select-none",
           compact ? "h-40" : "h-56"
         )}
       >
@@ -125,7 +114,7 @@ export function SolidColorEditor({
           }
         />
         <div
-          className="absolute top-(--position-y) left-(--position-x) z-10 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-transparent shadow-color-area-handle"
+          className="absolute top-(--position-y) left-(--position-x) z-10 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-transparent shadow-sm shadow-black/40"
           style={
             {
               "--position-x": `${s}%`,
@@ -139,7 +128,7 @@ export function SolidColorEditor({
         ref={hueRef}
         onMouseDown={handleHueStart}
         onTouchStart={handleHueStart}
-        className="relative h-4.5 w-full cursor-pointer rounded-full border border-border shadow-inner bg-preview"
+        className="relative h-4.5 w-full cursor-pointer rounded-full border border-border shadow-inner [background:var(--preview-background)]"
         style={
           {
             "--preview-background": "var(--background-hue-spectrum)",
@@ -147,7 +136,7 @@ export function SolidColorEditor({
         }
       >
         <div
-          className="absolute top-1/2 left-(--position-x) size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-color-slider-handle"
+          className="absolute top-1/2 left-(--position-x) size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-sm shadow-black/40"
           style={
             {
               "--position-x": `clamp(8px, ${(h / 360) * 100}%, calc(100% - 8px))`,
@@ -156,40 +145,10 @@ export function SolidColorEditor({
         />
       </div>
 
-      {ENABLE_ALPHA && (
-        <div
-          ref={alphaRef}
-          onMouseDown={handleAlphaStart}
-          onTouchStart={handleAlphaStart}
-          className="relative h-4.5 w-full cursor-pointer rounded-full border border-border bg-color-alpha shadow-inner"
-          style={
-            {
-              "--color-red": rgb.r,
-              "--color-green": rgb.g,
-              "--color-blue": rgb.b,
-            } as React.CSSProperties
-          }
-        >
-          <div
-            className="absolute top-1/2 left-(--position-x) size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-color-slider-handle"
-            style={
-              {
-                "--position-x": `clamp(8px, ${alpha * 100}%, calc(100% - 8px))`,
-              } as React.CSSProperties
-            }
-          />
-        </div>
-      )}
-
       {format === "HEX" ? null : (
         <div className="flex items-center gap-2 text-xs">
           {formatSelect}
-          <div
-            className={cn(
-              "grid min-w-0 flex-1 gap-px rounded-lg bg-border",
-              ENABLE_ALPHA ? "grid-cols-4" : "grid-cols-3"
-            )}
-          >
+          <div className="grid min-w-0 flex-1 grid-cols-3 gap-px rounded-lg bg-border">
             {formatValues.map((value, index) => (
               <input
                 key={`${format}-${index}`}
@@ -202,24 +161,10 @@ export function SolidColorEditor({
                 className={cn(
                   "h-8 min-w-0 border border-border bg-muted/45 text-center font-mono text-foreground outline-none",
                   index === 0 && "rounded-l-lg",
-                  index === formatValues.length - 1 &&
-                    !ENABLE_ALPHA &&
-                    "rounded-r-lg"
+                  index === formatValues.length - 1 && "rounded-r-lg"
                 )}
               />
             ))}
-            {ENABLE_ALPHA && (
-              <div className="flex h-8 min-w-0 items-center rounded-r-lg border border-border bg-muted/45 px-1 font-mono text-foreground">
-                <input
-                  type="text"
-                  aria-label="Alpha percentage"
-                  value={Math.round(alpha * 100)}
-                  onChange={(event) => handleAlphaChange(event.target.value)}
-                  className="min-w-0 flex-1 border-0 bg-transparent p-0 text-center font-mono text-foreground outline-none"
-                />
-                <span className="text-muted-foreground">%</span>
-              </div>
-            )}
           </div>
         </div>
       )}

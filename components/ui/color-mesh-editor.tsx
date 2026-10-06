@@ -116,7 +116,7 @@ export function ColorMeshEditor({
   return (
     // Padding keeps corner handles inside the popover; the surface is the
     // 0–1 coordinate space the points live in.
-    <div className="relative aspect-photo">
+    <div className="relative aspect-3/2">
       <MeshPreviewCanvas
         variant="editor"
         stops={stops}
@@ -195,9 +195,9 @@ export function ColorMeshEditor({
               >
                 <span
                   className={cn(
-                    "size-4 rounded-full border-2 border-white shadow-color-stop transition-transform duration-150 ease-out group-hover/point:scale-125 group-focus-visible/point:ring-2 group-focus-visible/point:ring-white/70",
+                    "size-4 rounded-full border-2 border-white shadow-sm ring-1 shadow-black/35 ring-black/20 transition-transform duration-150 ease-out group-hover/point:scale-125 group-focus-visible/point:ring-2 group-focus-visible/point:ring-white/70",
                     (open || highlighted) && "scale-125",
-                    active && "scale-140 shadow-color-stop-active",
+                    active && "scale-140 shadow-md shadow-black/40",
                     "bg-(--swatch-color)"
                   )}
                   style={

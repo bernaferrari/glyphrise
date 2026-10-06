@@ -6,10 +6,7 @@ import { hexToHsv, hsvToHex, type ColorFormat } from "./color-picker-utils"
 
 interface SolidColorEditorOptions {
   value: string
-  alpha: number
-  enableAlpha: boolean
   onChange: (hex: string) => void
-  onAlphaChange: (alpha: number) => void
 }
 
 const normalizeHex = (value: string) =>
@@ -23,15 +20,11 @@ const parseHexWithOptionalAlpha = (value: string) => {
 
 export function useSolidColorEditor({
   value,
-  alpha,
-  enableAlpha,
   onChange,
-  onAlphaChange,
 }: SolidColorEditorOptions) {
   const [format, setFormat] = React.useState<ColorFormat>("HEX")
   const canvasRef = React.useRef<HTMLDivElement>(null)
   const hueRef = React.useRef<HTMLDivElement>(null)
-  const alphaRef = React.useRef<HTMLDivElement>(null)
   const hex = normalizeHex(value)
 
   const { h, s, v } = React.useMemo(() => {
@@ -42,14 +35,7 @@ export function useSolidColorEditor({
     }
   }, [hex])
 
-  const hexInputValue = React.useMemo(() => {
-    const normalizedHex = hex.replace(/^#/, "").slice(0, 6)
-    if (!enableAlpha) return `#${normalizedHex}`
-    const alphaHex = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
-      .toString(16)
-      .padStart(2, "0")
-    return alpha < 1 ? `#${normalizedHex}${alphaHex}` : `#${normalizedHex}`
-  }, [alpha, enableAlpha, hex])
+  const hexInputValue = `#${hex.replace(/^#/, "").slice(0, 6)}`
 
   const [inputText, setInputText] = React.useState(hexInputValue)
 
@@ -119,55 +105,16 @@ export function useSolidColorEditor({
     })
   }
 
-  const handleAlphaDrag = React.useCallback(
-    (clientX: number) => {
-      if (!alphaRef.current) return
-      const rect = alphaRef.current.getBoundingClientRect()
-      const nextAlpha = Math.max(
-        0,
-        Math.min(1, (clientX - rect.left) / rect.width)
-      )
-      onAlphaChange(Number(nextAlpha.toFixed(3)))
-    },
-    [onAlphaChange]
-  )
-
-  const handleAlphaStart = (event: React.MouseEvent | React.TouchEvent) => {
-    event.preventDefault()
-    const clientX =
-      "touches" in event ? event.touches[0].clientX : event.clientX
-    handleAlphaDrag(clientX)
-
-    bindWindowTouchMouseDrag({
-      onMove: (moveEvent) => {
-        const moveX =
-          "touches" in moveEvent
-            ? moveEvent.touches[0].clientX
-            : moveEvent.clientX
-        handleAlphaDrag(moveX)
-      },
-    })
-  }
-
   const applyTextColor = (nextText: string) => {
     const hexMatch = parseHexWithOptionalAlpha(nextText)
     if (!hexMatch) return false
     onChange(`#${hexMatch[1]}`)
-    if (enableAlpha && hexMatch[2]) {
-      onAlphaChange(Number((parseInt(hexMatch[2], 16) / 255).toFixed(3)))
-    }
     return true
   }
 
   const handleTextChange = (nextText: string) => {
     setInputText(nextText)
     applyTextColor(nextText)
-  }
-
-  const handleAlphaChange = (nextText: string) => {
-    const parsed = Number.parseFloat(nextText)
-    if (!Number.isFinite(parsed)) return
-    onAlphaChange(Math.max(0, Math.min(1, parsed / 100)))
   }
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -185,17 +132,13 @@ export function useSolidColorEditor({
     s,
     v,
     hex,
-    alpha,
     inputText,
     format,
     setFormat,
     canvasRef,
     hueRef,
-    alphaRef,
     handleCanvasStart,
     handleHueStart,
-    handleAlphaStart,
-    handleAlphaChange,
     handleTextChange,
     handleKeyDown,
     handleBlur,

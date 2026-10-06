@@ -68,7 +68,7 @@ export function CreationGuide({
   return (
     <aside
       aria-label="Your first icon"
-      className="absolute top-4 left-4 z-20 w-(--spacing-creation-guide) rounded-2xl bg-popover/95 p-4 text-popover-foreground shadow-dialog ring-1 ring-border backdrop-blur-md max-[720px]:top-3 max-[720px]:left-3 max-[720px]:p-3.5"
+      className="absolute top-4 left-4 z-20 w-(--spacing-creation-guide) rounded-2xl bg-popover/95 p-4 text-popover-foreground shadow-lg ring-1 ring-border backdrop-blur-md max-[720px]:top-3 max-[720px]:left-3 max-[720px]:p-3.5"
     >
       <button
         type="button"

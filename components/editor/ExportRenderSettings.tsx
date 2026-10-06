@@ -87,7 +87,7 @@ export function ExportRenderSettings({
 }) {
   const transparent = settings.backgroundMode === "transparent"
   const swatchClass =
-    "relative size-8 shrink-0 rounded-full shadow-export-setting transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
+    "relative size-8 shrink-0 rounded-full inset-ring inset-ring-foreground/15 transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
 
   return (
     <fieldset disabled={disabled} className="grid gap-6 disabled:opacity-60">
@@ -112,14 +112,14 @@ export function ExportRenderSettings({
                 onClick={() =>
                   onChange({ width: preset.width, height: preset.height })
                 }
-                className="group flex flex-col items-center gap-1.5 rounded-lg border border-border px-1 pt-2.5 pb-2 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.08] aria-pressed:shadow-preset-selection"
+                className="group flex flex-col items-center gap-1.5 rounded-lg border border-border px-1 pt-2.5 pb-2 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.08]"
               >
                 <span
                   aria-hidden="true"
                   className="grid size-6 place-items-center"
                 >
                   <span
-                    className="h-(--element-height) w-(--element-width) rounded-preview border-2 border-muted-foreground/50 transition-colors group-aria-pressed:border-primary group-aria-pressed:bg-primary/20"
+                    className="h-(--element-height) w-(--element-width) rounded border-2 border-muted-foreground/50 transition-colors group-aria-pressed:border-primary group-aria-pressed:bg-primary/20"
                     style={
                       {
                         "--element-width": `${ratio >= 1 ? 100 : 100 * ratio}%`,
@@ -189,7 +189,10 @@ export function ExportRenderSettings({
                   backgroundColor: swatch.color,
                 })
               }
-              className={cn(swatchClass, "bg-preview")}
+              className={cn(
+                swatchClass,
+                "[background:var(--preview-background)]"
+              )}
               style={
                 { "--preview-background": swatch.color } as React.CSSProperties
               }

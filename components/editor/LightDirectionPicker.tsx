@@ -86,7 +86,7 @@ export function LightDirectionPicker({
       >
         <span className="relative size-5 shrink-0 overflow-hidden rounded-full border border-border bg-background/50 dark:bg-background/30">
           <span
-            className="absolute inset-0.5 rounded-full shadow-color-stop-gloss bg-preview"
+            className="absolute inset-0.5 rounded-full shadow-color-stop-gloss [background:var(--preview-background)]"
             style={
               { "--preview-background": triggerSphere } as React.CSSProperties
             }
@@ -139,7 +139,7 @@ export function LightDirectionPicker({
           <div
             ref={padRef}
             onPointerDown={handlePadDown}
-            className="relative size-full cursor-grab touch-none overflow-hidden rounded-full bg-preview active:cursor-grabbing"
+            className="relative size-full cursor-grab touch-none overflow-hidden rounded-full [background:var(--preview-background)] active:cursor-grabbing"
             style={
               {
                 "--preview-background": `radial-gradient(circle at ${hx}% ${hy}%, var(--color-light-highlight) 0%, ${color} 24%, var(--color-light-pad-edge) 68%, var(--color-light-pad-shadow) 100%)`,

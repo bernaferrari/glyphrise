@@ -90,7 +90,7 @@ export function TimelineToolbar({
     <div
       role="toolbar"
       aria-label="Timeline"
-      className="flex h-full min-w-0 items-center gap-0 pr-1 pl-2 max-[720px]:pl-1.5"
+      className="flex h-full min-w-0 items-center gap-0 pr-1 pl-2 max-md:pl-1.5"
     >
       {playback && (
         <button
@@ -149,7 +149,7 @@ export function TimelineToolbar({
           <ChevronRight className="size-3.5" />
         </button>
       )}
-      <div className="ml-1.5 flex min-w-0 items-center font-mono text-xs tabular-nums max-[720px]:ml-0.5">
+      <div className="ml-1.5 flex min-w-0 items-center font-mono text-xs tabular-nums max-md:ml-0.5">
         <PlayheadField
           currentTime={currentTime}
           duration={duration}
@@ -409,7 +409,7 @@ function PlayheadField({
           event.currentTarget.blur()
         }
       }}
-      className="h-7 w-(--spacing-timecode) rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring max-[720px]:px-0 max-[720px]:text-2xs!"
+      className="h-7 w-(--spacing-timecode) rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring max-md:px-0 max-md:text-2xs!"
     />
   )
 }

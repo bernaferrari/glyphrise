@@ -111,7 +111,7 @@ function OutputPreview({
     <div className="grid place-items-center bg-muted/40 p-6 max-md:p-4">
       <div className="grid size-72 place-items-center max-md:size-40">
         <div
-          className="relative grid h-(--element-height) w-(--element-width) place-items-center overflow-hidden rounded-lg shadow-export-preview transition-[width,height] duration-200 bg-preview"
+          className="relative grid h-(--element-height) w-(--element-width) place-items-center overflow-hidden rounded-lg shadow-lg ring-1 ring-border transition-[width,height] duration-200 [background:var(--preview-background)]"
           style={
             {
               "--element-width": `${width}%`,

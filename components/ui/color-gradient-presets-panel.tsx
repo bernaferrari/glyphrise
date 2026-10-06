@@ -97,7 +97,7 @@ export function ColorGradientPresetsPanel({
                 />
               ) : (
                 <span
-                  className="pointer-events-none block size-full rounded-lg bg-preview"
+                  className="pointer-events-none block size-full rounded-lg [background:var(--preview-background)]"
                   style={
                     {
                       "--preview-background": gradientPreviewCss(

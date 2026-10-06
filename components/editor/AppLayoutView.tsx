@@ -197,7 +197,7 @@ export function AppLayoutView({
           aria-live="polite"
           aria-atomic="true"
           className={cn(
-            "pointer-events-none absolute top-3 left-1/2 z-50 max-w-(--spacing-toast) -translate-x-1/2 truncate rounded-xl bg-popover px-3.5 py-2 text-xs font-medium text-popover-foreground shadow-dialog ring-1 ring-border transition-[opacity,transform] duration-150",
+            "pointer-events-none absolute top-3 left-1/2 z-50 max-w-(--spacing-toast) -translate-x-1/2 truncate rounded-xl bg-popover px-3.5 py-2 text-xs font-medium text-popover-foreground shadow-lg ring-1 ring-border transition-[opacity,transform] duration-150",
             keyframeNotice
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0"
@@ -208,7 +208,7 @@ export function AppLayoutView({
         {returnTo && (
           <div
             role="status"
-            className="absolute bottom-4 left-1/2 z-50 flex h-11 w-max max-w-(--spacing-toast) -translate-x-1/2 animate-in items-center gap-1 rounded-xl bg-popover pr-1 pl-3.5 text-xs text-popover-foreground shadow-dialog ring-1 ring-border duration-150 fade-in-0 slide-in-from-bottom-2 max-[720px]:bottom-(--spacing-toast-bottom)"
+            className="absolute bottom-4 left-1/2 z-50 flex h-11 w-max max-w-(--spacing-toast) -translate-x-1/2 animate-in items-center gap-1 rounded-xl bg-popover pr-1 pl-3.5 text-xs text-popover-foreground shadow-lg ring-1 ring-border duration-150 fade-in-0 slide-in-from-bottom-2 max-[720px]:bottom-(--spacing-toast-bottom)"
           >
             <span className="min-w-0 flex-1 truncate">New project created</span>
             <button

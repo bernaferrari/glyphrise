@@ -56,7 +56,7 @@ export function SvgCanvasOverlays({
 
 export function SvgCanvasLoading() {
   return (
-    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-background/5 backdrop-blur-hairline">
+    <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center bg-background/5">
       <div className="flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-2 text-xs font-medium text-white/75 shadow-2xl">
         <span className="size-2 animate-pulse rounded-full bg-white/70" />
         Preparing 3D icon

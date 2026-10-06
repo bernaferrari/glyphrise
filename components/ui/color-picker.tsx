@@ -39,8 +39,6 @@ interface ColorPickerProps extends Pick<
 > {
   value: string
   onChange: (hex: string) => void
-  alpha?: number
-  onAlphaChange?: (alpha: number) => void
   className?: string
   /** "swatch" is a round custom-color button that sits among preset swatches. */
   variant?: "default" | "inspector" | "swatch"
@@ -58,17 +56,11 @@ interface ColorPickerProps extends Pick<
   onStopRemove?: (stop: number) => void
   secondaryValue?: string
   onSecondaryChange?: (hex: string) => void
-  secondaryAlpha?: number
-  onSecondaryAlphaChange?: (alpha: number) => void
 }
-
-const ENABLE_ALPHA = false
 
 export function ColorPicker({
   value,
   onChange,
-  alpha,
-  onAlphaChange,
   className,
   variant = "default",
   gradient,
@@ -81,8 +73,6 @@ export function ColorPicker({
   onStopRemove,
   secondaryValue,
   onSecondaryChange,
-  secondaryAlpha,
-  onSecondaryAlphaChange,
   "aria-label": ariaLabel,
   selected,
 }: ColorPickerProps) {
@@ -90,8 +80,6 @@ export function ColorPicker({
   const supportsGradient = !!onGradientToggle
   const isGradient = !!gradient
   const [isOpen, setIsOpen] = React.useState(false)
-  const [internalAlpha, setInternalAlpha] = React.useState(1)
-  const [internalSecondaryAlpha, setInternalSecondaryAlpha] = React.useState(1)
   const rootTriggerRef = React.useRef<HTMLButtonElement | null>(null)
   const rootContentRef = React.useRef<HTMLDivElement | null>(null)
   const stopContentRef = React.useRef<HTMLDivElement | null>(null)
@@ -190,20 +178,9 @@ export function ColorPicker({
 
   // The stop currently being edited (stop 1 only exists in gradient mode).
   const activeOnChange = updateActiveStopColor
-  const editingSecondary = isGradient && activeStop === 1 && !!onSecondaryChange
-  const activeAlpha = editingSecondary
-    ? (secondaryAlpha ?? internalSecondaryAlpha)
-    : (alpha ?? internalAlpha)
-  const activeOnAlphaChange = editingSecondary
-    ? (onSecondaryAlphaChange ?? setInternalSecondaryAlpha)
-    : (onAlphaChange ?? setInternalAlpha)
-
   const solidEditorProps = useSolidColorEditor({
     value: activeValue,
-    alpha: activeAlpha,
-    enableAlpha: ENABLE_ALPHA,
     onChange: activeOnChange,
-    onAlphaChange: activeOnAlphaChange,
   })
   // Mesh points keep their position with the color, Figma-style.
   const activePoint = meshPoints[activeStop]
@@ -290,7 +267,7 @@ export function ColorPicker({
         >
           <span
             aria-hidden="true"
-            className="size-5 rounded-full ring-2 ring-popover bg-preview"
+            className="size-5 rounded-full ring-2 ring-popover [background:var(--preview-background)]"
             style={
               { "--preview-background": primaryHex } as React.CSSProperties
             }
@@ -318,7 +295,7 @@ export function ColorPicker({
             />
           ) : (
             <div
-              className="size-3.5 shrink-0 rounded-preview border border-foreground/10 shadow-sm bg-preview"
+              className="size-3.5 shrink-0 rounded border border-foreground/10 shadow-sm [background:var(--preview-background)]"
               style={
                 {
                   "--preview-background": isGradient ? gradientCss : primaryHex,

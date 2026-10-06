@@ -38,8 +38,6 @@ export function CompactColorInput({
   const [inputText, setInputText] = React.useState(hex)
   const canvasRef = React.useRef<HTMLDivElement>(null)
   const hueRef = React.useRef<HTMLDivElement>(null)
-  const alphaRef = React.useRef<HTMLDivElement>(null)
-  const alpha = 1
 
   const { h, s, v } = React.useMemo(() => {
     try {
@@ -141,12 +139,6 @@ export function CompactColorInput({
     }
   }
 
-  const handleAlphaChange = () => {}
-  const handleAlphaStart = (event: React.MouseEvent | React.TouchEvent) => {
-    event.preventDefault()
-    event.stopPropagation()
-  }
-
   return (
     <span
       className={cn(
@@ -159,7 +151,7 @@ export function CompactColorInput({
       <Popover>
         <PopoverTrigger
           aria-label={ariaLabel}
-          className="size-4.5 shrink-0 rounded-preview border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
+          className="size-4.5 shrink-0 rounded border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
           style={{ "--swatch-color": hex } as React.CSSProperties}
           onClick={(event) => event.stopPropagation()}
         />
@@ -178,17 +170,13 @@ export function CompactColorInput({
             s={s}
             v={v}
             hex={hex}
-            alpha={alpha}
             inputText={inputText}
             format={format}
             setFormat={setFormat}
             canvasRef={canvasRef}
             hueRef={hueRef}
-            alphaRef={alphaRef}
             handleCanvasStart={handleCanvasStart}
             handleHueStart={handleHueStart}
-            handleAlphaStart={handleAlphaStart}
-            handleAlphaChange={handleAlphaChange}
             handleTextChange={handleTextChange}
             handleKeyDown={handleKeyDown}
             handleBlur={commitInput}

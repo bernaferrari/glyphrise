@@ -55,7 +55,7 @@ export function ColorGradientRail({
         }}
       >
         <div
-          className="absolute inset-px rounded-direction bg-preview"
+          className="absolute inset-px rounded-direction [background:var(--preview-background)]"
           style={{ "--preview-background": gradientCss } as React.CSSProperties}
         />
         <button
@@ -100,7 +100,7 @@ export function ColorGradientRail({
                 onStopPointerDown(stop, event)
               }}
               className={cn(
-                "absolute -top-5 flex size-7 -translate-x-1/2 touch-none items-center justify-center rounded-inset shadow-light-dial transition-colors after:absolute after:-bottom-1.25 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-5 after:border-t-6 after:border-x-transparent",
+                "absolute -top-5 flex size-7 -translate-x-1/2 touch-none items-center justify-center rounded-inset shadow-sm shadow-black/35 transition-colors after:absolute after:-bottom-1.25 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-5 after:border-t-6 after:border-x-transparent",
                 openStopEditor === stop
                   ? "bg-primary after:border-t-primary"
                   : "bg-muted after:border-t-muted hover:bg-muted/80 hover:after:border-t-muted/80",
@@ -113,7 +113,7 @@ export function ColorGradientRail({
               }
             >
               <span
-                className="relative z-10 size-4.5 rounded-direction border border-background/65 bg-(--swatch-color) shadow-color-rail"
+                className="relative z-10 size-4.5 rounded-direction border border-background/65 bg-(--swatch-color) inset-ring inset-ring-black/10"
                 style={
                   { "--swatch-color": stopItem.color } as React.CSSProperties
                 }

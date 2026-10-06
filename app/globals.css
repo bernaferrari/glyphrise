@@ -3,11 +3,6 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
-@custom-variant compact-timeline {
-  @media (width <= 720px), (pointer: coarse) {
-    @slot;
-  }
-}
 
 @theme inline {
   --animate-motion-spin: motion-preview-spin var(--motion-duration, 3s) linear
@@ -33,21 +28,9 @@
     #ff00ff 83%,
     #ff0000 100%
   );
-  --background-alpha-checkerboard:
-    linear-gradient(45deg, #8b8b8b 25%, transparent 25%),
-    linear-gradient(-45deg, #8b8b8b 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #8b8b8b 75%),
-    linear-gradient(-45deg, transparent 75%, #8b8b8b 75%);
 
-  --color-light-highlight: #f8fafc;
-  --color-light-trigger-edge: #3f3f46;
-  --color-light-trigger-shadow: #18181b;
-  --color-light-pad-edge: #27272a;
-  --color-light-pad-shadow: #0b0b0d;
-  --color-light-keyframe: #ffd9a0;
-  --color-starter-background: #09090b;
+  --color-starter-background: var(--color-zinc-950);
 
-  --spacing-tab-trigger: calc(100% - 1px);
   --spacing-mobile-tabs: calc(4rem + env(safe-area-inset-bottom));
   --spacing-toast: calc(100vw - 24px);
   --spacing-toast-bottom: calc(var(--spacing-mobile-tabs) + 5rem);
@@ -70,10 +53,12 @@
   --spacing-creation-guide: min(300px, calc(100% - 32px));
   --spacing-preview-message: min(34rem, calc(100% - 2rem));
   --spacing-shape-picker: min(720px, calc(100vw - 32px));
-  --spacing-switch-height: 18.4px;
+  --spacing-safe-tab: calc(0.25rem + env(safe-area-inset-bottom));
+  --spacing-safe-left: max(0.5rem, env(safe-area-inset-left));
+  --spacing-safe-right: max(0.5rem, env(safe-area-inset-right));
+  --editor-ring-width: 1.5px;
 
   /* Preserve the compact editor scale and shared preview treatments. */
-  --text-gizmo: 7px;
   --text-3xs: 10px;
   --text-2xs: 11px;
   --text-control: 13px;
@@ -82,62 +67,23 @@
   --tracking-label: 0.12em;
   --tracking-section: 0.14em;
   --radius-hairline: 1px;
-  --radius-preview: 4px;
   --radius-direction: 5px;
-  --radius-control: 6px;
   --radius-inset: 7px;
-  --radius-compact: min(var(--radius-md), 10px);
-  --radius-button: min(var(--radius-md), 12px);
-  --blur-hairline: 1px;
-  --aspect-photo: 3 / 2;
-  --aspect-preview: 4 / 3;
   --spacing-timecode: 7.5ch;
   --color-preview-shade: oklch(0.11 0.012 280);
   --color-preview-glow: oklch(0.18 0.012 280);
-  --color-axis-x-label: var(--color-rose-200);
-  --color-axis-x-muted: var(--color-rose-300);
   --color-axis-x-edge: var(--color-rose-400);
   --color-axis-x-surface: var(--color-rose-500);
-  --color-axis-y-label: var(--color-emerald-200);
-  --color-axis-y-muted: var(--color-emerald-300);
   --color-axis-y-edge: var(--color-emerald-400);
   --color-axis-y-surface: var(--color-emerald-500);
-  --color-axis-z-label: var(--color-sky-200);
-  --color-axis-z-muted: var(--color-sky-300);
   --color-axis-z-edge: var(--color-sky-400);
   --color-axis-z-surface: var(--color-sky-500);
-  --shadow-color-handle-edge: 0 0 0 0.5px rgba(0, 0, 0, 0.25);
-  --shadow-wipe-slash: 0 0 0 1px hsl(var(--background));
-  --shadow-color-stop: 0 0 0 1px rgb(0 0 0/18%), 0 2px 6px rgb(0 0 0/35%);
-  --shadow-color-stop-active:
-    0 0 0 1px rgb(0 0 0/18%), 0 6px 14px rgb(0 0 0/40%);
-  --shadow-slider-thumb: 0 0 0 1px rgba(0, 0, 0, 0.15);
-  --shadow-export-preview:
-    0 0 0 1px var(--border), 0 12px 32px -16px rgba(0, 0, 0, 0.55);
   --shadow-light-source: 0 0 8px 2px rgba(255, 255, 255, 0.7);
-  --shadow-dialog: 0 12px 48px rgb(0 0 0/16%), 0 2px 8px rgb(0 0 0/8%);
-  --shadow-color-slider-handle: 0 1px 4px rgba(0, 0, 0, 0.38);
-  --shadow-color-area-handle: 0 1px 7px rgba(0, 0, 0, 0.45);
-  --shadow-light-dial: 0 2px 7px rgba(0, 0, 0, 0.35);
-  --shadow-mesh-handle: 0 6px 16px rgb(0 0 0/35%);
-  --shadow-timeline-selection: inset 0 0 0 1.5px var(--timeline-accent);
-  --shadow-export-setting: inset 0 0 0 1px
-    color-mix(in oklab, var(--foreground) 14%, transparent);
-  --shadow-color-area: inset 0 0 0 1px hsl(var(--border)/0.45);
-  --shadow-mesh-preview: inset 0 0 0 1px rgb(255 255 255/8%);
-  --shadow-color-rail: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-  --shadow-timeline-clip:
-    inset 0 0 0 1px var(--timeline-clip-edge),
-    inset 0 1px 0 rgb(255 255 255/0.06);
   --shadow-color-stop-gloss:
     inset 0 1px 1px rgba(255, 255, 255, 0.38),
     inset 0 -1px 1px rgba(0, 0, 0, 0.2);
-  --shadow-finish-mosaic:
-    inset 0 1px 2px rgb(255 255 255/35%), inset 0 -2px 3px rgb(0 0 0/25%);
   --shadow-finish-swatch:
     inset 0 1px 2px rgb(255 255 255/50%), inset 0 -2px 3px rgb(0 0 0/20%);
-  --shadow-preset-selection: inset 0 0 0 1px var(--primary);
-  --drop-shadow-gizmo: 0 1px 2px rgba(0, 0, 0, 0.35);
 
   --color-preview-background: oklch(0.13 0.012 280);
   --font-heading: var(--font-sans);
@@ -173,6 +119,13 @@
 }
 
 :root {
+  /* Runtime sphere gradients need these variables even without color utilities. */
+  --color-light-highlight: var(--color-slate-50);
+  --color-light-trigger-edge: var(--color-zinc-700);
+  --color-light-trigger-shadow: var(--color-zinc-900);
+  --color-light-pad-edge: var(--color-zinc-800);
+  --color-light-pad-shadow: oklch(0.151 0.004 285.878);
+  --color-light-keyframe: oklch(0.904 0.084 77.467);
   /* Properties and Motion share one height so switching panes leaves the preview still. */
   --compact-pane-height: min(400px, 50dvh);
   --background: oklch(0.994 0.002 260);
@@ -370,14 +323,11 @@
 }
 
 .timeline-density {
-  --timeline-rail-width: 224px;
   --timeline-ruler-height: 38px;
   --timeline-shape-height: 46px;
   --timeline-property-height: 34px;
-  --timeline-playhead: oklch(0.2 0.01 260);
   --timeline-surface: oklch(0.975 0.003 260);
   --timeline-lane: oklch(0.995 0.001 260);
-  --timeline-lane-alt: oklch(0.982 0.002 260);
   --timeline-clip: color-mix(
     in oklab,
     var(--timeline-accent) 18%,
@@ -388,14 +338,11 @@
     var(--timeline-accent) 45%,
     var(--timeline-lane)
   );
-  --timeline-clip-fg: var(--foreground);
 }
 
 .dark .timeline-density {
-  --timeline-playhead: oklch(0.97 0 0);
   --timeline-surface: oklch(0.205 0.006 260);
   --timeline-lane: oklch(0.18 0.006 260);
-  --timeline-lane-alt: oklch(0.195 0.006 260);
   --timeline-clip: color-mix(
     in oklab,
     var(--timeline-accent) 24%,
@@ -603,13 +550,6 @@
     ew-resize;
 }
 
-/* Phones: the rail holds only names and the transport, so lanes get the room. */
-@media (width <= 720px) {
-  .timeline-density {
-    --timeline-rail-width: 156px;
-  }
-}
-
 @utility bg-starter-glow {
   background-image: radial-gradient(
     120% 80% at 50% 30%,
@@ -680,61 +620,8 @@
   );
 }
 
-@utility pb-safe-tab {
-  padding-bottom: calc(0.25rem + env(safe-area-inset-bottom));
-}
-
-@utility pl-safe-2 {
-  padding-left: max(0.5rem, env(safe-area-inset-left));
-}
-
-@utility pr-safe-2 {
-  padding-right: max(0.5rem, env(safe-area-inset-right));
-}
-
-@utility top-popover-arrow {
-  top: calc(100% + 8px);
-}
-
-@utility translate-y-tooltip-arrow {
-  --tw-translate-y: calc(-50% - 2px);
-  translate: var(--tw-translate-x) var(--tw-translate-y);
-}
-
-@utility translate-x-switch-thumb {
-  --tw-translate-x: calc(100% - 2px);
-  translate: var(--tw-translate-x) var(--tw-translate-y);
-}
-
 @utility scrollbar-none {
   scrollbar-width: none;
-}
-
-/* Runtime preview data stays in custom properties; classes own the styles. */
-@utility bg-preview {
-  background: var(--preview-background);
-}
-@utility bg-preview-image {
-  background-image: var(--preview-image);
-}
-@utility bg-preview-size {
-  background-size: var(--preview-size);
-}
-@utility bg-preview-position {
-  background-position: var(--preview-position);
-}
-@utility ring-editor {
-  --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 1.5px
-    var(--tw-ring-color, currentColor);
-  box-shadow:
-    var(--tw-inset-shadow), var(--tw-inset-ring-shadow),
-    var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-}
-@utility border-preview {
-  border-width: 1.5px;
-}
-@utility stroke-hairline {
-  stroke-width: 0.75;
 }
 
 @utility bg-checkerboard {
@@ -749,27 +636,4 @@
   background-image:
     linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0) 100%),
     linear-gradient(to right, #fff 0%, hsl(var(--color-hue), 100%, 50%) 100%);
-}
-
-@utility bg-color-alpha {
-  background-color: white;
-  background-image:
-    linear-gradient(
-      to right,
-      rgba(var(--color-red), var(--color-green), var(--color-blue), 0),
-      rgba(var(--color-red), var(--color-green), var(--color-blue), 1)
-    ),
-    var(--background-alpha-checkerboard);
-  background-position:
-    0 0,
-    0 0,
-    0 5px,
-    5px -5px,
-    -5px 0;
-  background-size:
-    100% 100%,
-    10px 10px,
-    10px 10px,
-    10px 10px,
-    10px 10px;
 }

@@ -391,7 +391,7 @@ function NewProjectForm({
             preview={
               <span className="grid size-full place-items-center rounded-lg bg-muted/60">
                 <span
-                  className="size-9 rounded-full shadow-finish-swatch bg-preview"
+                  className="size-9 rounded-full shadow-finish-swatch [background:var(--preview-background)]"
                   style={
                     {
                       "--preview-background": template.preview,
@@ -427,7 +427,7 @@ function StartTile({
       title={hint}
       className="group flex min-w-0 flex-col gap-2 rounded-xl p-1.5 text-left transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
     >
-      <span className="block aspect-preview w-full">{preview}</span>
+      <span className="block aspect-4/3 w-full">{preview}</span>
       <span className="line-clamp-2 min-h-8 px-0.5 text-xs leading-4 font-medium text-foreground">
         {label}
       </span>

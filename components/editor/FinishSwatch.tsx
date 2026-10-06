@@ -160,7 +160,7 @@ export function FinishSwatch({
         />
       ) : thumbnail === null ? (
         <span
-          className="absolute inset-0 rounded-full shadow-finish-swatch bg-preview"
+          className="absolute inset-0 rounded-full shadow-finish-swatch [background:var(--preview-background)]"
           style={
             {
               "--preview-background": MATERIAL_PREVIEW[preset],

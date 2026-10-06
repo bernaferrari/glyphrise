@@ -141,7 +141,7 @@ export function FinishPresetPicker({
         title="All finishes"
         className="group grid size-10 place-items-center justify-self-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
       >
-        <span className="relative grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-data-open:ring-editor group-data-open:ring-foreground/60">
+        <span className="relative grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-data-open:ring-(length:--editor-ring-width) group-data-open:ring-foreground/60">
           <span className="relative grid size-7 grid-cols-2 overflow-hidden rounded-full transition-transform duration-150 group-hover:scale-105">
             {more.map((preset, index) => (
               <span
@@ -149,8 +149,9 @@ export function FinishPresetPicker({
                 className={cn(
                   "bg-muted",
                   moreThumbnails[preset]
-                    ? "bg-preview-image bg-preview-size bg-preview-position"
-                    : moreThumbnails[preset] === null && "bg-preview"
+                    ? "bg-(image:--preview-image) bg-size-(--preview-size) bg-position-(--preview-position)"
+                    : moreThumbnails[preset] === null &&
+                        "[background:var(--preview-background)]"
                 )}
                 style={
                   {
@@ -172,7 +173,7 @@ export function FinishPresetPicker({
               />
             ))}
             {/* One soft highlight across the quadrants makes them read as one sphere. */}
-            <span className="absolute inset-0 rounded-full bg-finish-highlight shadow-finish-mosaic" />
+            <span className="absolute inset-0 rounded-full bg-finish-highlight shadow-finish-swatch" />
           </span>
           <span className="absolute right-0 bottom-0 grid size-3.5 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
             <Plus className="size-2.5" strokeWidth={3} aria-hidden="true" />
@@ -227,7 +228,7 @@ export function FinishPresetPicker({
                       onFocus={() => setPreviewed(preset)}
                       className="group flex flex-col items-center gap-1.5 rounded-xl px-1 pt-2 pb-2 transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-checked:bg-muted/50"
                     >
-                      <span className="grid size-11 place-items-center rounded-full ring-editor ring-transparent transition-[box-shadow,transform] duration-200 ease-out group-hover:scale-104 group-active:scale-95 group-aria-checked:ring-foreground/60">
+                      <span className="grid size-11 place-items-center rounded-full ring-(length:--editor-ring-width) ring-transparent transition-[box-shadow,transform] duration-200 ease-out group-hover:scale-104 group-active:scale-95 group-aria-checked:ring-foreground/60">
                         <FinishSwatch
                           preset={preset}
                           thumbnail={thumbnails[preset]}

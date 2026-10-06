@@ -166,7 +166,7 @@ export const TimelineRuler = React.forwardRef<
         </div>
       ))}
       <div
-        className="pointer-events-none absolute top-0 bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-(--timeline-playhead)"
+        className="pointer-events-none absolute top-0 bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-foreground"
         style={
           {
             "--position-x": cssLength(playheadX),
@@ -177,7 +177,7 @@ export const TimelineRuler = React.forwardRef<
         <svg
           viewBox="0 0 13 17"
           aria-hidden="true"
-          className="absolute top-1 left-1/2 z-(--stack-order) h-4.25 w-3.25 -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-gizmo"
+          className="absolute top-1 left-1/2 z-(--stack-order) h-4.25 w-3.25 -translate-x-1/2 fill-foreground drop-shadow-xs drop-shadow-black/35"
           style={
             {
               "--stack-order": TIMELINE_LAYER.rulerPlayheadHandle,

@@ -29,7 +29,7 @@ export function TimelinePlayheadLine({
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-(--timeline-ruler-height) bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-(--timeline-playhead) shadow-color-handle-edge"
+        className="pointer-events-none absolute top-(--timeline-ruler-height) bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-foreground ring-1 ring-black/20"
         style={
           {
             "--position-x": cssLength(playheadX),
