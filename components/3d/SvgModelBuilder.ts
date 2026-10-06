@@ -10,7 +10,7 @@ import {
 } from "./SvgSceneUtils"
 import { applyIconGradientUvs, iconGradientTexture } from "./SvgGradientTexture"
 import { isGraphiteCutPreset } from "./MaterialPresets"
-import { cacheGroupGeometryAnalysis } from "./SvgGeometryAnalysis"
+import { attachSvgWipeCaps } from "./SvgWipeCaps"
 import { finiteNumber } from "./SvgGeometry"
 import {
   applyInnerElementScale,
@@ -34,6 +34,7 @@ import {
   type ParsedSvgShapes,
 } from "./SvgParsing"
 import type { SvgCanvasProps } from "./SvgTypes"
+import { registerSvgGroupDepth, type SvgDepthLayer } from "./SvgModelDepth"
 
 const isGlyphriseSlashPath = (path: ParsedSvgPath) =>
   (
@@ -77,6 +78,7 @@ export const buildSvgIconGroup = ({
     scale: NonNullable<SvgCanvasProps["pathOverridesA"]>[number]["scale"]
   }> = []
   const baseExtrude = svgExtrudeBaseSettings(props)
+  const depthLayers: SvgDepthLayer[] = []
   const layerSpacing = finiteNumber(props.layerSpacing, 0)
   // Each layer is nudged forward by layerOrder * gap to avoid z-fighting
   // between stacked coplanar shapes. The depth-proportional term exists for
@@ -341,6 +343,15 @@ export const buildSvgIconGroup = ({
       applyGradient(geometry)
 
       const mesh = new THREE.Mesh(geometry, pathMaterial)
+      depthLayers.push({
+        mesh,
+        shape,
+        shapeSize,
+        depthMultiplier,
+        isSlashOverlay,
+        layerOrder,
+        extrude,
+      })
       mesh.userData.pathLayerId = layerId
       mesh.userData.iconColorRole = isIconA ? "a" : "b"
       mesh.position.z = isSlashOverlay
@@ -382,7 +393,9 @@ export const buildSvgIconGroup = ({
   })
 
   applySvgModelScale(group)
-  cacheGroupGeometryAnalysis(group)
+  registerSvgGroupDepth(group, layerCount, depthLayers)
+  const capPlane = isIconA ? clipPlaneA : clipPlaneB
+  if (capPlane) attachSvgWipeCaps(group, capPlane)
 
   return group
 }

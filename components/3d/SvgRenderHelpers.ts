@@ -3,6 +3,21 @@ import { getVisiblePivotBounds } from "./SvgGeometryAnalysis"
 
 const LAYER_OUTLINE_NAME = "selected-layer-outline"
 
+export const updateLayerOutlineDepth = (mesh: THREE.Mesh, delta: number) => {
+  const outline = mesh.getObjectByName(LAYER_OUTLINE_NAME) as
+    | THREE.LineSegments
+    | undefined
+  if (!outline) return
+  const positions = outline.geometry.getAttribute("position")
+  for (let index = 0; index < positions.count; index++) {
+    const z = positions.getZ(index)
+    positions.setZ(index, z + (z < 0 ? -delta : delta))
+  }
+  positions.needsUpdate = true
+  outline.geometry.computeBoundingBox()
+  outline.geometry.computeBoundingSphere()
+}
+
 const removeLayerOutline = (mesh: THREE.Mesh) => {
   const outline = mesh.getObjectByName(LAYER_OUTLINE_NAME) as
     | THREE.LineSegments

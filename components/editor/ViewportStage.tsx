@@ -153,26 +153,24 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          {presentation === "motion-preview" && (
-            <div className="pointer-events-none absolute inset-x-4 top-3 flex items-center justify-between text-xs text-white/60">
-              <span>Live preview</span>
-            </div>
-          )}
-          {onAnimate && presentation === "workspace" && !zenMode && (
-            <button
-              type="button"
-              onClick={onAnimate}
-              className="absolute top-3 left-3 z-30 flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-black/45 px-3.5 text-xs font-medium text-white backdrop-blur-md hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-white"
-            >
-              <Sparkles aria-hidden="true" className="size-3.5" />
-              Animate
-            </button>
-          )}
           {/* The timeline toolbar owns transport while it is visible. */}
           {((presentation === "workspace" && zenMode) || showPlayback) && (
             <PlaybackControls {...playbackProps} />
           )}
         </div>
+        {onAnimate && !zenMode && (
+          <button
+            type="button"
+            onClick={onAnimate}
+            data-slot="viewport-animate"
+            inert={presentation !== "workspace"}
+            aria-hidden={presentation !== "workspace"}
+            className={`absolute top-5.25 left-5.25 z-30 flex h-10 items-center gap-1.5 rounded-full border border-white/10 bg-black/45 px-3.5 text-xs font-medium text-white transition-[opacity,translate,background-color] ease-out hover:bg-black/60 focus-visible:outline-2 focus-visible:outline-white ${presentation === "workspace" ? "translate-y-0 opacity-100 duration-200" : "pointer-events-none -translate-y-1 opacity-0 duration-0"}`}
+          >
+            <Sparkles aria-hidden="true" className="size-3.5" />
+            Animate
+          </button>
+        )}
         <div
           className={`absolute z-40 ${zenMode ? "top-3 right-3" : "top-5.25 right-5.25 min-[720px]:top-6.25 min-[720px]:right-6.25"}`}
         >

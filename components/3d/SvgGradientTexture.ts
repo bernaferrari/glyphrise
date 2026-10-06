@@ -7,6 +7,10 @@ import {
 import type { GradientStop, GradientType } from "./SvgTypes"
 
 const TEXTURE_SIZE = 256
+// Geometry changes do not change its fill. Retain a few immutable CPU images;
+// each icon still owns its GPU texture and writable image buffer.
+const MAX_BAKED_GRADIENTS = 16
+const bakedGradients = new Map<string, Uint8Array>()
 const groupTextures = new WeakMap<
   THREE.Group,
   { key: string; texture: THREE.DataTexture }
@@ -48,20 +52,30 @@ export const iconGradientTexture = (
     cached = { key, texture }
     groupTextures.set(group, cached)
   }
-  const sample = createIconGradientSampler(type, stops)
   const data = cached.texture.image.data!
-  const encoded = new THREE.Color()
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      encoded.copy(sample((x + 0.5) / size, (y + 0.5) / size))
-      gradeFinishSurfaceColor(preset, encoded).convertLinearToSRGB()
-      const offset = (y * size + x) * 4
-      data[offset] = Math.round(encoded.r * 255)
-      data[offset + 1] = Math.round(encoded.g * 255)
-      data[offset + 2] = Math.round(encoded.b * 255)
-      data[offset + 3] = 255
+  let baked = bakedGradients.get(key)
+  if (!baked) {
+    baked = new Uint8Array(data.length)
+    const sample = createIconGradientSampler(type, stops)
+    const encoded = new THREE.Color()
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        encoded.copy(sample((x + 0.5) / size, (y + 0.5) / size))
+        gradeFinishSurfaceColor(preset, encoded).convertLinearToSRGB()
+        const offset = (y * size + x) * 4
+        baked[offset] = Math.round(encoded.r * 255)
+        baked[offset + 1] = Math.round(encoded.g * 255)
+        baked[offset + 2] = Math.round(encoded.b * 255)
+        baked[offset + 3] = 255
+      }
     }
   }
+  bakedGradients.delete(key)
+  bakedGradients.set(key, baked)
+  if (bakedGradients.size > MAX_BAKED_GRADIENTS) {
+    bakedGradients.delete(bakedGradients.keys().next().value!)
+  }
+  data.set(baked)
   cached.key = key
   cached.texture.needsUpdate = true
   return cached.texture

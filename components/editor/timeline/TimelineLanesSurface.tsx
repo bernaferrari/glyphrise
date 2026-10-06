@@ -151,7 +151,13 @@ export function TimelineLanesSurface({
               />
             )}
           </div>
-          <TimelinePlayheadLine playheadX={viewport.playheadX} />
+          <TimelinePlayheadLine
+            playheadX={viewport.playheadX}
+            onPointerDown={(event) => {
+              viewport.laneRef.current?.focus({ preventScroll: true })
+              viewport.handleScrubStart(event)
+            }}
+          />
         </div>
       </div>
     </div>

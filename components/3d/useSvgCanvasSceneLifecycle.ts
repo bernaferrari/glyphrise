@@ -61,7 +61,6 @@ type SvgCanvasSceneLifecycleOptions = {
   ) => void
   beginViewDrag: (event: PointerEvent) => void
   applyViewRotationDelta: (delta: RotationVelocity) => void
-  flushViewRotation: () => void
   cancelViewNudge: () => void
   requestRenderRef: MutableRefObject<() => void>
 }
@@ -107,7 +106,6 @@ export function useSvgCanvasSceneLifecycle({
   setTransformGizmoHighlight,
   beginViewDrag,
   applyViewRotationDelta,
-  flushViewRotation,
   cancelViewNudge,
   requestRenderRef,
 }: SvgCanvasSceneLifecycleOptions) {
@@ -118,7 +116,6 @@ export function useSvgCanvasSceneLifecycle({
   const setTransformGizmoHighlightRef = useLatestRef(setTransformGizmoHighlight)
   const beginViewDragRef = useLatestRef(beginViewDrag)
   const applyViewRotationDeltaRef = useLatestRef(applyViewRotationDelta)
-  const flushViewRotationRef = useLatestRef(flushViewRotation)
   const cancelViewNudgeRef = useLatestRef(cancelViewNudge)
   const onZoomChangeRef = useLatestRef(props.onZoomChange)
   const selectedIconColorRoleRef = useLatestRef(props.selectedIconColorRole)
@@ -164,7 +161,6 @@ export function useSvgCanvasSceneLifecycle({
         beginTransformRotateRef.current(axis, event),
       setTransformGizmoHighlight: (hovered, active) =>
         setTransformGizmoHighlightRef.current(hovered, active),
-      flushViewRotation: () => flushViewRotationRef.current(),
       beginViewDrag: (event) => beginViewDragRef.current(event),
       applyViewRotationDelta: (delta) =>
         applyViewRotationDeltaRef.current(delta),
@@ -222,7 +218,6 @@ export function useSvgCanvasSceneLifecycle({
     animationStartRef,
     applyViewRotationDeltaRef,
     beginViewDragRef,
-    flushViewRotationRef,
     beginTransformMoveRef,
     beginTransformRotateRef,
     beginTransformScaleRef,

@@ -8,6 +8,7 @@ import {
   type MaterialKeyframe,
   type Vector3Keyframe,
   clampNumber,
+  quantizeTimeToFrame,
 } from "./EditorModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 import type { FillKeyframe } from "./TimelineModel"
@@ -55,7 +56,7 @@ export const createTimelineKeyMoments = ({
         ...moveKeyframes.map((keyframe) => keyframe.time),
         ...keyLightPositionKeyframes.map((keyframe) => keyframe.time),
         ...materialKeyframes.map((keyframe) => keyframe.time),
-      ].map((time) => Number(clampNumber(time, 0, duration).toFixed(3)))
+      ].map((time) => quantizeTimeToFrame(clampNumber(time, 0, duration)))
     )
   ).sort((a, b) => a - b)
 

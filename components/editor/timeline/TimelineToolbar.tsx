@@ -88,7 +88,7 @@ export function TimelineToolbar({
     <div
       role="toolbar"
       aria-label="Timeline"
-      className="flex h-full min-w-0 items-center gap-0 pr-1 pl-2"
+      className="flex h-full min-w-0 items-center gap-0 pr-1 pl-2 max-[720px]:pl-1.5"
     >
       {playback && (
         <button
@@ -138,7 +138,7 @@ export function TimelineToolbar({
           <ChevronRight className="size-3.5" />
         </button>
       )}
-      <div className="ml-1.5 flex min-w-0 items-center font-mono text-xs tabular-nums">
+      <div className="ml-1.5 flex min-w-0 items-center font-mono text-xs tabular-nums max-[720px]:ml-0.5">
         <PlayheadField
           currentTime={currentTime}
           duration={duration}

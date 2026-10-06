@@ -36,7 +36,7 @@ export const updateGroupMaterialState = (
   group.userData.materialStateKey = materialStateKey
   group.traverse((object) => {
     const mesh = object as THREE.Mesh
-    if (!mesh.isMesh || !mesh.material) return
+    if (!mesh.isMesh || !mesh.material || mesh.userData.wipeCap) return
     const materials = Array.isArray(mesh.material)
       ? mesh.material
       : [mesh.material]

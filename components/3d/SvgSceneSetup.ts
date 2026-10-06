@@ -18,6 +18,7 @@ export const createSvgRenderer = ({
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: true,
+    stencil: true,
     alpha: true,
   })
   renderer.setSize(width, height)

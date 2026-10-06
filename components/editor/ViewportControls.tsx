@@ -55,7 +55,7 @@ export function ViewOptionsPopover({
   return (
     <div
       data-slot="viewport-tools"
-      className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white backdrop-blur-md"
+      className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white"
     >
       <Button
         size="icon-lg"
@@ -93,12 +93,11 @@ export function ViewOptionsPopover({
           className="max-h-(--available-height) w-(--spacing-viewport-menu) overflow-y-auto overscroll-contain"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to rotate.
-            {/* Orbit and zoom need a mouse or trackpad. */}
+            Drag to orbit the preview camera.
+            {/* Scrolling needs a mouse or trackpad. */}
             <span className="pointer-coarse:hidden">
               {" "}
-              Alt-drag to orbit the camera, scroll to zoom. Both affect the
-              preview only.
+              Scroll to zoom. Both affect the preview only.
             </span>
           </p>
           <ViewportToggleGroup label="Feel">

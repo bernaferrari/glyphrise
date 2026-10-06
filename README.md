@@ -90,8 +90,7 @@ The workspace actions menu also provides **Animate** and project tools.
 
 | Action                           | Control                                                  |
 | -------------------------------- | -------------------------------------------------------- |
-| Rotate the icon                  | Drag the preview                                         |
-| Orbit the preview camera         | `Alt` + drag the preview                                 |
+| Orbit the preview camera         | Drag the preview                                         |
 | Zoom the preview                 | Scroll over the preview                                  |
 | Reset the view and object pose   | **Reset view** in the preview toolbar                    |
 | Change the object in your export | Inspector **Transform** controls or **Transform object** |

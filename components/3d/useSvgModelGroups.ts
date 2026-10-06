@@ -10,6 +10,8 @@ import { buildSvgIconGroup } from "./SvgModelBuilder"
 import { updateGroupFillColors } from "./SvgMaterialState"
 import { disposeObjectTree } from "./SvgSceneUtils"
 import type { SvgCanvasProps } from "./SvgTypes"
+import { planSvgGroupDepthUpdate } from "./SvgModelDepth"
+import { svgExtrudeBaseSettings } from "./SvgExtrudeSettings"
 
 export const useSvgModelGroups = ({
   props,
@@ -43,6 +45,7 @@ export const useSvgModelGroups = ({
     b: readonly unknown[]
     groupA: THREE.Group
     groupB: THREE.Group
+    depth: number
   } | null>(null)
 
   useEffect(() => {
@@ -59,12 +62,11 @@ export const useSvgModelGroups = ({
     // a successful build so a malformed SVG preserves the last valid preview.
     const sharedInputs = [
       pivot,
-      props.extrusionDepth,
       props.bevelEnabled,
       props.bevelThickness,
       props.bevelSize,
       props.bevelSegments,
-      props.geometryQuality,
+      svgExtrudeBaseSettings(props).curveSegments,
       props.layerSpacing,
       props.materialPreset,
       props.enableGradient,
@@ -82,10 +84,19 @@ export const useSvgModelGroups = ({
       pathOverridesBSignature,
     ]
     const built = builtInputsRef.current
-    const rebuildA =
-      previousA !== built?.groupA || !sameInputs(inputsA, built?.a)
-    const rebuildB =
-      previousB !== built?.groupB || !sameInputs(inputsB, built?.b)
+    let rebuildA = previousA !== built?.groupA || !sameInputs(inputsA, built?.a)
+    let rebuildB = previousB !== built?.groupB || !sameInputs(inputsB, built?.b)
+    const depthChanged = props.extrusionDepth !== built?.depth
+    const updateDepthA =
+      !rebuildA && previousA && depthChanged
+        ? planSvgGroupDepthUpdate(previousA, props)
+        : null
+    const updateDepthB =
+      !rebuildB && previousB && depthChanged
+        ? planSvgGroupDepthUpdate(previousB, props)
+        : null
+    if (depthChanged && !updateDepthA) rebuildA = true
+    if (depthChanged && !updateDepthB) rebuildB = true
 
     let groupA: THREE.Group | null = previousA
     let groupB: THREE.Group | null = previousB
@@ -125,6 +136,8 @@ export const useSvgModelGroups = ({
       return
     }
 
+    updateDepthA?.()
+    updateDepthB?.()
     if (rebuildA && previousA) {
       pivot.remove(previousA)
       disposeObjectTree(previousA)
@@ -138,7 +151,13 @@ export const useSvgModelGroups = ({
     if (rebuildB) pivot.add(groupB)
     iconAGroupRef.current = groupA
     iconBGroupRef.current = groupB
-    builtInputsRef.current = { a: inputsA, b: inputsB, groupA, groupB }
+    builtInputsRef.current = {
+      a: inputsA,
+      b: inputsB,
+      groupA,
+      groupB,
+      depth: props.extrusionDepth,
+    }
     setModelReady(groupA.children.length > 0 || groupB.children.length > 0)
   }, [
     props.iconAContent,

@@ -212,6 +212,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
   } = editor
 
+  // Quality frames mirror Depth internally; count the visible keyframes once.
   const keyframeCount =
     tracks.reduce((count, track) => count + track.keyframes.length, 0) +
     fillKeyframes.length +
@@ -219,7 +220,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
     keyLightPositionKeyframes.length +
     rotationAxisKeyframes.length +
     moveKeyframes.length +
-    qualityKeyframes.length +
     innerScaleKeyframes.length
   const keyframeNotice = useKeyframeNotice({
     keyframeCount,
@@ -466,13 +466,13 @@ export function useAppLayoutController(): AppLayoutViewProps {
   } = useEditorExportSurface({
     selectedShapeId,
     setShapes,
-    previewKey: JSON.stringify([
-      documentSnapshot,
+    previewState: {
+      document: documentSnapshot,
       currentTime,
       wireframe,
       ambientColor,
       rimLightColor,
-    ]),
+    },
     canvasRef: canvas3DRef,
     exportTimelineVideo: (settings) => {
       cancelAnimatedSeek()

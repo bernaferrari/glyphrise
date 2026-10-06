@@ -40,9 +40,16 @@ export function useSvgViewNudge({
       cancelAnimationFrame(viewNudgeFrameRef.current)
       viewNudgeFrameRef.current = null
     }
+    for (const state of Object.values(viewNudgeStateRef.current)) {
+      state.value = null
+      state.target = null
+    }
   }
 
   const nudgeViewRotation = (axis: ViewNudgeAxis, direction: -1 | 1) => {
+    // Reset can cancel the frame externally. Start the next nudge from the
+    // current camera rather than an interrupted target.
+    if (viewNudgeFrameRef.current === null) cancelViewNudge()
     isInertiaActiveRef.current = false
     rotationVelocityRef.current = { x: 0, y: 0 }
     const current = rotationRef.current
@@ -80,9 +87,25 @@ export function useSvgViewNudge({
     viewNudgeFrameRef.current = requestAnimationFrame(tick)
   }
 
+  const alignViewToAxis = (axis: keyof Vector3Value) => {
+    cancelViewNudge()
+    isInertiaActiveRef.current = false
+    rotationVelocityRef.current = { x: 0, y: 0 }
+    // Original compass views, before axis taps were replaced by arrows.
+    onViewRotationSetRef.current?.(
+      {
+        x: axis === "y" ? -90 : 0,
+        y: axis === "x" ? -90 : 0,
+        z: 0,
+      },
+      { commit: true }
+    )
+  }
+
   return {
     viewNudgeFrameRef,
     cancelViewNudge,
     nudgeViewRotation,
+    alignViewToAxis,
   }
 }

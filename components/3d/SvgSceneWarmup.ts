@@ -19,21 +19,30 @@ export const prepareSvgScene = ({
     !groups.some((group) => group?.children.length)
   )
     return
-  const target = new THREE.WebGLRenderTarget(1, 1)
+  const target = new THREE.WebGLRenderTarget(1, 1, { stencilBuffer: true })
   const previousTarget = renderer.getRenderTarget()
   const previousCubeFace = renderer.getActiveCubeFace()
   const previousMipmapLevel = renderer.getActiveMipmapLevel()
   const visibility = groups.flatMap((group) =>
     group ? [{ group, visible: group.visible }] : []
   )
-  const meshes: Array<{ mesh: THREE.Mesh; frustumCulled: boolean }> = []
+  const meshes: Array<{
+    mesh: THREE.Mesh
+    frustumCulled: boolean
+    visible: boolean
+  }> = []
   try {
     visibility.forEach(({ group }) => {
       group.visible = true
       group.traverse((object) => {
         const mesh = object as THREE.Mesh
         if (!mesh.isMesh) return
-        meshes.push({ mesh, frustumCulled: mesh.frustumCulled })
+        meshes.push({
+          mesh,
+          frustumCulled: mesh.frustumCulled,
+          visible: mesh.visible,
+        })
+        if (mesh.userData.wipeCap) mesh.visible = true
         mesh.frustumCulled = false
       })
     })
@@ -46,7 +55,8 @@ export const prepareSvgScene = ({
     visibility.forEach(({ group, visible }) => {
       group.visible = visible
     })
-    meshes.forEach(({ mesh, frustumCulled }) => {
+    meshes.forEach(({ mesh, frustumCulled, visible }) => {
+      mesh.visible = visible
       mesh.frustumCulled = frustumCulled
     })
     renderer.setRenderTarget(

@@ -23,6 +23,7 @@ import {
   shouldScheduleSvgRenderFrame,
   type RotationVelocity,
 } from "./SvgRenderLoopModel"
+import { applySvgCameraOrbit } from "./SvgCameraOrbit"
 import { framedCameraDistance } from "./SvgSceneUtils"
 import { applySvgTransitionState } from "./SvgTransitionState"
 import { prepareSvgScene } from "./SvgSceneWarmup"
@@ -171,20 +172,10 @@ export function useSvgRenderLoop({
       const orbit = exportRenderOptions
         ? { x: 0, y: 0 }
         : cameraOrbitRef.current
-      const pitch = THREE.MathUtils.degToRad(
-        Math.max(-85, Math.min(85, orbit.x))
-      )
-      const yaw = THREE.MathUtils.degToRad(orbit.y)
       const distance =
         framedCameraDistance(camera) /
         (exportRenderOptions ? 1 : currentZoomRef.current)
-      camera.position.set(
-        -distance * Math.sin(yaw) * Math.cos(pitch),
-        distance * Math.sin(pitch),
-        distance * Math.cos(yaw) * Math.cos(pitch)
-      )
-      camera.lookAt(0, 0, 0)
-      camera.updateMatrixWorld()
+      applySvgCameraOrbit(camera, { ...orbit, z: 0 }, distance)
 
       artworkOrientation.setFromEuler(
         artworkEuler.set(

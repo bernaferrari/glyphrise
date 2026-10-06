@@ -337,15 +337,8 @@
   --wipe-pair-progress: 118%;
 }
 
-/* The phone sheet: same timing and curve as ShapeShifter's. Opening from the
-   canvas grows the pane from the tab bar; closing lowers it before it hides. */
+/* The phone sheet and canvas share the same motion when opening and closing. */
 @media (width < 720px) {
-  #glyphrise-preview-pane {
-    transition: padding 220ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  #glyphrise-preview-frame {
-    transition: border-radius 220ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
   .compact-sheet-pane {
     transition:
       height 220ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -375,7 +368,7 @@
 }
 
 .timeline-density {
-  --timeline-rail-width: 236px;
+  --timeline-rail-width: 224px;
   --timeline-ruler-height: 38px;
   --timeline-shape-height: 46px;
   --timeline-property-height: 34px;
@@ -498,6 +491,24 @@
 ::view-transition-old(editor-tools) {
   display: none;
 }
+/* Animate is captured separately so it exits without stretching with the canvas. */
+:root[data-panel-transition="compact"]
+  [data-slot="viewport-animate"]:not([aria-hidden="true"]) {
+  view-transition-name: editor-animate;
+  /* Capture the visible button once; the snapshot owns its entrance fade. */
+  transition: none;
+  opacity: 1;
+  translate: none;
+}
+::view-transition-group(editor-animate) {
+  animation: none;
+}
+::view-transition-old(editor-animate) {
+  @apply animate-out duration-150 ease-out fade-out-0 fill-mode-both slide-out-to-top-1;
+}
+::view-transition-new(editor-animate) {
+  @apply animate-in duration-200 ease-out fade-in-0 fill-mode-both slide-in-from-top-1;
+}
 :root[data-panel-transition="compact"] .compact-sheet-pane {
   transition: none;
 }
@@ -560,6 +571,29 @@
   height: 100%;
   object-fit: cover;
 }
+/* This is one continuous canvas resizing, so replace the default crossfade
+   with a single opaque snapshot while its shared group changes bounds. */
+:root[data-panel-transition="compact"]::view-transition-old(editor-preview) {
+  display: none;
+}
+:root[data-panel-transition="compact"]::view-transition-new(editor-preview) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* Opening uses a shorter snapshot. Keep its aspect ratio instead of stretching
+   it to cover the old tall frame, which magnifies the artwork before shrinking. */
+:root[data-panel-transition="compact"]:has(
+    [data-compact-sheet="entering"]
+  )::view-transition-image-pair(editor-preview) {
+  @apply bg-preview-background;
+}
+:root[data-panel-transition="compact"]:has(
+    [data-compact-sheet="entering"]
+  )::view-transition-new(editor-preview) {
+  height: auto;
+  top: 50%;
+  translate: 0 -50%;
+}
 
 @keyframes panel-enter-right {
   from {
@@ -585,7 +619,7 @@
 /* Phones: the rail holds only names and the transport, so lanes get the room. */
 @media (width <= 720px) {
   .timeline-density {
-    --timeline-rail-width: 168px;
+    --timeline-rail-width: 156px;
   }
 }
 

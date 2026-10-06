@@ -12,6 +12,7 @@ import {
   FolderClock,
   FolderOpen,
   Moon,
+  MoreHorizontal,
   LoaderCircle,
   PanelLeftClose,
   PanelLeftOpen,
@@ -50,9 +51,8 @@ interface AppTopBarProps {
 }
 
 /**
- * The one app menu, anchored to the file name like ShapeShifter's. Phones also
- * get the workspace actions that desktop keeps in the top bar; nothing here
- * repeats a button that is already on screen.
+ * File actions and save details live beside the name. Workspace actions stay
+ * together on the right on every screen size.
  */
 function ProjectMenu({
   onProjectNew,
@@ -60,11 +60,6 @@ function ProjectMenu({
   onProjectSave,
   projectStatus,
   projectStatusMessage,
-  onGettingStarted,
-  themeMounted,
-  isLightTheme,
-  themeToggleLabel,
-  onThemeChange,
 }: Pick<
   AppTopBarProps,
   | "onProjectNew"
@@ -72,11 +67,6 @@ function ProjectMenu({
   | "onProjectSave"
   | "projectStatus"
   | "projectStatusMessage"
-  | "onGettingStarted"
-  | "themeMounted"
-  | "isLightTheme"
-  | "themeToggleLabel"
-  | "onThemeChange"
 >) {
   const [open, setOpen] = useState(false)
   const action = (callback: () => void) => () => {
@@ -152,24 +142,88 @@ function ProjectMenu({
             onClick={action(onProjectOpen)}
           />
         </div>
-        <div className="min-[720px]:hidden">
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+const MENU_ROW_CLASS =
+  "flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+
+function WorkspaceMenu({
+  zenMode,
+  onZenModeChange,
+  onGettingStarted,
+  themeMounted,
+  isLightTheme,
+  themeToggleLabel,
+  onThemeChange,
+}: Pick<
+  AppTopBarProps,
+  | "zenMode"
+  | "onZenModeChange"
+  | "onGettingStarted"
+  | "themeMounted"
+  | "isLightTheme"
+  | "themeToggleLabel"
+  | "onThemeChange"
+>) {
+  const [open, setOpen] = useState(false)
+  const action = (callback: () => void) => () => {
+    setOpen(false)
+    callback()
+  }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger
+        aria-label="More options"
+        title="More options"
+        render={<Button size="icon" variant="muted-ghost" />}
+      >
+        <MoreHorizontal aria-hidden="true" className="size-4" />
+      </PopoverTrigger>
+      <PopoverContent density="compact" align="end" className="w-52">
+        <MenuRow
+          label={themeToggleLabel}
+          accessibleLabel={themeToggleLabel}
+          Icon={isLightTheme ? Moon : Sun}
+          onClick={action(() => {
+            if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
+          })}
+        />
+        <MenuRow
+          label="Getting started"
+          accessibleLabel="Getting started"
+          Icon={CircleHelp}
+          onClick={action(onGettingStarted)}
+        />
+        <a
+          aria-label="GitHub repository"
+          title="GitHub"
+          href="https://github.com/bernaferrari/glyphrise"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={MENU_ROW_CLASS}
+          onClick={() => setOpen(false)}
+        >
+          {/* GitHub mark from Primer Octicons (MIT). */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            className="size-4 fill-current"
+          >
+            <path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+        <div className="hidden min-[720px]:block">
           <div className="-mx-1 my-1 border-t border-border" />
-          <div className="grid gap-0.5">
-            <MenuRow
-              label="Getting started"
-              accessibleLabel="Getting started"
-              Icon={CircleHelp}
-              onClick={action(onGettingStarted)}
-            />
-            <MenuRow
-              label={themeToggleLabel}
-              accessibleLabel={themeToggleLabel}
-              Icon={isLightTheme ? Moon : Sun}
-              onClick={action(() => {
-                if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
-              })}
-            />
-          </div>
+          <MenuRow
+            label={zenMode ? "Show panels" : "Hide panels"}
+            accessibleLabel={zenMode ? "Show panels" : "Hide panels"}
+            Icon={zenMode ? PanelLeftOpen : PanelLeftClose}
+            onClick={action(() => onZenModeChange(!zenMode))}
+          />
         </div>
       </PopoverContent>
     </Popover>
@@ -194,7 +248,7 @@ function MenuRow({
       type="button"
       aria-label={accessibleLabel}
       onClick={onClick}
-      className="flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
+      className={MENU_ROW_CLASS}
     >
       <Icon
         aria-hidden="true"
@@ -241,7 +295,7 @@ export function AppTopBar({
   return (
     <header
       aria-label="Editor toolbar"
-      className="relative z-30 flex h-11 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl"
+      className="relative z-30 flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl"
     >
       <div className="flex min-w-0 flex-1 items-center gap-1">
         <ProjectMenu
@@ -250,11 +304,6 @@ export function AppTopBar({
           onProjectSave={onProjectSave}
           projectStatus={projectStatus}
           projectStatusMessage={projectStatusMessage}
-          onGettingStarted={onGettingStarted}
-          themeMounted={themeMounted}
-          isLightTheme={isLightTheme}
-          themeToggleLabel={themeToggleLabel}
-          onThemeChange={onThemeChange}
         />
         <div className="min-w-0 flex-1 min-[720px]:flex-none">
           <ProjectNameField
@@ -262,51 +311,14 @@ export function AppTopBar({
             onCommit={onProjectNameChange}
           />
         </div>
-        <span
-          aria-live="polite"
-          title={projectStatusMessage}
-          className={
-            projectStatus === "saved"
-              ? "sr-only"
-              : `flex shrink-0 items-center gap-1.5 px-1 text-xs whitespace-nowrap ${projectStatus === "error" ? "text-destructive" : "text-muted-foreground/80"}`
-          }
-        >
-          <span className="sr-only">{projectStatusLabel}</span>
-          {projectStatus === "restoring" || projectStatus === "saving" ? (
-            <LoaderCircle
-              aria-hidden="true"
-              className="size-3.5 animate-spin"
-            />
-          ) : projectStatus === "error" ? (
-            <AlertTriangle aria-hidden="true" className="size-3.5" />
-          ) : null}
-          {projectStatus !== "saved" && (
-            <span aria-hidden="true" className="hidden sm:inline">
-              {projectStatusLabel}
-            </span>
-          )}
+        <span aria-live="polite" className="sr-only">
+          {projectStatusLabel}
         </span>
-        <span
-          aria-hidden="true"
-          className="mx-1 hidden h-4 w-px bg-border min-[720px]:block"
-        />
-        <Button
-          size="icon-sm"
-          variant="muted-ghost"
-          aria-label={zenMode ? "Show panels" : "Hide panels"}
-          title={zenMode ? "Show panels" : "Hide panels"}
-          onClick={() => onZenModeChange(!zenMode)}
-          className="hidden min-[720px]:inline-flex"
-        >
-          {zenMode ? (
-            <PanelLeftOpen className="size-4" />
-          ) : (
-            <PanelLeftClose className="size-4" />
-          )}
-        </Button>
+      </div>
+      <div className="flex shrink-0 items-center gap-0.5">
         <div className="flex shrink-0 items-center md:hidden">
           <Button
-            size="icon-sm"
+            size="icon"
             variant="muted-ghost"
             aria-label="Undo edit"
             onClick={onUndo}
@@ -315,7 +327,7 @@ export function AppTopBar({
             <Undo2 aria-hidden="true" className="size-4" />
           </Button>
           <Button
-            size="icon-sm"
+            size="icon"
             variant="muted-ghost"
             aria-label="Redo edit"
             onClick={onRedo}
@@ -326,7 +338,7 @@ export function AppTopBar({
         </div>
         <div className="hidden shrink-0 items-center md:flex">
           <Button
-            size="icon-sm"
+            size="icon"
             variant="muted-ghost"
             aria-label="Undo"
             title="Undo (Ctrl/⌘ Z)"
@@ -336,7 +348,7 @@ export function AppTopBar({
             <Undo2 aria-hidden="true" className="size-4" />
           </Button>
           <Button
-            size="icon-sm"
+            size="icon"
             variant="muted-ghost"
             aria-label="Redo"
             title="Redo (Ctrl/⌘ Shift Z)"
@@ -346,36 +358,24 @@ export function AppTopBar({
             <Redo2 aria-hidden="true" className="size-4" />
           </Button>
         </div>
+        <WorkspaceMenu
+          zenMode={zenMode}
+          onZenModeChange={onZenModeChange}
+          onGettingStarted={onGettingStarted}
+          themeMounted={themeMounted}
+          isLightTheme={isLightTheme}
+          themeToggleLabel={themeToggleLabel}
+          onThemeChange={onThemeChange}
+        />
         <Button
-          size="icon-sm"
-          variant="muted-ghost"
-          aria-label="Getting started"
-          title="Getting started"
-          onClick={onGettingStarted}
-          className="hidden min-[720px]:inline-flex"
+          size="default"
+          aria-label="Export"
+          onClick={onExportOpen}
+          className="ml-1"
         >
-          <CircleHelp aria-hidden="true" className="size-4" />
-        </Button>
-        <Button
-          size="icon-sm"
-          variant="muted-ghost"
-          aria-label={themeToggleLabel}
-          title={themeToggleLabel}
-          onClick={() => {
-            if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
-          }}
-          className="hidden min-[720px]:inline-flex"
-        >
-          {isLightTheme ? (
-            <Moon aria-hidden="true" className="size-4" />
-          ) : (
-            <Sun aria-hidden="true" className="size-4" />
-          )}
+          Export
         </Button>
       </div>
-      <Button size="sm" aria-label="Export" onClick={onExportOpen}>
-        Export
-      </Button>
       {projectStatus === "error" ? (
         <div
           role="alert"

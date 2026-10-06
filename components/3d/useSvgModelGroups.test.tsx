@@ -39,6 +39,7 @@ it("rebuilds only changed icons and preserves the preview after failed edits", (
     colorB: "#ffffff",
     emissiveIntensity: 0,
     extrusionDepth: 10,
+    geometryQuality: 0.045,
     transitionType: "wipe",
     wipeDirection: { x: 1, y: 1 },
   } as SvgCanvasProps
@@ -52,6 +53,12 @@ it("rebuilds only changed icons and preserves the preview after failed edits", (
   try {
     act(() => root.render(<Harness props={props} />))
     const groups = [...pivot.children]
+    // An interpolated quality value that produces the same curve segments
+    // must not reallocate the models during animated navigation.
+    act(() =>
+      root.render(<Harness props={{ ...props, geometryQuality: 0.0451 }} />)
+    )
+    expect(buildSvgIconGroup).toHaveBeenCalledTimes(2)
     act(() =>
       root.render(
         <Harness props={{ ...props, wipeDirection: { x: -1, y: 1 } }} />

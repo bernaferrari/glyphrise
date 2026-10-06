@@ -10,6 +10,7 @@ type SvgCanvasOverlaysProps = {
   orientationGizmoRefs: OrientationGizmoRefs
   rotationDragTooltipRef: React.RefObject<HTMLDivElement | null>
   onNudgeViewRotation: (axis: "x" | "y", direction: -1 | 1) => void
+  onAlignViewToAxis: (axis: "x" | "y" | "z") => void
 }
 
 export function SvgCanvasOverlays({
@@ -19,6 +20,7 @@ export function SvgCanvasOverlays({
   orientationGizmoRefs,
   rotationDragTooltipRef,
   onNudgeViewRotation,
+  onAlignViewToAxis,
 }: SvgCanvasOverlaysProps) {
   return (
     <>
@@ -43,6 +45,7 @@ export function SvgCanvasOverlays({
         <OrientationGizmo
           refs={orientationGizmoRefs}
           onNudgeViewRotation={onNudgeViewRotation}
+          onAlignViewToAxis={onAlignViewToAxis}
         />
       )}
 

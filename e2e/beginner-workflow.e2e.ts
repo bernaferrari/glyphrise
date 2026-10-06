@@ -138,13 +138,11 @@ test("camera orbit changes the view but preserves exported document state", asyn
     })
   const image = await captureIcon()
   await page.mouse.move(box.x + box.width * 0.3, box.y + box.height * 0.3)
-  await page.keyboard.down("Alt")
   await page.mouse.down()
   await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, {
     steps: 12,
   })
   await page.mouse.up()
-  await page.keyboard.up("Alt")
   expect((await captureIcon()).equals(image)).toBe(false)
   expect(await backup(page)).toEqual(before)
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
@@ -230,4 +228,51 @@ test("reload restores keyframes silently and subsequent presets still announce c
   await expect(
     page.getByRole("status").filter({ hasText: "Keyframe created" })
   ).toBeVisible()
+})
+
+test("restoring older depth animations regenerates internal quality frames without a creation banner", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  await page.getByRole("button", { name: "Depth", exact: true }).click()
+  await backup(page)
+  await page.evaluate(() => {
+    for (const key of Object.keys(localStorage)) {
+      const raw = localStorage.getItem(key)
+      if (!raw) continue
+      try {
+        const document = JSON.parse(raw)
+        if (document.snapshot?.qualityKeyframes) {
+          document.snapshot.qualityKeyframes = []
+          localStorage.setItem(key, JSON.stringify(document))
+        }
+      } catch {
+        /* Ignore non-document preferences. */
+      }
+    }
+  })
+  await page.addInitScript(() => {
+    const notices: string[] = []
+    Object.assign(window, { restoredDepthNotices: notices })
+    new MutationObserver(() => {
+      for (const status of document.querySelectorAll('[role="status"]')) {
+        if (/keyframes? created/.test(status.textContent ?? ""))
+          notices.push(status.textContent!)
+      }
+    }).observe(document, { childList: true, subtree: true })
+  })
+  await page.reload()
+  await expect(page.locator("#glyphrise-workspace")).toHaveAttribute(
+    "aria-busy",
+    "false"
+  )
+  const restored = await backup(page)
+  expect(restored.qualityKeyframes.length).toBeGreaterThan(0)
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { restoredDepthNotices: string[] })
+          .restoredDepthNotices
+    )
+  ).toEqual([])
 })

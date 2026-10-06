@@ -340,11 +340,9 @@ test("orbits the camera without editing the document", async ({ page }) => {
   const startX = box.x + box.width * 0.28
   const startY = box.y + box.height * 0.3
   await page.mouse.move(startX, startY)
-  await page.keyboard.down("Alt")
   await page.mouse.down()
   await page.mouse.move(startX + 90, startY + 55, { steps: 8 })
   await page.mouse.up()
-  await page.keyboard.up("Alt")
 
   const rotationX = page.getByLabel("Rotation X", { exact: true })
   const rotationY = page.getByLabel("Rotation Y", { exact: true })
@@ -508,4 +506,39 @@ test.describe("mobile bottom navigation gestures", () => {
       .toBeGreaterThan(0)
     await session.detach()
   })
+})
+
+test("steps past transition checkpoints that round to the current frame", async ({
+  page,
+}) => {
+  await page
+    .getByRole("button", {
+      name: "Edit Account Circle transition",
+      exact: true,
+    })
+    .click()
+  const start = page.getByLabel("Transition start in seconds", { exact: true })
+  const end = page.getByLabel("Transition end in seconds", { exact: true })
+  await start.fill("1.01")
+  await start.press("Enter")
+  await end.fill("2.02")
+  await end.press("Enter")
+  await page.keyboard.press("Escape")
+  const time = page.getByRole("textbox", { name: "Playhead time in seconds" })
+  await time.fill("2.02")
+  await time.press("Enter")
+  await expect(time).toHaveValue("0:02.02")
+  const toolbar = page.getByRole("toolbar", { name: "Timeline", exact: true })
+  await toolbar
+    .getByRole("button", { name: "Next keyframe", exact: true })
+    .click()
+  await expect(time).toHaveValue("0:05.00")
+  await toolbar
+    .getByRole("button", { name: "Previous keyframe", exact: true })
+    .click()
+  await expect(time).toHaveValue("0:02.02")
+  await toolbar
+    .getByRole("button", { name: "Previous keyframe", exact: true })
+    .click()
+  await expect(time).toHaveValue("0:01.02")
 })

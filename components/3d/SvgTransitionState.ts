@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { updateSvgWipeCaps } from "./SvgWipeCaps"
 import { createDiagonalWipePlanes } from "./DiagonalWipe"
 import {
   ICON_VIEWBOX_SIZE,
@@ -76,8 +77,13 @@ export const applySvgTransitionState = ({
         clippingPlanes: [clipPlaneB],
       })
     }
+    updateSvgWipeCaps(iconA, clipPlaneA, true)
+    updateSvgWipeCaps(iconB, clipPlaneB, true)
     return { isCrossfade: false }
   }
+
+  updateSvgWipeCaps(iconA, clipPlaneA, false)
+  updateSvgWipeCaps(iconB, clipPlaneB, false)
 
   if (isCrossfade) {
     if (iconA) {

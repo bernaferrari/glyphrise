@@ -1,6 +1,7 @@
 export const TIMELINE_LAYER = {
   rangeGutter: 1,
   transitionHandle: 10,
+  lanePlayheadDrag: 13,
   propertyKeyframe: 14,
   trackKeyframe: 15,
   selectedKeyframe: 30,

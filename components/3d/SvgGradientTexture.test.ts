@@ -6,6 +6,7 @@ import { prepareFilamentExportObject } from "./SvgExport"
 import { disposeObjectTree } from "./SvgSceneUtils"
 import { iconGradientTexture } from "./SvgGradientTexture"
 import { gradeFinishSurfaceColor } from "./MaterialPresets"
+import * as SvgColor from "./SvgColor"
 
 const makeIcon = () => {
   const geometry = new THREE.PlaneGeometry(24, 24).translate(12, 12, 0)
@@ -49,6 +50,31 @@ const sample = (texture: THREE.DataTexture, u: number, v: number) => {
 }
 
 describe("portable icon gradient", () => {
+  it("reuses baked colors across rebuilt icons without sharing disposable textures", () => {
+    const sampler = vi.spyOn(SvgColor, "createIconGradientSampler")
+    const stops = [
+      { color: "#1287a4", position: 0 },
+      { color: "#e96382", position: 1 },
+    ]
+    try {
+      const first = iconGradientTexture(new THREE.Group(), "mesh", stops)
+      const second = iconGradientTexture(new THREE.Group(), "mesh", stops)
+      expect(sampler).toHaveBeenCalledTimes(1)
+      expect(second).not.toBe(first)
+      expect(second.image.data).not.toBe(first.image.data)
+      expect(
+        second.image.data!.every(
+          (value, index) => value === first.image.data![index]
+        )
+      ).toBe(true)
+      const dispose = vi.spyOn(second, "dispose")
+      first.dispose()
+      expect(dispose).not.toHaveBeenCalled()
+      second.dispose()
+    } finally {
+      sampler.mockRestore()
+    }
+  })
   it("uses one texel for a uniform fill, and safely resizes when colors diverge", () => {
     const group = new THREE.Group()
     const solid = [

@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useMemo,
   useRef,
   type Dispatch,
   type RefObject,
@@ -13,9 +14,16 @@ import type { ShapeStop } from "./TimelineModel"
 import { useEditorFileSurface } from "./useEditorFileSurface"
 import { useExportSceneSnapshot } from "./useExportSceneSnapshot"
 import type { ExportSettings } from "./ExportSettingsModel"
+import type { EditorSnapshot } from "./EditorModel"
 
 type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
-  previewKey: string
+  previewState: {
+    document: EditorSnapshot
+    currentTime: number
+    wireframe: boolean
+    ambientColor: string
+    rimLightColor: string
+  }
   selectedShapeId: string | null
   setShapes: Dispatch<SetStateAction<ShapeStop[]>>
   canvasRef: RefObject<SvgCanvasRef | null>
@@ -29,7 +37,7 @@ type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
 
 export function useEditorExportSurface({
   selectedShapeId,
-  previewKey,
+  previewState,
   setShapes,
   canvasRef,
   exportTimelineVideo,
@@ -57,6 +65,19 @@ export function useEditorExportSurface({
   })
 
   const scene = useExportSceneSnapshot(sceneArgs)
+  // Document snapshots are immutable; compare their identity without serializing
+  // SVGs and every keyframe on each playback tick.
+  const {
+    document: snapshot,
+    currentTime,
+    wireframe,
+    ambientColor,
+    rimLightColor,
+  } = previewState
+  const previewKey = useMemo(
+    () => [snapshot, currentTime, wireframe, ambientColor, rimLightColor],
+    [snapshot, currentTime, wireframe, ambientColor, rimLightColor]
+  )
 
   const cancelRequestRef = useRef(0)
   const cancelExport = () => {
@@ -64,19 +85,24 @@ export function useEditorExportSurface({
     cancelVideoExport()
   }
   const capturesRef = useRef<Promise<unknown>>(Promise.resolve())
-  const captureRef = useRef<{ key: string; promise: Promise<Blob> } | null>(
-    null
-  )
+  const captureRef = useRef<{
+    key: string
+    previewKey: readonly unknown[]
+    promise: Promise<Blob>
+  } | null>(null)
   const capturePreview = useCallback(
     (settings: ExportSettings) => {
       const key = JSON.stringify([
-        previewKey,
         settings.width,
         settings.height,
         settings.backgroundMode,
         settings.backgroundColor,
       ])
-      if (captureRef.current?.key === key) return captureRef.current.promise
+      if (
+        captureRef.current?.key === key &&
+        captureRef.current.previewKey === previewKey
+      )
+        return captureRef.current.promise
       const promise = capturesRef.current
         .catch(() => {})
         .then(async () => {
@@ -93,7 +119,7 @@ export function useEditorExportSurface({
           })
         })
       capturesRef.current = promise
-      captureRef.current = { key, promise }
+      captureRef.current = { key, previewKey, promise }
       void promise.catch(() => {
         if (captureRef.current?.promise === promise) captureRef.current = null
       })

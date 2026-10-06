@@ -363,6 +363,12 @@ export const prepareFilamentExportObject = (
   clone.position.set(0, 0, 0)
   applyModelScale(clone)
 
+  const capHelpers: THREE.Object3D[] = []
+  clone.traverse((object) => {
+    if (object.userData.wipeCap) capHelpers.push(object)
+  })
+  capHelpers.forEach((helper) => helper.removeFromParent())
+
   clone.traverse((object) => {
     const mesh = object as THREE.Mesh
     if (!mesh.isMesh || !mesh.geometry || !mesh.material) return

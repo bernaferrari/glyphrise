@@ -65,9 +65,11 @@ export const updateOrientationGizmo = (
 export function OrientationGizmo({
   refs,
   onNudgeViewRotation,
+  onAlignViewToAxis,
 }: {
   refs: OrientationGizmoRefs
   onNudgeViewRotation: (axis: "x" | "y", direction: -1 | 1) => void
+  onAlignViewToAxis: (axis: "x" | "y" | "z") => void
 }) {
   return (
     <div
@@ -76,7 +78,6 @@ export function OrientationGizmo({
       className="pointer-events-auto absolute right-3 bottom-2 z-20 grid size-28 touch-manipulation grid-cols-3 grid-rows-3 place-items-center gap-3.5 select-none max-[720px]:right-1 max-[720px]:bottom-16"
     >
       <svg
-        aria-hidden="true"
         viewBox="0 0 80 80"
         className="pointer-events-none absolute inset-3.5 size-21"
       >
@@ -111,18 +112,21 @@ export function OrientationGizmo({
         <AxisMarker
           ref={refs.markerXRef}
           label="X"
+          onClick={() => onAlignViewToAxis("x")}
           colorClass="fill-axis-x-surface/18 stroke-axis-x-edge/85"
           textClass="fill-axis-x-label"
         />
         <AxisMarker
           ref={refs.markerYRef}
           label="Y"
+          onClick={() => onAlignViewToAxis("y")}
           colorClass="fill-axis-y-surface/18 stroke-axis-y-edge/85"
           textClass="fill-axis-y-label"
         />
         <AxisMarker
           ref={refs.markerZRef}
           label="Z"
+          onClick={() => onAlignViewToAxis("z")}
           colorClass="fill-axis-z-surface/18 stroke-axis-z-edge/85"
           textClass="fill-axis-z-label"
         />
@@ -175,11 +179,31 @@ const AxisMarker = React.forwardRef<
     label: string
     colorClass: string
     textClass: string
+    onClick: () => void
   }
->(({ label, colorClass, textClass }, ref) => (
-  <g ref={ref} transform="translate(40 40)">
+>(({ label, colorClass, textClass, onClick }, ref) => (
+  <g
+    ref={ref}
+    role="button"
+    tabIndex={0}
+    aria-label={`Align view to ${label} axis`}
+    className="group/axis pointer-events-auto cursor-pointer outline-none"
+    transform="translate(40 40)"
+    onClick={onClick}
+    onKeyDown={(event) => {
+      if (event.key !== "Enter" && event.key !== " ") return
+      event.preventDefault()
+      onClick()
+    }}
+  >
+    <circle cx="0" cy="0" r="10" className="fill-transparent" />
     <circle cx="0" cy="0" r="8" className="fill-black/35 blur-hairline" />
-    <circle cx="0" cy="0" r="7" className={`${colorClass} stroke-1`} />
+    <circle
+      cx="0"
+      cy="0"
+      r="7"
+      className={`${colorClass} stroke-1 group-hover/axis:brightness-125 group-focus-visible/axis:stroke-white`}
+    />
     <text
       x="0"
       y="0.3"

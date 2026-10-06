@@ -9,6 +9,101 @@ test.beforeEach(async ({ page }) => {
   )
 })
 
+for (const width of [390, 1280]) {
+  test(`drags the playhead handle and line to scrub time at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 })
+    if (width < 768) {
+      await page.getByRole("button", { name: "Motion", exact: true }).click()
+      await expect(page.locator("html")).not.toHaveAttribute(
+        "data-panel-transition",
+        "compact"
+      )
+    }
+    const ruler = page.getByRole("slider", { name: "Timeline playhead" })
+    await expect(ruler).toBeVisible()
+    const box = (await ruler.boundingBox())!
+    const duration = Number(await ruler.getAttribute("aria-valuemax"))
+    const xAt = (time: number) =>
+      box.x + 24 + ((box.width - 48) * time) / duration
+    const handle = (await ruler.locator("svg").boundingBox())!
+    await page.mouse.move(
+      handle.x + handle.width / 2,
+      handle.y + handle.height / 2
+    )
+    await page.mouse.down()
+    await page.mouse.move(xAt(1), handle.y + handle.height / 2, { steps: 5 })
+    await page.mouse.up()
+    await expect(ruler).toHaveAttribute("aria-valuenow", "1")
+
+    const line = page.locator('[data-slot="timeline-playhead-line"]')
+    const lineBox = (await line.boundingBox())!
+    await page.mouse.move(lineBox.x + lineBox.width / 2, lineBox.y + 60)
+    await page.mouse.down()
+    // Leaving the line vertically must keep scrubbing until release.
+    await page.mouse.move(xAt(3), lineBox.y + 120, { steps: 5 })
+    await expect(ruler).toHaveAttribute("aria-valuenow", "3")
+    await page.mouse.up()
+    await expect(ruler).toBeFocused()
+    await expect(
+      page.getByRole("button", {
+        name: "Undo",
+        exact: true,
+        includeHidden: true,
+      })
+    ).toBeDisabled()
+    await page.mouse.move(xAt(2), lineBox.y + 120)
+    await expect(ruler).toHaveAttribute("aria-valuenow", "3")
+  })
+}
+
+test.describe("touch playhead scrubbing", () => {
+  test.use({ viewport: { width: 390, height: 900 }, hasTouch: true })
+  test("drags the white line immediately without scrolling the timeline", async ({
+    page,
+  }) => {
+    await page.getByRole("button", { name: "Motion", exact: true }).click()
+    await expect(page.locator("html")).not.toHaveAttribute(
+      "data-panel-transition",
+      "compact"
+    )
+    const ruler = page.getByRole("slider", { name: "Timeline playhead" })
+    await ruler.focus()
+    await page.keyboard.press("ArrowRight")
+    const box = (await ruler.boundingBox())!
+    const line = (await page
+      .getByRole("button", { name: "Drag playhead" })
+      .boundingBox())!
+    const cdp = await page.context().newCDPSession(page)
+    const x = line.x + line.width / 2
+    const y = line.y + 120
+    const duration = Number(await ruler.getAttribute("aria-valuemax"))
+    const destinationX = box.x + 24 + ((box.width - 48) * 3) / duration
+    const scrollBefore = await ruler.evaluate(
+      (element) => element.parentElement!.parentElement!.scrollTop
+    )
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchStart",
+      touchPoints: [{ x, y, id: 1 }],
+    })
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{ x: destinationX, y: y + 20, id: 1 }],
+    })
+    await expect(ruler).toHaveAttribute("aria-valuenow", "3")
+    await cdp.send("Input.dispatchTouchEvent", {
+      type: "touchEnd",
+      touchPoints: [],
+    })
+    expect(
+      await ruler.evaluate(
+        (element) => element.parentElement!.parentElement!.scrollTop
+      )
+    ).toBe(scrollBefore)
+  })
+})
+
 test("Space activates a focused control without starting background playback", async ({
   page,
 }) => {
@@ -236,6 +331,7 @@ test("Space on the timeline toggles playback without scrolling, including key re
 test("panel visibility eases in both directions", async ({ page }) => {
   const preview = page.locator("#glyphrise-preview-pane")
   const originalWidth = (await preview.boundingBox())!.width
+  await page.getByRole("button", { name: "More options", exact: true }).click()
   await page.getByRole("button", { name: "Hide panels", exact: true }).click()
   await expect
     .poll(() =>
@@ -250,9 +346,6 @@ test("panel visibility eases in both directions", async ({ page }) => {
       )
     )
     .toBe(true)
-  await expect(
-    page.getByRole("button", { name: "Show panels", exact: true })
-  ).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(() => document.documentElement.dataset.panelTransition)
@@ -260,6 +353,7 @@ test("panel visibility eases in both directions", async ({ page }) => {
     .toBeUndefined()
   expect((await preview.boundingBox())!.width).toBeGreaterThan(originalWidth)
 
+  await page.getByRole("button", { name: "More options", exact: true }).click()
   await page.getByRole("button", { name: "Show panels", exact: true }).click()
   await expect
     .poll(() =>
@@ -288,7 +382,39 @@ test.describe("phone shared canvas transition", () => {
     page,
   }) => {
     const preview = page.locator("#glyphrise-preview-frame")
+    const animate = page.getByRole("button", { name: "Animate", exact: true })
+    await expect(animate).toBeVisible()
+    // Snapshotting backdrop filters bakes the resized canvas into these controls,
+    // leaving a blurred patch while the preview travels beneath them.
+    for (const control of [
+      animate,
+      page.locator('[data-slot="viewport-tools"]'),
+    ]) {
+      expect(
+        await control.evaluate(
+          (element) => getComputedStyle(element).backdropFilter
+        )
+      ).toBe("none")
+    }
     const original = (await preview.boundingBox())!
+    const previewSnapshotStyles = () =>
+      page.evaluate(() => {
+        const root = document.documentElement
+        const incoming = getComputedStyle(
+          root,
+          "::view-transition-new(editor-preview)"
+        )
+        const outgoing = getComputedStyle(
+          root,
+          "::view-transition-old(editor-preview)"
+        )
+        return {
+          animation: incoming.animationName,
+          opacity: incoming.opacity,
+          blend: incoming.mixBlendMode,
+          oldDisplay: outgoing.display,
+        }
+      })
     const canvasControls = [
       "Reset view",
       "Transform object",
@@ -298,6 +424,22 @@ test.describe("phone shared canvas transition", () => {
       canvasControls.map((control) => control.boundingBox())
     )
     const resetButton = await canvasControls[0].elementHandle()
+    // Inspect the opening snapshot at its first frame, when an incorrect cover
+    // fit magnifies the short preview to fill the former tall canvas.
+    await page.evaluate(() => {
+      const start = document.startViewTransition.bind(document)
+      document.startViewTransition = (update) => {
+        document.startViewTransition = start
+        const transition = start(update)
+        void transition.ready.then(() => {
+          for (const animation of document.getAnimations()) {
+            animation.pause()
+            animation.currentTime = 0
+          }
+        })
+        return transition
+      }
+    })
     await page.getByRole("button", { name: "Properties", exact: true }).click()
     await expect
       .poll(() =>
@@ -313,6 +455,27 @@ test.describe("phone shared canvas transition", () => {
         )
       )
       .toBe(true)
+    expect(await previewSnapshotStyles()).toEqual({
+      animation: "none",
+      opacity: "1",
+      blend: "normal",
+      oldDisplay: "none",
+    })
+    const opening = await preview.evaluate((frame) => {
+      const root = document.documentElement
+      return {
+        frameHeight: frame.getBoundingClientRect().height,
+        snapshotHeight: parseFloat(
+          getComputedStyle(root, "::view-transition-new(editor-preview)").height
+        ),
+        groupHeight: parseFloat(
+          getComputedStyle(root, "::view-transition-group(editor-preview)")
+            .height
+        ),
+      }
+    })
+    expect(opening.groupHeight).toBeCloseTo(original.height, 0)
+    expect(opening.snapshotHeight).toBeLessThanOrEqual(opening.frameHeight + 1)
     expect(
       await page.locator('[data-slot="viewport-tools"]').evaluate((tools) => ({
         name: getComputedStyle(tools).viewTransitionName,
@@ -326,11 +489,51 @@ test.describe("phone shared canvas transition", () => {
         ).display,
       }))
     ).toEqual({ name: "editor-tools", animation: "none", oldDisplay: "none" })
+    expect(
+      await page.evaluate(() => {
+        const exit = getComputedStyle(
+          document.documentElement,
+          "::view-transition-old(editor-animate)"
+        )
+        // The exit ends before the canvas resize. Its snapshot must stay
+        // invisible for the remainder instead of returning to opacity 1.
+        const animations = document.getAnimations()
+        for (const animation of animations) {
+          animation.pause()
+          animation.currentTime = 190
+        }
+        const result = {
+          name: exit.animationName,
+          duration: exit.animationDuration,
+          fill: exit.animationFillMode,
+          opacityAfterExit: exit.opacity,
+        }
+        for (const animation of animations) animation.play()
+        return result
+      })
+    ).toEqual({
+      name: "exit",
+      duration: "0.15s",
+      fill: "both",
+      opacityAfterExit: "0",
+    })
+    expect(
+      await page
+        .locator('[data-slot="viewport-animate"]')
+        .evaluate((button) => ({
+          opacity: getComputedStyle(button).opacity,
+          transition: getComputedStyle(button).transitionDuration,
+          name: getComputedStyle(button).viewTransitionName,
+        }))
+    ).toEqual({ opacity: "0", transition: "0s", name: "none" })
+
     await expect
       .poll(() =>
         page.evaluate(() => document.documentElement.dataset.panelTransition)
       )
       .toBeUndefined()
+    await expect(page.getByText("Live preview", { exact: true })).toHaveCount(0)
+    await expect(animate).toHaveCount(0)
     const expanded = (await preview.boundingBox())!
     for (const [index, control] of canvasControls.entries()) {
       const position = (await control.boundingBox())!
@@ -377,9 +580,58 @@ test.describe("phone shared canvas transition", () => {
     await page.getByRole("button", { name: "Canvas", exact: true }).click()
     await expect
       .poll(() =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .some(
+              (animation) =>
+                animation.effect instanceof KeyframeEffect &&
+                animation.effect.pseudoElement ===
+                  "::view-transition-group(editor-preview)"
+            )
+        )
+      )
+      .toBe(true)
+    expect(await previewSnapshotStyles()).toEqual({
+      animation: "none",
+      opacity: "1",
+      blend: "normal",
+      oldDisplay: "none",
+    })
+    expect(
+      await page.evaluate(() => {
+        const root = document.documentElement
+        const sheet = getComputedStyle(
+          root,
+          "::view-transition-old(editor-properties)"
+        )
+        const entrance = getComputedStyle(
+          root,
+          "::view-transition-new(editor-animate)"
+        )
+        const tools = getComputedStyle(
+          root,
+          "::view-transition-group(editor-tools)"
+        )
+        return {
+          sheet: sheet.animationName,
+          animate: entrance.animationName,
+          fill: entrance.animationFillMode,
+          tools: tools.animationName,
+        }
+      })
+    ).toEqual({
+      sheet: "panel-slide-down",
+      animate: "enter",
+      fill: "both",
+      tools: "none",
+    })
+    await expect
+      .poll(() =>
         page.evaluate(() => document.documentElement.dataset.panelTransition)
       )
       .toBeUndefined()
+    await expect(animate).toBeVisible()
     expect((await preview.boundingBox())!.width).toBeCloseTo(original.width, 1)
     expect((await preview.boundingBox())!.height).toBeCloseTo(
       original.height,
@@ -400,7 +652,7 @@ test.describe("phone shared canvas transition", () => {
       page.getByRole("complementary", { name: "Properties inspector" })
     ).toBeVisible()
     await page
-      .getByRole("button", { name: "Open file menu", exact: true })
+      .getByRole("button", { name: "More options", exact: true })
       .click()
     await expect(
       page.getByRole("button", { name: "Focus canvas", exact: true })

@@ -61,7 +61,13 @@ const getGroupMassCenter = (group: THREE.Group, space: "local" | "world") => {
   group.updateMatrixWorld(true)
   group.traverse((object) => {
     const mesh = object as THREE.Mesh
-    if (!mesh.isMesh || !mesh.visible || !mesh.geometry) return
+    if (
+      !mesh.isMesh ||
+      !mesh.visible ||
+      !mesh.geometry ||
+      mesh.userData.wipeCap
+    )
+      return
     mesh.updateMatrix()
     signedVolume += addMeshVolumeCentroid(
       mesh.geometry,
@@ -86,7 +92,7 @@ const getGroupLocalBounds = (group: THREE.Group) => {
 
   group.traverse((object) => {
     const mesh = object as THREE.Mesh
-    if (!mesh.isMesh || !mesh.geometry) return
+    if (!mesh.isMesh || !mesh.geometry || mesh.userData.wipeCap) return
     mesh.updateMatrix()
     const position = mesh.geometry.getAttribute("position")
     if (!position) return
@@ -112,13 +118,16 @@ export const getVisibleIconCenter = (groups: Array<THREE.Group | null>) => {
 
   groups.forEach((group) => {
     if (!group?.visible || group.children.length === 0) return
-    const cachedLocalCenter = group.userData.massCenterLocal as
+    let cachedLocalCenter = group.userData.massCenterLocal as
       | THREE.Vector3
       | undefined
-    const groupCenter =
-      cachedLocalCenter instanceof THREE.Vector3
-        ? group.localToWorld(cachedLocalCenter.clone())
-        : getGroupMassCenter(group, "world")
+    if (!(cachedLocalCenter instanceof THREE.Vector3)) {
+      cachedLocalCenter = getGroupMassCenter(group, "local") ?? undefined
+      group.userData.massCenterLocal = cachedLocalCenter
+    }
+    const groupCenter = cachedLocalCenter
+      ? group.localToWorld(cachedLocalCenter.clone())
+      : null
     if (!groupCenter) return
     center.add(groupCenter)
     count += 1
@@ -138,7 +147,10 @@ export const getVisiblePivotBounds = (
   pivot.updateMatrixWorld(true)
   groups.forEach((group) => {
     if (!group?.visible || group.children.length === 0) return
-    const cachedBounds = group.userData.localBounds as THREE.Box3 | undefined
+    const cachedBounds =
+      (group.userData.localBounds as THREE.Box3 | undefined) ??
+      getGroupLocalBounds(group)
+    group.userData.localBounds = cachedBounds
     if (cachedBounds instanceof THREE.Box3 && !cachedBounds.isEmpty()) {
       for (const x of [cachedBounds.min.x, cachedBounds.max.x]) {
         for (const y of [cachedBounds.min.y, cachedBounds.max.y]) {
@@ -156,7 +168,13 @@ export const getVisiblePivotBounds = (
     group.updateMatrixWorld(true)
     group.traverse((object) => {
       const mesh = object as THREE.Mesh
-      if (!mesh.isMesh || !mesh.visible || !mesh.geometry) return
+      if (
+        !mesh.isMesh ||
+        !mesh.visible ||
+        !mesh.geometry ||
+        mesh.userData.wipeCap
+      )
+        return
 
       const position = mesh.geometry.getAttribute("position")
       if (!position) return
@@ -178,7 +196,8 @@ export const getVisiblePivotBounds = (
   return bounds.isEmpty() ? null : bounds
 }
 
-export const cacheGroupGeometryAnalysis = (group: THREE.Group) => {
-  group.userData.massCenterLocal = getGroupMassCenter(group, "local")
-  group.userData.localBounds = getGroupLocalBounds(group)
+/** Recompute lazily when a center/bounds tool next needs changed geometry. */
+export const invalidateGroupGeometryAnalysis = (group: THREE.Group) => {
+  delete group.userData.massCenterLocal
+  delete group.userData.localBounds
 }
