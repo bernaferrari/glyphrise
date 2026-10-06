@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { useEditorBaseState } from "./useEditorBaseState"
 import { useEditorDocumentLifecycle } from "./useEditorDocumentLifecycle"
@@ -18,6 +18,7 @@ import type { AppLayoutViewProps } from "./AppLayoutView"
 import { clampTimelineDuration } from "./TimelineDurationModel"
 import { createAnimationPreset } from "./AnimationPresetModel"
 import { evaluateExportFrame } from "./ExportFrameModel"
+import { useKeyframeNotice } from "./useKeyframeNotice"
 import { useCreationJourney } from "./useCreationJourney"
 
 export function useAppLayoutController(): AppLayoutViewProps {
@@ -220,46 +221,12 @@ export function useAppLayoutController(): AppLayoutViewProps {
     moveKeyframes.length +
     qualityKeyframes.length +
     innerScaleKeyframes.length
-  const previousKeyframeCountRef = useRef(keyframeCount)
-  const previousKeyframeProjectIdRef = useRef(project.id)
-  const keyframeNoticeTimerRef = useRef<number | null>(null)
-  const [keyframeNotice, setKeyframeNotice] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (previousKeyframeProjectIdRef.current !== project.id) {
-      previousKeyframeProjectIdRef.current = project.id
-      previousKeyframeCountRef.current = keyframeCount
-      setKeyframeNotice(null)
-      return
-    }
-
-    const previousCount = previousKeyframeCountRef.current
-    previousKeyframeCountRef.current = keyframeCount
-    if (keyframeCount <= previousCount) return
-
-    const createdCount = keyframeCount - previousCount
-    setKeyframeNotice(
-      createdCount === 1
-        ? `Keyframe created at ${currentTime.toFixed(2)}s`
-        : `${createdCount} keyframes created`
-    )
-    if (keyframeNoticeTimerRef.current !== null) {
-      window.clearTimeout(keyframeNoticeTimerRef.current)
-    }
-    keyframeNoticeTimerRef.current = window.setTimeout(() => {
-      setKeyframeNotice(null)
-      keyframeNoticeTimerRef.current = null
-    }, 1800)
-  }, [currentTime, keyframeCount, project.id])
-
-  useEffect(
-    () => () => {
-      if (keyframeNoticeTimerRef.current !== null) {
-        window.clearTimeout(keyframeNoticeTimerRef.current)
-      }
-    },
-    []
-  )
+  const keyframeNotice = useKeyframeNotice({
+    keyframeCount,
+    projectId: project.id,
+    currentTime,
+    restoring: projectStatus === "restoring",
+  })
 
   const [sessionStyleChanged, setSessionStyleChanged] = useState(false)
   const [sessionMotionAdded, setSessionMotionAdded] = useState(false)

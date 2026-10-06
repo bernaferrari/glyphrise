@@ -107,6 +107,9 @@ export function useSvgRenderLoop({
   useEffect(() => {
     let animFrameId: number | null = null
     let disposed = false
+    const gizmoOrientation = new THREE.Quaternion()
+    const artworkOrientation = new THREE.Quaternion()
+    const artworkEuler = new THREE.Euler()
 
     const scheduleFrame = () => {
       if (
@@ -183,7 +186,18 @@ export function useSvgRenderLoop({
       camera.lookAt(0, 0, 0)
       camera.updateMatrixWorld()
 
-      updateOrientationGizmo(orientationGizmoRefs, { x: -pitch, y: -yaw, z: 0 })
+      artworkOrientation.setFromEuler(
+        artworkEuler.set(
+          displayRotation.x,
+          displayRotation.y,
+          displayRotation.z
+        )
+      )
+      gizmoOrientation
+        .copy(camera.quaternion)
+        .invert()
+        .multiply(artworkOrientation)
+      updateOrientationGizmo(orientationGizmoRefs, gizmoOrientation)
 
       const { isCrossfade } = applySvgTransitionState({
         progress,

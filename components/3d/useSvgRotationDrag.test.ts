@@ -1,11 +1,16 @@
 import { createElement } from "react"
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it, vi } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { useSvgRotationDrag } from "./useSvgRotationDrag"
 
 function setup() {
   const rotationOffset = { x: 10, y: 20, z: 30 }
   const cameraOrbitRef = { current: { x: 4, y: 5, z: 0 } }
+  vi.stubGlobal(
+    "requestAnimationFrame",
+    vi.fn(() => 1)
+  )
+  vi.stubGlobal("cancelAnimationFrame", vi.fn())
   const onObjectRotationSet = vi.fn()
   const onCameraRotationSet = vi.fn()
   let controls!: ReturnType<typeof useSvgRotationDrag>
@@ -28,6 +33,8 @@ function setup() {
   }
 }
 
+afterEach(() => vi.unstubAllGlobals())
+
 const quarterTurn = Math.PI / 2
 
 describe("Canvas rotation dragging", () => {
@@ -35,6 +42,8 @@ describe("Canvas rotation dragging", () => {
     const { controls, onObjectRotationSet, onCameraRotationSet } = setup()
     controls.beginViewDrag({ altKey: false })
     controls.applyViewRotationDelta({ x: quarterTurn, y: quarterTurn })
+    expect(onObjectRotationSet).not.toHaveBeenCalled()
+    controls.flushViewRotation()
     expect(onObjectRotationSet).toHaveBeenCalledWith({ x: 100, y: 110, z: 30 })
     expect(onCameraRotationSet).not.toHaveBeenCalled()
   })
@@ -44,6 +53,9 @@ describe("Canvas rotation dragging", () => {
     controls.beginViewDrag({ altKey: false })
     controls.applyViewRotationDelta({ x: quarterTurn, y: 0 })
     controls.applyViewRotationDelta({ x: 0, y: quarterTurn })
+    expect(requestAnimationFrame).toHaveBeenCalledTimes(1)
+    controls.flushViewRotation()
+    expect(onObjectRotationSet).toHaveBeenCalledTimes(1)
     expect(onObjectRotationSet).toHaveBeenLastCalledWith({
       x: 100,
       y: 110,

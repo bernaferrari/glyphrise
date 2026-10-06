@@ -171,6 +171,8 @@
 }
 
 :root {
+  /* Properties and Motion share one height so switching panes leaves the preview still. */
+  --compact-pane-height: min(400px, 50dvh);
   --background: oklch(0.994 0.002 260);
   --foreground: oklch(0.24 0.008 260);
   --card: oklch(1 0 0);
@@ -264,13 +266,13 @@
   font-style: normal;
   font-weight: normal;
   font-feature-settings: "liga";
+  font-variation-settings: var(--symbol-variation);
   letter-spacing: normal;
   line-height: 1;
   text-transform: none;
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
 }
 
@@ -333,12 +335,6 @@
 
 .wipe-pair-option:focus-visible .wipe-pair-preview-layer {
   --wipe-pair-progress: 118%;
-}
-
-/* Properties and Motion share one height on phones so switching panes
-   never moves the preview. */
-:root {
-  --compact-pane-height: min(400px, 50dvh);
 }
 
 /* The phone sheet: same timing and curve as ShapeShifter's. Opening from the
@@ -415,7 +411,6 @@
     var(--timeline-accent) 50%,
     var(--timeline-lane)
   );
-  --timeline-clip-fg: var(--foreground);
 }
 
 /* Scoped scrollbars for compact editor panes; keep the page scrollbar native. */
@@ -441,13 +436,6 @@
   scrollbar-color: color-mix(in oklch, var(--muted-foreground) 42%, transparent)
     transparent;
   scrollbar-width: thin;
-}
-
-/* Fix for Radix/Base UI Tabs Hidden-Flex Conflict */
-[hidden],
-[data-hidden],
-[data-state="inactive"] {
-  display: none !important;
 }
 
 @keyframes motion-preview-spin {
@@ -498,6 +486,17 @@
 :root[data-panel-transition="compact"] #glyphrise-preview-frame {
   view-transition-name: editor-preview;
   transition: none;
+}
+/* Keep the canvas tools out of the resizing snapshot and stationary on phones. */
+:root[data-panel-transition="compact"] [data-slot="viewport-tools"] {
+  view-transition-name: editor-tools;
+}
+::view-transition-group(editor-tools),
+::view-transition-new(editor-tools) {
+  animation: none;
+}
+::view-transition-old(editor-tools) {
+  display: none;
 }
 :root[data-panel-transition="compact"] .compact-sheet-pane {
   transition: none;
@@ -734,12 +733,6 @@
 }
 @utility stroke-axis {
   stroke-width: 1.5;
-}
-
-.material-symbols-outlined,
-.material-symbols-rounded,
-.material-symbols-sharp {
-  font-variation-settings: var(--symbol-variation);
 }
 
 @utility bg-checkerboard {

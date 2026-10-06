@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { memo, useEffect, useRef } from "react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { EditScopePanelProps } from "./EditScopePanel"
@@ -47,7 +47,7 @@ export type InspectorSidebarProps = {
   compact?: boolean
 }
 
-export function InspectorSidebar({
+function InspectorSidebarContent({
   activeTab,
   onTabChange,
   editScopeProps,
@@ -180,3 +180,14 @@ export function InspectorSidebar({
     </aside>
   )
 }
+
+// A closed phone sheet has no visible values to update. Reopening receives
+// the latest props while retaining the existing inputs and scroll position.
+export const InspectorSidebar = memo(
+  InspectorSidebarContent,
+  (previous, next) =>
+    previous.compact === next.compact &&
+    previous.compactOpen === next.compactOpen &&
+    previous.zenMode === next.zenMode &&
+    (next.zenMode || Boolean(next.compact && !next.compactOpen))
+)

@@ -153,7 +153,6 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          <ViewOptionsPopover {...viewOptionsProps} />
           {presentation === "motion-preview" && (
             <div className="pointer-events-none absolute inset-x-4 top-3 flex items-center justify-between text-xs text-white/60">
               <span>Live preview</span>
@@ -173,6 +172,11 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           {((presentation === "workspace" && zenMode) || showPlayback) && (
             <PlaybackControls {...playbackProps} />
           )}
+        </div>
+        <div
+          className={`absolute z-40 ${zenMode ? "top-3 right-3" : "top-5.25 right-5.25 min-[720px]:top-6.25 min-[720px]:right-6.25"}`}
+        >
+          <ViewOptionsPopover {...viewOptionsProps} />
         </div>
       </div>
     )

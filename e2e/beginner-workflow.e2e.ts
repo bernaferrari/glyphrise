@@ -185,3 +185,49 @@ test("phone workflow reaches animated motion preview and export", async ({
     390
   )
 })
+
+test("reload restores keyframes silently and subsequent presets still announce creation", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const notices: string[] = []
+    Object.assign(window, { restoredKeyframeNotices: notices })
+    new MutationObserver(() => {
+      for (const status of document.querySelectorAll('[role="status"]')) {
+        if (/keyframes? created/.test(status.textContent ?? ""))
+          notices.push(status.textContent!)
+      }
+    }).observe(document, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    })
+  })
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  await page
+    .getByRole("region", { name: "Scale", exact: true })
+    .getByRole("button", { name: "Pulse", exact: true })
+    .click()
+  const before = await backup(page)
+  await page.reload()
+  await expect(page.locator("#glyphrise-workspace")).toHaveAttribute(
+    "aria-busy",
+    "false"
+  )
+  expect(await backup(page)).toEqual(before)
+  expect(
+    await page.evaluate(
+      () =>
+        (window as Window & { restoredKeyframeNotices?: string[] })
+          .restoredKeyframeNotices
+    )
+  ).toEqual([])
+  await page.getByRole("button", { name: "Add property", exact: true }).click()
+  await page
+    .getByRole("region", { name: "Rotation", exact: true })
+    .getByRole("button", { name: "Tilt", exact: true })
+    .click()
+  await expect(
+    page.getByRole("status").filter({ hasText: "Keyframe created" })
+  ).toBeVisible()
+})

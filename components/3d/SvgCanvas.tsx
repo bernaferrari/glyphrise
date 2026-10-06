@@ -147,14 +147,19 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       props.onModelReadyChange?.(modelReady)
     }, [modelReady, props.onModelReadyChange])
 
-    const { beginViewDrag, applyViewRotationDelta } = useSvgRotationDrag({
-      rotationOffset: props.rotationOffset,
-      cameraOrbitRef,
-      onCameraRotationSet: (rotation) =>
-        onCameraRotationSetRef.current?.(rotation),
-      onObjectRotationSet: (rotation) =>
-        onViewRotationSetRef.current?.(rotation),
-    })
+    const { beginViewDrag, applyViewRotationDelta, flushViewRotation } =
+      useSvgRotationDrag({
+        rotationOffset: props.rotationOffset,
+        cameraOrbitRef,
+        onCameraRotationSet: (rotation) =>
+          onCameraRotationSetRef.current?.(rotation),
+        onPreviewRotation: (rotation) => {
+          liveRenderPropsRef.current.rotationOffset = rotation
+          requestRenderRef.current()
+        },
+        onObjectRotationSet: (rotation) =>
+          onViewRotationSetRef.current?.(rotation),
+      })
 
     useSvgCanvasImperativeHandle({
       exportCaptureRef,
@@ -232,6 +237,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       setTransformGizmoHighlight,
       beginViewDrag,
       applyViewRotationDelta,
+      flushViewRotation,
       cancelViewNudge,
       requestRenderRef,
     })

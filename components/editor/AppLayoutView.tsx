@@ -377,7 +377,9 @@ export function AppLayoutView({
               const id = selectedShapeId ?? shapes[0]?.id
               if (id && shapes.length > 1) onRemoveShape(id)
             }}
-            compactOpen={sheetPane === "properties"}
+            compactOpen={
+              compactPane !== "preview" && sheetPane === "properties"
+            }
           />
         </div>
 

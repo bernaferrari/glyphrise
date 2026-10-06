@@ -1,4 +1,4 @@
-import { useState, type RefObject } from "react"
+import { memo, useState, type RefObject } from "react"
 import { Check, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +26,7 @@ import type { ShapeOption } from "./TimelineTypes"
 import { WipePairsSection } from "./WipePairsSection"
 import { useMaterialSymbolFont } from "./useMaterialSymbolFont"
 
-export function ShapePickerContent({
+function ShapePickerDialog({
   open,
   finalFocusRef,
   onOpenChange,
@@ -334,3 +334,10 @@ export function ShapePickerContent({
     </Dialog>
   )
 }
+
+// Base UI keeps the closing dialog alive for its exit animation. After it
+// closes, ignore document updates until the next open supplies fresh props.
+export const ShapePickerContent = memo(
+  ShapePickerDialog,
+  (previous, next) => !previous.open && !next.open
+)

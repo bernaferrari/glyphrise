@@ -289,6 +289,15 @@ test.describe("phone shared canvas transition", () => {
   }) => {
     const preview = page.locator("#glyphrise-preview-frame")
     const original = (await preview.boundingBox())!
+    const canvasControls = [
+      "Reset view",
+      "Transform object",
+      "View options",
+    ].map((name) => page.getByRole("button", { name, exact: true }))
+    const originalControls = await Promise.all(
+      canvasControls.map((control) => control.boundingBox())
+    )
+    const resetButton = await canvasControls[0].elementHandle()
     await page.getByRole("button", { name: "Properties", exact: true }).click()
     await expect
       .poll(() =>
@@ -304,12 +313,36 @@ test.describe("phone shared canvas transition", () => {
         )
       )
       .toBe(true)
+    expect(
+      await page.locator('[data-slot="viewport-tools"]').evaluate((tools) => ({
+        name: getComputedStyle(tools).viewTransitionName,
+        animation: getComputedStyle(
+          document.documentElement,
+          "::view-transition-group(editor-tools)"
+        ).animationName,
+        oldDisplay: getComputedStyle(
+          document.documentElement,
+          "::view-transition-old(editor-tools)"
+        ).display,
+      }))
+    ).toEqual({ name: "editor-tools", animation: "none", oldDisplay: "none" })
     await expect
       .poll(() =>
         page.evaluate(() => document.documentElement.dataset.panelTransition)
       )
       .toBeUndefined()
     const expanded = (await preview.boundingBox())!
+    for (const [index, control] of canvasControls.entries()) {
+      const position = (await control.boundingBox())!
+      expect(position.x).toBeCloseTo(originalControls[index]!.x, 1)
+      expect(position.y).toBeCloseTo(originalControls[index]!.y, 1)
+    }
+    expect(
+      await canvasControls[0].evaluate(
+        (button, original) => button === original,
+        resetButton
+      )
+    ).toBe(true)
     expect(expanded.width).toBeGreaterThan(original.width)
     expect(expanded.height).toBeLessThan(original.height)
     await expect(
@@ -352,6 +385,11 @@ test.describe("phone shared canvas transition", () => {
       original.height,
       1
     )
+    for (const [index, control] of canvasControls.entries()) {
+      const position = (await control.boundingBox())!
+      expect(position.x).toBeCloseTo(originalControls[index]!.x, 1)
+      expect(position.y).toBeCloseTo(originalControls[index]!.y, 1)
+    }
     await page.getByRole("button", { name: "Properties", exact: true }).click()
     await expect
       .poll(() =>

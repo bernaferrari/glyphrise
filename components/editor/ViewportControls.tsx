@@ -53,7 +53,10 @@ export function ViewOptionsPopover({
   onAnimatedSeekChange,
 }: ViewOptionsPopoverProps) {
   return (
-    <div className="absolute top-3 right-3 z-40 flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white backdrop-blur-md">
+    <div
+      data-slot="viewport-tools"
+      className="flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white backdrop-blur-md"
+    >
       <Button
         size="icon-lg"
         variant="viewport-ghost"
