@@ -112,7 +112,6 @@ export function useExportModalController({
   }, [])
 
   const celebrate = useCallback((options: Parameters<typeof confetti>[0]) => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
     void confetti(options)
   }, [])
 

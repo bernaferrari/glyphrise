@@ -21,11 +21,7 @@ export function useLayoutTransition(prepareSnapshot?: () => void) {
     direction: "hide" | "show" | "compact" | "instant"
   ) => {
     active.current?.skipTransition()
-    if (
-      direction === "instant" ||
-      !document.startViewTransition ||
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    if (direction === "instant" || !document.startViewTransition) {
       update()
       return
     }

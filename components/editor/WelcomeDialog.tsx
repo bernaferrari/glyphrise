@@ -51,7 +51,7 @@ function StarterPreview({
         dangerouslySetInnerHTML={{ __html: icon.svgContent }}
       />
       <span
-        className="starter-slash-off col-start-1 row-start-1 grid place-items-center"
+        className="col-start-1 row-start-1 grid animate-starter-slash-off place-items-center"
         dangerouslySetInnerHTML={{ __html: slashedIcon(icon).svgContent }}
       />
     </span>

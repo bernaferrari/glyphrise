@@ -78,7 +78,7 @@ test("Animate previews the selected artwork and timeline points stay reachable",
   page,
 }) => {
   await expect(page.getByText("Motion presets", { exact: true })).toHaveCount(0)
-  await expect(page.locator(".motion-preview")).toHaveCount(0)
+  await expect(page.locator('[data-slot="motion-preview"]')).toHaveCount(0)
   const endpoint = page.getByRole("button", {
     name: /^Select Rotation keyframe.* at 5\.00 seconds$/,
   })
@@ -92,7 +92,7 @@ test("Animate previews the selected artwork and timeline points stay reachable",
   await page.getByRole("button", { name: "Add property", exact: true }).click()
   // Each preset previews on the user's artwork, grouped by property.
   const menu = page.getByRole("dialog")
-  await expect(menu.locator(".motion-preview svg")).toHaveCount(3)
+  await expect(menu.locator('[data-slot="motion-preview"] svg')).toHaveCount(3)
   await menu
     .getByRole("region", { name: "Rotation" })
     .getByRole("button", { name: "Tilt", exact: true })
@@ -341,7 +341,7 @@ for (const width of [320, 390]) {
       await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await page.getByRole("button", { name: "Animate", exact: true }).click()
       await expect(
-        page.getByRole("dialog").locator(".motion-preview svg")
+        page.getByRole("dialog").locator('[data-slot="motion-preview"] svg')
       ).toHaveCount(4)
       await expect(
         page.getByRole("button", { name: /^Apply Spin/ })

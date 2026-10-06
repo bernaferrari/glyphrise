@@ -233,9 +233,7 @@ test("Space on the timeline toggles playback without scrolling, including key re
   ).toBeVisible()
 })
 
-test("panel visibility eases in both directions and respects reduced motion", async ({
-  page,
-}) => {
+test("panel visibility eases in both directions", async ({ page }) => {
   const preview = page.locator("#glyphrise-preview-pane")
   const originalWidth = (await preview.boundingBox())!.width
   await page.getByRole("button", { name: "Hide panels", exact: true }).click()
@@ -282,24 +280,11 @@ test("panel visibility eases in both directions and respects reduced motion", as
     )
     .toBeUndefined()
   expect((await preview.boundingBox())!.width).toBeCloseTo(originalWidth, 0)
-
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await page.getByRole("button", { name: "Hide panels", exact: true }).click()
-  await expect(
-    page.getByRole("button", { name: "Show panels", exact: true })
-  ).toBeVisible()
-  expect(
-    await page.evaluate(() => document.documentElement.dataset.panelTransition)
-  ).toBeUndefined()
-  await page.getByRole("button", { name: "Show panels", exact: true }).click()
-  await expect(
-    page.getByRole("complementary", { name: "Properties inspector" })
-  ).toBeVisible()
 })
 
 test.describe("phone shared canvas transition", () => {
   test.use({ viewport: { width: 390, height: 800 }, hasTouch: true })
-  test("widens the same canvas into Properties, keeps Reset view, and respects reduced motion", async ({
+  test("widens the same canvas into Properties and keeps the canvas controls", async ({
     page,
   }) => {
     const preview = page.locator("#glyphrise-preview-frame")
@@ -367,13 +352,12 @@ test.describe("phone shared canvas transition", () => {
       original.height,
       1
     )
-    await page.emulateMedia({ reducedMotion: "reduce" })
     await page.getByRole("button", { name: "Properties", exact: true }).click()
-    expect(
-      await page.evaluate(
-        () => document.documentElement.dataset.panelTransition
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.dataset.panelTransition)
       )
-    ).toBeUndefined()
+      .toBeUndefined()
     await expect(
       page.getByRole("complementary", { name: "Properties inspector" })
     ).toBeVisible()

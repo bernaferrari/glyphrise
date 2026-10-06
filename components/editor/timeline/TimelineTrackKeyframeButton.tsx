@@ -112,7 +112,7 @@ export function TimelineTrackKeyframeButton({
         data-keyframe-row={track.id}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
         className={cn(
-          `timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`,
+          `absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing compact-timeline:focus-visible:-outline-offset-2 ${selected ? "scale-125" : ""}`,
           "left-(--position-x) z-(--stack-order)"
         )}
         style={

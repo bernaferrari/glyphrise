@@ -72,9 +72,7 @@ export const animateSvgViewReset = ({
   // The document commits the reset once; preserve the displayed pose while
   // the same camera tween brings every artwork transform to its target.
   onArtworkTransform(startArtwork)
-  const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ? 1
-    : 220
+  const duration = 220
   const startTime = performance.now()
 
   targetZoomRef.current = 1.0

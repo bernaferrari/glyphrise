@@ -244,7 +244,7 @@ export function useLaneGhost() {
       onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => {
         if (event.pointerType !== "mouse") return
         const target = event.target as HTMLElement
-        if (target.closest(".timeline-keyframe")) {
+        if (target.closest("[data-keyframe-row]")) {
           setGhostX(null)
           return
         }

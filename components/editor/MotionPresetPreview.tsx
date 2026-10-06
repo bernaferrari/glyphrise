@@ -11,6 +11,12 @@ const SIZES = {
   md: { box: "size-12 [perspective:160px]", icon: "size-9 [&_svg]:size-9" },
 }
 
+const ANIMATIONS: Record<AnimationPresetId, string> = {
+  spin: "animate-motion-spin",
+  tilt: "animate-motion-tilt",
+  pulse: "animate-motion-pulse",
+}
+
 export function MotionPresetPreview({
   preset,
   svgContent,
@@ -30,11 +36,11 @@ export function MotionPresetPreview({
       className={cn("grid shrink-0 place-items-center", SIZES[size].box)}
     >
       <span
+        data-slot="motion-preview"
         className={cn(
-          "motion-preview grid place-items-center text-foreground drop-shadow-sm [&_svg]:block [&_svg_*]:fill-current",
-          `motion-preview-${preset}`,
-          SIZES[size].icon,
-          "duration-motion"
+          "grid place-items-center text-foreground drop-shadow-sm [&_svg]:block [&_svg_*]:fill-current",
+          ANIMATIONS[preset],
+          SIZES[size].icon
         )}
         style={
           {

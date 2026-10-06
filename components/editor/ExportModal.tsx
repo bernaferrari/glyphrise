@@ -108,7 +108,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
               <span
                 aria-hidden="true"
-                className="size-1.5 animate-pulse rounded-full bg-destructive motion-reduce:animate-none"
+                className="size-1.5 animate-pulse rounded-full bg-destructive"
               />
               Recording {Math.round(videoExportProgress * 100)}%
             </span>
@@ -136,7 +136,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   <>
                     <span
                       aria-hidden="true"
-                      className="size-1.5 animate-pulse rounded-full bg-destructive motion-reduce:animate-none"
+                      className="size-1.5 animate-pulse rounded-full bg-destructive"
                     />
                     Assets · {Math.round(videoExportProgress * 100)}%
                   </>

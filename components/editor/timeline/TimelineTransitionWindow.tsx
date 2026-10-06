@@ -218,7 +218,7 @@ function TransitionEdgeHandle({
     <div
       title={title}
       onPointerDown={holdToDrag(onPointerDown)}
-      className="timeline-transition-edge group/edge absolute inset-y-1.5 left-(--position-x) z-6 flex w-3 -translate-x-1/2 cursor-trim touch-pan-x touch-pan-y items-center justify-center"
+      className="group/edge absolute inset-y-1.5 left-(--position-x) z-6 flex w-3 -translate-x-1/2 cursor-trim touch-pan-x touch-pan-y items-center justify-center compact-timeline:hidden"
       style={{ "--position-x": cssLength(left) } as React.CSSProperties}
     >
       <span className="h-full w-0.5 rounded-full bg-(--timeline-playhead) opacity-0 transition-opacity group-hover/edge:opacity-80" />

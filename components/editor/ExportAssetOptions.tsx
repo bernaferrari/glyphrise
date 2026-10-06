@@ -157,7 +157,7 @@ function OutputPreview({
               className={
                 previewError
                   ? "px-3 text-center text-xs text-muted-foreground"
-                  : "size-full animate-pulse bg-foreground/5 motion-reduce:animate-none"
+                  : "size-full animate-pulse bg-foreground/5"
               }
             >
               {previewError ? "Preview unavailable" : null}
@@ -332,7 +332,7 @@ export function ExportAssetOptions(props: Props) {
                 {busy ? (
                   <LoaderCircle
                     aria-hidden="true"
-                    className="size-4 animate-spin motion-reduce:animate-none"
+                    className="size-4 animate-spin"
                   />
                 ) : (
                   <Download aria-hidden="true" className="size-4" />

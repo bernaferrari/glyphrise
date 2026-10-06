@@ -132,7 +132,7 @@ export function TimelineShapeClip({
             )
       }
       className={cn(
-        `timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+        `group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring compact-timeline:focus-visible:-outline-offset-2 ${
           isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
         } ${
           // Rings sit inside the clip so neighbours never overlap.

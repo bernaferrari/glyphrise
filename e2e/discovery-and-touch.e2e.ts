@@ -100,7 +100,7 @@ for (const width of [390, 1024]) {
         .locator("..")
       // Compact rows use the same height as desktop; lanes must match.
       expect((await rail.boundingBox())!.height).toBe(34)
-      const keyframe = page.locator(".timeline-keyframe").first()
+      const keyframe = page.locator("[data-keyframe-row]").first()
       const railBox = (await rail.boundingBox())!
       const keyframeBox = (await keyframe.boundingBox())!
       expect(

@@ -94,7 +94,7 @@ export function TimelineTransitionEditor({
 
   return (
     // One content width: every row's controls end on the same edge.
-    <div className="grid w-full min-w-0 grid-cols-fluid gap-3">
+    <div className="grid w-full min-w-0 grid-cols-1 gap-3">
       <div className="flex items-center">
         <div
           role="group"

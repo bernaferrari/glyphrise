@@ -398,7 +398,7 @@ function PlayheadField({
           event.currentTarget.blur()
         }
       }}
-      className="timeline-playhead-field h-7 w-(--spacing-timecode) rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring"
+      className="h-7 w-(--spacing-timecode) rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring max-[720px]:px-0 max-[720px]:text-2xs!"
     />
   )
 }

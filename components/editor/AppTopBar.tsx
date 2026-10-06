@@ -121,7 +121,7 @@ function ProjectMenu({
             ) : projectStatus === "saved" ? (
               <Check className="size-3.5 text-primary" />
             ) : (
-              <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+              <LoaderCircle className="size-3.5 animate-spin" />
             )}
             {statusText}
           </div>
@@ -275,7 +275,7 @@ export function AppTopBar({
           {projectStatus === "restoring" || projectStatus === "saving" ? (
             <LoaderCircle
               aria-hidden="true"
-              className="size-3.5 animate-spin motion-reduce:animate-none"
+              className="size-3.5 animate-spin"
             />
           ) : projectStatus === "error" ? (
             <AlertTriangle aria-hidden="true" className="size-3.5" />

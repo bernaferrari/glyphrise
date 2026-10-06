@@ -34,7 +34,7 @@ const neighbourTimes = (times: number[], currentTime: number) => {
 }
 
 const navButton =
-  "timeline-keyframe-nav grid h-5 w-4 shrink-0 place-items-center rounded text-muted-foreground/70 transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-25"
+  "grid compact-timeline:hidden h-5 w-4 shrink-0 place-items-center rounded text-muted-foreground/70 transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-25"
 
 /** After Effects-style ‹ ◆ › — jump between this row's keys, or key here. */
 function KeyframeNavigator({
@@ -135,9 +135,9 @@ function RailRowFrame({
           {name}
         </span>
       </button>
-      <span className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-0 pr-1.5">
+      <span className="flex h-full shrink-0 items-center justify-center gap-0 pr-1.5 max-[720px]:[&_[data-timeline-easing]]:hidden">
         {actions}
-        <span className="timeline-rail-value w-12 shrink-0 truncate pl-1 text-right font-mono text-2xs text-muted-foreground tabular-nums">
+        <span className="w-12 shrink-0 truncate pl-1 text-right font-mono text-2xs text-muted-foreground tabular-nums compact-timeline:hidden">
           {value}
         </span>
       </span>

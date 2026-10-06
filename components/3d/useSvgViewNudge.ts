@@ -62,10 +62,7 @@ export function useSvgViewNudge({
     cancelViewNudge()
     nudgeState.target = targetValue
     const startTime = performance.now()
-    const duration = window.matchMedia("(prefers-reduced-motion: reduce)")
-      .matches
-      ? 1
-      : 220
+    const duration = 220
     const tick = (now: number) => {
       const t = Math.max(0, Math.min(1, (now - startTime) / duration))
       const eased = 1 - Math.pow(1 - t, 3)

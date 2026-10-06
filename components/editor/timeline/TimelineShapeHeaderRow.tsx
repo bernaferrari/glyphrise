@@ -34,7 +34,7 @@ export function TimelineShapeHeaderRow({
       {isPreviewLoading && (
         <Loader2
           aria-label="Preparing 3D icon"
-          className="size-3.5 shrink-0 animate-spin text-muted-foreground motion-reduce:animate-none"
+          className="size-3.5 shrink-0 animate-spin text-muted-foreground"
         />
       )}
       <button

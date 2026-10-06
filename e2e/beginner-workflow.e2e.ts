@@ -158,20 +158,19 @@ test("camera orbit changes the view but preserves exported document state", asyn
   expect(await backup(page)).toEqual(before)
 })
 
-test("phone workflow reaches motion preview and export with reduced motion", async ({
+test("phone workflow reaches animated motion preview and export", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 568 })
-  await page.emulateMedia({ reducedMotion: "reduce" })
   // Phones reach presets from the button on the preview.
   await page.getByRole("button", { name: "Animate", exact: true }).click()
   await expect(page.getByRole("dialog")).toBeVisible()
   expect(
     await page
-      .locator(".motion-preview")
+      .locator('[data-slot="motion-preview"]')
       .first()
       .evaluate((element) => getComputedStyle(element).animationName)
-  ).toBe("none")
+  ).toBe("motion-preview-spin")
   await page.getByRole("button", { name: "Pulse", exact: true }).click()
   await page.getByRole("button", { name: /^Apply Pulse/ }).click()
   await page.getByRole("button", { name: "Play", exact: true }).click()

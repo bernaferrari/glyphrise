@@ -8,10 +8,6 @@ const SEEK_DURATION_MS = 180
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-
 export function useAnimatedTimeSeek({
   currentTime,
   duration,
@@ -56,7 +52,6 @@ export function useAnimatedTimeSeek({
       const start = currentTimeRef.current
       const shouldAnimate =
         (options?.animated ?? animatedSeekEnabled) &&
-        !prefersReducedMotion() &&
         Math.abs(target - start) > 0.001
 
       if (!shouldAnimate) {

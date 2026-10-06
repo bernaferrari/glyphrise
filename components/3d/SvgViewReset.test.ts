@@ -7,7 +7,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function setup(reducedMotion = false) {
+function setup() {
   let frame: FrameRequestCallback = () => {}
   vi.spyOn(performance, "now").mockReturnValue(0)
   vi.stubGlobal(
@@ -18,7 +18,6 @@ function setup(reducedMotion = false) {
     })
   )
   vi.stubGlobal("cancelAnimationFrame", vi.fn())
-  vi.stubGlobal("matchMedia", () => ({ matches: reducedMotion }))
   const displayed: { current: SvgResetTransform | null } = { current: null }
   const currentZoomRef = { current: 2 }
   const onViewRotationSet = vi.fn()
@@ -74,11 +73,4 @@ it("keeps the displayed artwork at its starting pose, then eases all transforms 
     { x: 0, y: 0, z: 0 },
     { commit: true }
   )
-})
-
-it("returns immediately to the committed pose on the next frame with reduced motion", () => {
-  const { displayed, currentZoomRef, tick } = setup(true)
-  tick(16)
-  expect(displayed.current).toBeNull()
-  expect(currentZoomRef.current).toBe(1)
 })

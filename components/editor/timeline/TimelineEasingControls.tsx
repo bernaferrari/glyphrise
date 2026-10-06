@@ -69,12 +69,13 @@ export const EasingPicker: React.FC<{
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
+        data-timeline-easing={!field && !showLabel ? true : undefined}
         aria-label={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
         title={`${scopeLabel ?? "Easing"}: ${getEasingLabel(value)}`}
         className={
           field
             ? "flex h-8 min-w-0 flex-1 items-center gap-2 rounded-md bg-muted/60 px-2 text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted"
-            : `${showLabel ? "" : "timeline-easing"} flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5"}`
+            : `flex shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${showLabel ? "min-h-11 w-full gap-2 px-3" : "size-5 compact-timeline:w-auto"}`
         }
         onClick={(event) => event.stopPropagation()}
       >
