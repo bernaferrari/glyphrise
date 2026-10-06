@@ -411,6 +411,23 @@ test("offers production render controls and an honest fidelity matrix", async ({
   await page.getByRole("button", { name: "Export", exact: true }).click()
 
   await expect(page.getByText("Aspect ratio", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Custom background color" }).click()
+  await page
+    .getByRole("textbox", { name: "Hex color", exact: true })
+    .fill("FF6633")
+  await expect(
+    page.getByRole("button", { name: "Custom background color" })
+  ).toHaveText("#FF6633")
+  await page.keyboard.press("Escape")
+  await expect(
+    page.getByRole("textbox", { name: "Hex color", exact: true })
+  ).toHaveCount(0)
+  await expect(
+    page.getByRole("button", { name: "Download image", exact: true })
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "Transparent background" })
+  ).toHaveAttribute("aria-pressed", "false")
   await page
     .getByRole("button", { name: "Video Full animation", exact: true })
     .click()

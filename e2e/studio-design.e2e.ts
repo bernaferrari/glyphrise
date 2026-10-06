@@ -330,13 +330,13 @@ for (const width of [320, 390]) {
         page.getByLabel("Playhead time in seconds", { exact: true })
       ).toHaveValue("0:04.00")
       await expect(preview).toBeVisible()
-      for (const [index, control] of [
+      for (const control of [
         undo,
         page.getByRole("button", { name: "Play timeline", exact: true }),
-      ].entries()) {
+      ]) {
         const box = (await control.boundingBox())!
-        expect(box.width).toBe(index === 0 ? 36 : 28)
-        expect(box.height).toBe(index === 0 ? 36 : 28)
+        expect(box.width).toBe(28)
+        expect(box.height).toBe(28)
       }
       await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await page.getByRole("button", { name: "Animate", exact: true }).click()

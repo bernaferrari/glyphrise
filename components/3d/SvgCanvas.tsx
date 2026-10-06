@@ -92,6 +92,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
 
     const {
       liveRenderPropsRef,
+      resetTransformRef,
       viewInertiaEnabledRef,
       onObjectScaleChangeRef,
       onObjectScaleAxisChangeRef,
@@ -160,6 +161,8 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       setExportFrameProps,
       ref,
       props,
+      liveRenderPropsRef,
+      resetTransformRef,
       canvasRef,
       containerRef,
       rendererRef,
@@ -305,6 +308,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       rendererRef,
       cameraRef,
       liveRenderPropsRef,
+      resetTransformRef,
       isInertiaActiveRef,
       rotationVelocityRef,
       applyViewRotationDelta,

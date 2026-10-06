@@ -1,5 +1,21 @@
 import type React from "react"
 import type { Vector3Value } from "./SvgTypes"
+import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
+
+export type SvgResetTransform = Pick<
+  SvgCanvasLiveRenderProps,
+  "rotationOffset" | "moveOffset" | "objectScale" | "objectScaleAxes"
+>
+
+const towards = (
+  from: Vector3Value,
+  target: number,
+  progress: number
+): Vector3Value => ({
+  x: from.x + (target - from.x) * progress,
+  y: from.y + (target - from.y) * progress,
+  z: from.z + (target - from.z) * progress,
+})
 
 const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3)
 
@@ -14,6 +30,8 @@ export const animateSvgViewReset = ({
   animationStartRef,
   onZoomChange,
   onViewRotationSet,
+  artworkTransform,
+  onArtworkTransform,
 }: {
   resetViewFrameRef: React.MutableRefObject<number | null>
   viewNudgeFrameRef: React.MutableRefObject<number | null>
@@ -28,6 +46,8 @@ export const animateSvgViewReset = ({
     rotation: Partial<Vector3Value>,
     options?: { commit?: boolean; updateTimeline?: boolean }
   ) => void
+  artworkTransform: SvgResetTransform
+  onArtworkTransform: (transform: SvgResetTransform | null) => void
 }) => {
   if (resetViewFrameRef.current !== null) {
     cancelAnimationFrame(resetViewFrameRef.current)
@@ -43,6 +63,15 @@ export const animateSvgViewReset = ({
 
   const startRotation = liveRotation
   const startZoom = currentZoomRef.current
+  const startArtwork: SvgResetTransform = {
+    rotationOffset: { ...artworkTransform.rotationOffset },
+    moveOffset: { ...artworkTransform.moveOffset },
+    objectScale: artworkTransform.objectScale,
+    objectScaleAxes: { ...artworkTransform.objectScaleAxes },
+  }
+  // The document commits the reset once; preserve the displayed pose while
+  // the same camera tween brings every artwork transform to its target.
+  onArtworkTransform(startArtwork)
   const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ? 1
     : 220
@@ -57,6 +86,17 @@ export const animateSvgViewReset = ({
     const eased = easeOutCubic(t)
 
     currentZoomRef.current = startZoom + (1 - startZoom) * eased
+    onArtworkTransform(
+      t === 1
+        ? null
+        : {
+            rotationOffset: towards(startArtwork.rotationOffset, 0, eased),
+            moveOffset: towards(startArtwork.moveOffset, 0, eased),
+            objectScale:
+              startArtwork.objectScale + (1 - startArtwork.objectScale) * eased,
+            objectScaleAxes: towards(startArtwork.objectScaleAxes, 1, eased),
+          }
+    )
     onViewRotationSet?.(
       {
         x: startRotation.x * (1 - eased),

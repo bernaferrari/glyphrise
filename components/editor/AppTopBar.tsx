@@ -4,6 +4,7 @@ import { useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
+  Box,
   Check,
   ChevronDown,
   CircleHelp,
@@ -98,12 +99,18 @@ function ProjectMenu({
           <button
             type="button"
             aria-label="Open file menu"
-            title="Files"
-            className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
+            title="Glyphrise · Files"
+            className="flex h-8 shrink-0 items-center gap-1 rounded-md pr-1.5 pl-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
           />
         }
       >
-        <ChevronDown className="size-3.5" />
+        <span
+          aria-hidden="true"
+          className="grid size-6 place-items-center rounded-md bg-primary text-primary-foreground"
+        >
+          <Box className="size-3.5" />
+        </span>
+        <ChevronDown aria-hidden="true" className="size-3" />
       </PopoverTrigger>
       <PopoverContent density="compact" align="start" className="w-64">
         {/* What a project is, in one breath, with the save state inline. */}
@@ -145,7 +152,7 @@ function ProjectMenu({
             onClick={action(onProjectOpen)}
           />
         </div>
-        <div className="md:hidden">
+        <div className="min-[720px]:hidden">
           <div className="-mx-1 my-1 border-t border-border" />
           <div className="grid gap-0.5">
             <MenuRow
@@ -232,67 +239,36 @@ export function AppTopBar({
           : "Saved locally"
 
   return (
-    <header className="relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl max-[720px]:h-14 sm:pr-safe-3 sm:pl-safe-3">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <button
-          type="button"
-          aria-label={zenMode ? "Show panels" : "Hide panels"}
-          onClick={() => onZenModeChange(!zenMode)}
-          className="hidden size-9 rounded-lg border border-transparent bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring min-[720px]:block"
-        >
-          {zenMode ? (
-            <PanelLeftOpen className="mx-auto size-4.5" />
-          ) : (
-            <PanelLeftClose className="mx-auto size-4.5" />
-          )}
-        </button>
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <div className="hidden min-w-0 lg:block">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-foreground">
-                Glyphrise
-              </span>
-              <span className="hidden text-xs tracking-normal text-muted-foreground sm:inline">
-                Motion studio
-              </span>
-            </div>
-          </div>
-          <span className="hidden h-5 w-px bg-border md:block" />
-          <div className="flex min-w-0 items-center">
-            <ProjectNameField
-              value={projectName}
-              onCommit={onProjectNameChange}
-            />
-            <ProjectMenu
-              onProjectNew={onProjectNew}
-              onProjectOpen={onProjectOpen}
-              onProjectSave={onProjectSave}
-              projectStatus={projectStatus}
-              projectStatusMessage={projectStatusMessage}
-              onGettingStarted={onGettingStarted}
-              themeMounted={themeMounted}
-              isLightTheme={isLightTheme}
-              themeToggleLabel={themeToggleLabel}
-              onThemeChange={onThemeChange}
-            />
-          </div>
+    <header
+      aria-label="Editor toolbar"
+      className="relative z-30 flex h-11 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl"
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-1">
+        <ProjectMenu
+          onProjectNew={onProjectNew}
+          onProjectOpen={onProjectOpen}
+          onProjectSave={onProjectSave}
+          projectStatus={projectStatus}
+          projectStatusMessage={projectStatusMessage}
+          onGettingStarted={onGettingStarted}
+          themeMounted={themeMounted}
+          isLightTheme={isLightTheme}
+          themeToggleLabel={themeToggleLabel}
+          onThemeChange={onThemeChange}
+        />
+        <div className="min-w-0 flex-1 min-[720px]:flex-none">
+          <ProjectNameField
+            value={projectName}
+            onCommit={onProjectNameChange}
+          />
         </div>
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1.5">
-        {/* Announce successful saves without adding top-bar clutter. Keep
-            saving progress and failures visible. Details live in ProjectMenu. */}
         <span
           aria-live="polite"
           title={projectStatusMessage}
           className={
             projectStatus === "saved"
               ? "sr-only"
-              : `flex items-center gap-1.5 px-1.5 text-xs whitespace-nowrap ${
-                  projectStatus === "error"
-                    ? "text-destructive"
-                    : "text-muted-foreground/80"
-                }`
+              : `flex shrink-0 items-center gap-1.5 px-1 text-xs whitespace-nowrap ${projectStatus === "error" ? "text-destructive" : "text-muted-foreground/80"}`
           }
         >
           <span className="sr-only">{projectStatusLabel}</span>
@@ -310,88 +286,96 @@ export function AppTopBar({
             </span>
           )}
         </span>
-        {/* Phones: undo/redo stay one tap away on every workspace view. */}
-        <div className="flex items-center md:hidden">
+        <span
+          aria-hidden="true"
+          className="mx-1 hidden h-4 w-px bg-border min-[720px]:block"
+        />
+        <Button
+          size="icon-sm"
+          variant="muted-ghost"
+          aria-label={zenMode ? "Show panels" : "Hide panels"}
+          title={zenMode ? "Show panels" : "Hide panels"}
+          onClick={() => onZenModeChange(!zenMode)}
+          className="hidden min-[720px]:inline-flex"
+        >
+          {zenMode ? (
+            <PanelLeftOpen className="size-4" />
+          ) : (
+            <PanelLeftClose className="size-4" />
+          )}
+        </Button>
+        <div className="flex shrink-0 items-center md:hidden">
           <Button
-            size="icon-lg"
+            size="icon-sm"
             variant="muted-ghost"
             aria-label="Undo edit"
             onClick={onUndo}
             disabled={!canUndo}
           >
-            <Undo2 aria-hidden="true" className="size-4.5" />
+            <Undo2 aria-hidden="true" className="size-4" />
           </Button>
           <Button
-            size="icon-lg"
+            size="icon-sm"
             variant="muted-ghost"
             aria-label="Redo edit"
             onClick={onRedo}
             disabled={!canRedo}
           >
-            <Redo2 aria-hidden="true" className="size-4.5" />
+            <Redo2 aria-hidden="true" className="size-4" />
           </Button>
         </div>
-        <div className="hidden items-center md:flex">
+        <div className="hidden shrink-0 items-center md:flex">
           <Button
-            size="icon-lg"
+            size="icon-sm"
             variant="muted-ghost"
             aria-label="Undo"
             title="Undo (Ctrl/⌘ Z)"
             onClick={onUndo}
             disabled={!canUndo}
           >
-            <Undo2 className="size-4.5" />
+            <Undo2 aria-hidden="true" className="size-4" />
           </Button>
           <Button
-            size="icon-lg"
+            size="icon-sm"
             variant="muted-ghost"
             aria-label="Redo"
             title="Redo (Ctrl/⌘ Shift Z)"
             onClick={onRedo}
             disabled={!canRedo}
           >
-            <Redo2 className="size-4.5" />
+            <Redo2 aria-hidden="true" className="size-4" />
           </Button>
         </div>
         <Button
-          size="icon-lg"
+          size="icon-sm"
           variant="muted-ghost"
           aria-label="Getting started"
           title="Getting started"
           onClick={onGettingStarted}
           className="hidden min-[720px]:inline-flex"
         >
-          <CircleHelp aria-hidden="true" className="size-4.5" />
+          <CircleHelp aria-hidden="true" className="size-4" />
         </Button>
         <Button
-          size="icon-lg"
+          size="icon-sm"
           variant="muted-ghost"
           aria-label={themeToggleLabel}
           title={themeToggleLabel}
           onClick={() => {
-            if (!themeMounted) return
-            onThemeChange(isLightTheme ? "dark" : "light")
+            if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
           }}
-          className="hidden min-[480px]:inline-flex"
+          className="hidden min-[720px]:inline-flex"
         >
           {isLightTheme ? (
-            <Moon className="size-4.5" />
+            <Moon aria-hidden="true" className="size-4" />
           ) : (
-            <Sun className="size-4.5" />
+            <Sun aria-hidden="true" className="size-4" />
           )}
         </Button>
-        {/* Same compact Export as ShapeShifter, inside a full-height tap area. */}
-        <button
-          type="button"
-          aria-label="Export"
-          onClick={onExportOpen}
-          className="group grid h-11 shrink-0 place-items-center rounded-lg px-0.5 outline-none"
-        >
-          <span className="flex h-8 items-center rounded-lg bg-primary px-3.5 text-xs font-medium text-primary-foreground transition-[background-color,transform] group-hover:bg-primary/90 group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-background group-active:translate-y-px">
-            Export
-          </span>
-        </button>
       </div>
+      <Button size="sm" aria-label="Export" onClick={onExportOpen}>
+        Export
+      </Button>
       {projectStatus === "error" ? (
         <div
           role="alert"

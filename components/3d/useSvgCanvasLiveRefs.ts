@@ -3,6 +3,7 @@
 import { useRef } from "react"
 import { useLatestRef } from "@/lib/use-latest-ref"
 import type { SvgCanvasProps } from "./SvgTypes"
+import type { SvgResetTransform } from "./SvgViewReset"
 
 export type SvgCanvasLiveRenderProps = {
   transitionType: SvgCanvasProps["transitionType"]
@@ -48,12 +49,14 @@ export function useSvgCanvasLiveRefs(props: SvgCanvasProps) {
   const onMoveOffsetChangeRef = useLatestRef(props.onMoveOffsetChange)
   const onRotationAxisChangeRef = useLatestRef(props.onRotationAxisChange)
   const liveRenderPropsRef = useRef(getLiveRenderProps(props))
+  const resetTransformRef = useRef<SvgResetTransform | null>(null)
   const viewInertiaEnabledRef = useRef(props.viewInertiaEnabled ?? true)
 
   liveRenderPropsRef.current = getLiveRenderProps(props)
   viewInertiaEnabledRef.current = props.viewInertiaEnabled ?? true
 
   return {
+    resetTransformRef,
     liveRenderPropsRef,
     viewInertiaEnabledRef,
     onViewRotationCommitRef,

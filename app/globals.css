@@ -441,6 +441,15 @@
   }
 }
 
+input.project-name-field {
+  font-size: var(--text-control);
+}
+@media (pointer: coarse) {
+  input.project-name-field:focus {
+    font-size: 16px;
+  }
+}
+
 .timeline-density {
   --timeline-rail-width: 236px;
   --timeline-ruler-height: 38px;

@@ -12,6 +12,8 @@ import * as THREE from "three"
 import { applySvgModelScale } from "./SvgSceneUtils"
 import { resizeSvgScene } from "./SvgSceneLifecycle"
 import { animateSvgViewReset } from "./SvgViewReset"
+import type { SvgResetTransform } from "./SvgViewReset"
+import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { SvgCanvasProps, SvgCanvasRef } from "./SvgTypes"
 import type { ExportRenderOptions } from "./SvgTypes"
 import type { CanvasRecorderOptions } from "./useCanvasRecorder"
@@ -56,6 +58,8 @@ type SvgCanvasImperativeHandleOptions = {
   animationStartRef: MutableRefObject<number>
   cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
   onViewRotationSet: SvgCanvasProps["onViewRotationSet"]
+  liveRenderPropsRef: MutableRefObject<SvgCanvasLiveRenderProps>
+  resetTransformRef: MutableRefObject<SvgResetTransform | null>
 }
 
 export function useSvgCanvasImperativeHandle({
@@ -84,6 +88,8 @@ export function useSvgCanvasImperativeHandle({
   animationStartRef,
   onViewRotationSet,
   cameraOrbitRef,
+  liveRenderPropsRef,
+  resetTransformRef,
 }: SvgCanvasImperativeHandleOptions) {
   const capturedCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const captureRenderedFrame = () =>
@@ -248,6 +254,11 @@ export function useSvgCanvasImperativeHandle({
         animationStartRef,
         onZoomChange: props.onZoomChange,
         onViewRotationSet,
+        artworkTransform:
+          resetTransformRef.current ?? liveRenderPropsRef.current,
+        onArtworkTransform: (transform) => {
+          resetTransformRef.current = transform
+        },
       })
     },
   }))

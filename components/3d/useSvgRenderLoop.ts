@@ -28,6 +28,7 @@ import { applySvgTransitionState } from "./SvgTransitionState"
 import { prepareSvgScene } from "./SvgSceneWarmup"
 import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { ExportRenderOptions } from "./SvgTypes"
+import type { SvgResetTransform } from "./SvgViewReset"
 
 type NullableRef<T> = MutableRefObject<T | null>
 
@@ -41,6 +42,7 @@ type UseSvgRenderLoopOptions = {
   rendererRef: NullableRef<THREE.WebGLRenderer>
   cameraRef: NullableRef<THREE.PerspectiveCamera>
   liveRenderPropsRef: MutableRefObject<SvgCanvasLiveRenderProps>
+  resetTransformRef: MutableRefObject<SvgResetTransform | null>
   isInertiaActiveRef: MutableRefObject<boolean>
   rotationVelocityRef: MutableRefObject<RotationVelocity>
   applyViewRotationDelta: (delta: RotationVelocity) => void
@@ -71,6 +73,7 @@ export function useSvgRenderLoop({
   rendererRef,
   cameraRef,
   liveRenderPropsRef,
+  resetTransformRef,
   isInertiaActiveRef,
   rotationVelocityRef,
   applyViewRotationDelta,
@@ -132,8 +135,11 @@ export function useSvgRenderLoop({
         return
       }
 
-      const liveProps = liveRenderPropsRef.current
       const exportRenderOptions = exportRenderOptionsRef.current
+      const liveProps =
+        resetTransformRef.current && !exportRenderOptions
+          ? { ...liveRenderPropsRef.current, ...resetTransformRef.current }
+          : liveRenderPropsRef.current
       const progress = liveProps.transitionProgress
 
       if (isInertiaActiveRef.current) {
@@ -286,6 +292,7 @@ export function useSvgRenderLoop({
     iconBGroupRef,
     isInertiaActiveRef,
     liveRenderPropsRef,
+    resetTransformRef,
     orientationGizmoRefs,
     pivotGroupRef,
     rendererRef,

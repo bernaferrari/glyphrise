@@ -1,7 +1,8 @@
 "use client"
 
-import { Check, ChevronDown } from "lucide-react"
-import { cssLength, cn } from "@/lib/utils"
+import { ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ColorPicker } from "@/components/ui/color-picker"
 import { EXPORT_SIZE_PRESETS, type ExportSettings } from "./ExportSettingsModel"
 import type { VideoContainer } from "../3d/SvgTypes"
 import { ExportFormatDetails } from "./ExportFormatDetails"
@@ -47,11 +48,6 @@ export function ExportRenderSettings({
   onChange: (patch: Partial<ExportSettings>) => void
 }) {
   const transparent = settings.backgroundMode === "transparent"
-  const customColor =
-    !transparent &&
-    !BACKGROUND_SWATCHES.some(
-      (swatch) => swatch.color === settings.backgroundColor.toLowerCase()
-    )
   const swatchClass =
     "relative size-8 shrink-0 rounded-full  shadow-export-setting transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
 
@@ -80,31 +76,23 @@ export function ExportRenderSettings({
                 onClick={() =>
                   onChange({ width: preset.width, height: preset.height })
                 }
-                className="group relative flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/25 px-3 py-2.5 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection"
+                className="group relative flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/25 px-3 py-2.5 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection max-[720px]:min-h-14 max-[720px]:flex-row max-[720px]:justify-start max-[720px]:px-2 max-[720px]:py-2"
               >
-                <Check
-                  aria-hidden="true"
-                  className="absolute top-2 right-2 size-3.5 text-primary opacity-0 transition-opacity group-aria-pressed:opacity-100"
-                />
                 <span
                   aria-hidden="true"
-                  className="grid size-12 shrink-0 place-items-center"
+                  className="grid size-12 shrink-0 place-items-center max-[720px]:size-8"
                 >
                   <span
                     className="h-(--element-height) w-(--element-width) rounded-sm border-2 border-muted-foreground/55 bg-muted transition-[background-color,border-color] group-aria-pressed:border-primary group-aria-pressed:bg-primary/15"
                     style={
                       {
-                        "--element-width": cssLength(
-                          ratio >= 1 ? 48 : 48 * ratio
-                        ),
-                        "--element-height": cssLength(
-                          ratio >= 1 ? 48 / ratio : 48
-                        ),
+                        "--element-width": `${ratio >= 1 ? 100 : 100 * ratio}%`,
+                        "--element-height": `${ratio >= 1 ? 100 / ratio : 100}%`,
                       } as React.CSSProperties
                     }
                   />
                 </span>
-                <span className="flex w-full items-baseline justify-center gap-2">
+                <span className="flex w-full items-baseline justify-center gap-2 max-[720px]:w-auto max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-0">
                   <span className="text-xs font-medium">{preset.label}</span>
                   <span className="text-2xs text-muted-foreground tabular-nums">
                     {preset.ratio}
@@ -155,34 +143,15 @@ export function ExportRenderSettings({
               }
             />
           ))}
-          <label
-            aria-pressed={customColor}
-            className={cn(
-              swatchClass,
-              "cursor-pointer overflow-hidden",
-              "bg-preview"
-            )}
-            style={
-              {
-                "--preview-background": customColor
-                  ? settings.backgroundColor
-                  : "var(--background-spectrum)",
-              } as React.CSSProperties
+          <ColorPicker
+            aria-label="Custom background color"
+            variant="inspector"
+            value={settings.backgroundColor}
+            onChange={(backgroundColor) =>
+              onChange({ backgroundMode: "color", backgroundColor })
             }
-          >
-            <span className="sr-only">Custom background color</span>
-            <input
-              type="color"
-              value={settings.backgroundColor}
-              onChange={(event) =>
-                onChange({
-                  backgroundMode: "color",
-                  backgroundColor: event.target.value,
-                })
-              }
-              className="absolute inset-0 size-full cursor-pointer opacity-0"
-            />
-          </label>
+            className="h-8 w-24 shrink-0"
+          />
         </div>
         {video && (
           <p className="mt-2 text-xs text-muted-foreground">

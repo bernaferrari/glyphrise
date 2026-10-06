@@ -153,10 +153,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          <ViewOptionsPopover
-            {...viewOptionsProps}
-            compact={presentation === "motion-preview"}
-          />
+          <ViewOptionsPopover {...viewOptionsProps} />
           {presentation === "motion-preview" && (
             <div className="pointer-events-none absolute inset-x-4 top-3 flex items-center justify-between text-xs text-white/60">
               <span>Live preview</span>

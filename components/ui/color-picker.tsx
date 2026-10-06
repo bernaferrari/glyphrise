@@ -33,7 +33,10 @@ import { useSolidColorEditor } from "./use-solid-color-editor"
 export { CompactColorInput } from "./compact-color-input"
 export type { CompactColorInputProps } from "./compact-color-input"
 
-interface ColorPickerProps {
+interface ColorPickerProps extends Pick<
+  React.ComponentProps<"button">,
+  "aria-label"
+> {
   value: string
   onChange: (hex: string) => void
   alpha?: number
@@ -77,6 +80,7 @@ export function ColorPicker({
   onSecondaryChange,
   secondaryAlpha,
   onSecondaryAlphaChange,
+  "aria-label": ariaLabel,
 }: ColorPickerProps) {
   const compact = useCompactViewport()
   const supportsGradient = !!onGradientToggle
@@ -271,6 +275,7 @@ export function ColorPicker({
     >
       <PopoverTrigger
         ref={rootTriggerRef}
+        aria-label={ariaLabel}
         className={cn(
           "flex items-center gap-2 rounded-lg border border-border bg-muted/45 px-2.5 py-2 text-left transition-colors hover:border-ring/50 hover:bg-muted/70 focus:ring-2 focus:ring-ring/35 focus:outline-none active:scale-99",
           variant === "inspector" &&

@@ -137,7 +137,10 @@ export function AppLayoutView({
       }
       setCompactPane(pane)
     }
-    transitionCompactPane(update, "compact")
+    transitionCompactPane(
+      update,
+      compactPane !== "preview" && pane !== "preview" ? "instant" : "compact"
+    )
   }
   const compactSheet = compactPane === "preview" ? "closed" : sheetMotion
   const { markExportComplete } = viewportProps.creationJourney

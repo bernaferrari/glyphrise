@@ -57,7 +57,7 @@ test("selected icon name remains readable in the desktop inspector", async ({
   ).toBe(true)
 })
 
-test("phone inspector preserves a live preview without overlaid camera controls", async ({
+test("phone inspector preserves a live preview with its canvas controls", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 568 })
@@ -85,7 +85,7 @@ test("phone inspector preserves a live preview without overlaid camera controls"
   expect((await preview.boundingBox())!.height).toBeGreaterThan(120)
   await expect(
     page.getByRole("button", { name: "View options", exact: true })
-  ).toHaveCount(0)
+  ).toBeVisible()
   await page.getByRole("button", { name: "Canvas", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Reset view", exact: true })
@@ -112,6 +112,75 @@ test("downloads a rendered PNG with the requested dimensions", async ({
   expect(png.subarray(1, 4).toString()).toBe("PNG")
   expect(png.readUInt32BE(16)).toBe(256)
   expect(png.readUInt32BE(20)).toBe(256)
+})
+
+test("Reset view renders intermediate artwork poses and remains one undoable edit", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const transforms = new Set<string>()
+    let recording = false
+    document.addEventListener("capture-reset", () => {
+      recording = true
+      transforms.clear()
+    })
+    ;(
+      window as typeof window & { readResetTransforms: () => string[] }
+    ).readResetTransforms = () => [...transforms]
+    for (const GL of [WebGLRenderingContext, WebGL2RenderingContext]) {
+      const names = new WeakMap<WebGLUniformLocation, string>()
+      const locate = GL.prototype.getUniformLocation
+      GL.prototype.getUniformLocation = function (program, name) {
+        const location = locate.call(this, program, name)
+        if (location) names.set(location, name)
+        return location
+      }
+      const upload = GL.prototype.uniformMatrix4fv
+      GL.prototype.uniformMatrix4fv = function (
+        ...args: [WebGLUniformLocation | null, boolean, Iterable<number>]
+      ) {
+        const [location, , value] = args
+        // Observe the actual 3D artwork; thumbnail stages and SVG controls
+        // cannot make this pass if the canvas skips its intermediate poses.
+        if (
+          recording &&
+          location &&
+          names.get(location) === "modelViewMatrix" &&
+          this.canvas instanceof HTMLCanvasElement &&
+          this.canvas.closest("#glyphrise-preview-frame")
+        ) {
+          const elements = Array.from(value)
+          transforms.add(
+            JSON.stringify(
+              [0, 1, 2, 4, 5, 6, 8, 9, 10].map((index) =>
+                Number(elements[index].toFixed(5))
+              )
+            )
+          )
+        }
+        upload.apply(this, args)
+      }
+    }
+  })
+  await page.reload()
+  const rotation = page.getByLabel("Rotation Y", { exact: true })
+  await rotation.fill("90")
+  await rotation.press("Enter")
+  await page.evaluate(() => document.dispatchEvent(new Event("capture-reset")))
+  await page.getByRole("button", { name: "Reset view", exact: true }).click()
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as typeof window & { readResetTransforms: () => string[] }
+          ).readResetTransforms().length
+      )
+    )
+    .toBeGreaterThan(3)
+  await expect(rotation).toHaveValue("0")
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await expect(rotation).toHaveValue("90")
 })
 
 test("Space on the timeline toggles playback without scrolling, including key repeat", async ({
@@ -263,7 +332,30 @@ test.describe("phone shared canvas transition", () => {
     ).toBeVisible()
     await expect(
       page.getByRole("button", { name: "Transform object", exact: true })
-    ).toHaveCount(0)
+    ).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: "View options", exact: true })
+    ).toBeVisible()
+    await page.getByRole("button", { name: "Motion", exact: true }).click()
+    expect(
+      await page.evaluate(
+        () => document.documentElement.dataset.panelTransition
+      )
+    ).toBeUndefined()
+    expect((await preview.boundingBox())!.height).toBeCloseTo(
+      expanded.height,
+      1
+    )
+    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    expect(
+      await page.evaluate(
+        () => document.documentElement.dataset.panelTransition
+      )
+    ).toBeUndefined()
+    expect((await preview.boundingBox())!.height).toBeCloseTo(
+      expanded.height,
+      1
+    )
     await page.getByRole("button", { name: "Canvas", exact: true }).click()
     await expect
       .poll(() =>

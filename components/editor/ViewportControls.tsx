@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/popover"
 
 export type ViewOptionsPopoverProps = {
-  compact?: boolean
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
   showSelectionOutline: boolean
@@ -41,7 +40,6 @@ export type ViewOptionsPopoverProps = {
 }
 
 export function ViewOptionsPopover({
-  compact = false,
   viewInertiaEnabled,
   showCenterPoint,
   showSelectionOutline,
@@ -65,86 +63,82 @@ export function ViewOptionsPopover({
       >
         <RotateCcw aria-hidden="true" className="size-4" />
       </Button>
-      {!compact && (
-        <>
-          <Button
-            size="icon-lg"
-            variant="viewport-ghost"
-            aria-label="Transform object"
-            aria-pressed={showTransformGizmo}
-            onClick={() => onShowTransformGizmoChange(!showTransformGizmo)}
-            title="Edit the object's position, scale, and rotation"
-          >
-            <Move3D aria-hidden="true" className="size-4" />
-          </Button>
-          <Popover>
-            <PopoverTrigger
-              aria-label="View options"
-              title="View options"
-              render={<Button size="icon-lg" variant="viewport-ghost" />}
-            >
-              <MoreHorizontal className="size-4" />
-            </PopoverTrigger>
-            <PopoverContent
-              density="menu"
-              align="end"
-              side="bottom"
-              sideOffset={8}
-              collisionPadding={12}
-              className="max-h-(--available-height) w-(--spacing-viewport-menu) overflow-y-auto overscroll-contain"
-            >
-              <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-                Drag to rotate.
-                {/* Orbit and zoom need a mouse or trackpad. */}
-                <span className="pointer-coarse:hidden">
-                  {" "}
-                  Alt-drag to orbit the camera, scroll to zoom. Both affect the
-                  preview only.
-                </span>
-              </p>
-              <ViewportToggleGroup label="Feel">
-                <ViewportToggleRow
-                  icon={Wind}
-                  label="Inertia"
-                  description="Keeps spinning briefly after you let go of a drag."
-                  checked={viewInertiaEnabled}
-                  onCheckedChange={onViewInertiaChange}
-                />
-                <ViewportToggleRow
-                  icon={FastForward}
-                  label="Animated seek"
-                  description="Glides to a new time instead of jumping there."
-                  checked={animatedSeekEnabled}
-                  onCheckedChange={onAnimatedSeekChange}
-                />
-              </ViewportToggleGroup>
-              <ViewportToggleGroup label="Show on canvas">
-                <ViewportToggleRow
-                  icon={Crosshair}
-                  label="Center point"
-                  description="Marks the pivot the icon rotates around."
-                  checked={showCenterPoint}
-                  onCheckedChange={onShowCenterPointChange}
-                />
-                <ViewportToggleRow
-                  icon={SquareDashed}
-                  label="Selection outline"
-                  description="Outlines the selected layer. Never exported."
-                  checked={showSelectionOutline}
-                  onCheckedChange={onShowSelectionOutlineChange}
-                />
-                <ViewportToggleRow
-                  icon={Move3D}
-                  label="Transform gizmo"
-                  description="Handles to move, scale, and rotate on the canvas."
-                  checked={showTransformGizmo}
-                  onCheckedChange={onShowTransformGizmoChange}
-                />
-              </ViewportToggleGroup>
-            </PopoverContent>
-          </Popover>
-        </>
-      )}
+      <Button
+        size="icon-lg"
+        variant="viewport-ghost"
+        aria-label="Transform object"
+        aria-pressed={showTransformGizmo}
+        onClick={() => onShowTransformGizmoChange(!showTransformGizmo)}
+        title="Edit the object's position, scale, and rotation"
+      >
+        <Move3D aria-hidden="true" className="size-4" />
+      </Button>
+      <Popover>
+        <PopoverTrigger
+          aria-label="View options"
+          title="View options"
+          render={<Button size="icon-lg" variant="viewport-ghost" />}
+        >
+          <MoreHorizontal className="size-4" />
+        </PopoverTrigger>
+        <PopoverContent
+          density="menu"
+          align="end"
+          side="bottom"
+          sideOffset={8}
+          collisionPadding={12}
+          className="max-h-(--available-height) w-(--spacing-viewport-menu) overflow-y-auto overscroll-contain"
+        >
+          <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
+            Drag to rotate.
+            {/* Orbit and zoom need a mouse or trackpad. */}
+            <span className="pointer-coarse:hidden">
+              {" "}
+              Alt-drag to orbit the camera, scroll to zoom. Both affect the
+              preview only.
+            </span>
+          </p>
+          <ViewportToggleGroup label="Feel">
+            <ViewportToggleRow
+              icon={Wind}
+              label="Inertia"
+              description="Keeps spinning briefly after you let go of a drag."
+              checked={viewInertiaEnabled}
+              onCheckedChange={onViewInertiaChange}
+            />
+            <ViewportToggleRow
+              icon={FastForward}
+              label="Animated seek"
+              description="Glides to a new time instead of jumping there."
+              checked={animatedSeekEnabled}
+              onCheckedChange={onAnimatedSeekChange}
+            />
+          </ViewportToggleGroup>
+          <ViewportToggleGroup label="Show on canvas">
+            <ViewportToggleRow
+              icon={Crosshair}
+              label="Center point"
+              description="Marks the pivot the icon rotates around."
+              checked={showCenterPoint}
+              onCheckedChange={onShowCenterPointChange}
+            />
+            <ViewportToggleRow
+              icon={SquareDashed}
+              label="Selection outline"
+              description="Outlines the selected layer. Never exported."
+              checked={showSelectionOutline}
+              onCheckedChange={onShowSelectionOutlineChange}
+            />
+            <ViewportToggleRow
+              icon={Move3D}
+              label="Transform gizmo"
+              description="Handles to move, scale, and rotate on the canvas."
+              checked={showTransformGizmo}
+              onCheckedChange={onShowTransformGizmoChange}
+            />
+          </ViewportToggleGroup>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }
