@@ -39,6 +39,7 @@ interface ColorPickerProps {
   alpha?: number
   onAlphaChange?: (alpha: number) => void
   className?: string
+  variant?: "default" | "inspector"
   // Optional gradient support — when onGradientToggle is provided, the popover
   // shows a Solid/Gradient toggle and editable stops.
   gradient?: boolean
@@ -63,6 +64,7 @@ export function ColorPicker({
   alpha,
   onAlphaChange,
   className,
+  variant = "default",
   gradient,
   onGradientToggle,
   gradientType = "linear",
@@ -203,7 +205,7 @@ export function ColorPicker({
           ...solidEditorProps,
           footer: (
             <div className="flex items-center gap-1">
-              <span className="mr-auto text-[11px] text-muted-foreground">
+              <span className="mr-auto text-2xs text-muted-foreground">
                 Position
               </span>
               {(["x", "y"] as const).map((axis) => (
@@ -270,35 +272,44 @@ export function ColorPicker({
       <PopoverTrigger
         ref={rootTriggerRef}
         className={cn(
-          "flex items-center gap-2 rounded-lg border border-border bg-muted/45 px-2.5 py-2 text-left transition-colors hover:border-ring/50 hover:bg-muted/70 focus:ring-2 focus:ring-ring/35 focus:outline-none active:scale-[0.99]",
+          "flex items-center gap-2 rounded-lg border border-border bg-muted/45 px-2.5 py-2 text-left transition-colors hover:border-ring/50 hover:bg-muted/70 focus:ring-2 focus:ring-ring/35 focus:outline-none active:scale-99",
+          variant === "inspector" &&
+            "rounded-md border-0 bg-muted/80 px-2 py-0 text-xs text-foreground hover:bg-muted",
           className
         )}
       >
         {isGradient && gradientType === "mesh" ? (
           <MeshPreviewCanvas
+            variant="swatch"
             stops={normalizedStops}
             fallback={primaryHex}
             width={14}
             height={14}
-            className="size-3.5 shrink-0 rounded-[4px] shadow-sm"
+            className="size-3.5 shrink-0"
           />
         ) : (
           <div
-            className="size-3.5 shrink-0 rounded-[4px] border border-foreground/10 shadow-sm"
-            style={{ background: isGradient ? gradientCss : primaryHex }}
+            className="size-3.5 shrink-0 rounded-preview border border-foreground/10 shadow-sm bg-preview"
+            style={
+              {
+                "--preview-background": isGradient ? gradientCss : primaryHex,
+              } as React.CSSProperties
+            }
           />
         )}
-        <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-foreground">
+        <span className="min-w-0 flex-1 truncate text-2xs font-medium text-foreground">
           {isGradient ? "Gradient" : primaryHex}
         </span>
       </PopoverTrigger>
 
       <PopoverContent
+        density="flush"
+        scrollable={true}
         variant="editor"
         ref={rootContentRef}
         className={cn(
-          "editor-scrollbar max-h-(--available-height) overflow-x-hidden overflow-y-auto overscroll-contain p-0 select-none",
-          compact ? "w-[min(24rem,calc(100vw-24px))]" : "w-65"
+          "max-h-(--available-height) overflow-x-hidden overflow-y-auto overscroll-contain select-none",
+          compact ? "w-(--spacing-compact-picker)" : "w-65"
         )}
         // Desktop opens beside the inspector and stays there: growing content
         // scrolls instead of flipping. Phones have no room beside the full-width
@@ -349,7 +360,7 @@ export function ColorPicker({
                       <button
                         type="button"
                         aria-expanded={pointsOpen}
-                        className="-ml-1.5 flex h-7 flex-1 items-center gap-1 rounded-md px-1.5 text-left text-[13px] font-semibold text-foreground transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
+                        className="-ml-1.5 flex h-7 flex-1 items-center gap-1 rounded-md px-1.5 text-left text-control font-semibold text-foreground transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
                         onClick={() => setPointsOpen((open) => !open)}
                       >
                         <ChevronRight
@@ -360,7 +371,7 @@ export function ColorPicker({
                           )}
                         />
                         Points
-                        <span className="ml-0.5 text-[11px] font-normal text-muted-foreground tabular-nums">
+                        <span className="ml-0.5 text-2xs font-normal text-muted-foreground tabular-nums">
                           {normalizedStops.length}
                         </span>
                       </button>
@@ -368,7 +379,7 @@ export function ColorPicker({
                         <button
                           type="button"
                           title="Move grid points back to their spots"
-                          className="h-7 rounded-md px-1.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
+                          className="h-7 rounded-md px-1.5 text-2xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
                           onClick={resetMeshPoints}
                         >
                           Reset
@@ -430,8 +441,8 @@ export function ColorPicker({
                     onCaptureStopOutsidePointer={captureStopOutsidePointer}
                   />
 
-                  <div className="grid h-6 grid-cols-[1fr_28px] items-center gap-1">
-                    <span className="text-[13px] font-semibold text-foreground">
+                  <div className="grid h-6 grid-cols-color-value items-center gap-1">
+                    <span className="text-control font-semibold text-foreground">
                       Stops
                     </span>
                     <button

@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cssLength, cn } from "@/lib/utils"
 import type { EasingType, ShapeStop } from "../TimelineModel"
 import { easingMenuItems } from "./TimelineEasingControls"
 import { widthForSpan, xForFrac } from "./TimelineGeometry"
@@ -134,18 +134,23 @@ export function TimelineTransitionWindow({
             ])
           }}
           className={cn(
-            "group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
+            "group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-2xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
             isCut
               ? "-translate-x-1/2 rounded-md bg-muted"
-              : "rounded-md bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_45%,transparent)_0_4px,transparent_4px_8px)] hover:bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--timeline-clip)_75%,transparent)_0_4px,transparent_4px_8px)]"
+              : "rounded-md bg-transition-window hover:bg-transition-window-hover",
+            "left-(--position-x) w-(--element-width) min-w-(--element-min-width)"
           )}
-          style={{
-            left: xForFrac(startTime / duration),
-            width: isCut
-              ? 22
-              : widthForSpan(Math.max(0, endTime - startTime) / duration),
-            minWidth: 22,
-          }}
+          style={
+            {
+              "--position-x": cssLength(xForFrac(startTime / duration)),
+              "--element-width": cssLength(
+                isCut
+                  ? 22
+                  : widthForSpan(Math.max(0, endTime - startTime) / duration)
+              ),
+              "--element-min-width": "22px",
+            } as React.CSSProperties
+          }
         >
           <span className="flex items-center gap-1 rounded bg-(--timeline-lane)/85 px-1.5 py-0.5">
             <BlockIcon className="size-3.5 shrink-0" strokeWidth={2} />
@@ -213,8 +218,8 @@ function TransitionEdgeHandle({
     <div
       title={title}
       onPointerDown={holdToDrag(onPointerDown)}
-      className="timeline-transition-edge group/edge absolute inset-y-1.5 z-[6] flex w-3 -translate-x-1/2 cursor-trim touch-pan-x touch-pan-y items-center justify-center"
-      style={{ left }}
+      className="timeline-transition-edge group/edge absolute inset-y-1.5 left-(--position-x) z-6 flex w-3 -translate-x-1/2 cursor-trim touch-pan-x touch-pan-y items-center justify-center"
+      style={{ "--position-x": cssLength(left) } as React.CSSProperties}
     >
       <span className="h-full w-0.5 rounded-full bg-(--timeline-playhead) opacity-0 transition-opacity group-hover/edge:opacity-80" />
     </div>

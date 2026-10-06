@@ -103,6 +103,43 @@ test("Animate previews the selected artwork and timeline points stay reachable",
 for (const width of [390, 1280]) {
   test.describe(`property sliders at ${width}px`, () => {
     test.use({ viewport: { width, height: 800 }, hasTouch: width < 720 })
+    test("inspector diamonds stay in place when the first keyframe is added and removed", async ({
+      page,
+    }) => {
+      if (width < 720)
+        await page
+          .getByRole("button", { name: "Properties", exact: true })
+          .click()
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.panelTransition)
+        )
+        .toBeUndefined()
+      const add = page.getByRole("button", {
+        name: "Add depth keyframe at 0.00s",
+        exact: true,
+      })
+      await add.scrollIntoViewIfNeeded()
+      const center = async (button: typeof add) => {
+        const box = (await button.locator("span").boundingBox())!
+        return { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+      }
+      const initial = await center(add)
+      await add.click()
+      const remove = page.getByRole("button", {
+        name: "Remove depth keyframe at 0.00s",
+        exact: true,
+      })
+      await expect(remove).toBeVisible()
+      const keyed = await center(remove)
+      expect(keyed.x).toBeCloseTo(initial.x, 1)
+      expect(keyed.y).toBeCloseTo(initial.y, 1)
+      await remove.click()
+      await expect(add).toBeVisible()
+      const cleared = await center(add)
+      expect(cleared.x).toBeCloseTo(initial.x, 1)
+      expect(cleared.y).toBeCloseTo(initial.y, 1)
+    })
     test("supports pointer and keyboard changes with undo and exact numeric entry", async ({
       page,
     }) => {
@@ -110,6 +147,11 @@ for (const width of [390, 1280]) {
         await page
           .getByRole("button", { name: "Properties", exact: true })
           .click()
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.panelTransition)
+        )
+        .toBeUndefined()
       const slider = page.getByRole("slider", {
         name: "Extrusion depth slider",
         exact: true,
@@ -117,8 +159,8 @@ for (const width of [390, 1280]) {
       const number = page.getByLabel("Extrusion depth", { exact: true })
       await slider.scrollIntoViewIfNeeded()
       const bounds = (await slider.boundingBox())!
-      // Compact on desktop (matches the number field); finger-sized on phones.
-      expect(bounds.height).toBeGreaterThanOrEqual(width < 720 ? 44 : 32)
+      // Slider and number field keep the same compact height on every device.
+      expect(bounds.height).toBe(32)
       const original = await number.inputValue()
       if (width < 720) {
         // A finger that lands on the slider to scroll the panel edits nothing.
@@ -141,7 +183,12 @@ for (const width of [390, 1280]) {
         await swipe("touchEnd", -90)
         await expect(number).toHaveValue(original)
         // A tap sets the value under the finger.
-        await page.touchscreen.tap(x, bounds.y + bounds.height / 2)
+        await slider.scrollIntoViewIfNeeded()
+        const tappedBounds = (await slider.boundingBox())!
+        await page.touchscreen.tap(
+          tappedBounds.x + tappedBounds.width * 0.75,
+          tappedBounds.y + tappedBounds.height / 2
+        )
       } else {
         await slider.click({
           position: { x: bounds.width * 0.75, y: bounds.height / 2 },
@@ -283,13 +330,13 @@ for (const width of [320, 390]) {
         page.getByLabel("Playhead time in seconds", { exact: true })
       ).toHaveValue("0:04.00")
       await expect(preview).toBeVisible()
-      for (const control of [
+      for (const [index, control] of [
         undo,
         page.getByRole("button", { name: "Play timeline", exact: true }),
-      ]) {
+      ].entries()) {
         const box = (await control.boundingBox())!
-        expect(box.width).toBeGreaterThanOrEqual(44)
-        expect(box.height).toBeGreaterThanOrEqual(44)
+        expect(box.width).toBe(index === 0 ? 36 : 28)
+        expect(box.height).toBe(index === 0 ? 36 : 28)
       }
       await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await page.getByRole("button", { name: "Animate", exact: true }).click()

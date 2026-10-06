@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength, cn } from "@/lib/utils"
+
 import { Timeline } from "./Timeline"
 import type { TimelineProps } from "./timeline/TimelineTypes"
 import { useState } from "react"
@@ -23,24 +25,26 @@ export function TimelineDock({
       aria-label="Motion timeline"
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`compact-sheet-pane relative shrink-0 overflow-hidden ${
-        zenMode
-          ? "h-0 border-t-0"
-          : `border-t border-border bg-background ${
-              compactOpen
-                ? "max-[720px]:h-(--compact-pane-height) max-[720px]:min-h-0 max-[720px]:flex-none"
-                : "max-[720px]:hidden"
-            }`
-      }`}
+      className={cn(
+        `compact-sheet-pane relative shrink-0 overflow-hidden ${
+          zenMode
+            ? "h-0 border-t-0"
+            : `border-t border-border bg-background ${
+                compactOpen
+                  ? "max-[720px]:h-(--compact-pane-height) max-[720px]:min-h-0 max-[720px]:flex-none"
+                  : "max-[720px]:hidden"
+              }`
+        }`,
+        "h-(--element-height)"
+      )}
       style={
-        !zenMode
-          ? {
-              height:
-                timelineProps.compactMode && compactOpen
-                  ? "var(--compact-pane-height)"
-                  : `${height}px`,
-            }
-          : undefined
+        {
+          "--element-height": zenMode
+            ? undefined
+            : timelineProps.compactMode && compactOpen
+              ? "var(--compact-pane-height)"
+              : cssLength(height),
+        } as React.CSSProperties
       }
     >
       {!zenMode && (

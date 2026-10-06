@@ -33,15 +33,18 @@ function StarterPreview({
 }) {
   if (motion !== "slash")
     return (
-      <span style={{ color: icon.defaultTint }}>
+      <span
+        className="text-(--element-color)"
+        style={{ "--element-color": icon.defaultTint } as React.CSSProperties}
+      >
         <MotionPresetPreview preset={motion} svgContent={icon.svgContent} />
       </span>
     )
   return (
     <span
       aria-hidden="true"
-      className="relative grid size-12 shrink-0 place-items-center [&_svg]:size-9 [&_svg_*]:fill-current"
-      style={{ color: icon.defaultTint }}
+      className="relative grid size-12 shrink-0 place-items-center text-(--element-color) [&_svg]:size-9 [&_svg_*]:fill-current"
+      style={{ "--element-color": icon.defaultTint } as React.CSSProperties}
     >
       <span
         className="col-start-1 row-start-1 grid place-items-center"
@@ -78,15 +81,17 @@ export function WelcomeDialog({
   )!
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onDismiss()}>
-      <DialogContent className="editor-scrollbar max-h-[calc(100dvh-32px)] gap-5 overflow-y-auto p-5 sm:max-w-xl sm:gap-6 sm:p-8">
-        <DialogHeader className="gap-2 pr-8 sm:gap-3">
+      <DialogContent
+        variant="welcome"
+        scrollable={true}
+        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-xl"
+      >
+        <DialogHeader variant="welcome">
           <span className="text-xs font-medium text-primary">
             Glyphrise · Icon motion
           </span>
-          <DialogTitle className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-            Make something move.
-          </DialogTitle>
-          <DialogDescription className="leading-6 text-pretty sm:max-w-sm">
+          <DialogTitle variant="welcome">Make something move.</DialogTitle>
+          <DialogDescription variant="welcome" className="sm:max-w-sm">
             Pick how it moves. Make it yours with color and depth, then download
             it.
           </DialogDescription>
@@ -129,7 +134,8 @@ export function WelcomeDialog({
         )}
         <div className="grid gap-2">
           <Button
-            className="min-h-12 w-full rounded-xl"
+            shape="rounded"
+            className="min-h-12 w-full"
             disabled={isImporting}
             onClick={() =>
               onCreate(
@@ -171,9 +177,10 @@ export function WelcomeDialog({
             }}
           />
           <Button
+            shape="rounded"
             variant="outline"
             disabled={isImporting}
-            className="min-h-11 w-full rounded-xl"
+            className="min-h-11 w-full"
             onClick={() => inputRef.current?.click()}
           >
             {isImporting ? "Reading your SVG…" : "Use my SVG"}

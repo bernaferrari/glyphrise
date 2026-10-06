@@ -10,6 +10,7 @@ import {
 import { flushSync } from "react-dom"
 import * as THREE from "three"
 import { applySvgModelScale } from "./SvgSceneUtils"
+import { resizeSvgScene } from "./SvgSceneLifecycle"
 import { animateSvgViewReset } from "./SvgViewReset"
 import type { SvgCanvasProps, SvgCanvasRef } from "./SvgTypes"
 import type { ExportRenderOptions } from "./SvgTypes"
@@ -35,11 +36,13 @@ type SvgCanvasImperativeHandleOptions = {
   ref: ForwardedRef<SvgCanvasRef>
   props: SvgCanvasProps
   canvasRef: RefObject<HTMLCanvasElement | null>
+  containerRef: RefObject<HTMLDivElement | null>
   rendererRef: MutableRefObject<THREE.WebGLRenderer | null>
   cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
   exportRenderOptionsRef: MutableRefObject<ExportRenderOptions | null>
   exportRenderSnapshotRef: MutableRefObject<ExportRenderSnapshot | null>
   requestRenderRef: MutableRefObject<() => void>
+  renderFrameRef: MutableRefObject<() => void>
   pivotGroupRef: MutableRefObject<THREE.Group | null>
   iconAGroupRef: MutableRefObject<THREE.Group | null>
   iconBGroupRef: MutableRefObject<THREE.Group | null>
@@ -61,11 +64,13 @@ export function useSvgCanvasImperativeHandle({
   setExportFrameProps,
   props,
   canvasRef,
+  containerRef,
   rendererRef,
   cameraRef,
   exportRenderOptionsRef,
   exportRenderSnapshotRef,
   requestRenderRef,
+  renderFrameRef,
   pivotGroupRef,
   iconAGroupRef,
   iconBGroupRef,
@@ -162,6 +167,16 @@ export function useSvgCanvasImperativeHandle({
   }
 
   useImperativeHandle(ref, () => ({
+    renderLayoutSnapshot() {
+      if (!containerRef.current || exportRenderOptionsRef.current) return
+      resizeSvgScene({
+        container: containerRef.current,
+        cameraRef,
+        rendererRef,
+        currentZoomRef,
+      })
+      renderFrameRef.current()
+    },
     async exportGltf() {
       if (!pivotGroupRef.current) {
         return Promise.reject(

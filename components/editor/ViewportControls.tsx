@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/popover"
 
 export type ViewOptionsPopoverProps = {
+  compact?: boolean
   viewInertiaEnabled: boolean
   showCenterPoint: boolean
   showSelectionOutline: boolean
@@ -40,6 +41,7 @@ export type ViewOptionsPopoverProps = {
 }
 
 export function ViewOptionsPopover({
+  compact = false,
   viewInertiaEnabled,
   showCenterPoint,
   showSelectionOutline,
@@ -54,91 +56,95 @@ export function ViewOptionsPopover({
 }: ViewOptionsPopoverProps) {
   return (
     <div className="absolute top-3 right-3 z-40 flex items-center gap-1 rounded-xl border border-white/10 bg-black/35 p-1 text-white backdrop-blur-md">
-      <button
-        type="button"
+      <Button
+        size="icon-lg"
+        variant="viewport-ghost"
         aria-label="Reset view"
         onClick={onResetView}
         title="Reset rotation, position, scale, camera, and zoom"
-        className="grid size-10 place-items-center rounded-lg text-white/75 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white pointer-coarse:size-11"
       >
         <RotateCcw aria-hidden="true" className="size-4" />
-      </button>
-      <button
-        type="button"
-        aria-label="Transform object"
-        aria-pressed={showTransformGizmo}
-        onClick={() => onShowTransformGizmoChange(!showTransformGizmo)}
-        title="Edit the object's position, scale, and rotation"
-        className="grid size-10 place-items-center rounded-lg text-white/75 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white aria-pressed:bg-white/15 aria-pressed:text-white pointer-coarse:size-11"
-      >
-        <Move3D aria-hidden="true" className="size-4" />
-      </button>
-      <Popover>
-        <PopoverTrigger
-          aria-label="View options"
-          title="View options"
-          className="grid size-10 place-items-center rounded-lg text-white/75 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white pointer-coarse:size-11"
-        >
-          <MoreHorizontal className="size-4" />
-        </PopoverTrigger>
-        <PopoverContent
-          density="menu"
-          align="end"
-          side="bottom"
-          sideOffset={8}
-          collisionPadding={12}
-          className="max-h-(--available-height) w-[min(18rem,calc(100vw-24px))] overflow-y-auto overscroll-contain"
-        >
-          <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to rotate.
-            {/* Orbit and zoom need a mouse or trackpad. */}
-            <span className="pointer-coarse:hidden">
-              {" "}
-              Alt-drag to orbit the camera, scroll to zoom. Both affect the
-              preview only.
-            </span>
-          </p>
-          <ViewportToggleGroup label="Feel">
-            <ViewportToggleRow
-              icon={Wind}
-              label="Inertia"
-              description="Keeps spinning briefly after you let go of a drag."
-              checked={viewInertiaEnabled}
-              onCheckedChange={onViewInertiaChange}
-            />
-            <ViewportToggleRow
-              icon={FastForward}
-              label="Animated seek"
-              description="Glides to a new time instead of jumping there."
-              checked={animatedSeekEnabled}
-              onCheckedChange={onAnimatedSeekChange}
-            />
-          </ViewportToggleGroup>
-          <ViewportToggleGroup label="Show on canvas">
-            <ViewportToggleRow
-              icon={Crosshair}
-              label="Center point"
-              description="Marks the pivot the icon rotates around."
-              checked={showCenterPoint}
-              onCheckedChange={onShowCenterPointChange}
-            />
-            <ViewportToggleRow
-              icon={SquareDashed}
-              label="Selection outline"
-              description="Outlines the selected layer. Never exported."
-              checked={showSelectionOutline}
-              onCheckedChange={onShowSelectionOutlineChange}
-            />
-            <ViewportToggleRow
-              icon={Move3D}
-              label="Transform gizmo"
-              description="Handles to move, scale, and rotate on the canvas."
-              checked={showTransformGizmo}
-              onCheckedChange={onShowTransformGizmoChange}
-            />
-          </ViewportToggleGroup>
-        </PopoverContent>
-      </Popover>
+      </Button>
+      {!compact && (
+        <>
+          <Button
+            size="icon-lg"
+            variant="viewport-ghost"
+            aria-label="Transform object"
+            aria-pressed={showTransformGizmo}
+            onClick={() => onShowTransformGizmoChange(!showTransformGizmo)}
+            title="Edit the object's position, scale, and rotation"
+          >
+            <Move3D aria-hidden="true" className="size-4" />
+          </Button>
+          <Popover>
+            <PopoverTrigger
+              aria-label="View options"
+              title="View options"
+              render={<Button size="icon-lg" variant="viewport-ghost" />}
+            >
+              <MoreHorizontal className="size-4" />
+            </PopoverTrigger>
+            <PopoverContent
+              density="menu"
+              align="end"
+              side="bottom"
+              sideOffset={8}
+              collisionPadding={12}
+              className="max-h-(--available-height) w-(--spacing-viewport-menu) overflow-y-auto overscroll-contain"
+            >
+              <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
+                Drag to rotate.
+                {/* Orbit and zoom need a mouse or trackpad. */}
+                <span className="pointer-coarse:hidden">
+                  {" "}
+                  Alt-drag to orbit the camera, scroll to zoom. Both affect the
+                  preview only.
+                </span>
+              </p>
+              <ViewportToggleGroup label="Feel">
+                <ViewportToggleRow
+                  icon={Wind}
+                  label="Inertia"
+                  description="Keeps spinning briefly after you let go of a drag."
+                  checked={viewInertiaEnabled}
+                  onCheckedChange={onViewInertiaChange}
+                />
+                <ViewportToggleRow
+                  icon={FastForward}
+                  label="Animated seek"
+                  description="Glides to a new time instead of jumping there."
+                  checked={animatedSeekEnabled}
+                  onCheckedChange={onAnimatedSeekChange}
+                />
+              </ViewportToggleGroup>
+              <ViewportToggleGroup label="Show on canvas">
+                <ViewportToggleRow
+                  icon={Crosshair}
+                  label="Center point"
+                  description="Marks the pivot the icon rotates around."
+                  checked={showCenterPoint}
+                  onCheckedChange={onShowCenterPointChange}
+                />
+                <ViewportToggleRow
+                  icon={SquareDashed}
+                  label="Selection outline"
+                  description="Outlines the selected layer. Never exported."
+                  checked={showSelectionOutline}
+                  onCheckedChange={onShowSelectionOutlineChange}
+                />
+                <ViewportToggleRow
+                  icon={Move3D}
+                  label="Transform gizmo"
+                  description="Handles to move, scale, and rotate on the canvas."
+                  checked={showTransformGizmo}
+                  onCheckedChange={onShowTransformGizmoChange}
+                />
+              </ViewportToggleGroup>
+            </PopoverContent>
+          </Popover>
+        </>
+      )}
     </div>
   )
 }
@@ -156,7 +162,7 @@ function ViewportToggleGroup({
       aria-label={label}
       className="border-t border-border pt-1.5 pb-1"
     >
-      <div className="px-2 pb-1 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+      <div className="px-2 pb-1 text-3xs font-semibold tracking-label text-muted-foreground uppercase">
         {label}
       </div>
       {children}
@@ -201,7 +207,7 @@ function ViewportToggleRow({
         </span>
         <span
           id={id}
-          className="block text-[11px] leading-4 text-pretty text-muted-foreground"
+          className="block text-2xs leading-4 text-pretty text-muted-foreground"
         >
           {description}
         </span>
@@ -254,7 +260,7 @@ export function PlaybackControls({
       className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl max-[720px]:bottom-2 max-[720px]:gap-0.5 max-[720px]:p-1"
     >
       <Button
-        size="icon-xl"
+        size="icon-lg"
         variant="viewport-ghost"
         onClick={onReset}
         disabled={atTimelineStart}
@@ -264,7 +270,7 @@ export function PlaybackControls({
         <SkipBack size={14} />
       </Button>
       <Button
-        size="icon-xl"
+        size="icon-lg"
         variant="viewport-ghost"
         onClick={onPreviousKeyMoment}
         disabled={!hasPreviousKeyMoment}
@@ -309,11 +315,11 @@ export function PlaybackControls({
           </svg>
         )}
         <Button
-          size={zenMode ? "icon-xl" : "icon-touch"}
+          shape={zenMode ? "pill" : "rounded"}
+          size="icon-lg"
           variant="viewport-primary"
           onClick={onPlayToggle}
           aria-label={isPlaying ? "Pause" : "Play"}
-          className={zenMode ? "rounded-full" : "rounded-xl"}
         >
           {isPlaying ? (
             <Pause size={16} className="fill-current" />
@@ -323,7 +329,7 @@ export function PlaybackControls({
         </Button>
       </div>
       <Button
-        size="icon-xl"
+        size="icon-lg"
         variant="viewport-ghost"
         onClick={onNextKeyMoment}
         disabled={!hasNextKeyMoment}
@@ -333,7 +339,7 @@ export function PlaybackControls({
         <ChevronRight size={16} />
       </Button>
       <Button
-        size="icon-xl"
+        size="icon-lg"
         variant="viewport-ghost"
         onClick={onGoToEnd}
         disabled={atTimelineEnd}
@@ -343,11 +349,7 @@ export function PlaybackControls({
         <SkipForward size={14} />
       </Button>
       {zenMode && (
-        <Button
-          size="toolbar-sm"
-          variant="viewport-ghost"
-          onClick={onExitZenMode}
-        >
+        <Button size="sm" variant="viewport-ghost" onClick={onExitZenMode}>
           Exit
         </Button>
       )}

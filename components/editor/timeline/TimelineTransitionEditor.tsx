@@ -94,7 +94,7 @@ export function TimelineTransitionEditor({
 
   return (
     // One content width: every row's controls end on the same edge.
-    <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
+    <div className="grid w-full min-w-0 grid-cols-fluid gap-3">
       <div className="flex items-center">
         <div
           role="group"
@@ -229,13 +229,15 @@ function WipeDirectionPicker({
       {/* Preview: the new icon sweeps in from the filled side. */}
       <span
         aria-hidden="true"
-        className="col-start-2 row-start-2 m-auto size-5 rounded-[5px] bg-background/50 ring-1 ring-foreground/10 transition-[background-image] duration-200"
-        style={{
-          backgroundImage: `linear-gradient(${
-            (Math.atan2(stop.wipeDirection.x, stop.wipeDirection.y) * 180) /
-            Math.PI
-          }deg, var(--timeline-accent) 0 45%, transparent 55%)`,
-        }}
+        className="col-start-2 row-start-2 m-auto size-5 rounded-direction bg-background/50 bg-preview-image ring-1 ring-foreground/10 transition-[background-image] duration-200"
+        style={
+          {
+            "--preview-image": `linear-gradient(${
+              (Math.atan2(stop.wipeDirection.x, stop.wipeDirection.y) * 180) /
+              Math.PI
+            }deg, var(--timeline-accent) 0 45%, transparent 55%)`,
+          } as React.CSSProperties
+        }
       />
       {wipeDirections
         .filter((dir) => !(dir.x === 0 && dir.y === 0))
@@ -258,11 +260,13 @@ function WipeDirectionPicker({
                   wipeDirection: { x: dir.x, y: dir.y },
                 })
               }
-              style={{
-                gridColumn: Math.sign(dir.x) + 2,
-                gridRow: 2 - Math.sign(dir.y),
-              }}
-              className="grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm pointer-coarse:size-11"
+              style={
+                {
+                  "--grid-column": Math.sign(dir.x) + 2,
+                  "--grid-row": 2 - Math.sign(dir.y),
+                } as React.CSSProperties
+              }
+              className="col-(--grid-column) row-(--grid-row) grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
             >
               <Icon
                 aria-hidden="true"

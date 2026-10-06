@@ -78,8 +78,10 @@ export function useSvgCanvasSceneRefs(initialZoom: number) {
   const exportRenderOptionsRef = useRef<ExportRenderOptions | null>(null)
   const exportRenderSnapshotRef = useRef<ExportRenderSnapshot | null>(null)
   const requestRenderRef = useRef<() => void>(() => undefined)
+  const renderFrameRef = useRef<() => void>(() => undefined)
 
   return {
+    renderFrameRef,
     containerRef,
     canvasRef,
     rotationDragTooltipRef,

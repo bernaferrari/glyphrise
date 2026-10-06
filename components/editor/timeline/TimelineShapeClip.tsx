@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength, cn } from "@/lib/utils"
+
 import React from "react"
 import { holdToDrag } from "@/lib/touch-intent"
 import type { ShapeStop } from "../TimelineModel"
@@ -129,32 +131,37 @@ export function TimelineShapeClip({
               onShapeDrag(event, stop.id)
             )
       }
-      className={`timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
-        isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-      } ${
-        // Rings sit inside the clip so neighbours never overlap.
-        selected
-          ? "z-[5] bg-[color-mix(in_oklab,var(--timeline-accent)_32%,var(--timeline-lane))] shadow-[inset_0_0_0_1.5px_var(--timeline-accent)]"
-          : "bg-(--timeline-clip) shadow-[inset_0_0_0_1px_var(--timeline-clip-edge),inset_0_1px_0_rgb(255_255_255/0.06)] hover:bg-[color-mix(in_oklab,var(--timeline-accent)_24%,var(--timeline-lane))]"
-      }`}
-      style={{
-        // A hairline gap keeps adjacent clips visibly separate.
-        left: xForFrac(bounds.left / duration, 1),
-        width: `calc(${widthForSpan(Math.max(0, bounds.right - bounds.left) / duration)} - 2px)`,
-        minWidth: 32,
-      }}
+      className={cn(
+        `timeline-icon-clip group/clip absolute inset-y-1.5 flex touch-pan-x touch-pan-y items-stretch overflow-hidden rounded-md text-left transition-[background-color,box-shadow] duration-100 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+          isOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+        } ${
+          // Rings sit inside the clip so neighbours never overlap.
+          selected
+            ? "z-5 bg-timeline-keyframe shadow-timeline-selection"
+            : "bg-(--timeline-clip) shadow-timeline-clip hover:bg-timeline-keyframe-hover"
+        }`,
+        "left-(--position-x) w-(--element-width) min-w-(--element-min-width)"
+      )}
+      style={
+        {
+          // A hairline gap keeps adjacent clips visibly separate.
+          "--position-x": cssLength(xForFrac(bounds.left / duration, 1)),
+          "--element-width": `calc(${widthForSpan(Math.max(0, bounds.right - bounds.left) / duration)} - 2px)`,
+          "--element-min-width": "32px",
+        } as React.CSSProperties
+      }
     >
       <span className="@container flex h-full w-full min-w-0 items-center gap-2 pr-2.5 pl-1.5 @max-[48px]:justify-center @max-[48px]:px-0">
         <span
           aria-hidden="true"
-          className="grid size-6 shrink-0 place-items-center rounded-[5px] bg-black/20 text-(--timeline-clip-fg) [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
+          className="grid size-6 shrink-0 place-items-center rounded-direction bg-black/20 text-(--timeline-clip-fg) [&_svg]:size-3.5 [&_svg]:fill-current [&_svg]:stroke-current"
           dangerouslySetInnerHTML={{ __html: stop.svgContent }}
         />
         <span className="min-w-0 truncate text-xs font-medium text-(--timeline-clip-fg) @max-[80px]:hidden">
           {shapeLabel(stop)}
         </span>
         {isOnly && (
-          <span className="ml-auto shrink truncate text-[11px] text-(--timeline-clip-fg)/60 @max-[420px]:hidden">
+          <span className="ml-auto shrink truncate text-2xs text-(--timeline-clip-fg)/60 @max-[420px]:hidden">
             Add another icon to morph between them
           </span>
         )}

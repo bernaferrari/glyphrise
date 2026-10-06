@@ -102,7 +102,7 @@ export function InspectorSidebar({
       aria-label="Properties inspector"
       inert={zenMode}
       aria-hidden={zenMode}
-      className={`compact-sheet-pane flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-(--compact-pane-height) max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-[clamp(300px,28vw,352px)] border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
+      className={`compact-sheet-pane flex shrink-0 flex-col overflow-hidden bg-background max-[720px]:relative max-[720px]:h-(--compact-pane-height) max-[720px]:w-full max-[720px]:border-t max-[720px]:border-l-0 ${zenMode ? "pointer-events-none w-0 border-l-0 opacity-0" : `w-(--spacing-inspector) border-l border-border ${compactOpen ? "max-[720px]:flex" : "max-[720px]:hidden"}`}`}
     >
       {!compact && (
         <InspectorContextHeader
@@ -113,9 +113,10 @@ export function InspectorSidebar({
       <PropertyEditScopeProvider value={editScopeProps}>
         {compact ? (
           <Tabs
+            spacing="flush"
             value={activeTab}
             onValueChange={(value) => onTabChange(value as InspectorTab)}
-            className="min-h-0 flex-1 gap-0"
+            className="min-h-0 flex-1"
           >
             <div className="shrink-0 border-b border-border px-3 py-2">
               <TabsList
@@ -131,9 +132,10 @@ export function InspectorSidebar({
                   ] as const
                 ).map(([value, label]) => (
                   <TabsTrigger
+                    size="inspector"
                     key={value}
                     value={value}
-                    className="h-9 text-[13px]"
+                    className="h-9"
                   >
                     {label}
                   </TabsTrigger>

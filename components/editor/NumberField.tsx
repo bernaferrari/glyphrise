@@ -136,7 +136,7 @@ export function NumberField({
       }}
       title={feedback ?? "Drag to adjust · click to type"}
       className={cn(
-        "flex h-8 cursor-ew-resize items-center rounded-md bg-muted/80 px-2 text-foreground transition-colors focus-within:bg-muted hover:bg-muted max-[720px]:min-h-11 pointer-coarse:min-h-11 pointer-coarse:cursor-text",
+        "flex h-8 cursor-ew-resize items-center rounded-md bg-muted/80 px-2 text-foreground transition-colors focus-within:bg-muted hover:bg-muted pointer-coarse:cursor-text",
         feedback
           ? "ring-1 ring-destructive/50 focus-within:ring-destructive/50"
           : "focus-within:ring-1 focus-within:ring-ring",
@@ -145,8 +145,11 @@ export function NumberField({
     >
       {prefix && (
         <span
-          className={`mr-1 text-[11px] leading-none ${prefixColor ? "font-medium" : "font-medium text-muted-foreground"}`}
-          style={prefixColor ? { color: prefixColor } : undefined}
+          className={cn(
+            `mr-1 text-2xs leading-none ${prefixColor ? "font-medium" : "font-medium text-muted-foreground"}`,
+            "text-(--element-color)"
+          )}
+          style={{ "--element-color": prefixColor } as React.CSSProperties}
         >
           {prefix}
         </span>
@@ -206,9 +209,7 @@ export function NumberField({
         {feedback}
       </span>
       {suffix && (
-        <span className="pl-0.5 text-[11px] text-muted-foreground">
-          {suffix}
-        </span>
+        <span className="pl-0.5 text-2xs text-muted-foreground">{suffix}</span>
       )}
     </div>
   )

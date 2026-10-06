@@ -29,11 +29,13 @@ export function TimelineLanesSurface({
           blank bg-background slab shows under "Add property". */}
       <div className="flex min-h-full min-w-full">
         <div
-          className="relative flex min-h-full shrink-0 flex-col"
-          style={{
-            width: `${viewport.timelineZoom * 100}%`,
-            minWidth: "100%",
-          }}
+          className="relative flex min-h-full w-(--element-width) min-w-(--element-min-width) shrink-0 flex-col"
+          style={
+            {
+              "--element-width": `${viewport.timelineZoom * 100}%`,
+              "--element-min-width": "100%",
+            } as React.CSSProperties
+          }
         >
           <TimelineRuler
             ref={viewport.laneRef}
@@ -144,7 +146,7 @@ export function TimelineLanesSurface({
                 second-grid lines and the playhead are not cut short by empty bg. */}
             {trackLane.showAddPropertyRow && (
               <div
-                className="h-[var(--timeline-property-height)] border-b border-border/60"
+                className="h-(--timeline-property-height) border-b border-border/60"
                 aria-hidden="true"
               />
             )}

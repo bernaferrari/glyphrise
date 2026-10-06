@@ -43,9 +43,8 @@ describe("mesh warp", () => {
 
 describe("mesh keyframes", () => {
   it("animates dragged node positions between keyframes", async () => {
-    const { interpolateFillKeyframes } = await import(
-      "../components/editor/TimelineModel"
-    )
+    const { interpolateFillKeyframes } =
+      await import("../components/editor/TimelineModel")
     const stops = (x: number) =>
       Array.from({ length: 9 }, (_, i) => ({
         id: `p${i}`,

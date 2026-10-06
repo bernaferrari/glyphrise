@@ -41,12 +41,17 @@ test("each tab searches its own content, and Enter chooses a real symbol", async
 for (const width of [390, 1024]) {
   test.describe(`touch timeline at ${width}px`, () => {
     test.use({ viewport: { width, height: 800 }, hasTouch: true })
-    test("provides distinct finger-sized targets and keeps property rows aligned", async ({
+    test("keeps standard control sizes on touch and property rows aligned", async ({
       page,
     }) => {
       await page.goto("/")
       if (width < 720)
         await page.getByRole("button", { name: "Motion", exact: true }).click()
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.panelTransition)
+        )
+        .toBeUndefined()
       const targets = [
         page.getByRole("button", { name: "Timeline options", exact: true }),
         page.getByRole("button", {
@@ -54,7 +59,7 @@ for (const width of [390, 1024]) {
           exact: true,
         }),
       ]
-      for (const target of targets) {
+      for (const [index, target] of targets.entries()) {
         await target.scrollIntoViewIfNeeded()
         const size = await target.evaluate((element) => {
           const rect = element.getBoundingClientRect()
@@ -69,8 +74,8 @@ for (const width of [390, 1024]) {
             ),
           }
         })
-        expect(size.width).toBeGreaterThanOrEqual(44)
-        expect(size.height).toBeGreaterThanOrEqual(44)
+        expect(size.width).toBe(index === 0 ? 28 : 20)
+        expect(size.height).toBe(index === 0 ? 28 : 20)
         expect(
           size.reachable,
           (await target.getAttribute("aria-label")) ?? "Timeline target"
@@ -86,15 +91,15 @@ for (const width of [390, 1024]) {
         // Measure after the popup's scale transition settles.
         await expect
           .poll(async () => (await toggle.boundingBox())?.height ?? 0)
-          .toBeGreaterThanOrEqual(44)
-        expect((await toggle.boundingBox())!.width).toBeGreaterThanOrEqual(44)
+          .toBeGreaterThanOrEqual(40)
+        expect((await toggle.boundingBox())!.width).toBeGreaterThanOrEqual(40)
       }
       await page.keyboard.press("Escape")
       const rail = page
         .getByRole("button", { name: "Select Rotation property", exact: true })
         .locator("..")
-      // Rows stay one finger-height line on touch; lanes must match.
-      expect((await rail.boundingBox())!.height).toBe(44)
+      // Compact rows use the same height as desktop; lanes must match.
+      expect((await rail.boundingBox())!.height).toBe(34)
       const keyframe = page.locator(".timeline-keyframe").first()
       const railBox = (await rail.boundingBox())!
       const keyframeBox = (await keyframe.boundingBox())!
@@ -151,8 +156,8 @@ test.describe("touch transition editing", () => {
       exact: true,
     })
     const box = (await direction.boundingBox())!
-    expect(box.width).toBeGreaterThanOrEqual(44)
-    expect(box.height).toBeGreaterThanOrEqual(44)
+    expect(box.width).toBe(28)
+    expect(box.height).toBe(28)
     await direction.click()
     await expect(direction).toHaveAttribute("aria-pressed", "true")
     await page.keyboard.press("Escape")

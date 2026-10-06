@@ -48,9 +48,6 @@ const DESCRIPTIONS = {
     "An editable 3D file. Some gradients and finishes are simplified; icon transitions are left out.",
 } as const
 
-const CHECKERBOARD =
-  "repeating-conic-gradient(color-mix(in oklab, var(--foreground) 9%, transparent) 0 25%, transparent 0 50%) 0 0 / 14px 14px"
-
 /** The output frame at its real proportions, with the chosen background. */
 function OutputPreview({
   format,
@@ -133,15 +130,17 @@ function OutputPreview({
     <div className="flex flex-col items-center justify-center gap-3 bg-muted/40 p-6 max-md:flex-row max-md:justify-start max-md:gap-4 max-md:px-5 max-md:py-4">
       <div className="grid size-56 place-items-center max-md:size-24">
         <div
-          className="relative grid place-items-center overflow-hidden rounded-lg shadow-[0_0_0_1px_var(--border),0_12px_32px_-16px_rgba(0,0,0,0.55)] transition-[width,height] duration-200"
-          style={{
-            width: `${width}%`,
-            height: `${height}%`,
-            background:
-              shown.backgroundMode === "color"
-                ? shown.backgroundColor
-                : CHECKERBOARD,
-          }}
+          className="relative grid h-(--element-height) w-(--element-width) place-items-center overflow-hidden rounded-lg shadow-export-preview transition-[width,height] duration-200 bg-preview"
+          style={
+            {
+              "--element-width": `${width}%`,
+              "--element-height": `${height}%`,
+              "--preview-background":
+                shown.backgroundMode === "color"
+                  ? shown.backgroundColor
+                  : "var(--background-export-checkerboard)",
+            } as React.CSSProperties
+          }
         >
           {ready ? (
             <img
@@ -206,7 +205,7 @@ export function ExportAssetOptions(props: Props) {
   const progress = Math.max(0, Math.min(1, props.progress))
 
   return (
-    <div className="grid md:grid-cols-[288px_minmax(0,1fr)]">
+    <div className="grid md:grid-cols-export">
       <OutputPreview
         format={format}
         settings={props.settings}
@@ -216,7 +215,7 @@ export function ExportAssetOptions(props: Props) {
       />
 
       <div className="flex min-w-0 flex-col">
-        <div className="editor-scrollbar grid gap-5 p-5 md:max-h-[min(480px,calc(100dvh-220px))] md:overflow-y-auto">
+        <div className="editor-scrollbar grid gap-5 p-5 md:max-h-(--spacing-export-options) md:overflow-y-auto">
           <div className="grid gap-3">
             <div
               role="group"
@@ -235,7 +234,7 @@ export function ExportAssetOptions(props: Props) {
                       props.onSettingsChange({ backgroundMode: "color" })
                     setFormat(id)
                   }}
-                  className="flex min-h-16 flex-col items-start justify-center gap-1 rounded-xl border border-border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-[inset_0_0_0_1px_var(--primary)]"
+                  className="flex min-h-16 flex-col items-start justify-center gap-1 rounded-xl border border-border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection"
                 >
                   <span className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-foreground">
                     <Icon
@@ -303,6 +302,7 @@ export function ExportAssetOptions(props: Props) {
             </p>
           )}
           <Button
+            shape="rounded"
             disabled={
               !props.isRecording &&
               (busy ||
@@ -310,14 +310,18 @@ export function ExportAssetOptions(props: Props) {
                 (format === "video" && !videoSupported))
             }
             onClick={props.isRecording ? props.onCancelVideoExport : action}
-            className="relative min-h-11 w-full overflow-hidden rounded-xl"
+            className="relative min-h-11 w-full overflow-hidden"
           >
             {props.isRecording ? (
               <>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 origin-left bg-white/15 transition-transform"
-                  style={{ transform: `scaleX(${progress})` }}
+                  className="absolute inset-0 origin-left transform-(--element-transform) bg-white/15 transition-transform"
+                  style={
+                    {
+                      "--element-transform": `scaleX(${progress})`,
+                    } as React.CSSProperties
+                  }
                 />
                 <span className="relative tabular-nums">
                   Recording {Math.round(progress * 100)}% · Cancel

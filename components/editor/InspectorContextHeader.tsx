@@ -41,9 +41,10 @@ export function InspectorContextHeader({
           <span
             className={cn(
               "grid shrink-0 place-items-center rounded-lg bg-muted ring-1 ring-border/70 [&_svg_*]:fill-current",
-              compact ? "size-8 [&_svg]:size-4.5" : "size-9 [&_svg]:size-5"
+              compact ? "size-8 [&_svg]:size-4.5" : "size-9 [&_svg]:size-5",
+              "text-(--element-color)"
             )}
-            style={{ color: shape.color }}
+            style={{ "--element-color": shape.color } as React.CSSProperties}
             aria-hidden="true"
             dangerouslySetInnerHTML={{ __html: shape.svgContent }}
           />
@@ -52,13 +53,13 @@ export function InspectorContextHeader({
               title={shape.label}
               className={cn(
                 "block truncate font-semibold",
-                compact ? "text-[13px]" : "text-sm"
+                compact ? "text-control" : "text-sm"
               )}
             >
               {shape.label}
             </span>
             {!compact && (
-              <span className="block text-[11px] text-muted-foreground transition-colors group-hover:text-foreground">
+              <span className="block text-2xs text-muted-foreground transition-colors group-hover:text-foreground">
                 Change icon
               </span>
             )}
@@ -108,7 +109,7 @@ export function InspectorContextHeader({
     )
 
   return (
-    <div className="flex shrink-0 flex-col border-b border-border bg-background">
+    <div className="flex shrink-0 flex-col border-b border-border bg-background pb-2">
       {iconButton && (
         <div className="flex items-center gap-1 px-3 py-2.5">{iconButton}</div>
       )}

@@ -1,3 +1,4 @@
+import type { MaterialSymbolPreviewStyle } from "../IconLibrary"
 import type { MaterialWipeIconPair } from "../MaterialWipePairs"
 import type { ShapeStop } from "../TimelineModel"
 import { cn } from "@/lib/utils"
@@ -14,7 +15,7 @@ export function WipePairsSection({
   stop: ShapeStop
   filteredWipePairs: MaterialWipeIconPair[]
   materialSymbolClass: string
-  symbolStyle: React.CSSProperties
+  symbolStyle: MaterialSymbolPreviewStyle
   className?: string
   onChooseWipePair: (shapeId: string, pair: MaterialWipeIconPair) => void
 }) {
@@ -23,7 +24,7 @@ export function WipePairsSection({
   return (
     // Same tiles as the Presets tab: preview on top, name underneath.
     <div className={cn("mb-3", className)}>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2 pr-1">
+      <div className="grid grid-cols-presets gap-2 pr-1">
         {filteredWipePairs.map((pair) => (
           <button
             key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}
@@ -35,7 +36,11 @@ export function WipePairsSection({
             <WipePairPreview
               pair={pair}
               className={materialSymbolClass}
-              style={symbolStyle}
+              style={
+                {
+                  "--symbol-variation": symbolStyle["--symbol-variation"],
+                } as React.CSSProperties
+              }
               mode={pair.disabled.endsWith("_off") ? "slash" : "real"}
             />
             <span className="line-clamp-2 w-full text-xs font-medium text-foreground">

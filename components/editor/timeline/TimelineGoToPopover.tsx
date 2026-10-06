@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength } from "@/lib/utils"
+
 import React from "react"
 import {
   Popover,
@@ -38,19 +40,25 @@ export function TimelineGoToPopover({
       <PopoverTrigger
         aria-hidden="true"
         tabIndex={-1}
-        className="fixed size-px opacity-0"
-        style={{ left: editor.x, top: editor.y }}
+        className="fixed top-(--position-y) left-(--position-x) size-px opacity-0"
+        style={
+          {
+            "--position-x": cssLength(editor.x),
+            "--position-y": cssLength(editor.y),
+          } as React.CSSProperties
+        }
       />
       <PopoverContent
+        density="tight"
         side="bottom"
         align="start"
         sideOffset={6}
-        className="w-32 border-border bg-popover p-2 text-popover-foreground"
+        className="w-32"
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         onContextMenu={(event) => event.preventDefault()}
       >
-        <label className="mb-1 block text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+        <label className="mb-1 block text-2xs font-medium tracking-label text-muted-foreground uppercase">
           Go to
         </label>
         <div className="flex h-8 items-center rounded-md bg-muted/70 ring-1 ring-border">
@@ -78,7 +86,7 @@ export function TimelineGoToPopover({
             onBlur={onCommit}
             className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-xs text-foreground outline-none"
           />
-          <span className="pr-2 text-[11px] text-muted-foreground">s</span>
+          <span className="pr-2 text-2xs text-muted-foreground">s</span>
         </div>
       </PopoverContent>
     </Popover>

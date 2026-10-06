@@ -117,30 +117,31 @@ export function ColorGradientStopRows({
         return (
           <div
             key={`stop-row-${stopItem.id}`}
-            style={{
-              transform: dragging
-                ? `translateY(${drag.offset}px)`
-                : shift
-                  ? `translateY(${shift}px)`
-                  : undefined,
-            }}
+            style={
+              {
+                "--element-transform": dragging
+                  ? `translateY(${drag.offset}px)`
+                  : shift
+                    ? `translateY(${shift}px)`
+                    : undefined,
+              } as React.CSSProperties
+            }
             onClick={() => {
               onActiveStopChange(stop)
             }}
             onPointerEnter={() => onHoverStop?.(stop)}
             onPointerLeave={() => onHoverStop?.(null)}
             className={cn(
-              "group/row relative -mx-1.5 grid h-8 items-center gap-x-1 rounded-md px-1.5 text-left text-[13px]",
-              reorderable
-                ? "grid-cols-[16px_minmax(0,1fr)_24px]"
-                : "grid-cols-[52px_minmax(0,1fr)_28px]",
+              "group/row relative -mx-1.5 grid h-8 items-center gap-x-1 rounded-md px-1.5 text-left text-control",
+              reorderable ? "grid-cols-color-stop" : "grid-cols-gradient-stop",
               dragging
-                ? "z-10 bg-muted shadow-[0_6px_16px_rgb(0_0_0/35%)]"
+                ? "z-10 bg-muted shadow-mesh-handle"
                 : drag
                   ? "transition-transform duration-150"
                   : active
                     ? "bg-accent text-accent-foreground"
-                    : "hover:bg-muted/60"
+                    : "hover:bg-muted/60",
+              "transform-(--element-transform)"
             )}
           >
             {reorderable && (
@@ -191,8 +192,8 @@ export function ColorGradientStopRows({
                 }}
               >
                 <PopoverTrigger
-                  className="size-4.5 shrink-0 rounded-[4px] border border-border focus:ring-2 focus:ring-ring/35 focus:outline-none"
-                  style={{ backgroundColor: stopColor }}
+                  className="size-4.5 shrink-0 rounded-preview border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
+                  style={{ "--swatch-color": stopColor } as React.CSSProperties}
                   onPointerDown={(event) => {
                     event.stopPropagation()
                     onStopEditorOpenIntent()
@@ -288,12 +289,12 @@ export function PercentField({
   const display = String(Math.round(value * 100))
   return (
     <label
-      className="flex h-7 min-w-0 items-center gap-0.5 rounded-md px-1.5 font-mono text-[11px] text-foreground/80 tabular-nums transition-colors focus-within:bg-muted/70 focus-within:text-foreground focus-within:ring-2 focus-within:ring-ring/35 hover:bg-muted/50"
+      className="flex h-7 min-w-0 items-center gap-0.5 rounded-md px-1.5 font-mono text-2xs text-foreground/80 tabular-nums transition-colors focus-within:bg-muted/70 focus-within:text-foreground focus-within:ring-2 focus-within:ring-ring/35 hover:bg-muted/50"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >
       {prefix && (
-        <span className="text-[10px] font-medium text-muted-foreground/70">
+        <span className="text-3xs font-medium text-muted-foreground/70">
           {prefix}
         </span>
       )}
@@ -316,7 +317,7 @@ export function PercentField({
           }
         }}
       />
-      <span className="text-[10px] text-muted-foreground/60">%</span>
+      <span className="text-3xs text-muted-foreground/60">%</span>
     </label>
   )
 }

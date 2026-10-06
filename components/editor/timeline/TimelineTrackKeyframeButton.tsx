@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength, cn } from "@/lib/utils"
+
 import React from "react"
 import { holdToDrag } from "@/lib/touch-intent"
 import {
@@ -109,13 +111,18 @@ export function TimelineTrackKeyframeButton({
         aria-pressed={selected}
         data-keyframe-row={track.id}
         title={`${track.name} · ${formatValueLabel(track, keyframe.value)} @ ${keyframe.time.toFixed(2)}s`}
-        className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
-        style={{
-          left: xForFrac(keyframe.time / duration),
-          zIndex: selected
-            ? TIMELINE_LAYER.selectedKeyframe
-            : TIMELINE_LAYER.trackKeyframe,
-        }}
+        className={cn(
+          `timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`,
+          "left-(--position-x) z-(--stack-order)"
+        )}
+        style={
+          {
+            "--position-x": cssLength(xForFrac(keyframe.time / duration)),
+            "--stack-order": selected
+              ? TIMELINE_LAYER.selectedKeyframe
+              : TIMELINE_LAYER.trackKeyframe,
+          } as React.CSSProperties
+        }
         onPointerDown={(event) => {
           if (!event.isPrimary) return
           event.stopPropagation()
@@ -184,15 +191,16 @@ export function TimelineTrackKeyframeButton({
       </PopoverTrigger>
       {editingTime && timeEditor && (
         <PopoverContent
+          density="tight"
           side="top"
           align="center"
           sideOffset={8}
-          className="w-32 p-2"
+          className="w-32"
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.stopPropagation()}
         >
-          <label className="mb-1 block text-left text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+          <label className="mb-1 block text-left text-2xs font-medium tracking-label text-muted-foreground uppercase">
             Time (0–{duration.toFixed(1)}s)
           </label>
           <div
@@ -224,15 +232,15 @@ export function TimelineTrackKeyframeButton({
               }}
               className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-xs text-foreground outline-none"
             />
-            <span className="pr-2 text-[11px] text-muted-foreground">s</span>
+            <span className="pr-2 text-2xs text-muted-foreground">s</span>
           </div>
           {!timeDraftInvalid && keyframeTimeClampNotice && editingTime ? (
-            <p className="mt-1 text-left text-[10px] text-warning">
+            <p className="mt-1 text-left text-3xs text-warning">
               {keyframeTimeClampNotice}
             </p>
           ) : null}
           {timeDraftInvalid && (
-            <p className="mt-1 text-left text-[10px] text-destructive">
+            <p className="mt-1 text-left text-3xs text-destructive">
               Enter a time in seconds
             </p>
           )}

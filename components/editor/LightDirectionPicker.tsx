@@ -71,7 +71,7 @@ export function LightDirectionPicker({
     })
   }
 
-  const triggerSphere = `radial-gradient(circle at ${hx}% ${hy}%, #f8fafc 0%, ${color} 32%, #3f3f46 72%, #18181b 100%)`
+  const triggerSphere = `radial-gradient(circle at ${hx}% ${hy}%, var(--color-light-highlight) 0%, ${color} 32%, var(--color-light-trigger-edge) 72%, var(--color-light-trigger-shadow) 100%)`
 
   const horizontal = nx < -0.15 ? "Left" : nx > 0.15 ? "Right" : ""
   const vertical = ny > 0.15 ? "Top" : ny < -0.15 ? "Bottom" : ""
@@ -86,8 +86,10 @@ export function LightDirectionPicker({
       >
         <span className="relative size-5 shrink-0 overflow-hidden rounded-full border border-border bg-background/50 dark:bg-background/30">
           <span
-            className="absolute inset-0.5 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.38),inset_0_-1px_1px_rgba(0,0,0,0.2)]"
-            style={{ background: triggerSphere }}
+            className="absolute inset-0.5 rounded-full shadow-color-stop-gloss bg-preview"
+            style={
+              { "--preview-background": triggerSphere } as React.CSSProperties
+            }
           />
         </span>
         <span className="min-w-0 flex-1 truncate text-xs">
@@ -96,13 +98,14 @@ export function LightDirectionPicker({
         <ChevronDown className="size-3 shrink-0 text-muted-foreground/70" />
       </PopoverTrigger>
       <PopoverContent
+        density="spacious"
         variant="editor"
         align="end"
         sideOffset={6}
-        className="w-60 p-3"
+        className="w-60"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+          <span className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
             Light Source
           </span>
           {keyframeControls ?? (
@@ -118,8 +121,14 @@ export function LightDirectionPicker({
               }`}
             >
               <span
-                className="size-2 rotate-45 border border-ring/50"
-                style={{ backgroundColor: isKeyed ? "#ffd9a0" : "transparent" }}
+                className="size-2 rotate-45 border border-ring/50 bg-(--swatch-color)"
+                style={
+                  {
+                    "--swatch-color": isKeyed
+                      ? "var(--color-light-keyframe)"
+                      : "transparent",
+                  } as React.CSSProperties
+                }
               />
             </button>
           )}
@@ -130,18 +139,25 @@ export function LightDirectionPicker({
           <div
             ref={padRef}
             onPointerDown={handlePadDown}
-            className="relative size-full cursor-grab touch-none overflow-hidden rounded-full active:cursor-grabbing"
-            style={{
-              background: `radial-gradient(circle at ${hx}% ${hy}%, #f8fafc 0%, ${color} 24%, #27272a 68%, #0b0b0d 100%)`,
-            }}
+            className="relative size-full cursor-grab touch-none overflow-hidden rounded-full bg-preview active:cursor-grabbing"
+            style={
+              {
+                "--preview-background": `radial-gradient(circle at ${hx}% ${hy}%, var(--color-light-highlight) 0%, ${color} 24%, var(--color-light-pad-edge) 68%, var(--color-light-pad-shadow) 100%)`,
+              } as React.CSSProperties
+            }
           >
             <span
-              className="pointer-events-none absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-[0_0_8px_2px_rgba(255,255,255,0.7)] ring-1 ring-black/40"
-              style={{ left: `${hx}%`, top: `${hy}%` }}
+              className="pointer-events-none absolute top-(--position-y) left-(--position-x) size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white shadow-light-source ring-1 ring-black/40"
+              style={
+                {
+                  "--position-x": `${hx}%`,
+                  "--position-y": `${hy}%`,
+                } as React.CSSProperties
+              }
             />
           </div>
         </div>
-        <p className="mt-2 text-center text-[11px] text-muted-foreground">
+        <p className="mt-2 text-center text-2xs text-muted-foreground">
           Drag to move the light
         </p>
 
@@ -156,7 +172,7 @@ export function LightDirectionPicker({
           />
         </div>
         <div className="mt-2.5 flex items-center gap-2">
-          <span className="w-14 shrink-0 text-[11px] font-medium text-muted-foreground">
+          <span className="w-14 shrink-0 text-2xs font-medium text-muted-foreground">
             Softbox
           </span>
           <span className="flex-1" />

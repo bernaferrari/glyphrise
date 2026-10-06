@@ -1,3 +1,4 @@
+import { cssLength, cn } from "@/lib/utils"
 import React from "react"
 import { holdToDrag } from "@/lib/touch-intent"
 import {
@@ -127,8 +128,13 @@ function MotionSegment({
     return (
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 h-px -translate-y-1/2 bg-(--timeline-accent) opacity-70"
-        style={{ left, width }}
+        className="pointer-events-none absolute top-1/2 left-(--position-x) h-px w-(--element-width) -translate-y-1/2 bg-(--timeline-accent) opacity-70"
+        style={
+          {
+            "--position-x": cssLength(left),
+            "--element-width": cssLength(width),
+          } as React.CSSProperties
+        }
       />
     )
   return (
@@ -146,12 +152,20 @@ function MotionSegment({
       <PopoverTrigger
         aria-label={label}
         title={`${getEasingLabel(easing)} · click to change easing${onDragStart ? ", drag to move" : ""}`}
-        className={`group/segment absolute top-1/2 flex h-4 -translate-y-1/2 items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-          onDragStart
-            ? "cursor-grab touch-pan-x touch-pan-y active:cursor-grabbing"
-            : "cursor-pointer"
-        }`}
-        style={{ left, width }}
+        className={cn(
+          `group/segment absolute top-1/2 flex h-4 -translate-y-1/2 items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            onDragStart
+              ? "cursor-grab touch-pan-x touch-pan-y active:cursor-grabbing"
+              : "cursor-pointer"
+          }`,
+          "left-(--position-x) w-(--element-width)"
+        )}
+        style={
+          {
+            "--position-x": cssLength(left),
+            "--element-width": cssLength(width),
+          } as React.CSSProperties
+        }
         onPointerDown={(event) => {
           if (!event.isPrimary || event.button !== 0) return
           event.stopPropagation()
@@ -194,15 +208,15 @@ function MotionSegment({
         </span>
       </PopoverTrigger>
       <PopoverContent
+        density="toolbar"
         side="top"
         sideOffset={8}
         initialFocus={false}
-        className="gap-2"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="text-[11px] text-muted-foreground tabular-nums">
+        <p className="text-2xs text-muted-foreground tabular-nums">
           {name} · {from.time.toFixed(2)}s → {to.time.toFixed(2)}s
         </p>
         <EasingChoices
@@ -252,8 +266,8 @@ export const TimelineLaneGhost = ({
   x === null ? null : (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40"
-      style={{ left: x }}
+      className="pointer-events-none absolute top-1/2 left-(--position-x) -translate-x-1/2 -translate-y-1/2 opacity-40"
+      style={{ "--position-x": cssLength(x) } as React.CSSProperties}
     >
       <svg viewBox="0 0 16 16" className="size-4 overflow-visible">
         <rect

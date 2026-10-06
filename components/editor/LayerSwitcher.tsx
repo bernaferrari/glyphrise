@@ -94,12 +94,12 @@ function LayerSwitcherComponent({
       <div
         className={
           leading
-            ? "flex items-center gap-2"
-            : "flex items-center gap-2 px-3 py-1.5"
+            ? "flex items-center gap-2 pb-2"
+            : "flex items-center gap-2 px-3 pt-1.5 pb-2"
         }
       >
         {leading ?? (
-          <span className="text-[11px] font-medium text-muted-foreground">
+          <span className="text-2xs font-medium text-muted-foreground">
             Layers
           </span>
         )}
@@ -183,7 +183,7 @@ function LayerSwitcherComponent({
       </div>
 
       {showLayerControls ? (
-        <div className="flex flex-col gap-0.5 border-t border-border/40 p-1">
+        <div className="flex flex-col gap-0.5 border-t border-border/40 px-1 pt-2 pb-3">
           <InspectorRow label="Scale">
             <InspectorSlider
               value={selectedLayerOverride.scale?.x ?? 1}

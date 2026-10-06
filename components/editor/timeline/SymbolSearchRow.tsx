@@ -1,3 +1,4 @@
+import type { MaterialSymbolPreviewStyle } from "../IconLibrary"
 import { Search } from "lucide-react"
 import {
   getMaterialSymbolNames,
@@ -32,7 +33,7 @@ export function SymbolSearchRow({
   searchScope?: "symbols" | "presets" | "wipe"
   stop: ShapeStop
   materialSymbolClass: string
-  symbolStyle: React.CSSProperties
+  symbolStyle: MaterialSymbolPreviewStyle
   materialSymbolStyle: MaterialSymbolStyle
   materialSymbolSettings: MaterialSymbolFontSettings
   materialSymbolOptionsOpen: boolean

@@ -84,8 +84,9 @@ export function SolidColorEditor({
       onValueChange={(next) => setFormat(next as ColorFormat)}
     >
       <SelectTrigger
+        variant="color-format"
         size="sm"
-        className="h-8 w-18 shrink-0 rounded-lg border-border bg-muted/60 px-3 text-[11px] text-foreground hover:bg-muted/75"
+        className="h-8 w-18 shrink-0"
       >
         <SelectValue>{format}</SelectValue>
       </SelectTrigger>
@@ -111,22 +112,26 @@ export function SolidColorEditor({
         onMouseDown={handleCanvasStart}
         onTouchStart={handleCanvasStart}
         className={cn(
-          "relative w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-muted shadow-[inset_0_0_0_1px_hsl(var(--border)/0.45)] select-none",
+          "relative w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-muted shadow-color-area select-none",
           compact ? "h-40" : "h-56"
         )}
       >
         <div
-          className="absolute inset-px rounded-[7px]"
-          style={{
-            backgroundImage: `linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0) 100%), linear-gradient(to right, #fff 0%, hsl(${h}, 100%, 50%) 100%)`,
-          }}
+          className="absolute inset-px rounded-inset bg-color-area"
+          style={
+            {
+              "--color-hue": h,
+            } as React.CSSProperties
+          }
         />
         <div
-          className="absolute z-10 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-transparent shadow-[0_1px_7px_rgba(0,0,0,0.45)]"
-          style={{
-            left: `${s}%`,
-            top: `${100 - v}%`,
-          }}
+          className="absolute top-(--position-y) left-(--position-x) z-10 flex size-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-background bg-transparent shadow-color-area-handle"
+          style={
+            {
+              "--position-x": `${s}%`,
+              "--position-y": `${100 - v}%`,
+            } as React.CSSProperties
+          }
         />
       </div>
 
@@ -134,15 +139,20 @@ export function SolidColorEditor({
         ref={hueRef}
         onMouseDown={handleHueStart}
         onTouchStart={handleHueStart}
-        className="relative h-4.5 w-full cursor-pointer rounded-full border border-border shadow-inner"
-        style={{
-          background:
-            "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
-        }}
+        className="relative h-4.5 w-full cursor-pointer rounded-full border border-border shadow-inner bg-preview"
+        style={
+          {
+            "--preview-background": "var(--background-hue-spectrum)",
+          } as React.CSSProperties
+        }
       >
         <div
-          className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-[0_1px_4px_rgba(0,0,0,0.38)]"
-          style={{ left: `clamp(8px, ${(h / 360) * 100}%, calc(100% - 8px))` }}
+          className="absolute top-1/2 left-(--position-x) size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-color-slider-handle"
+          style={
+            {
+              "--position-x": `clamp(8px, ${(h / 360) * 100}%, calc(100% - 8px))`,
+            } as React.CSSProperties
+          }
         />
       </div>
 
@@ -151,18 +161,22 @@ export function SolidColorEditor({
           ref={alphaRef}
           onMouseDown={handleAlphaStart}
           onTouchStart={handleAlphaStart}
-          className="relative h-4.5 w-full cursor-pointer rounded-full border border-border shadow-inner"
-          style={{
-            backgroundColor: "#fff",
-            backgroundImage: `linear-gradient(to right, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0), rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 1)), linear-gradient(45deg, #8b8b8b 25%, transparent 25%), linear-gradient(-45deg, #8b8b8b 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #8b8b8b 75%), linear-gradient(-45deg, transparent 75%, #8b8b8b 75%)`,
-            backgroundPosition: "0 0, 0 0, 0 5px, 5px -5px, -5px 0",
-            backgroundSize:
-              "100% 100%, 10px 10px, 10px 10px, 10px 10px, 10px 10px",
-          }}
+          className="relative h-4.5 w-full cursor-pointer rounded-full border border-border bg-color-alpha shadow-inner"
+          style={
+            {
+              "--color-red": rgb.r,
+              "--color-green": rgb.g,
+              "--color-blue": rgb.b,
+            } as React.CSSProperties
+          }
         >
           <div
-            className="absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-[0_1px_4px_rgba(0,0,0,0.38)]"
-            style={{ left: `clamp(8px, ${alpha * 100}%, calc(100% - 8px))` }}
+            className="absolute top-1/2 left-(--position-x) size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-transparent shadow-color-slider-handle"
+            style={
+              {
+                "--position-x": `clamp(8px, ${alpha * 100}%, calc(100% - 8px))`,
+              } as React.CSSProperties
+            }
           />
         </div>
       )}
@@ -214,7 +228,7 @@ export function SolidColorEditor({
         <div className="flex items-center gap-2">
           {formatSelect}
           <div className="flex h-8 min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-muted/45 px-2.5">
-            <span className="font-mono text-[11px] font-bold text-muted-foreground">
+            <span className="font-mono text-2xs font-bold text-muted-foreground">
               #
             </span>
             <input

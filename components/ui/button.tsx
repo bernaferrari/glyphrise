@@ -21,9 +21,13 @@ const buttonVariants = cva(
           ghostAppearance,
           "bg-transparent text-muted-foreground",
         ],
+        "muted-destructive": [
+          ghostAppearance,
+          "bg-transparent text-muted-foreground hover:text-destructive",
+        ],
         "viewport-ghost": [
           ghostAppearance,
-          "rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:opacity-30",
+          "rounded-xl text-white/75 hover:bg-white/10 hover:text-white disabled:opacity-30 aria-pressed:bg-white/15 aria-pressed:text-white",
         ],
         "viewport-primary": "bg-white text-black hover:bg-white/90",
         destructive:
@@ -33,25 +37,20 @@ const buttonVariants = cva(
       size: {
         default:
           "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        xs: "h-6 gap-1 rounded-compact px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-button px-2.5 text-button-sm in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
         lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
         icon: "size-8",
         "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+          "size-6 rounded-compact in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
         "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+          "size-7 rounded-button in-data-[slot=button-group]:rounded-lg",
         "icon-lg": "size-9",
-        "icon-xl": "size-10",
-        "icon-touch": "size-11",
-        "icon-narrow":
-          "touch-narrow h-8 w-5 max-[720px]:h-11 max-[720px]:w-8 pointer-coarse:h-11 pointer-coarse:w-8",
-        "icon-narrow-sm":
-          "touch-narrow h-8 w-4 max-[720px]:h-11 max-[720px]:w-6 pointer-coarse:h-11 pointer-coarse:w-6",
-        toolbar:
-          "h-11 gap-1.5 px-3 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        "toolbar-sm":
-          "h-10 gap-1 px-3 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+      },
+      shape: {
+        default: "",
+        rounded: "rounded-xl",
+        pill: "rounded-full",
       },
     },
     defaultVariants: {
@@ -65,12 +64,13 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  shape = "default",
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, shape, className }))}
       {...props}
     />
   )

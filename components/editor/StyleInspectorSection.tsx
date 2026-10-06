@@ -89,6 +89,7 @@ export function StyleInspectorSection({
       >
         <div className="min-w-0 flex-1">
           <ColorPicker
+            variant="inspector"
             value={selectedShapeFill}
             onChange={(value) => onFillColorChange(value)}
             gradient={fillMode === "gradient"}
@@ -99,7 +100,7 @@ export function StyleInspectorSection({
             onStopsChange={onStopsChange}
             secondaryValue={selectedShapeFillSecondary}
             onSecondaryChange={(value) => onFillColorChange(value, true)}
-            className="h-8 min-h-8 w-full rounded-md border-0 bg-muted/80 px-2 py-0 text-xs text-foreground hover:bg-muted"
+            className="h-8 min-h-8 w-full"
           />
         </div>
       </InspectorRow>

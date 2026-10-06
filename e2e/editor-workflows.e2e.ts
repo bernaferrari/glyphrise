@@ -410,7 +410,7 @@ test("offers production render controls and an honest fidelity matrix", async ({
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
 
-  await expect(page.getByText("Size", { exact: true })).toBeVisible()
+  await expect(page.getByText("Aspect ratio", { exact: true })).toBeVisible()
   await page
     .getByRole("button", { name: "Video Full animation", exact: true })
     .click()

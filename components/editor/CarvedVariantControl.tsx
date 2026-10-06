@@ -30,7 +30,7 @@ export function CarvedVariantControl({
           role="radio"
           aria-checked={value === variant.id}
           onClick={() => onChange(variant.id)}
-          className="h-6 rounded-md text-[11px] text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-checked:bg-background aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
+          className="h-6 rounded-md text-2xs text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-checked:bg-background aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
         >
           {variant.label}
         </button>

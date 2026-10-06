@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength } from "@/lib/utils"
+
 import React from "react"
 import { EDGE_INSET, formatTimelineTick, xForFrac } from "./TimelineGeometry"
 import { TIMELINE_LAYER } from "./TimelineLayering"
@@ -108,28 +110,36 @@ export const TimelineRuler = React.forwardRef<
         event.preventDefault()
         onKeyboardTimeChange(nextTime)
       }}
-      className="sticky top-0 h-[var(--timeline-ruler-height)] shrink-0 cursor-ew-resize touch-none bg-(--timeline-surface) select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:outline-none focus-visible:ring-inset"
-      style={{ zIndex: TIMELINE_LAYER.ruler }}
+      className="sticky top-0 z-(--stack-order) h-(--timeline-ruler-height) shrink-0 cursor-ew-resize touch-none bg-(--timeline-surface) select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:outline-none focus-visible:ring-inset"
+      style={{ "--stack-order": TIMELINE_LAYER.ruler } as React.CSSProperties}
     >
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 bg-foreground/[0.03]"
-        style={{ width: EDGE_INSET }}
+        className="pointer-events-none absolute inset-y-0 left-0 w-(--element-width) bg-foreground/[0.03]"
+        style={
+          { "--element-width": cssLength(EDGE_INSET) } as React.CSSProperties
+        }
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-y-0 right-0 bg-foreground/[0.03]"
-        style={{ width: EDGE_INSET }}
+        className="pointer-events-none absolute inset-y-0 right-0 w-(--element-width) bg-foreground/[0.03]"
+        style={
+          { "--element-width": cssLength(EDGE_INSET) } as React.CSSProperties
+        }
         aria-hidden="true"
       />
       {ticks.map((tick) => (
         <div
           key={`ruler-${tick.time}`}
-          className="pointer-events-none absolute top-0 bottom-0"
-          style={{ left: xForFrac(tick.time / duration) }}
+          className="pointer-events-none absolute top-0 bottom-0 left-(--position-x)"
+          style={
+            {
+              "--position-x": cssLength(xForFrac(tick.time / duration)),
+            } as React.CSSProperties
+          }
         >
           <div
             className={`absolute bottom-0 w-px ${
@@ -140,7 +150,7 @@ export const TimelineRuler = React.forwardRef<
           />
           {tick.major && Math.abs(tick.time - duration) > 0.001 && (
             <span
-              className={`absolute top-1.75 font-mono text-[10px] leading-none text-muted-foreground tabular-nums ${"left-2"}`}
+              className={`absolute top-1.75 font-mono text-3xs leading-none text-muted-foreground tabular-nums ${"left-2"}`}
             >
               {formatTimelineTick(tick.time)}
             </span>
@@ -148,14 +158,23 @@ export const TimelineRuler = React.forwardRef<
         </div>
       ))}
       <div
-        className="pointer-events-none absolute top-0 bottom-0 w-px -translate-x-1/2 bg-(--timeline-playhead)"
-        style={{ left: playheadX, zIndex: TIMELINE_LAYER.rulerPlayheadLine }}
+        className="pointer-events-none absolute top-0 bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-(--timeline-playhead)"
+        style={
+          {
+            "--position-x": cssLength(playheadX),
+            "--stack-order": TIMELINE_LAYER.rulerPlayheadLine,
+          } as React.CSSProperties
+        }
       >
         <svg
           viewBox="0 0 13 17"
           aria-hidden="true"
-          className="absolute top-1 left-1/2 h-4.25 w-3.25 -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
-          style={{ zIndex: TIMELINE_LAYER.rulerPlayheadHandle }}
+          className="absolute top-1 left-1/2 z-(--stack-order) h-4.25 w-3.25 -translate-x-1/2 fill-(--timeline-playhead) drop-shadow-gizmo"
+          style={
+            {
+              "--stack-order": TIMELINE_LAYER.rulerPlayheadHandle,
+            } as React.CSSProperties
+          }
         >
           <path d="M2.5 0h8A2.5 2.5 0 0 1 13 2.5v8.3a2.5 2.5 0 0 1-.8 1.8L7.4 16.6a1.3 1.3 0 0 1-1.8 0L.8 12.6A2.5 2.5 0 0 1 0 10.8V2.5A2.5 2.5 0 0 1 2.5 0Z" />
         </svg>

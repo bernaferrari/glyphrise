@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength, cn } from "@/lib/utils"
+
 import React from "react"
 import { holdToDrag, usePressType } from "@/lib/touch-intent"
 import {
@@ -90,7 +92,7 @@ export function TimelinePropertyRowLane({
 
   return (
     <div
-      className={`relative h-[var(--timeline-property-height)] border-b border-border/50 transition-colors ${
+      className={`relative h-(--timeline-property-height) border-b border-border/50 transition-colors ${
         isRevealed
           ? "bg-primary/10 ring-1 ring-primary/20 ring-inset"
           : rowSelected
@@ -181,13 +183,18 @@ export function TimelinePropertyRowLane({
             aria-pressed={selected}
             data-keyframe-row={row.id}
             title={`${row.name}${keyframe.label ? ` - ${keyframe.label}` : ""} @ ${keyframe.time.toFixed(2)}s`}
-            className={`timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`}
-            style={{
-              left: xForFrac(keyframe.time / duration),
-              zIndex: selected
-                ? TIMELINE_LAYER.selectedKeyframe
-                : TIMELINE_LAYER.propertyKeyframe,
-            }}
+            className={cn(
+              `timeline-keyframe absolute top-1/2 flex size-6 -translate-x-1/2 -translate-y-1/2 cursor-grab touch-pan-x touch-pan-y items-center justify-center rounded-sm transition-transform duration-100 select-none hover:scale-125 focus-visible:outline-2 focus-visible:outline-ring active:cursor-grabbing ${selected ? "scale-125" : ""}`,
+              "left-(--position-x) z-(--stack-order)"
+            )}
+            style={
+              {
+                "--position-x": cssLength(xForFrac(keyframe.time / duration)),
+                "--stack-order": selected
+                  ? TIMELINE_LAYER.selectedKeyframe
+                  : TIMELINE_LAYER.propertyKeyframe,
+              } as React.CSSProperties
+            }
             onPointerDown={(event) => {
               if (!event.isPrimary) return
               event.stopPropagation()

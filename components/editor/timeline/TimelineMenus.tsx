@@ -34,15 +34,16 @@ export const TimelineContextMenu = ({
 
   return (
     <ContextMenuContent
+      variant="editor"
       anchor={anchor}
       positionMethod="fixed"
       collisionPadding={8}
-      className="min-w-44 rounded-xl border-border bg-popover/98 p-1.5 text-foreground backdrop-blur-xl"
+      className="min-w-44"
       onMouseDown={(event) => event.stopPropagation()}
       onClick={(event) => event.stopPropagation()}
     >
       {menu.title && (
-        <div className="px-2 pt-0.5 pb-1 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+        <div className="px-2 pt-0.5 pb-1 text-2xs font-medium tracking-section text-muted-foreground uppercase">
           {menu.title}
         </div>
       )}
@@ -50,8 +51,9 @@ export const TimelineContextMenu = ({
         if (item.type === "separator") {
           return (
             <ContextMenuSeparator
+              variant="editor"
               key={`separator-${index}`}
-              className="my-1 bg-muted/75"
+              className="my-1"
             />
           )
         }
@@ -59,23 +61,24 @@ export const TimelineContextMenu = ({
         if (item.type === "submenu") {
           return (
             <ContextMenuSub key={`${item.label}-${index}`}>
-              <ContextMenuSubTrigger className="h-7 gap-5 rounded-lg px-2 text-[11px]">
+              <ContextMenuSubTrigger size="editor" className="h-7">
                 <span className="truncate">{item.label}</span>
                 {item.shortcut && (
-                  <ContextMenuShortcut className="text-[11px] tracking-normal">
+                  <ContextMenuShortcut variant="editor">
                     {item.shortcut}
                   </ContextMenuShortcut>
                 )}
               </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="min-w-36 rounded-xl border-border bg-popover/98 p-1.5 text-foreground backdrop-blur-xl">
+              <ContextMenuSubContent variant="editor" className="min-w-36">
                 {item.items.map((child, childIndex) => (
                   <ContextMenuItem
+                    size="editor-submenu"
                     key={`${child.label}-${childIndex}`}
                     onSelect={() => {
                       child.onSelect()
                       onClose()
                     }}
-                    className="h-7 justify-between gap-4 rounded-lg px-2 text-[11px]"
+                    className="h-7 justify-between"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       {child.easing && (
@@ -114,6 +117,7 @@ export const TimelineContextMenu = ({
 
         return (
           <ContextMenuItem
+            size="editor"
             key={`${item.label}-${index}`}
             disabled={item.disabled}
             variant={item.danger ? "destructive" : "default"}
@@ -122,7 +126,7 @@ export const TimelineContextMenu = ({
               item.onSelect()
               onClose()
             }}
-            className="h-7 justify-between gap-5 rounded-lg px-2 text-[11px]"
+            className="h-7 justify-between"
           >
             <span className="flex min-w-0 items-center gap-2">
               {item.easing && (
@@ -148,7 +152,7 @@ export const TimelineContextMenu = ({
               <span className="truncate">{item.label}</span>
             </span>
             {item.shortcut && (
-              <ContextMenuShortcut className="font-mono text-[11px] tracking-normal">
+              <ContextMenuShortcut variant="mono">
                 {item.shortcut}
               </ContextMenuShortcut>
             )}

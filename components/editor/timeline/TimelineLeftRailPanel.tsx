@@ -101,12 +101,12 @@ export function TimelineLeftRailPanel({
   createGoToMenuItem,
 }: TimelineLeftRailPanelProps) {
   return (
-    <div className="flex w-[var(--timeline-rail-width)] shrink-0 flex-col overflow-visible border-r border-border bg-(--timeline-surface)">
-      <div className="relative z-10 h-[var(--timeline-ruler-height)] shrink-0 border-b border-border">
+    <div className="flex w-(--timeline-rail-width) shrink-0 flex-col overflow-visible border-r border-border bg-(--timeline-surface)">
+      <div className="relative z-10 h-(--timeline-ruler-height) shrink-0 border-b border-border">
         {header}
       </div>
       <div
-        className="relative min-h-0 flex-1 [scrollbar-width:none] overflow-y-auto overscroll-contain"
+        className="relative min-h-0 flex-1 scrollbar-none overflow-y-auto overscroll-contain"
         onScroll={onLeftRailScroll}
       >
         <TimelineLeftRail

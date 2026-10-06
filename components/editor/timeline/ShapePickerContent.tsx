@@ -105,22 +105,23 @@ export function ShapePickerContent({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        variant="picker"
         finalFocus={finalFocusRef}
-        className="!flex h-[min(78vh,620px)] !w-[min(720px,calc(100vw-32px))] !max-w-[min(720px,calc(100vw-32px))] flex-col gap-0 overflow-hidden p-0 shadow-2xl"
+        className="!flex h-(--spacing-shape-picker-height) !w-(--spacing-shape-picker) !max-w-(--spacing-shape-picker) flex-col overflow-hidden"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
         onContextMenu={(event) => event.stopPropagation()}
       >
-        <DialogHeader className="shrink-0 px-4 pt-3.5 pr-12 pb-1">
+        <DialogHeader variant="picker" className="shrink-0">
           <div className="flex min-w-0 items-center gap-2.5">
             <span
               aria-hidden="true"
-              className="grid size-7 shrink-0 place-items-center rounded-md bg-muted [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
-              style={{ color: stop.color }}
+              className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-(--element-color) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
+              style={{ "--element-color": stop.color } as React.CSSProperties}
               dangerouslySetInnerHTML={{ __html: stop.svgContent }}
             />
-            <DialogTitle className="min-w-0 truncate text-sm font-semibold text-foreground">
+            <DialogTitle truncate={true} variant="editor" className="min-w-0">
               Choose icon
               <span className="ml-1.5 font-normal text-muted-foreground">
                 replacing {stop.iconName ?? stop.iconId}
@@ -135,24 +136,26 @@ export function ShapePickerContent({
 
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background px-3">
           <Tabs
+            spacing="comfortable"
             value={activeTab}
             onValueChange={setActiveTab}
-            className="min-h-0 flex-1 gap-2.5"
+            className="min-h-0 flex-1"
           >
             <TabsList
+              density="picker"
               variant="line"
-              className="w-full shrink-0 justify-start gap-1 border-b border-border px-1 group-data-horizontal/tabs:h-10"
+              className="w-full shrink-0 justify-start group-data-horizontal/tabs:h-10"
             >
-              <TabsTrigger value="symbols" className="flex-none px-2 text-xs">
+              <TabsTrigger size="compact" value="symbols" className="flex-none">
                 Symbols
               </TabsTrigger>
-              <TabsTrigger value="wipe" className="flex-none px-2 text-xs">
+              <TabsTrigger size="compact" value="wipe" className="flex-none">
                 Wipe pairs
               </TabsTrigger>
-              <TabsTrigger value="presets" className="flex-none px-2 text-xs">
+              <TabsTrigger size="compact" value="presets" className="flex-none">
                 Presets
               </TabsTrigger>
-              <TabsTrigger value="upload" className="flex-none px-2 text-xs">
+              <TabsTrigger size="compact" value="upload" className="flex-none">
                 Upload
               </TabsTrigger>
             </TabsList>
@@ -195,11 +198,11 @@ export function ShapePickerContent({
                 this tab is a column: sections on top, the grid fills the rest. */}
             <TabsContent
               value="symbols"
-              className="flex min-h-0 flex-col overflow-hidden outline-none"
+              className="flex min-h-0 flex-col overflow-hidden"
             >
               {recentMaterialSymbols.length > 0 && (
                 <section className="mb-3 shrink-0">
-                  <div className="mb-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                  <div className="mb-1.5 px-0.5 text-2xs font-medium tracking-label text-muted-foreground uppercase">
                     Recent
                   </div>
                   <MaterialSymbolGrid
@@ -217,7 +220,7 @@ export function ShapePickerContent({
               )}
 
               {!searching && (
-                <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+                <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-2xs font-medium tracking-label text-muted-foreground uppercase">
                   All symbols
                   <span className="font-normal tracking-normal normal-case tabular-nums">
                     {filteredMaterialSymbols.length.toLocaleString()}
@@ -238,8 +241,9 @@ export function ShapePickerContent({
             </TabsContent>
 
             <TabsContent
+              scrollable={true}
               value="wipe"
-              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
+              className="min-h-0 overflow-y-auto"
             >
               {filteredWipePairs.length > 0 ? (
                 <WipePairsSection
@@ -258,8 +262,9 @@ export function ShapePickerContent({
             </TabsContent>
 
             <TabsContent
+              scrollable={true}
               value="presets"
-              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
+              className="min-h-0 overflow-y-auto"
             >
               {visibleShapeOptions.length > 0 ? (
                 <ShapePresetGrid
@@ -277,8 +282,9 @@ export function ShapePickerContent({
             </TabsContent>
 
             <TabsContent
+              scrollable={true}
               value="upload"
-              className="editor-scrollbar min-h-0 overflow-y-auto outline-none"
+              className="min-h-0 overflow-y-auto"
             >
               <div className="flex h-full min-h-60 flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border bg-muted/20 px-6 py-8 text-center">
                 <span className="grid size-11 place-items-center rounded-full bg-muted text-foreground">
@@ -301,7 +307,7 @@ export function ShapePickerContent({
                 >
                   Upload SVG
                 </Button>
-                <ul className="mt-1 flex flex-wrap justify-center gap-1.5 text-[11px] text-muted-foreground">
+                <ul className="mt-1 flex flex-wrap justify-center gap-1.5 text-2xs text-muted-foreground">
                   {[
                     "Outline text & strokes",
                     "Flatten masks",
@@ -316,7 +322,7 @@ export function ShapePickerContent({
                     </li>
                   ))}
                 </ul>
-                <p className="max-w-sm text-[11px] leading-relaxed text-muted-foreground/70">
+                <p className="max-w-sm text-2xs leading-relaxed text-muted-foreground/70">
                   Scripts, images, and external references are removed for safe
                   3D conversion.
                 </p>

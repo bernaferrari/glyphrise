@@ -26,7 +26,7 @@ export function ColorGradientPresetsPanel({
   return (
     <div className="space-y-1.5">
       <div className="flex h-6 items-center justify-between">
-        <div className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+        <div className="text-2xs font-medium tracking-label text-muted-foreground uppercase">
           Presets
         </div>
         {gradientType === "mesh" && (
@@ -89,17 +89,23 @@ export function ColorGradientPresetsPanel({
             >
               {preset.type === "mesh" ? (
                 <MeshPreviewCanvas
+                  variant="preset"
                   stops={preset.stops}
                   width={32}
                   height={20}
-                  className="pointer-events-none size-full rounded-lg"
+                  className="pointer-events-none size-full"
                 />
               ) : (
                 <span
-                  className="pointer-events-none block size-full rounded-lg"
-                  style={{
-                    background: gradientPreviewCss(preset.type, preset.stops),
-                  }}
+                  className="pointer-events-none block size-full rounded-lg bg-preview"
+                  style={
+                    {
+                      "--preview-background": gradientPreviewCss(
+                        preset.type,
+                        preset.stops
+                      ),
+                    } as React.CSSProperties
+                  }
                 />
               )}
               {selected && (

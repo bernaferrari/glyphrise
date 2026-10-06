@@ -21,7 +21,7 @@ export function AxisLockButton({
         event.stopPropagation()
         onToggle()
       }}
-      className={`ml-1 flex size-5 shrink-0 items-center justify-center rounded-[6px] transition-colors focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
+      className={`ml-1 flex size-5 shrink-0 items-center justify-center rounded-control transition-colors focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:outline-none ${
         locked
           ? "bg-muted text-foreground hover:bg-muted/80"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"

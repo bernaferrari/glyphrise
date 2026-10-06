@@ -54,7 +54,7 @@ const transportButton =
   "grid h-6 w-5 shrink-0 place-items-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
 
 const iconButton =
-  "grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-100 hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-[0.94] disabled:pointer-events-none disabled:opacity-30"
+  "grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-100 hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-94 disabled:pointer-events-none disabled:opacity-30"
 
 /**
  * Transport for the corner cell beside the ruler (as in Figma): play, the
@@ -97,10 +97,7 @@ export function TimelineToolbar({
           title="Previous keyframe (,)"
           disabled={!playback.hasPreviousKeyMoment}
           onClick={playback.onPreviousKeyMoment}
-          className={cn(
-            transportButton,
-            "timeline-transport-arrow touch-narrow"
-          )}
+          className={transportButton}
         >
           <ChevronLeft className="size-3.5" />
         </button>
@@ -108,7 +105,7 @@ export function TimelineToolbar({
       {playback && (
         <Button
           variant="ghost"
-          size={compactMode ? "icon-touch" : "icon-narrow"}
+          size="icon-sm"
           type="button"
           aria-label={
             playback.isPlaying
@@ -136,10 +133,7 @@ export function TimelineToolbar({
           title="Next keyframe (.)"
           disabled={!playback.hasNextKeyMoment}
           onClick={playback.onNextKeyMoment}
-          className={cn(
-            transportButton,
-            "timeline-transport-arrow touch-narrow"
-          )}
+          className={transportButton}
         >
           <ChevronRight className="size-3.5" />
         </button>
@@ -204,12 +198,12 @@ function MenuSwitch({
       aria-label={ariaLabel}
       aria-pressed={checked}
       onClick={onChange}
-      className="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-[13px] hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+      className="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-control hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
     >
       <span className="min-w-0 flex-1">
         <span className="block">{label}</span>
         {description && (
-          <span className="block text-[11px] leading-4 text-muted-foreground">
+          <span className="block text-2xs leading-4 text-muted-foreground">
             {description}
           </span>
         )}
@@ -279,7 +273,7 @@ function OptionsMenu({
         className="w-64"
       >
         <div className="flex items-center gap-1 px-1 pb-1">
-          <span className="flex-1 px-1.5 text-[13px]">Zoom</span>
+          <span className="flex-1 px-1.5 text-control">Zoom</span>
           <button
             type="button"
             aria-label="Zoom timeline out"
@@ -310,7 +304,7 @@ function OptionsMenu({
         </div>
         {compactMode && (
           <div className="flex items-center gap-1 px-1 pb-1">
-            <span className="flex-1 px-1.5 text-[13px]">Length</span>
+            <span className="flex-1 px-1.5 text-control">Length</span>
             {[3, 5, 10].map((value) => (
               <button
                 key={value}
@@ -404,7 +398,7 @@ function PlayheadField({
           event.currentTarget.blur()
         }
       }}
-      className="timeline-playhead-field h-7 w-[7.5ch] rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring"
+      className="timeline-playhead-field h-7 w-(--spacing-timecode) rounded px-0.5 text-center font-mono text-xs font-medium text-foreground tabular-nums outline-none hover:bg-foreground/[0.06] focus:bg-muted focus:ring-1 focus:ring-ring"
     />
   )
 }
@@ -452,14 +446,16 @@ function DurationPopover({
         / {Number(duration.toFixed(2))}s
       </PopoverTrigger>
       <PopoverContent
+        font="sans"
+        density="spacious"
         align="start"
         side="bottom"
         sideOffset={8}
-        className="w-56 p-3 font-sans"
+        className="w-56"
       >
         <div className="mb-2 flex items-center justify-between">
           <span className="text-xs font-medium">Animation length</span>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-2xs text-muted-foreground">
             0.5–30s
           </span>
         </div>
@@ -487,16 +483,16 @@ function DurationPopover({
                 onDurationEditorChange(null)
               }
             }}
-            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[13px] text-foreground outline-none"
+            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-control text-foreground outline-none"
           />
-          <span className="pr-2 text-[11px] text-muted-foreground">s</span>
+          <span className="pr-2 text-2xs text-muted-foreground">s</span>
         </div>
         {durationInvalid ? (
-          <p className="mt-1.5 text-[11px] text-destructive">
+          <p className="mt-1.5 text-2xs text-destructive">
             Enter a time in seconds, or press Esc to cancel
           </p>
         ) : durationNotice ? (
-          <p className="mt-1.5 text-[11px] text-warning">{durationNotice}</p>
+          <p className="mt-1.5 text-2xs text-warning">{durationNotice}</p>
         ) : null}
         <div className="mt-2 grid grid-cols-3 gap-1">
           {[3, 5, 10].map((value) => (

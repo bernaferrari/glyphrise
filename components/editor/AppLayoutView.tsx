@@ -6,7 +6,7 @@ import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCompactViewport } from "@/lib/use-compact-viewport"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
-import { usePanelTransition } from "./usePanelTransition"
+import { useLayoutTransition, usePanelTransition } from "./usePanelTransition"
 import { AppTopBar } from "./AppTopBar"
 import type { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
@@ -68,7 +68,13 @@ export function AppLayoutView({
   onUploadInputChange,
 }: AppLayoutViewProps) {
   const isCompactLayout = useCompactViewport()
-  const changePanelVisibility = usePanelTransition(topBarProps.onZenModeChange)
+  const preparePreviewSnapshot = () =>
+    canvas3DRef.current?.renderLayoutSnapshot()
+  const changePanelVisibility = usePanelTransition(
+    topBarProps.onZenModeChange,
+    preparePreviewSnapshot
+  )
+  const transitionCompactPane = useLayoutTransition(preparePreviewSnapshot)
   const [animateOpen, setAnimateOpen] = useState(false)
   const [animateMounted, setAnimateMounted] = useState(false)
   const [exportMounted, setExportMounted] = useState(false)
@@ -116,20 +122,22 @@ export function AppLayoutView({
   const [compactPane, setCompactPane] = useState<
     "preview" | "properties" | "timeline"
   >("preview")
-  // Phones: Properties and Motion rise from the tab bar like ShapeShifter's
-  // sheet. The last pane stays mounted while it slides away; switching
-  // between open panes swaps instantly.
+  // Keep the sheet mounted as the same preview expands or contracts above it.
   const [sheetPane, setSheetPane] = useState<"properties" | "timeline">(
     "properties"
   )
   const [sheetMotion, setSheetMotion] = useState<"entering" | "open">("open")
   const showCompactPane = (pane: "preview" | "properties" | "timeline") => {
-    if (topBarProps.zenMode) topBarProps.onZenModeChange(false)
-    if (pane !== "preview") {
-      setSheetMotion(compactPane === "preview" ? "entering" : "open")
-      setSheetPane(pane)
+    if (pane === compactPane) return
+    const update = () => {
+      if (topBarProps.zenMode) topBarProps.onZenModeChange(false)
+      if (pane !== "preview") {
+        setSheetMotion(compactPane === "preview" ? "entering" : "open")
+        setSheetPane(pane)
+      }
+      setCompactPane(pane)
     }
-    setCompactPane(pane)
+    transitionCompactPane(update, "compact")
   }
   const compactSheet = compactPane === "preview" ? "closed" : sheetMotion
   const { markExportComplete } = viewportProps.creationJourney
@@ -242,7 +250,7 @@ export function AppLayoutView({
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-3 z-20 rounded-2xl ring-2 ring-recording/70 ring-inset max-[720px]:inset-0 max-[720px]:rounded-none"
                   >
-                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-recording px-2 py-0.5 text-[11px] font-medium text-white">
+                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-recording px-2 py-0.5 text-2xs font-medium text-white">
                       <span className="size-1.5 rounded-full bg-white" />
                       Auto-key
                     </span>
@@ -372,7 +380,7 @@ export function AppLayoutView({
 
         <nav
           aria-label="Workspace views"
-          className="grid h-[calc(4rem+env(safe-area-inset-bottom))] shrink-0 touch-pinch-zoom grid-cols-3 border-t border-border bg-background p-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))] select-none min-[720px]:hidden"
+          className="grid h-(--spacing-mobile-tabs) shrink-0 touch-pinch-zoom grid-cols-3 border-t border-border bg-background p-1 pb-safe-tab select-none min-[720px]:hidden"
         >
           {[
             ["preview", "Canvas", Box],
@@ -390,7 +398,7 @@ export function AppLayoutView({
                   showCompactPane(pane as "preview" | "properties" | "timeline")
                 }
                 className={cn(
-                  "flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-medium transition-[background-color,color,transform] duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-[0.96]",
+                  "flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg text-2xs font-medium transition-[background-color,color,transform] duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-96",
                   active
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"

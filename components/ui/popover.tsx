@@ -13,13 +13,26 @@ const popoverContentVariants = cva(
       variant: {
         default: "",
         editor: "rounded-xl border border-border shadow-2xl backdrop-blur-xl",
+        elevated: "text-foreground shadow-lg",
+        help: "space-y-2 text-xs leading-relaxed",
       },
       density: {
         default: "gap-2.5 p-2.5",
         menu: "gap-0 p-1.5",
         compact: "gap-0 p-1",
         flush: "gap-0 p-0",
+        tight: "p-2",
+        toolbar: "gap-2",
+        spacious: "p-3",
+        color: "p-3 pb-2",
       },
+      size: {
+        default: "",
+        finish:
+          "max-h-finish-picker-height w-(--spacing-finish-picker-width) max-[720px]:w-(--spacing-compact-picker)",
+      },
+      tone: { default: "", foreground: "text-foreground" },
+      font: { default: "", sans: "font-sans" },
     },
     defaultVariants: { variant: "default", density: "default" },
   }
@@ -37,6 +50,10 @@ function PopoverContent({
   animated = true,
   variant = "default",
   density = "default",
+  tone = "default",
+  font = "default",
+  size = "default",
+  scrollable = false,
   className,
   align = "center",
   alignOffset = 0,
@@ -59,6 +76,7 @@ function PopoverContent({
     | "collisionAvoidance"
   > & {
     animated?: boolean
+    scrollable?: boolean
   }) {
   return (
     <PopoverPrimitive.Portal>
@@ -75,7 +93,8 @@ function PopoverContent({
         <PopoverPrimitive.Popup
           data-slot="popover-content"
           className={cn(
-            popoverContentVariants({ variant, density }),
+            popoverContentVariants({ variant, density, tone, font, size }),
+            scrollable && "editor-scrollbar",
             animated &&
               "duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
@@ -97,11 +116,24 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
+function PopoverTitle({
+  className,
+  size = "default",
+  truncate = false,
+  ...props
+}: PopoverPrimitive.Title.Props & {
+  size?: "default" | "control"
+  truncate?: boolean
+}) {
   return (
     <PopoverPrimitive.Title
       data-slot="popover-title"
-      className={cn("font-medium", className)}
+      className={cn(
+        "font-medium",
+        size === "control" && "text-control",
+        truncate && "truncate",
+        className
+      )}
       {...props}
     />
   )

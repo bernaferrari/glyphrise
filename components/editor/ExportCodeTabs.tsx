@@ -60,7 +60,7 @@ export function ExportAndroidCodeTab({
           }
         />
       </div>
-      <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-[11px] text-muted-foreground">
+      <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-2xs text-muted-foreground">
         This is a static Filament viewer, not the editor timeline. Place the
         exported GLB at{" "}
         <span className="font-mono text-foreground">
@@ -73,10 +73,10 @@ export function ExportAndroidCodeTab({
         </span>{" "}
         artifacts if your project uses a newer version.
       </div>
-      <div className="editor-scrollbar flex max-h-[52vh] min-w-0 flex-col gap-3 overflow-auto">
+      <div className="editor-scrollbar flex max-h-(--spacing-code) min-w-0 flex-col gap-3 overflow-auto">
         <div className="min-w-0">
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <div className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            <div className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
               Gradle
             </div>
             <ExportCopyButton
@@ -92,7 +92,7 @@ export function ExportAndroidCodeTab({
         </div>
         <div className="min-w-0">
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <div className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            <div className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
               Kotlin
             </div>
             <ExportCopyButton

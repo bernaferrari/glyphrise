@@ -227,3 +227,72 @@ test("panel visibility eases in both directions and respects reduced motion", as
     page.getByRole("complementary", { name: "Properties inspector" })
   ).toBeVisible()
 })
+
+test.describe("phone shared canvas transition", () => {
+  test.use({ viewport: { width: 390, height: 800 }, hasTouch: true })
+  test("widens the same canvas into Properties, keeps Reset view, and respects reduced motion", async ({
+    page,
+  }) => {
+    const preview = page.locator("#glyphrise-preview-frame")
+    const original = (await preview.boundingBox())!
+    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    await expect
+      .poll(() =>
+        page.evaluate(() =>
+          document
+            .getAnimations()
+            .some(
+              (animation) =>
+                animation.effect instanceof KeyframeEffect &&
+                animation.effect.pseudoElement ===
+                  "::view-transition-group(editor-preview)"
+            )
+        )
+      )
+      .toBe(true)
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.dataset.panelTransition)
+      )
+      .toBeUndefined()
+    const expanded = (await preview.boundingBox())!
+    expect(expanded.width).toBeGreaterThan(original.width)
+    expect(expanded.height).toBeLessThan(original.height)
+    await expect(
+      page.getByRole("button", { name: "Reset view", exact: true })
+    ).toBeVisible()
+    await expect(
+      page.getByRole("button", { name: "Transform object", exact: true })
+    ).toHaveCount(0)
+    await page.getByRole("button", { name: "Canvas", exact: true }).click()
+    await expect
+      .poll(() =>
+        page.evaluate(() => document.documentElement.dataset.panelTransition)
+      )
+      .toBeUndefined()
+    expect((await preview.boundingBox())!.width).toBeCloseTo(original.width, 1)
+    expect((await preview.boundingBox())!.height).toBeCloseTo(
+      original.height,
+      1
+    )
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    expect(
+      await page.evaluate(
+        () => document.documentElement.dataset.panelTransition
+      )
+    ).toBeUndefined()
+    await expect(
+      page.getByRole("complementary", { name: "Properties inspector" })
+    ).toBeVisible()
+    await page
+      .getByRole("button", { name: "Open file menu", exact: true })
+      .click()
+    await expect(
+      page.getByRole("button", { name: "Focus canvas", exact: true })
+    ).toHaveCount(0)
+    await expect(
+      page.getByRole("button", { name: "Hide panels", exact: true })
+    ).toBeHidden()
+  })
+})

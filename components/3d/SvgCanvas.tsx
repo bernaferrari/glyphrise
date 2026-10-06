@@ -69,6 +69,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       exportRenderOptionsRef,
       exportRenderSnapshotRef,
       requestRenderRef,
+      renderFrameRef,
     } = useSvgCanvasSceneRefs(props.zoom)
     const pathOverridesASignature = useMemo(
       () => pathRebuildSignature(props.pathOverridesA),
@@ -160,11 +161,13 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       ref,
       props,
       canvasRef,
+      containerRef,
       rendererRef,
       cameraRef,
       exportRenderOptionsRef,
       exportRenderSnapshotRef,
       requestRenderRef,
+      renderFrameRef,
       pivotGroupRef,
       iconAGroupRef,
       iconBGroupRef,
@@ -317,6 +320,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       transformGizmoGroupRef,
       exportRenderOptionsRef,
       requestRenderRef,
+      renderFrameRef,
       isDraggingRef,
       updateTransformGizmo,
     })

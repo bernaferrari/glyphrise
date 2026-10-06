@@ -43,7 +43,11 @@ export function AnimateDialog({
 }: AnimateDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="editor-scrollbar max-h-[calc(100dvh-32px)] gap-0 overflow-y-auto p-0 sm:max-w-md">
+      <DialogContent
+        scrollable={true}
+        variant="flush"
+        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-md"
+      >
         {open && (
           <AnimationChoices
             svgContent={svgContent}
@@ -109,7 +113,7 @@ function ResultPreview({
 }) {
   return (
     <div className="grid gap-2 rounded-xl border border-border bg-muted/30 p-3">
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+      <div className="flex items-center justify-between text-2xs text-muted-foreground">
         <span>On your timeline</span>
         <span className="tabular-nums">0s → {Number(length.toFixed(2))}s</span>
       </div>
@@ -128,8 +132,12 @@ function ResultPreview({
               key={fraction}
               aria-hidden="true"
               viewBox="0 0 16 16"
-              className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2"
-              style={{ left: `calc(6px + (100% - 12px) * ${fraction})` }}
+              className="absolute top-1/2 left-(--position-x) size-3.5 -translate-x-1/2 -translate-y-1/2"
+              style={
+                {
+                  "--position-x": `calc(6px + (100% - 12px) * ${fraction})`,
+                } as React.CSSProperties
+              }
             >
               <rect
                 x="4"
@@ -138,11 +146,14 @@ function ResultPreview({
                 height="8"
                 rx="1.2"
                 transform="rotate(45 8 8)"
-                style={{
-                  fill: "var(--timeline-lane, var(--background))",
-                  stroke: "var(--timeline-accent)",
-                  strokeWidth: 1.5,
-                }}
+                className="fill-(--shape-fill) stroke-(--shape-stroke) stroke-(length:--shape-stroke-width)"
+                style={
+                  {
+                    "--shape-fill": "var(--timeline-lane, var(--background))",
+                    "--shape-stroke": "var(--timeline-accent)",
+                    "--shape-stroke-width": 1.5,
+                  } as React.CSSProperties
+                }
               />
             </svg>
           ))}
@@ -150,7 +161,7 @@ function ResultPreview({
       </div>
       <p
         className={cn(
-          "text-[11px] leading-4",
+          "text-2xs leading-4",
           existing > 0 ? "text-warning" : "text-muted-foreground"
         )}
       >
@@ -185,8 +196,8 @@ function AnimationChoices({
 
   return (
     <>
-      <div className="relative grid h-36 place-items-center overflow-hidden bg-muted/40 bg-[radial-gradient(circle_at_50%_40%,color-mix(in_oklab,var(--primary)_14%,transparent),transparent_70%)]">
-        <div className="scale-[1.9]">
+      <div className="relative grid h-36 place-items-center overflow-hidden bg-muted/40 bg-motion-preview">
+        <div className="scale-190">
           <MotionPresetPreview
             key={`${selected}-${previewLength}-${motionAmount}`}
             preset={selected}
@@ -199,10 +210,8 @@ function AnimationChoices({
 
       <div className="grid gap-4 p-5">
         <div>
-          <DialogTitle className="text-base font-semibold">
-            Motion presets
-          </DialogTitle>
-          <DialogDescription className="mt-1 text-xs">
+          <DialogTitle variant="preset">Motion presets</DialogTitle>
+          <DialogDescription variant="compact" className="mt-1">
             Animates the whole icon from the start of the timeline to the end.
           </DialogDescription>
         </div>
@@ -224,7 +233,7 @@ function AnimationChoices({
                 intensity={1}
               />
               {item.name}
-              <span className="text-[10px] font-normal text-muted-foreground">
+              <span className="text-3xs font-normal text-muted-foreground">
                 {item.property}
               </span>
             </button>
@@ -309,7 +318,7 @@ function AnimationChoices({
           type="button"
           disabled={!valid}
           onClick={() => onApply(selected, length, motionAmount)}
-          className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-[0.99] disabled:opacity-40"
+          className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-99 disabled:opacity-40"
         >
           Apply {preset.name} to {preset.property}
         </button>

@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength, cn } from "@/lib/utils"
+
 import { useRef, useState, type KeyboardEvent } from "react"
 import { Plus } from "lucide-react"
 import { useCompactViewport } from "@/lib/use-compact-viewport"
@@ -67,9 +69,8 @@ const QUADRANT_OFFSETS = [
   [1, 1],
 ].map(([x, y]) =>
   [x, y]
-    .map(
-      (side) =>
-        `${MOSAIC_SIZE / 2 - MOSAIC_IMAGE / 2 - side * (MOSAIC_SIZE / 2)}px`
+    .map((side) =>
+      cssLength(MOSAIC_SIZE / 2 - MOSAIC_IMAGE / 2 - side * (MOSAIC_SIZE / 2))
     )
     .join(" ")
 )
@@ -140,27 +141,38 @@ export function FinishPresetPicker({
         title="All finishes"
         className="group grid size-10 place-items-center justify-self-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
       >
-        <span className="relative grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-data-open:ring-[1.5px] group-data-open:ring-foreground/60">
+        <span className="relative grid size-10 place-items-center rounded-full ring-1 ring-transparent transition-[box-shadow,transform] duration-150 group-hover:ring-foreground/20 group-active:scale-95 group-data-open:ring-editor group-data-open:ring-foreground/60">
           <span className="relative grid size-7 grid-cols-2 overflow-hidden rounded-full transition-transform duration-150 group-hover:scale-105">
             {more.map((preset, index) => (
               <span
                 key={preset}
-                className="bg-muted"
-                style={
+                className={cn(
+                  "bg-muted",
                   moreThumbnails[preset]
-                    ? {
-                        backgroundImage: `url(${moreThumbnails[preset]})`,
-                        backgroundSize: `${MOSAIC_IMAGE}px`,
-                        backgroundPosition: QUADRANT_OFFSETS[index],
-                      }
-                    : moreThumbnails[preset] === null
-                      ? { background: MATERIAL_PREVIEW[preset] }
-                      : undefined
+                    ? "bg-preview-image bg-preview-size bg-preview-position"
+                    : moreThumbnails[preset] === null && "bg-preview"
+                )}
+                style={
+                  {
+                    "--preview-image": moreThumbnails[preset]
+                      ? `url(${moreThumbnails[preset]})`
+                      : undefined,
+                    "--preview-size": moreThumbnails[preset]
+                      ? cssLength(MOSAIC_IMAGE)
+                      : undefined,
+                    "--preview-position": moreThumbnails[preset]
+                      ? QUADRANT_OFFSETS[index]
+                      : undefined,
+                    "--preview-background":
+                      moreThumbnails[preset] === null
+                        ? MATERIAL_PREVIEW[preset]
+                        : undefined,
+                  } as React.CSSProperties
                 }
               />
             ))}
             {/* One soft highlight across the quadrants makes them read as one sphere. */}
-            <span className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_32%_28%,rgb(255_255_255/30%),transparent_45%)] shadow-[inset_0_1px_2px_rgb(255_255_255/35%),inset_0_-2px_3px_rgb(0_0_0/25%)]" />
+            <span className="absolute inset-0 rounded-full bg-finish-highlight shadow-finish-mosaic" />
           </span>
           <span className="absolute right-0 bottom-0 grid size-3.5 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
             <Plus className="size-2.5" strokeWidth={3} aria-hidden="true" />
@@ -168,6 +180,8 @@ export function FinishPresetPicker({
         </span>
       </PopoverTrigger>
       <PopoverContent
+        size="finish"
+        scrollable={true}
         density="flush"
         // Desktop opens beside the inspector; phones drop it under the strip.
         align={compact ? "center" : "end"}
@@ -175,10 +189,10 @@ export function FinishPresetPicker({
         sideOffset={compact ? 6 : 10}
         collisionPadding={12}
         collisionAvoidance={{ side: "flip", align: "shift" }}
-        className="editor-scrollbar max-h-[min(600px,var(--available-height))] w-[min(340px,calc(100vw-24px))] overflow-y-auto overscroll-contain max-[720px]:w-[min(24rem,calc(100vw-24px))]"
+        className="overflow-y-auto overscroll-contain"
       >
         <div className="px-3.5 pt-3 pb-1">
-          <PopoverTitle className="text-sm">Finish</PopoverTitle>
+          <PopoverTitle>Finish</PopoverTitle>
         </div>
         <div
           role="radiogroup"
@@ -188,7 +202,7 @@ export function FinishPresetPicker({
         >
           {FINISH_GROUPS.map((group) => (
             <div key={group.label} role="group" aria-label={group.label}>
-              <div className="mb-1 px-1 text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+              <div className="mb-1 px-1 text-3xs font-semibold tracking-label text-muted-foreground uppercase">
                 {group.label}
               </div>
               <div className="grid grid-cols-5 gap-1">
@@ -213,14 +227,14 @@ export function FinishPresetPicker({
                       onFocus={() => setPreviewed(preset)}
                       className="group flex flex-col items-center gap-1.5 rounded-xl px-1 pt-2 pb-2 transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-checked:bg-muted/50"
                     >
-                      <span className="grid size-11 place-items-center rounded-full ring-[1.5px] ring-transparent transition-[box-shadow,transform] duration-200 ease-out group-hover:scale-[1.04] group-active:scale-95 group-aria-checked:ring-foreground/60">
+                      <span className="grid size-11 place-items-center rounded-full ring-editor ring-transparent transition-[box-shadow,transform] duration-200 ease-out group-hover:scale-104 group-active:scale-95 group-aria-checked:ring-foreground/60">
                         <FinishSwatch
                           preset={preset}
                           thumbnail={thumbnails[preset]}
                           className="size-11"
                         />
                       </span>
-                      <span className="max-w-full truncate text-[11px] leading-4 text-muted-foreground group-hover:text-foreground group-aria-checked:font-medium group-aria-checked:text-foreground">
+                      <span className="max-w-full truncate text-2xs leading-4 text-muted-foreground group-hover:text-foreground group-aria-checked:font-medium group-aria-checked:text-foreground">
                         {MATERIAL_METADATA[tile].name}
                       </span>
                     </button>
@@ -235,11 +249,11 @@ export function FinishPresetPicker({
             <span className="text-xs font-medium text-foreground">
               {detail.name}
             </span>
-            <span className="truncate text-[11px] text-muted-foreground">
+            <span className="truncate text-2xs text-muted-foreground">
               {detail.subtitle}
             </span>
           </div>
-          <p className="mt-1 min-h-8 text-[11px] leading-4 text-muted-foreground">
+          <p className="mt-1 min-h-8 text-2xs leading-4 text-muted-foreground">
             {detail.description}
           </p>
           {isGraphiteCutPreset(value) ? (

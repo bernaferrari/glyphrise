@@ -146,7 +146,7 @@ export const TimelineLeftRail = React.forwardRef<
         ))}
 
         {/* Adding motion lives on the timeline: a property, or a preset. */}
-        <div className="flex h-[var(--timeline-property-height)] items-center border-b border-border/60 pr-1.5">
+        <div className="flex h-(--timeline-property-height) items-center border-b border-border/60 pr-1.5">
           <TimelineAddAnimationMenu
             duration={duration}
             hiddenTracks={hiddenTracks}

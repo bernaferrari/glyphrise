@@ -39,8 +39,9 @@ export function EditScopePanel({
             <CircleHelp className="size-3.5" />
           </PopoverTrigger>
           <PopoverContent
+            variant="help"
             align="end"
-            className="max-w-[calc(100vw-32px)] space-y-2 text-xs leading-relaxed"
+            className="max-w-(--spacing-screen-inset-4)"
           >
             <p className="font-medium">Record edits · Auto-key</p>
             <p>
@@ -56,7 +57,7 @@ export function EditScopePanel({
           </PopoverContent>
         </Popover>
       </div>
-      <p className="text-[11px] leading-relaxed text-muted-foreground tabular-nums max-[720px]:hidden">
+      <p className="text-2xs leading-relaxed text-muted-foreground tabular-nums max-[720px]:hidden">
         {autoKeyEnabled
           ? `Save your next change at ${currentTime.toFixed(2)}s.`
           : "Changes to unanimated values apply throughout."}

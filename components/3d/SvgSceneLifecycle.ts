@@ -100,41 +100,45 @@ export const createSvgSceneResources = ({
   return { renderer, studioEnvironment }
 }
 
-export const bindSvgSceneResize = ({
+export const resizeSvgScene = ({
   container,
   cameraRef,
   rendererRef,
   currentZoomRef,
-  requestRender,
 }: {
   container: HTMLDivElement
   cameraRef: MutableRefObject<THREE.PerspectiveCamera | null>
   rendererRef: MutableRefObject<THREE.WebGLRenderer | null>
   currentZoomRef: MutableRefObject<number>
-  requestRender?: () => void
 }) => {
-  const rendererSize = new THREE.Vector2()
+  const camera = cameraRef.current
+  const renderer = rendererRef.current
+  if (!camera || !renderer) return false
+
+  const width = container.clientWidth
+  const height = container.clientHeight
+  if (width <= 0 || height <= 0) return false
+  const rendererSize = renderer.getSize(new THREE.Vector2())
+  if (rendererSize.x === width && rendererSize.y === height) return false
+
+  camera.aspect = width / height
+  camera.updateProjectionMatrix()
+  renderer.setSize(width, height)
+  camera.position.z = framedCameraDistance(camera) / currentZoomRef.current
+  return true
+}
+
+export const bindSvgSceneResize = ({
+  requestRender,
+  ...scene
+}: Parameters<typeof resizeSvgScene>[0] & { requestRender?: () => void }) => {
   const handleResize = () => {
-    const camera = cameraRef.current
-    const renderer = rendererRef.current
-    if (!camera || !renderer) return
-
-    const width = container.clientWidth
-    const height = container.clientHeight
-    if (width <= 0 || height <= 0) return
-    renderer.getSize(rendererSize)
-    if (rendererSize.x === width && rendererSize.y === height) return
-
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-    renderer.setSize(width, height)
-    camera.position.z = framedCameraDistance(camera) / currentZoomRef.current
-    requestRender?.()
+    if (resizeSvgScene(scene)) requestRender?.()
   }
 
   window.addEventListener("resize", handleResize)
   const resizeObserver = new ResizeObserver(handleResize)
-  resizeObserver.observe(container)
+  resizeObserver.observe(scene.container)
 
   return () => {
     window.removeEventListener("resize", handleResize)

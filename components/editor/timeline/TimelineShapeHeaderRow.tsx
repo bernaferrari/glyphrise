@@ -17,7 +17,7 @@ export function TimelineShapeHeaderRow({
 }: TimelineShapeHeaderRowProps) {
   return (
     <div
-      className={`group flex h-[var(--timeline-shape-height)] items-center gap-2 border-b border-border pr-1.5 pl-3 transition-colors ${
+      className={`group flex h-(--timeline-shape-height) items-center gap-2 border-b border-border pr-1.5 pl-3 transition-colors ${
         selectedShapeId ? "bg-foreground/[0.03]" : ""
       }`}
     >

@@ -59,20 +59,20 @@ export function TimelineClipPanel({
             <div className="flex items-center gap-2.5 border-b border-border py-1.5 pr-1.5 pl-2">
               <span
                 aria-hidden="true"
-                className="grid size-7 shrink-0 place-items-center rounded-md bg-muted [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
-                style={{ color: stop.color }}
+                className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-(--element-color) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
+                style={{ "--element-color": stop.color } as React.CSSProperties}
                 dangerouslySetInnerHTML={{ __html: stop.svgContent }}
               />
               <div className="min-w-0 flex-1">
-                <PopoverTitle className="truncate text-[13px] font-medium">
+                <PopoverTitle size="control" truncate={true}>
                   {label}
                 </PopoverTitle>
                 {stop.time === 0 ? (
-                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                  <p className="text-2xs text-muted-foreground tabular-nums">
                     Opens the animation
                   </p>
                 ) : (
-                  <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <label className="flex items-center gap-1.5 text-2xs text-muted-foreground">
                     Starts at
                     <NumberField
                       value={stop.time}
@@ -81,7 +81,7 @@ export function TimelineClipPanel({
                       step={0.1}
                       precision={2}
                       suffix="s"
-                      className="h-6 w-16 text-[11px]"
+                      className="h-6 w-16 text-2xs"
                       ariaLabel={`${label} start time in seconds`}
                       onChange={onTimeChange}
                     />

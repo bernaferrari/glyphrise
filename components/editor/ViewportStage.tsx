@@ -92,6 +92,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
         }`}
       >
         <div
+          id="glyphrise-preview-frame"
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -116,7 +117,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           {svgImportError ? (
             <div
               role="alert"
-              className="absolute top-16 left-1/2 z-40 flex w-[min(34rem,calc(100%-2rem))] -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-xl backdrop-blur-md"
+              className="absolute top-16 left-1/2 z-40 flex w-(--spacing-preview-message) -translate-x-1/2 items-center gap-3 rounded-xl border border-destructive/40 bg-background/95 px-4 py-3 text-sm text-foreground shadow-xl backdrop-blur-md"
             >
               <AlertTriangle
                 aria-hidden="true"
@@ -144,7 +145,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
                   <span className="block text-sm font-semibold text-white">
                     Drop SVG here
                   </span>
-                  <span className="mt-1 block text-[11px] tracking-wider text-muted-foreground uppercase">
+                  <span className="mt-1 block text-2xs tracking-wider text-muted-foreground uppercase">
                     Replaces the selected shape
                   </span>
                 </div>
@@ -152,9 +153,10 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
             </div>
           )}
 
-          {presentation === "workspace" && (
-            <ViewOptionsPopover {...viewOptionsProps} />
-          )}
+          <ViewOptionsPopover
+            {...viewOptionsProps}
+            compact={presentation === "motion-preview"}
+          />
           {presentation === "motion-preview" && (
             <div className="pointer-events-none absolute inset-x-4 top-3 flex items-center justify-between text-xs text-white/60">
               <span>Live preview</span>

@@ -1,7 +1,7 @@
 export function ExportFormatDetails() {
   return (
     <div className="overflow-hidden rounded-xl border border-border">
-      <table className="w-full text-left text-[11px]">
+      <table className="w-full text-left text-2xs">
         <caption className="bg-muted/35 px-3 py-2 text-left font-semibold text-foreground">
           Export fidelity
         </caption>

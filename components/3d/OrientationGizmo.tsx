@@ -79,7 +79,7 @@ export function OrientationGizmo({
         y1="40"
         x2="40"
         y2="40"
-        className="stroke-rose-400/70 stroke-[1.5]"
+        className="stroke-axis-x-edge/70 stroke-axis"
         strokeLinecap="round"
       />
       <line
@@ -88,7 +88,7 @@ export function OrientationGizmo({
         y1="40"
         x2="40"
         y2="40"
-        className="stroke-emerald-400/70 stroke-[1.5]"
+        className="stroke-axis-y-edge/70 stroke-axis"
         strokeLinecap="round"
       />
       <line
@@ -97,27 +97,27 @@ export function OrientationGizmo({
         y1="40"
         x2="40"
         y2="40"
-        className="stroke-sky-400/70 stroke-[1.5]"
+        className="stroke-axis-z-edge/70 stroke-axis"
         strokeLinecap="round"
       />
 
       <AxisMarker
         ref={refs.markerXRef}
         label="X"
-        colorClass="fill-rose-500/18 stroke-rose-400/85"
-        textClass="fill-rose-200"
+        colorClass="fill-axis-x-surface/18 stroke-axis-x-edge/85"
+        textClass="fill-axis-x-label"
       />
       <AxisMarker
         ref={refs.markerYRef}
         label="Y"
-        colorClass="fill-emerald-500/18 stroke-emerald-400/85"
-        textClass="fill-emerald-200"
+        colorClass="fill-axis-y-surface/18 stroke-axis-y-edge/85"
+        textClass="fill-axis-y-label"
       />
       <AxisMarker
         ref={refs.markerZRef}
         label="Z"
-        colorClass="fill-sky-500/18 stroke-sky-400/85"
-        textClass="fill-sky-200"
+        colorClass="fill-axis-z-surface/18 stroke-axis-z-edge/85"
+        textClass="fill-axis-z-label"
       />
 
       <circle cx="40" cy="40" r="1.5" className="fill-white/50" />
@@ -125,28 +125,28 @@ export function OrientationGizmo({
       <g className="pointer-events-none opacity-0 transition-opacity duration-150 group-focus-within/gizmo:pointer-events-auto group-focus-within/gizmo:opacity-100 group-hover/gizmo:pointer-events-auto group-hover/gizmo:opacity-100">
         <GizmoNudgeButton
           title="Tilt up 45 degrees"
-          colorClass="text-emerald-300/65 hover:text-emerald-200"
+          colorClass="text-axis-y-muted/65 hover:text-axis-y-label"
           hitbox={{ x: 28, y: 0, width: 24, height: 22 }}
           path="M40 5.7 C42.9 7.8 44.6 10.8 44.8 14.4 C43.4 13.2 41.8 12.5 40 12.5 C38.2 12.5 36.6 13.2 35.2 14.4 C35.4 10.8 37.1 7.8 40 5.7Z"
           onClick={() => onNudgeViewRotation("x", 1)}
         />
         <GizmoNudgeButton
           title="Tilt down 45 degrees"
-          colorClass="text-emerald-300/65 hover:text-emerald-200"
+          colorClass="text-axis-y-muted/65 hover:text-axis-y-label"
           hitbox={{ x: 28, y: 58, width: 24, height: 22 }}
           path="M40 74.3 C37.1 72.2 35.4 69.2 35.2 65.6 C36.6 66.8 38.2 67.5 40 67.5 C41.8 67.5 43.4 66.8 44.8 65.6 C44.6 69.2 42.9 72.2 40 74.3Z"
           onClick={() => onNudgeViewRotation("x", -1)}
         />
         <GizmoNudgeButton
           title="Rotate left 45 degrees"
-          colorClass="text-rose-300/65 hover:text-rose-200"
+          colorClass="text-axis-x-muted/65 hover:text-axis-x-label"
           hitbox={{ x: 0, y: 28, width: 22, height: 24 }}
           path="M5.7 40 C7.8 37.1 10.8 35.4 14.4 35.2 C13.2 36.6 12.5 38.2 12.5 40 C12.5 41.8 13.2 43.4 14.4 44.8 C10.8 44.6 7.8 42.9 5.7 40Z"
           onClick={() => onNudgeViewRotation("y", 1)}
         />
         <GizmoNudgeButton
           title="Rotate right 45 degrees"
-          colorClass="text-rose-300/65 hover:text-rose-200"
+          colorClass="text-axis-x-muted/65 hover:text-axis-x-label"
           hitbox={{ x: 58, y: 28, width: 22, height: 24 }}
           path="M74.3 40 C72.2 42.9 69.2 44.6 65.6 44.8 C66.8 43.4 67.5 41.8 67.5 40 C67.5 38.2 66.8 36.6 65.6 35.2 C69.2 35.4 72.2 37.1 74.3 40Z"
           onClick={() => onNudgeViewRotation("y", -1)}
@@ -165,12 +165,12 @@ const AxisMarker = React.forwardRef<
   }
 >(({ label, colorClass, textClass }, ref) => (
   <g ref={ref} transform="translate(40 40)">
-    <circle cx="0" cy="0" r="8" className="fill-black/35 blur-[1px]" />
+    <circle cx="0" cy="0" r="8" className="fill-black/35 blur-hairline" />
     <circle cx="0" cy="0" r="7" className={`${colorClass} stroke-1`} />
     <text
       x="0"
       y="0.3"
-      className={`${textClass} font-sans text-[7px] font-semibold select-none`}
+      className={`${textClass} font-sans text-gizmo font-semibold select-none`}
       textAnchor="middle"
       dominantBaseline="central"
     >

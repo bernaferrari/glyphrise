@@ -43,7 +43,7 @@ export function ExportCodeBlock({
     }
   }, [code, lang, resolvedTheme])
 
-  const surfaceClass = `editor-scrollbar block max-h-[56vh] w-full max-w-full overflow-auto rounded-lg border border-border bg-muted/35 font-mono text-[11px] leading-relaxed text-muted-foreground select-text ${className ?? ""}`
+  const surfaceClass = `editor-scrollbar block max-h-(--spacing-code-expanded) w-full max-w-full overflow-auto rounded-lg border border-border bg-muted/35 font-mono text-2xs leading-relaxed text-muted-foreground select-text ${className ?? ""}`
 
   if (!html) {
     return (
@@ -55,7 +55,7 @@ export function ExportCodeBlock({
 
   return (
     <div
-      className={`${surfaceClass} [&_pre]:m-0 [&_pre]:min-w-max [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-[11px] [&_pre]:leading-relaxed`}
+      className={`${surfaceClass} [&_pre]:m-0 [&_pre]:min-w-max [&_pre]:!bg-transparent [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-2xs [&_pre]:leading-relaxed`}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )

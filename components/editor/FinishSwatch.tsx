@@ -160,8 +160,12 @@ export function FinishSwatch({
         />
       ) : thumbnail === null ? (
         <span
-          className="absolute inset-0 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
-          style={{ background: MATERIAL_PREVIEW[preset] }}
+          className="absolute inset-0 rounded-full shadow-finish-swatch bg-preview"
+          style={
+            {
+              "--preview-background": MATERIAL_PREVIEW[preset],
+            } as React.CSSProperties
+          }
         />
       ) : (
         <span className="absolute inset-0 rounded-full bg-muted ring-1 ring-border ring-inset" />

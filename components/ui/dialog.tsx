@@ -3,9 +3,58 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 
+import { cva, type VariantProps } from "class-variance-authority"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
+
+const dialogContentVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      flush: "gap-0 p-0",
+      picker: "gap-0 p-0 shadow-2xl",
+      welcome: "gap-5 p-5 sm:gap-6 sm:p-8",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+const dialogHeaderVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      picker: "px-4 pt-3.5 pr-12 pb-1",
+      export: "gap-2 border-b border-border px-5 py-3.5 pr-12",
+      files: "px-6 pt-6 pb-2",
+      welcome: "gap-2 pr-8 sm:gap-3",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+const dialogTitleVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      editor: "text-sm font-semibold text-foreground",
+      section: "text-lg font-semibold tracking-tight",
+      preset: "text-base font-semibold",
+      welcome: "text-2xl font-semibold tracking-tight text-balance sm:text-3xl",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
+const dialogDescriptionVariants = cva("", {
+  variants: {
+    variant: {
+      default: "",
+      welcome: "leading-6 text-pretty",
+      detail: "text-control leading-5",
+      compact: "text-xs",
+    },
+  },
+  defaultVariants: { variant: "default" },
+})
 
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
@@ -41,14 +90,18 @@ function DialogOverlay({
 
 function DialogContent({
   className,
+  variant = "default",
+  scrollable = false,
   children,
   showCloseButton = true,
   backdropClassName,
   ...props
-}: DialogPrimitive.Popup.Props & {
-  showCloseButton?: boolean
-  backdropClassName?: string
-}) {
+}: DialogPrimitive.Popup.Props &
+  VariantProps<typeof dialogContentVariants> & {
+    showCloseButton?: boolean
+    scrollable?: boolean
+    backdropClassName?: string
+  }) {
   return (
     <DialogPortal>
       {/* Slot styling is forwarded unchanged; callers own static class strings. */}
@@ -57,7 +110,9 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-popover p-4 text-sm text-popover-foreground shadow-[0_12px_48px_rgb(0_0_0/16%),0_2px_8px_rgb(0_0_0/8%)] ring-1 ring-foreground/10 duration-150 outline-none motion-reduce:animate-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-(--spacing-dialog-width) -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl bg-popover p-4 text-sm text-popover-foreground shadow-dialog ring-1 ring-foreground/10 duration-150 outline-none motion-reduce:animate-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          dialogContentVariants({ variant }),
+          scrollable && "editor-scrollbar",
           className
         )}
         {...props}
@@ -70,7 +125,7 @@ function DialogContent({
               <Button
                 variant="ghost"
                 className="absolute top-2 right-2"
-                size="icon-touch"
+                size="icon-lg"
               />
             }
           >
@@ -83,11 +138,19 @@ function DialogContent({
   )
 }
 
-function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+function DialogHeader({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof dialogHeaderVariants>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2 pr-8", className)}
+      className={cn(
+        "flex flex-col gap-2 pr-8",
+        dialogHeaderVariants({ variant }),
+        className
+      )}
       {...props}
     />
   )
@@ -95,10 +158,12 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function DialogFooter({
   className,
+  variant = "default",
   showCloseButton = false,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
+  variant?: "default" | "files"
   showCloseButton?: boolean
 }) {
   return (
@@ -106,6 +171,8 @@ function DialogFooter({
       data-slot="dialog-footer"
       className={cn(
         "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        variant === "files" &&
+          "gap-2 border-t border-border bg-muted/30 px-6 py-3",
         className
       )}
       {...props}
@@ -120,12 +187,20 @@ function DialogFooter({
   )
 }
 
-function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
+function DialogTitle({
+  className,
+  variant = "default",
+  truncate = false,
+  ...props
+}: DialogPrimitive.Title.Props &
+  VariantProps<typeof dialogTitleVariants> & { truncate?: boolean }) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
         "font-heading text-base leading-none font-medium",
+        dialogTitleVariants({ variant }),
+        truncate && "truncate",
         className
       )}
       {...props}
@@ -135,13 +210,16 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
 
 function DialogDescription({
   className,
+  variant = "default",
   ...props
-}: DialogPrimitive.Description.Props) {
+}: DialogPrimitive.Description.Props &
+  VariantProps<typeof dialogDescriptionVariants>) {
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
         "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        dialogDescriptionVariants({ variant }),
         className
       )}
       {...props}

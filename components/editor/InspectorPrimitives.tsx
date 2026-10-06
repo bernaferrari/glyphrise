@@ -116,11 +116,16 @@ export function InspectorRow({
               transform="rotate(45 8 8)"
               strokeWidth="2"
               // One keyframe accent everywhere; var() needs style, not attrs.
-              style={{
-                fill:
-                  scope.kind === "keyframe" ? "var(--timeline-accent)" : "none",
-                stroke: "var(--timeline-accent)",
-              }}
+              className="fill-(--shape-fill) stroke-(--shape-stroke)"
+              style={
+                {
+                  "--shape-fill":
+                    scope.kind === "keyframe"
+                      ? "var(--timeline-accent)"
+                      : "none",
+                  "--shape-stroke": "var(--timeline-accent)",
+                } as React.CSSProperties
+              }
             />
           </svg>
         ) : dot ? (

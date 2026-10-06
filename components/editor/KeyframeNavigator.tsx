@@ -54,7 +54,7 @@ const PropertyKeyframeNavButton = ({
   return (
     <Button
       variant="muted-ghost"
-      size="icon-narrow-sm"
+      size="icon-xs"
       type="button"
       aria-label={`${direction} ${label} keyframe`}
       title={title}
@@ -93,24 +93,20 @@ export const KeyframeNavigator = ({
   return (
     <div className="flex shrink-0 items-center justify-end gap-0">
       {/* ‹ ◆ › — previous, add/remove here, next (After Effects order). */}
-      {/* Unanimated properties show only the diamond, flush right. */}
-      {keyframes.length > 0 && (
-        <PropertyKeyframeNavButton
-          direction="previous"
-          time={previous}
-          label={label}
-          onJump={onJump}
-        />
-      )}
+      {/* Reserve both arrow slots so the diamond stays put when keys are added or removed. */}
+      <PropertyKeyframeNavButton
+        direction="previous"
+        time={previous}
+        label={label}
+        onJump={onJump}
+      />
       {children}
-      {keyframes.length > 0 && (
-        <PropertyKeyframeNavButton
-          direction="next"
-          time={next}
-          label={label}
-          onJump={onJump}
-        />
-      )}
+      <PropertyKeyframeNavButton
+        direction="next"
+        time={next}
+        label={label}
+        onJump={onJump}
+      />
     </div>
   )
 }

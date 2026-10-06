@@ -43,6 +43,7 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
     setQualityKeyframes: vi.fn(),
     canvas3DRef: {
       current: {
+        renderLayoutSnapshot: vi.fn(),
         exportGltf: vi.fn(async () => {}),
         exportPng: vi.fn(async () => new Blob()),
         renderExportFrame: vi.fn(),

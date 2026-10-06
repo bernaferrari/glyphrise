@@ -112,10 +112,12 @@ export const EasingPicker: React.FC<{
         )}
       </PopoverTrigger>
       <PopoverContent
+        tone="foreground"
+        density="compact"
         align="end"
         side="top"
         sideOffset={6}
-        className="w-40 p-1 text-foreground"
+        className="w-40"
       >
         {EASING_OPTIONS.map((option) => {
           const active = option.value === value
@@ -128,7 +130,7 @@ export const EasingPicker: React.FC<{
                 onChange(option.value)
                 setOpen(false)
               }}
-              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[11px] transition-colors ${active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
+              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-2xs transition-colors ${active ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"}`}
             >
               <svg
                 width="16"
@@ -180,7 +182,7 @@ export function EasingChoices({
           aria-pressed={option.value === value}
           title={option.label}
           onClick={() => onChange(option.value)}
-          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-9 gap-1.5 px-2 text-xs" : "min-h-11 flex-col gap-0.5 text-[10px]"}`}
+          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-9 gap-1.5 px-2 text-xs" : "min-h-11 flex-col gap-0.5 text-3xs"}`}
         >
           <svg
             aria-hidden="true"

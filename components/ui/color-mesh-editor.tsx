@@ -116,13 +116,14 @@ export function ColorMeshEditor({
   return (
     // Padding keeps corner handles inside the popover; the surface is the
     // 0–1 coordinate space the points live in.
-    <div className="relative aspect-[3/2]">
+    <div className="relative aspect-photo">
       <MeshPreviewCanvas
+        variant="editor"
         stops={stops}
         fallback={fallback}
         width={60}
         height={40}
-        className="absolute inset-0 size-full rounded-lg shadow-[inset_0_0_0_1px_rgb(255_255_255/8%)]"
+        className="absolute inset-0 size-full"
       />
       <div
         ref={surfaceRef}
@@ -182,21 +183,26 @@ export function ColorMeshEditor({
                 onPointerDown={(event) => startDrag(index, event)}
                 className={cn(
                   "group/point absolute grid size-7 -translate-x-1/2 -translate-y-1/2 touch-none place-items-center rounded-full focus-visible:outline-none",
-                  active ? "z-20 cursor-grabbing" : "z-10 cursor-grab"
+                  active ? "z-20 cursor-grabbing" : "z-10 cursor-grab",
+                  "top-(--position-y) left-(--position-x)"
                 )}
-                style={{
-                  left: `${(points[index]?.x ?? 0.5) * 100}%`,
-                  top: `${(points[index]?.y ?? 0.5) * 100}%`,
-                }}
+                style={
+                  {
+                    "--position-x": `${(points[index]?.x ?? 0.5) * 100}%`,
+                    "--position-y": `${(points[index]?.y ?? 0.5) * 100}%`,
+                  } as React.CSSProperties
+                }
               >
                 <span
                   className={cn(
-                    "size-4 rounded-full border-2 border-white shadow-[0_0_0_1px_rgb(0_0_0/18%),0_2px_6px_rgb(0_0_0/35%)] transition-transform duration-150 ease-out group-hover/point:scale-125 group-focus-visible/point:ring-2 group-focus-visible/point:ring-white/70",
+                    "size-4 rounded-full border-2 border-white shadow-color-stop transition-transform duration-150 ease-out group-hover/point:scale-125 group-focus-visible/point:ring-2 group-focus-visible/point:ring-white/70",
                     (open || highlighted) && "scale-125",
-                    active &&
-                      "scale-140 shadow-[0_0_0_1px_rgb(0_0_0/18%),0_6px_14px_rgb(0_0_0/40%)]"
+                    active && "scale-140 shadow-color-stop-active",
+                    "bg-(--swatch-color)"
                   )}
-                  style={{ backgroundColor: stop.color }}
+                  style={
+                    { "--swatch-color": stop.color } as React.CSSProperties
+                  }
                 />
               </PopoverTrigger>
               <ColorStopEditorPopover

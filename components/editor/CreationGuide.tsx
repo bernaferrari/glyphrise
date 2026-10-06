@@ -55,7 +55,7 @@ export function CreationGuide({
   return (
     <aside
       aria-label="Your first icon"
-      className="absolute top-4 left-4 z-20 w-[min(300px,calc(100%-32px))] rounded-2xl border border-white/15 bg-black/75 p-4 text-white shadow-lg backdrop-blur-md max-[720px]:top-3 max-[720px]:left-3 max-[720px]:p-3"
+      className="absolute top-4 left-4 z-20 w-(--spacing-creation-guide) rounded-2xl border border-white/15 bg-black/75 p-4 text-white shadow-lg backdrop-blur-md max-[720px]:top-3 max-[720px]:left-3 max-[720px]:p-3"
     >
       <button
         type="button"
@@ -65,7 +65,7 @@ export function CreationGuide({
       >
         <X aria-hidden="true" className="size-4" />
       </button>
-      <span className="flex items-center gap-1.5 pr-6 text-[11px] text-white/60">
+      <span className="flex items-center gap-1.5 pr-6 text-2xs text-white/60">
         {completed && <Check aria-hidden="true" className="size-3" />}Your first
         icon{completed ? " · Done" : ""}
       </span>

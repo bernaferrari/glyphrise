@@ -31,6 +31,7 @@ export function ColorStopEditorPopover({
   const sideways = side === "left" || side === "right"
   return (
     <PopoverContent
+      density="color"
       variant="editor"
       ref={contentRef}
       animated={false}
@@ -41,7 +42,7 @@ export function ColorStopEditorPopover({
       collisionAvoidance={
         compact ? { side: "flip", align: "shift" } : undefined
       }
-      className="max-h-(--available-height) w-52.5 overflow-y-auto overscroll-contain p-3 pb-2"
+      className="max-h-(--available-height) w-52.5 overflow-y-auto overscroll-contain"
       onClick={(event) => event.stopPropagation()}
       onPointerDown={(event) => event.stopPropagation()}
     >

@@ -53,7 +53,10 @@ export type NewProjectDialogProps = {
 export function NewProjectDialog(props: NewProjectDialogProps) {
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-      <DialogContent className="flex max-h-[min(720px,calc(100dvh-32px))] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+      <DialogContent
+        variant="flush"
+        className="flex max-h-(--spacing-files-dialog) flex-col overflow-hidden sm:max-w-xl"
+      >
         <NewProjectDialogContent {...props} />
       </DialogContent>
     </Dialog>
@@ -97,11 +100,9 @@ function NewProjectDialogContent({
 
   return (
     <>
-      <DialogHeader className="shrink-0 px-6 pt-6 pb-2">
-        <DialogTitle className="text-lg font-semibold tracking-tight">
-          Files
-        </DialogTitle>
-        <DialogDescription className="text-[13px] leading-5">
+      <DialogHeader variant="files" className="shrink-0">
+        <DialogTitle variant="section">Files</DialogTitle>
+        <DialogDescription variant="detail">
           Each file is one animation. Files save automatically in this browser.
           Download a copy to back one up or move it to another device.
         </DialogDescription>
@@ -130,7 +131,7 @@ function NewProjectDialogContent({
               >
                 On this device
               </h3>
-              <span className="text-[11px] text-muted-foreground/70 tabular-nums">
+              <span className="text-2xs text-muted-foreground/70 tabular-nums">
                 {visibleProjects.length === recentProjects.length
                   ? recentProjects.length
                   : `${visibleProjects.length} of ${recentProjects.length}`}
@@ -180,14 +181,14 @@ function NewProjectDialogContent({
                             {recent.name}
                           </span>
                           {current ? (
-                            <span className="shrink-0 rounded-full bg-primary/12 px-1.5 py-px text-[10px] font-medium text-primary">
+                            <span className="shrink-0 rounded-full bg-primary/12 px-1.5 py-px text-3xs font-medium text-primary">
                               Open now
                             </span>
                           ) : null}
                         </span>
                         <time
                           dateTime={recent.updatedAt}
-                          className="block text-[11px] text-muted-foreground tabular-nums"
+                          className="block text-2xs text-muted-foreground tabular-nums"
                         >
                           Edited{" "}
                           {new Date(recent.updatedAt).toLocaleDateString(
@@ -201,22 +202,22 @@ function NewProjectDialogContent({
                       <Button
                         type="button"
                         size="icon"
-                        variant="ghost"
+                        variant="muted-ghost"
                         aria-label={`Duplicate ${recent.name}`}
                         title="Duplicate and open"
                         onClick={() => onDuplicateRecent(recent.id)}
-                        className="text-muted-foreground pointer-coarse:size-11"
+                        className=""
                       >
                         <Copy className="size-3.5" />
                       </Button>
                       <Button
                         type="button"
                         size="icon"
-                        variant="ghost"
+                        variant="muted-destructive"
                         aria-label={`Delete ${recent.name}`}
                         title="Delete from this device"
                         onClick={() => setProjectToDelete(recent)}
-                        className="text-muted-foreground hover:text-destructive pointer-coarse:size-11"
+                        className=""
                       >
                         <Trash2 className="size-3.5" />
                       </Button>
@@ -254,7 +255,10 @@ function NewProjectDialogContent({
         )}
       </div>
 
-      <DialogFooter className="m-0 shrink-0 flex-row items-center justify-between gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:justify-between">
+      <DialogFooter
+        variant="files"
+        className="m-0 shrink-0 flex-row items-center justify-between sm:justify-between"
+      >
         <Button variant="ghost" size="sm" onClick={onImportFile}>
           <FolderOpen className="size-3.5" />
           Open from computer…
@@ -272,9 +276,11 @@ function NewProjectDialogContent({
         }}
       >
         <DialogContent showCloseButton={false} className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Delete “{projectToDelete?.name}”?</DialogTitle>
-            <DialogDescription>
+          <DialogHeader variant="files">
+            <DialogTitle variant="section">
+              Delete “{projectToDelete?.name}”?
+            </DialogTitle>
+            <DialogDescription variant="detail">
               This removes the file from this browser. Any copy you downloaded
               stays where you saved it.
               {projectToDelete?.id === currentProjectId
@@ -282,7 +288,7 @@ function NewProjectDialogContent({
                 : ""}
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter variant="files">
             <Button
               type="button"
               variant="outline"
@@ -339,7 +345,7 @@ function NewProjectForm({
         >
           New file
         </h3>
-        <label className="flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
+        <label className="flex min-w-0 items-center gap-2 text-2xs text-muted-foreground">
           <span className="sr-only">New file name</span>
           <input
             id="new-project-name"
@@ -355,7 +361,7 @@ function NewProjectForm({
           />
         </label>
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
+      <div className="grid grid-cols-presets gap-2">
         <StartTile
           type="submit"
           label="Start blank"
@@ -385,8 +391,12 @@ function NewProjectForm({
             preview={
               <span className="grid size-full place-items-center rounded-lg bg-muted/60">
                 <span
-                  className="size-9 rounded-full shadow-[inset_0_1px_2px_rgb(255_255_255/50%),inset_0_-2px_3px_rgb(0_0_0/20%)]"
-                  style={{ background: template.preview }}
+                  className="size-9 rounded-full shadow-finish-swatch bg-preview"
+                  style={
+                    {
+                      "--preview-background": template.preview,
+                    } as React.CSSProperties
+                  }
                 />
               </span>
             }
@@ -417,7 +427,7 @@ function StartTile({
       title={hint}
       className="group flex min-w-0 flex-col gap-2 rounded-xl p-1.5 text-left transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
     >
-      <span className="block aspect-[4/3] w-full">{preview}</span>
+      <span className="block aspect-preview w-full">{preview}</span>
       <span className="line-clamp-2 min-h-8 px-0.5 text-xs leading-4 font-medium text-foreground">
         {label}
       </span>

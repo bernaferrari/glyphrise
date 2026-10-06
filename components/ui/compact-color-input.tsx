@@ -159,16 +159,17 @@ export function CompactColorInput({
       <Popover>
         <PopoverTrigger
           aria-label={ariaLabel}
-          className="size-4.5 shrink-0 rounded-[4px] border border-border focus:ring-2 focus:ring-ring/35 focus:outline-none"
-          style={{ backgroundColor: hex }}
+          className="size-4.5 shrink-0 rounded-preview border border-border bg-(--swatch-color) focus:ring-2 focus:ring-ring/35 focus:outline-none"
+          style={{ "--swatch-color": hex } as React.CSSProperties}
           onClick={(event) => event.stopPropagation()}
         />
         <PopoverContent
+          density="color"
           variant="editor"
           align={align}
           side={side}
           sideOffset={8}
-          className="w-52.5 p-3 pb-2"
+          className="w-52.5"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
         >

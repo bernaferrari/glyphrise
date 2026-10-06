@@ -56,6 +56,7 @@ type UseSvgRenderLoopOptions = {
   transformGizmoGroupRef: NullableRef<THREE.Group>
   exportRenderOptionsRef: MutableRefObject<ExportRenderOptions | null>
   requestRenderRef: MutableRefObject<() => void>
+  renderFrameRef: MutableRefObject<() => void>
   isDraggingRef: MutableRefObject<boolean>
   updateTransformGizmo: (
     center: THREE.Vector3 | null,
@@ -85,6 +86,7 @@ export function useSvgRenderLoop({
   transformGizmoGroupRef,
   exportRenderOptionsRef,
   requestRenderRef,
+  renderFrameRef,
   isDraggingRef,
   updateTransformGizmo,
 }: UseSvgRenderLoopOptions) {
@@ -256,6 +258,10 @@ export function useSvgRenderLoop({
 
     document.addEventListener("visibilitychange", handleVisibilityChange)
     requestRenderRef.current = scheduleFrame
+    renderFrameRef.current = () => {
+      if (animFrameId !== null) cancelAnimationFrame(animFrameId)
+      renderLoop()
+    }
     scheduleFrame()
 
     return () => {
@@ -264,6 +270,7 @@ export function useSvgRenderLoop({
       exportCaptureRef.current = null
       document.removeEventListener("visibilitychange", handleVisibilityChange)
       requestRenderRef.current = () => undefined
+      renderFrameRef.current = () => undefined
       if (animFrameId !== null) cancelAnimationFrame(animFrameId)
       animFrameId = null
     }
@@ -288,6 +295,7 @@ export function useSvgRenderLoop({
     transformGizmoGroupRef,
     exportRenderOptionsRef,
     requestRenderRef,
+    renderFrameRef,
     isDraggingRef,
   ])
 }

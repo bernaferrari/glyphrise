@@ -94,7 +94,7 @@ export function TimelineShapeLane({
 }: TimelineShapeLaneProps) {
   return (
     <div
-      className="relative h-[var(--timeline-shape-height)] border-b border-border"
+      className="relative h-(--timeline-shape-height) border-b border-border"
       onMouseDown={(event) => {
         if (event.button !== 0) return
         onClearSelectedKeyframe()

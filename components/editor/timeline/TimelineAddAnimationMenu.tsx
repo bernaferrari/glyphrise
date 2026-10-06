@@ -104,7 +104,7 @@ export function TimelineAddAnimationMenu({
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="px-2 pt-1 pb-2 text-[11px] leading-4 text-muted-foreground">
+        <p className="px-2 pt-1 pb-2 text-2xs leading-4 text-muted-foreground">
           Everything here animates the whole icon across the timeline,{" "}
           <span className="text-foreground tabular-nums">
             0s → {Number(duration.toFixed(2))}s
@@ -117,11 +117,11 @@ export function TimelineAddAnimationMenu({
             aria-label={group.name}
             className="border-t border-border py-1.5"
           >
-            <div className="flex items-center gap-2 px-2 pb-1 text-[11px] font-medium text-muted-foreground">
+            <div className="flex items-center gap-2 px-2 pb-1 text-2xs font-medium text-muted-foreground">
               <TimelineRowIcon id={group.id} className="size-3.5" />
               {group.name}
               {group.animated && (
-                <span className="ml-auto rounded bg-warning/12 px-1.5 py-px text-[10px] text-warning">
+                <span className="ml-auto rounded bg-warning/12 px-1.5 py-px text-3xs text-warning">
                   Replaces current
                 </span>
               )}
@@ -194,8 +194,8 @@ function MenuItem({
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[13px] text-foreground">{title}</span>
-        <span className="block truncate text-[11px] text-muted-foreground tabular-nums">
+        <span className="block text-control text-foreground">{title}</span>
+        <span className="block truncate text-2xs text-muted-foreground tabular-nums">
           {description}
         </span>
       </span>

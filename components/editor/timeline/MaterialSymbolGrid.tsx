@@ -1,8 +1,10 @@
 "use client"
 
+import type { MaterialSymbolPreviewStyle } from "../IconLibrary"
+
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { ShapeStop } from "../TimelineModel"
-import { cn } from "@/lib/utils"
+import { cssLength, cn } from "@/lib/utils"
 import type { MaterialSymbolStatus } from "./ShapePickerSymbolModel"
 
 const DEFAULT_COLUMN_COUNT = 12
@@ -24,7 +26,7 @@ export function MaterialSymbolGrid({
   filteredMaterialSymbols: string[]
   normalizedShapeQuery: string
   materialSymbolClass: string
-  symbolStyle: React.CSSProperties
+  symbolStyle: MaterialSymbolPreviewStyle
   materialSymbolStatus: MaterialSymbolStatus
   className?: string
   onChooseMaterialSymbol: (shapeId: string, symbolName: string) => void
@@ -121,17 +123,20 @@ export function MaterialSymbolGrid({
       ref={gridRef}
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       className={cn(
-        "editor-scrollbar grid max-h-62.5 grid-cols-[repeat(auto-fill,minmax(44px,44px))] content-start justify-between gap-2 overflow-y-auto pr-1",
-        normalizedShapeQuery &&
-          "grid-cols-[repeat(auto-fill,minmax(112px,1fr))]",
+        "editor-scrollbar grid max-h-62.5 grid-cols-symbols content-start justify-between gap-2 overflow-y-auto pr-1",
+        normalizedShapeQuery && "grid-cols-symbol-search",
         className
       )}
     >
       {topSpacerHeight > 0 && (
         <div
           aria-hidden="true"
-          className="col-span-full"
-          style={{ height: topSpacerHeight }}
+          className="col-span-full h-(--element-height)"
+          style={
+            {
+              "--element-height": cssLength(topSpacerHeight),
+            } as React.CSSProperties
+          }
         />
       )}
       {visibleSymbols.map((symbolName) => (
@@ -139,7 +144,7 @@ export function MaterialSymbolGrid({
           key={`material-symbol-${stop.id}-${symbolName}`}
           data-symbol-tile
           className={cn(
-            "material-symbol-tile group/symbol relative aspect-square",
+            "group/symbol relative aspect-square",
             normalizedShapeQuery && "aspect-auto min-h-20"
           )}
         >
@@ -153,8 +158,12 @@ export function MaterialSymbolGrid({
           >
             <span
               aria-hidden="true"
-              className={`${materialSymbolClass} text-[22px] leading-none`}
-              style={symbolStyle}
+              className={`${materialSymbolClass} text-symbol leading-none`}
+              style={
+                {
+                  "--symbol-variation": symbolStyle["--symbol-variation"],
+                } as React.CSSProperties
+              }
             >
               {symbolName}
             </span>
@@ -169,8 +178,12 @@ export function MaterialSymbolGrid({
       {bottomSpacerHeight > 0 && (
         <div
           aria-hidden="true"
-          className="col-span-full"
-          style={{ height: bottomSpacerHeight }}
+          className="col-span-full h-(--element-height)"
+          style={
+            {
+              "--element-height": cssLength(bottomSpacerHeight),
+            } as React.CSSProperties
+          }
         />
       )}
       {filteredMaterialSymbols.length === 0 && normalizedShapeQuery && (
@@ -178,12 +191,12 @@ export function MaterialSymbolGrid({
           type="button"
           onClick={() => onImportMaterialSymbol(stop.id)}
           disabled={materialSymbolStatus.state === "loading"}
-          className="col-span-full flex h-10 items-center justify-between rounded-lg border border-dashed border-border bg-muted/40 px-3 text-left text-[11px] text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
+          className="col-span-full flex h-10 items-center justify-between rounded-lg border border-dashed border-border bg-muted/40 px-3 text-left text-2xs text-muted-foreground transition-colors hover:border-border hover:bg-muted/60 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
         >
           <span className="min-w-0">
             No matching symbols. Try another word or an exact symbol name.
           </span>
-          <span className="text-[11px] text-muted-foreground">Try name</span>
+          <span className="text-2xs text-muted-foreground">Try name</span>
         </button>
       )}
     </div>

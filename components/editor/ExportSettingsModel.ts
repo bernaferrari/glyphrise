@@ -23,10 +23,22 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
 }
 
 export const EXPORT_SIZE_PRESETS = [
-  { id: "square", label: "Square", width: 1080, height: 1080 },
-  { id: "landscape", label: "Landscape", width: 1920, height: 1080 },
-  { id: "portrait", label: "Portrait", width: 1080, height: 1920 },
-  { id: "social", label: "Social", width: 1080, height: 1350 },
+  { id: "square", label: "Square", ratio: "1:1", width: 1080, height: 1080 },
+  {
+    id: "landscape",
+    label: "Landscape",
+    ratio: "16:9",
+    width: 1920,
+    height: 1080,
+  },
+  {
+    id: "portrait",
+    label: "Portrait",
+    ratio: "9:16",
+    width: 1080,
+    height: 1920,
+  },
+  { id: "social", label: "Social", ratio: "4:5", width: 1080, height: 1350 },
 ] as const
 
 const VIDEO_MIME_CANDIDATES: Record<VideoContainer, string[]> = {

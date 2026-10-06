@@ -98,13 +98,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       }}
     >
       <DialogContent
+        variant="flush"
         finalFocus={finalFocusRef}
-        className="max-h-[calc(100dvh-32px)] w-190 max-w-[calc(100vw-32px)] gap-0 overflow-hidden p-0 sm:max-w-190"
+        className="max-h-(--spacing-dialog-height) w-190 max-w-(--spacing-screen-inset-4) overflow-hidden sm:max-w-190"
       >
-        <DialogHeader className="flex-row items-center gap-2 border-b border-border px-5 py-3.5 pr-12">
-          <DialogTitle className="text-sm font-semibold text-foreground">
-            Export your icon
-          </DialogTitle>
+        <DialogHeader variant="export" className="flex-row items-center">
+          <DialogTitle variant="editor">Export your icon</DialogTitle>
           {isRecording ? (
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
               <span
@@ -121,9 +120,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         </DialogHeader>
 
         <Tabs
+          spacing="flush"
           value={activeTab}
           onValueChange={handleTabChange}
-          className="min-h-0 min-w-0 gap-0"
+          className="min-h-0 min-w-0"
         >
           <div
             className={
@@ -131,7 +131,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             }
           >
             <TabsList className="grid h-11 w-full grid-cols-3">
-              <TabsTrigger value="options" className="min-h-11 gap-1.5">
+              <TabsTrigger value="options" className="min-h-11">
                 {isRecording ? (
                   <>
                     <span
@@ -184,7 +184,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             ) : null}
             <TabsContent
               value="options"
-              className="min-w-0 outline-none max-md:max-h-[calc(100dvh-160px)] max-md:overflow-y-auto"
+              className="min-w-0 max-md:max-h-(--spacing-export-mobile) max-md:overflow-y-auto"
             >
               <ExportAssetOptions
                 isRecording={isRecording}
@@ -207,7 +207,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               />
             </TabsContent>
 
-            <TabsContent value="r3f" className="min-w-0 outline-none">
+            <TabsContent value="r3f" className="min-w-0">
               <ExportReactCodeTab
                 code={r3fCode}
                 copied={isCopied}
@@ -215,7 +215,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               />
             </TabsContent>
 
-            <TabsContent value="android" className="min-w-0 outline-none">
+            <TabsContent value="android" className="min-w-0">
               <ExportAndroidCodeTab
                 gradleCode={androidGradleCode}
                 filamentCode={androidFilamentCode}

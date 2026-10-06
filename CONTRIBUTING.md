@@ -46,9 +46,11 @@ own their colors, spacing, and shape. Raw palette colors and arbitrary values
 are checked on triggers too. Explicit `transition-[...]` property lists are
 allowed so transitions can stay limited to the properties that change.
 
-The lint baseline still contains findings, including runtime styles for 3D
-previews and timeline geometry. Inspect each finding rather than replacing
-computed positions or precise geometry just to satisfy a rule.
+Keep lint at zero. Preserve computed timeline geometry and preview colors by
+passing CSS custom properties to static classes. Use `cssLength` for lengths
+that can be numeric, percentages, or `calc()` expressions. When adding named
+Tailwind tokens or utilities, update the matching groups in `lib/utils.ts` so
+`cn()` keeps font sizes, colors, shadows, and shape variants independent.
 
 ## Pull requests
 

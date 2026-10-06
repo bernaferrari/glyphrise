@@ -1,5 +1,7 @@
 "use client"
 
+import { cssLength } from "@/lib/utils"
+
 import { useRef } from "react"
 import { flushSync } from "react-dom"
 import { beginDocumentEdit, endDocumentEdit } from "@/lib/editor-transactions"
@@ -20,7 +22,7 @@ export function InspectorSlider({
   scrubStep,
   precision,
   className = "flex-1",
-  inputClassName = "w-[60px] shrink-0 max-[720px]:w-[72px]",
+  inputClassName = "w-15 shrink-0",
   sliderClassName = "flex-1",
   ariaLabel,
   suffix,
@@ -112,7 +114,7 @@ export function InspectorSlider({
         onChange={onChange}
       />
       <label
-        className={`relative flex h-8 min-w-0 cursor-ew-resize touch-pan-y ${compact ? "" : "max-[720px]:h-11 pointer-coarse:h-11"} items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
+        className={`relative flex h-8 min-w-0 cursor-ew-resize touch-pan-y items-center rounded-lg has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring ${sliderClassName}`}
         onClick={(event) => event.stopPropagation()}
         onPointerDown={(event) => {
           // Mouse and pen use the native range input underneath.
@@ -160,12 +162,20 @@ export function InspectorSlider({
           className="pointer-events-none relative h-full w-full overflow-hidden rounded-md bg-muted/80"
         >
           <span
-            className="absolute inset-y-0 left-0 bg-(--inspector-slider-active)"
-            style={{ width: thumbPosition }}
+            className="absolute inset-y-0 left-0 w-(--element-width) bg-(--inspector-slider-active)"
+            style={
+              {
+                "--element-width": cssLength(thumbPosition),
+              } as React.CSSProperties
+            }
           />
           <span
-            className="absolute top-1/2 h-3.5 w-0.75 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-[0_0_0_1px_rgba(0,0,0,0.15)]"
-            style={{ left: thumbPosition }}
+            className="absolute top-1/2 left-(--position-x) h-3.5 w-0.75 -translate-x-1/2 -translate-y-1/2 rounded-full bg-(--inspector-slider-thumb) shadow-slider-thumb"
+            style={
+              {
+                "--position-x": cssLength(thumbPosition),
+              } as React.CSSProperties
+            }
           />
         </span>
         <input

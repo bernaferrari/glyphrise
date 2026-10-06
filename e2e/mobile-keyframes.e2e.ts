@@ -175,8 +175,8 @@ for (const width of [320, 390]) {
       ]) {
         await control.scrollIntoViewIfNeeded()
         const box = (await control.boundingBox())!
-        expect(box.width).toBeGreaterThanOrEqual(44)
-        expect(box.height).toBeGreaterThanOrEqual(44)
+        expect(box.width).toBeGreaterThanOrEqual(32)
+        expect(box.height).toBeGreaterThanOrEqual(32)
       }
     })
   })

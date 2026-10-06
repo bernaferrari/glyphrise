@@ -101,7 +101,7 @@ export function TimelineKeyframeEditor({
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
         density="flush"
-        className="w-116 max-w-[calc(100vw-16px)]"
+        className="w-116 max-w-(--spacing-screen-inset-2)"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
@@ -123,7 +123,7 @@ export function TimelineKeyframeEditor({
                   transform="rotate(45 8 8)"
                 />
               </svg>
-              <PopoverTitle className="ml-1 min-w-0 flex-1 truncate text-sm font-medium">
+              <PopoverTitle truncate={true} className="ml-1 min-w-0 flex-1">
                 {row.name}
                 <span className="ml-1.5 font-normal text-muted-foreground tabular-nums">
                   {index + 1} of {sorted.length}
@@ -242,7 +242,7 @@ export function TimelineKeyframeEditor({
 
 function PanelRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid min-h-8 grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
+    <div className="grid min-h-8 grid-cols-property items-center gap-3">
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="min-w-0">{children}</div>
     </div>

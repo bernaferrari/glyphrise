@@ -1,17 +1,24 @@
 "use client"
 
+import { cn } from "@/lib/utils"
+
 import { Button } from "@/components/ui/button"
 import { KeyframeNavigator } from "./KeyframeNavigator"
 import type { TimeKeyframe } from "./EditorModel"
 
 const KeyframeDiamond = ({ active }: { active: boolean }) => (
   <span
-    className={`size-1.75 rotate-45 rounded-[1px] border transition-[background-color,border-color] ${
-      active ? "border-transparent" : "border-muted-foreground"
-    }`}
-    style={{
-      backgroundColor: active ? "var(--timeline-accent)" : "transparent",
-    }}
+    className={cn(
+      `size-1.75 rotate-45 rounded-hairline border transition-[background-color,border-color] ${
+        active ? "border-transparent" : "border-muted-foreground"
+      }`,
+      "bg-(--swatch-color)"
+    )}
+    style={
+      {
+        "--swatch-color": active ? "var(--timeline-accent)" : "transparent",
+      } as React.CSSProperties
+    }
   />
 )
 
@@ -28,7 +35,7 @@ const KeyframeButton = ({
 }) => (
   <Button
     variant="ghost"
-    size="icon-narrow"
+    size="icon-sm"
     type="button"
     aria-label={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}
     title={`${isKeyedHere ? "Remove" : "Add"} ${label} keyframe at ${currentTime.toFixed(2)}s`}

@@ -59,8 +59,6 @@ function ProjectMenu({
   onProjectSave,
   projectStatus,
   projectStatusMessage,
-  zenMode,
-  onZenModeChange,
   onGettingStarted,
   themeMounted,
   isLightTheme,
@@ -73,8 +71,6 @@ function ProjectMenu({
   | "onProjectSave"
   | "projectStatus"
   | "projectStatusMessage"
-  | "zenMode"
-  | "onZenModeChange"
   | "onGettingStarted"
   | "themeMounted"
   | "isLightTheme"
@@ -109,7 +105,7 @@ function ProjectMenu({
       >
         <ChevronDown className="size-3.5" />
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 gap-0 p-1">
+      <PopoverContent density="compact" align="start" className="w-64">
         {/* What a project is, in one breath, with the save state inline. */}
         <div className="px-2.5 pt-2 pb-2.5">
           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
@@ -122,7 +118,7 @@ function ProjectMenu({
             )}
             {statusText}
           </div>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+          <p className="mt-1 text-2xs leading-4 text-muted-foreground">
             {projectStatus === "error"
               ? projectStatusMessage
               : "Files save automatically in this browser. Download a copy to back one up or move it to another device."}
@@ -152,12 +148,6 @@ function ProjectMenu({
         <div className="md:hidden">
           <div className="-mx-1 my-1 border-t border-border" />
           <div className="grid gap-0.5">
-            <MenuRow
-              label={zenMode ? "Show panels" : "Focus canvas"}
-              accessibleLabel={zenMode ? "Show panels" : "Focus canvas"}
-              Icon={PanelLeftClose}
-              onClick={action(() => onZenModeChange(!zenMode))}
-            />
             <MenuRow
               label="Getting started"
               accessibleLabel="Getting started"
@@ -205,9 +195,7 @@ function MenuRow({
       />
       <span className="flex-1">{label}</span>
       {hint && (
-        <span className="font-mono text-[10px] text-muted-foreground">
-          {hint}
-        </span>
+        <span className="font-mono text-3xs text-muted-foreground">{hint}</span>
       )}
     </button>
   )
@@ -244,7 +232,7 @@ export function AppTopBar({
           : "Saved locally"
 
   return (
-    <header className="relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-[max(0.5rem,env(safe-area-inset-right))] pl-[max(0.5rem,env(safe-area-inset-left))] backdrop-blur-xl max-[720px]:h-14 sm:pr-[max(0.75rem,env(safe-area-inset-right))] sm:pl-[max(0.75rem,env(safe-area-inset-left))]">
+    <header className="relative z-30 flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border bg-background/95 pr-safe-2 pl-safe-2 backdrop-blur-xl max-[720px]:h-14 sm:pr-safe-3 sm:pl-safe-3">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         <button
           type="button"
@@ -281,8 +269,6 @@ export function AppTopBar({
               onProjectSave={onProjectSave}
               projectStatus={projectStatus}
               projectStatusMessage={projectStatusMessage}
-              zenMode={zenMode}
-              onZenModeChange={onZenModeChange}
               onGettingStarted={onGettingStarted}
               themeMounted={themeMounted}
               isLightTheme={isLightTheme}
@@ -326,28 +312,28 @@ export function AppTopBar({
         </span>
         {/* Phones: undo/redo stay one tap away on every workspace view. */}
         <div className="flex items-center md:hidden">
-          <button
-            type="button"
+          <Button
+            size="icon-lg"
+            variant="muted-ghost"
             aria-label="Undo edit"
             onClick={onUndo}
             disabled={!canUndo}
-            className="grid size-11 place-items-center rounded-lg text-muted-foreground transition-[color,background-color,opacity] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Undo2 aria-hidden="true" className="size-4.5" />
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="icon-lg"
+            variant="muted-ghost"
             aria-label="Redo edit"
             onClick={onRedo}
             disabled={!canRedo}
-            className="grid size-11 place-items-center rounded-lg text-muted-foreground transition-[color,background-color,opacity] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Redo2 aria-hidden="true" className="size-4.5" />
-          </button>
+          </Button>
         </div>
         <div className="hidden items-center md:flex">
           <Button
-            size="icon-touch"
+            size="icon-lg"
             variant="muted-ghost"
             aria-label="Undo"
             title="Undo (Ctrl/⌘ Z)"
@@ -357,7 +343,7 @@ export function AppTopBar({
             <Undo2 className="size-4.5" />
           </Button>
           <Button
-            size="icon-touch"
+            size="icon-lg"
             variant="muted-ghost"
             aria-label="Redo"
             title="Redo (Ctrl/⌘ Shift Z)"
@@ -368,7 +354,7 @@ export function AppTopBar({
           </Button>
         </div>
         <Button
-          size="icon-touch"
+          size="icon-lg"
           variant="muted-ghost"
           aria-label="Getting started"
           title="Getting started"
@@ -378,7 +364,7 @@ export function AppTopBar({
           <CircleHelp aria-hidden="true" className="size-4.5" />
         </Button>
         <Button
-          size="icon-touch"
+          size="icon-lg"
           variant="muted-ghost"
           aria-label={themeToggleLabel}
           title={themeToggleLabel}
@@ -409,7 +395,7 @@ export function AppTopBar({
       {projectStatus === "error" ? (
         <div
           role="alert"
-          className="absolute top-[calc(100%+8px)] right-3 flex max-w-[min(30rem,calc(100vw-1.5rem))] items-start gap-2 rounded-lg border border-destructive/35 bg-background/95 px-3 py-2 text-xs leading-5 text-foreground shadow-xl backdrop-blur-md"
+          className="absolute top-popover-arrow right-3 flex max-w-(--spacing-timeline-popover) items-start gap-2 rounded-lg border border-destructive/35 bg-background/95 px-3 py-2 text-xs leading-5 text-foreground shadow-xl backdrop-blur-md"
         >
           <AlertTriangle
             aria-hidden="true"

@@ -1,16 +1,13 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Check, ChevronDown } from "lucide-react"
+import { cssLength, cn } from "@/lib/utils"
 import { EXPORT_SIZE_PRESETS, type ExportSettings } from "./ExportSettingsModel"
 import type { VideoContainer } from "../3d/SvgTypes"
 import { ExportFormatDetails } from "./ExportFormatDetails"
 
 const fieldClass =
   "mt-1 h-9 w-full rounded-md bg-muted/80 px-2.5 text-sm text-foreground tabular-nums focus-visible:outline-2 focus-visible:outline-ring"
-
-const CHECKERBOARD =
-  "repeating-conic-gradient(color-mix(in oklab, var(--foreground) 14%, transparent) 0 25%, transparent 0 50%) 0 0 / 8px 8px"
 
 /** Backgrounds people actually pick, plus any color. */
 const BACKGROUND_SWATCHES = [
@@ -56,21 +53,26 @@ export function ExportRenderSettings({
       (swatch) => swatch.color === settings.backgroundColor.toLowerCase()
     )
   const swatchClass =
-    "relative size-8 shrink-0 rounded-full pointer-coarse:size-11 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--foreground)_14%,transparent)] transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
+    "relative size-8 shrink-0 rounded-full  shadow-export-setting transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
 
   return (
     <fieldset disabled={disabled} className="grid gap-5 disabled:opacity-60">
       <div>
         <SectionLabel value={`${settings.width} × ${settings.height}`}>
-          Size
+          Aspect ratio
         </SectionLabel>
-        <div className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-0.5">
+        <div
+          role="group"
+          aria-label="Aspect ratio"
+          className="grid grid-cols-2 gap-2"
+        >
           {EXPORT_SIZE_PRESETS.map((preset) => {
             const ratio = preset.width / preset.height
             return (
               <button
                 key={preset.id}
                 type="button"
+                aria-label={preset.label}
                 aria-pressed={
                   settings.width === preset.width &&
                   settings.height === preset.height
@@ -78,18 +80,36 @@ export function ExportRenderSettings({
                 onClick={() =>
                   onChange({ width: preset.width, height: preset.height })
                 }
-                className="group flex h-9 items-center justify-center gap-1.5 rounded-md px-1 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:font-medium aria-pressed:text-foreground aria-pressed:shadow-sm"
+                className="group relative flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/25 px-3 py-2.5 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection"
               >
-                {/* The ratio itself, drawn to scale. */}
+                <Check
+                  aria-hidden="true"
+                  className="absolute top-2 right-2 size-3.5 text-primary opacity-0 transition-opacity group-aria-pressed:opacity-100"
+                />
                 <span
                   aria-hidden="true"
-                  className="shrink-0 rounded-[2px] border-[1.5px] border-current opacity-50 group-aria-pressed:opacity-100 max-[380px]:hidden"
-                  style={{
-                    width: ratio >= 1 ? 14 : 14 * ratio,
-                    height: ratio >= 1 ? 14 / ratio : 14,
-                  }}
-                />
-                {preset.label}
+                  className="grid size-12 shrink-0 place-items-center"
+                >
+                  <span
+                    className="h-(--element-height) w-(--element-width) rounded-sm border-2 border-muted-foreground/55 bg-muted transition-[background-color,border-color] group-aria-pressed:border-primary group-aria-pressed:bg-primary/15"
+                    style={
+                      {
+                        "--element-width": cssLength(
+                          ratio >= 1 ? 48 : 48 * ratio
+                        ),
+                        "--element-height": cssLength(
+                          ratio >= 1 ? 48 / ratio : 48
+                        ),
+                      } as React.CSSProperties
+                    }
+                  />
+                </span>
+                <span className="flex w-full items-baseline justify-center gap-2">
+                  <span className="text-xs font-medium">{preset.label}</span>
+                  <span className="text-2xs text-muted-foreground tabular-nums">
+                    {preset.ratio}
+                  </span>
+                </span>
               </button>
             )
           })}
@@ -111,8 +131,7 @@ export function ExportRenderSettings({
               aria-label="Transparent background"
               aria-pressed={transparent}
               onClick={() => onChange({ backgroundMode: "transparent" })}
-              className={swatchClass}
-              style={{ background: CHECKERBOARD }}
+              className={cn(swatchClass, "bg-checkerboard")}
             />
           )}
           {BACKGROUND_SWATCHES.map((swatch) => (
@@ -130,18 +149,26 @@ export function ExportRenderSettings({
                   backgroundColor: swatch.color,
                 })
               }
-              className={swatchClass}
-              style={{ background: swatch.color }}
+              className={cn(swatchClass, "bg-preview")}
+              style={
+                { "--preview-background": swatch.color } as React.CSSProperties
+              }
             />
           ))}
           <label
             aria-pressed={customColor}
-            className={cn(swatchClass, "cursor-pointer overflow-hidden")}
-            style={{
-              background: customColor
-                ? settings.backgroundColor
-                : "conic-gradient(from 180deg, #ff5f6d, #ffc371, #47e891, #3fa9f5, #a259ff, #ff5f6d)",
-            }}
+            className={cn(
+              swatchClass,
+              "cursor-pointer overflow-hidden",
+              "bg-preview"
+            )}
+            style={
+              {
+                "--preview-background": customColor
+                  ? settings.backgroundColor
+                  : "var(--background-spectrum)",
+              } as React.CSSProperties
+            }
           >
             <span className="sr-only">Custom background color</span>
             <input

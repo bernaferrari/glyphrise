@@ -33,11 +33,12 @@ export function MotionPresetPreview({
         className={cn(
           "motion-preview grid place-items-center text-foreground drop-shadow-sm [&_svg]:block [&_svg_*]:fill-current",
           `motion-preview-${preset}`,
-          SIZES[size].icon
+          SIZES[size].icon,
+          "duration-motion"
         )}
         style={
           {
-            animationDuration: `${duration}s`,
+            "--motion-duration": `${duration}s`,
             "--motion-amount": intensity,
           } as CSSProperties
         }

@@ -16,12 +16,14 @@ export function MeshPreviewCanvas({
   width = 48,
   height = 32,
   className,
+  variant = "default",
 }: {
   stops: MeshStop[]
   fallback?: string
   width?: number
   height?: number
   className?: string
+  variant?: "default" | "preset" | "swatch" | "editor"
 }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
 
@@ -49,7 +51,13 @@ export function MeshPreviewCanvas({
       width={width}
       height={height}
       aria-hidden="true"
-      className={cn("block", className)}
+      className={cn(
+        "block",
+        variant === "preset" && "rounded-lg",
+        variant === "swatch" && "rounded-preview shadow-sm",
+        variant === "editor" && "rounded-lg shadow-mesh-preview",
+        className
+      )}
     />
   )
 }

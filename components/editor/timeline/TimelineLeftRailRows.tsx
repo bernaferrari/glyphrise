@@ -110,7 +110,7 @@ function RailRowFrame({
   return (
     <div
       onContextMenu={onContextMenu}
-      className={`group relative flex h-[var(--timeline-property-height)] items-center border-b border-border/50 transition-colors ${
+      className={`group relative flex h-(--timeline-property-height) items-center border-b border-border/50 transition-colors ${
         isRevealed
           ? "bg-primary/10"
           : active
@@ -137,7 +137,7 @@ function RailRowFrame({
       </button>
       <span className="timeline-property-actions flex h-full shrink-0 items-center justify-center gap-0 pr-1.5">
         {actions}
-        <span className="timeline-rail-value w-12 shrink-0 truncate pl-1 text-right font-mono text-[11px] text-muted-foreground tabular-nums">
+        <span className="timeline-rail-value w-12 shrink-0 truncate pl-1 text-right font-mono text-2xs text-muted-foreground tabular-nums">
           {value}
         </span>
       </span>

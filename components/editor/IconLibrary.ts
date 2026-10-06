@@ -39,10 +39,14 @@ export interface MaterialSymbolFontSettings {
   opticalSize: number
 }
 
+export type MaterialSymbolPreviewStyle = CSSProperties & {
+  "--symbol-variation"?: string
+}
+
 export const materialSymbolFontStyle = (
   settings: MaterialSymbolFontSettings
-): CSSProperties => ({
-  fontVariationSettings: `'FILL' ${settings.fill}, 'wght' ${settings.weight}, 'GRAD' ${settings.grade}, 'opsz' ${settings.opticalSize}`,
+): MaterialSymbolPreviewStyle => ({
+  "--symbol-variation": `'FILL' ${settings.fill}, 'wght' ${settings.weight}, 'GRAD' ${settings.grade}, 'opsz' ${settings.opticalSize}`,
 })
 
 const titleFromMaterialSymbolName = (name: string) =>
