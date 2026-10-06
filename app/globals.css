@@ -610,31 +610,6 @@
   }
 }
 
-/* Intrinsic editor layouts and responsive viewport constraints. */
-@utility grid-cols-color-stop {
-  grid-template-columns: 16px minmax(0, 1fr) 24px;
-}
-
-@utility grid-cols-color-value {
-  grid-template-columns: 1fr 28px;
-}
-
-@utility grid-cols-gradient-stop {
-  grid-template-columns: 52px minmax(0, 1fr) 28px;
-}
-
-@utility grid-cols-property {
-  grid-template-columns: 56px minmax(0, 1fr);
-}
-
-@utility grid-cols-picker {
-  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-}
-
-@utility grid-cols-presets {
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-}
-
 @utility bg-starter-glow {
   background-image: radial-gradient(
     120% 80% at 50% 30%,
@@ -655,10 +630,6 @@
     #ff4dd8,
     #ff4d4d
   );
-}
-
-@utility grid-cols-export {
-  grid-template-columns: minmax(0, 1fr) 320px;
 }
 
 @utility bg-timeline-keyframe {
@@ -721,14 +692,6 @@
   padding-right: max(0.5rem, env(safe-area-inset-right));
 }
 
-@utility pl-safe-3 {
-  padding-left: max(0.75rem, env(safe-area-inset-left));
-}
-
-@utility pr-safe-3 {
-  padding-right: max(0.75rem, env(safe-area-inset-right));
-}
-
 @utility top-popover-arrow {
   top: calc(100% + 8px);
 }
@@ -770,10 +733,6 @@
 @utility border-preview {
   border-width: 1.5px;
 }
-@utility stroke-axis {
-  stroke-width: 2;
-}
-
 @utility stroke-hairline {
   stroke-width: 0.75;
 }

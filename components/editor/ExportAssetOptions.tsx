@@ -29,7 +29,7 @@ type Props = {
   onCancelVideoExport: () => void
 }
 
-const NAMES = { image: "Image", video: "Video", model: "3D model" } as const
+const NAMES = { image: "Image", video: "Video", model: "GLB" } as const
 
 const MODEL_NOTES = [
   "Shape, depth, bevels and finish",
@@ -185,7 +185,7 @@ export function ExportAssetOptions(props: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col border-t border-border">
-      <div className="editor-scrollbar grid min-h-0 flex-1 overflow-y-auto md:grid-cols-export md:overflow-hidden">
+      <div className="editor-scrollbar grid min-h-0 flex-1 overflow-y-auto md:grid-cols-[minmax(0,1fr)_320px] md:overflow-hidden">
         <OutputPreview
           format={format}
           settings={settings}
@@ -197,7 +197,8 @@ export function ExportAssetOptions(props: Props) {
           {format === "model" ? (
             <div className="grid gap-3">
               <p className="text-sm leading-6 text-foreground">
-                An editable 3D file of this icon, ready for other 3D tools.
+                GLB (.glb), the binary glTF format. Includes geometry, materials
+                and textures in one file.
               </p>
               <ul className="grid gap-2 text-xs text-muted-foreground">
                 {MODEL_NOTES.map((note) => (
@@ -290,7 +291,7 @@ export function ExportAssetOptions(props: Props) {
               )}
               {busy
                 ? "Preparing…"
-                : `Download ${format === "model" ? "3D model" : format}`}
+                : `Download ${format === "model" ? "GLB" : format}`}
             </>
           )}
         </Button>

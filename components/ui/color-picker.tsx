@@ -471,7 +471,7 @@ export function ColorPicker({
                     onCaptureStopOutsidePointer={captureStopOutsidePointer}
                   />
 
-                  <div className="grid h-6 grid-cols-color-value items-center gap-1">
+                  <div className="grid h-6 grid-cols-[1fr_28px] items-center gap-1">
                     <span className="text-control font-semibold text-foreground">
                       Stops
                     </span>

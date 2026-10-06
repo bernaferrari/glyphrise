@@ -33,7 +33,6 @@ interface ExportModalProps {
   isVideoExporting: boolean
   videoExportProgress: number
   scene: ExportSceneSnapshot
-  artwork?: { svgContent: string; label: string; color: string }
   onCodeCopied?: () => void
 }
 
@@ -58,7 +57,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onCodeCopied,
   videoExportProgress,
   scene,
-  artwork,
 }) => {
   const [format, setFormat] = useState<Format>("image")
   const [codeTarget, setCodeTarget] = useState<CodeTarget>("r3f")
@@ -130,13 +128,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
       >
         <DialogHeader variant="export">
           <DialogTitle variant="preset">Export</DialogTitle>
-          <DialogDescription variant="compact">
-            <span className="block truncate">
-              {artwork?.label ? `${artwork.label} · ` : ""}
-              {format === "code"
-                ? "Starter code for your own app"
-                : "Download a file to share or use anywhere"}
-            </span>
+          <DialogDescription className="sr-only">
+            Export your artwork as an image, video, GLB model or code.
           </DialogDescription>
         </DialogHeader>
 

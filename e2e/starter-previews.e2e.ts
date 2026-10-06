@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-test("plays only the selected slow 3D starter and pauses it out of view", async ({
+test("plays all four sharp 3D starters and pauses cards out of view", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 800 })
@@ -12,15 +12,17 @@ test("plays only the selected slow 3D starter and pauses it out of view", async 
   await expect(welcome.locator("canvas")).toHaveCount(0)
   await expect
     .poll(() =>
-      videos.first().evaluate((element) => {
-        const video = element as HTMLVideoElement
-        return (
-          !video.paused &&
-          video.currentTime > 0 &&
-          video.videoWidth === 256 &&
-          video.duration === 6
-        )
-      })
+      videos.evaluateAll((elements) =>
+        elements.every((element, index) => {
+          const video = element as HTMLVideoElement
+          return (
+            !video.paused &&
+            video.currentTime > 0 &&
+            video.videoWidth === 512 &&
+            Math.abs(video.duration - [3.6, 3, 3.8, 3][index]) < 0.01
+          )
+        })
+      )
     )
     .toBe(true)
   await expect
@@ -31,7 +33,7 @@ test("plays only the selected slow 3D starter and pauses it out of view", async 
             .length
       )
     )
-    .toBe(1)
+    .toBe(4)
   await welcome.getByRole("button", { name: /^Heart/ }).click()
   await expect
     .poll(() =>
@@ -40,29 +42,21 @@ test("plays only the selected slow 3D starter and pauses it out of view", async 
     .toBe(true)
   await expect
     .poll(() =>
-      videos.first().evaluate((element) => {
-        const video = element as HTMLVideoElement
-        return video.paused && video.currentTime === 0
-      })
-    )
-    .toBe(true)
-  await expect
-    .poll(() =>
       videos.evaluateAll(
         (elements) =>
           elements.filter((element) => !(element as HTMLVideoElement).paused)
             .length
       )
     )
-    .toBe(1)
+    .toBe(4)
 
   await page.setViewportSize({ width: 390, height: 320 })
   await welcome.evaluate((element) => {
-    element.scrollTop = element.scrollHeight
+    element.scrollTop = 0
   })
   await expect
     .poll(() =>
-      videos.nth(1).evaluate((element) => (element as HTMLVideoElement).paused)
+      videos.nth(3).evaluate((element) => (element as HTMLVideoElement).paused)
     )
     .toBe(true)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(

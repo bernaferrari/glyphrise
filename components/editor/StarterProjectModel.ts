@@ -24,6 +24,7 @@ export type Starter = {
   label: string
   hint: string
   motion: StarterMotion
+  duration: number
   icon: PresetIcon
   finish: MaterialPresetId
   fill: { type: FillGradientType; stops: FillStop[] }
@@ -66,6 +67,7 @@ export const STARTERS: Starter[] = [
     label: "Calendar",
     hint: "Spins",
     motion: "spin",
+    duration: 3.6,
     // The Material Symbol itself, so the icon picker shows it as selected.
     icon: {
       ...icon("calendar"),
@@ -79,6 +81,7 @@ export const STARTERS: Starter[] = [
     label: "Heart",
     hint: "Pulses",
     motion: "pulse",
+    duration: 3,
     icon: icon("heart"),
     finish: "satin",
     fill: mesh("rose", [
@@ -98,6 +101,7 @@ export const STARTERS: Starter[] = [
     label: "Wi‑Fi off",
     hint: "Switches off",
     motion: "slash-turn",
+    duration: 3.8,
     icon: icon("wifi"),
     finish: "satin",
     brightness: 1.4,
@@ -118,6 +122,7 @@ export const STARTERS: Starter[] = [
     label: "Bell",
     hint: "Rings",
     motion: "ring",
+    duration: 3,
     icon: icon("bell"),
     finish: "satin",
     fill: mesh("gold", [
@@ -142,8 +147,6 @@ export const slashedIcon = (base: PresetIcon): PresetIcon => ({
   svgContent: appendGlyphriseSlash(base.svgContent),
 })
 
-const STARTER_DURATION = 3
-
 const rotationKeys = (
   values: Array<[time: number, rotation: Partial<Vec3>]>,
   easing: EasingType
@@ -155,6 +158,20 @@ const rotationKeys = (
     easing,
   }))
 
+// Sample a soft speed wave into editable keys. Slower at the front, faster
+// around the back, with equal nonzero speed at both ends of the loop.
+const flowingTurn = (duration: number, variation: number) =>
+  rotationKeys(
+    Array.from({ length: 17 }, (_, index): [number, Partial<Vec3>] => {
+      const progress = index / 16
+      const angle =
+        progress -
+        (variation * Math.sin(progress * Math.PI * 2)) / (Math.PI * 2)
+      return [progress * duration, { y: angle * 360 }]
+    }),
+    "linear"
+  )
+
 export function createStarterEditorSnapshot(
   base: EditorSnapshot,
   starterId: string
@@ -162,7 +179,7 @@ export function createStarterEditorSnapshot(
   const starter = STARTERS.find((item) => item.id === starterId)
   if (!starter) throw new Error("Choose an available starter.")
   const blank = createBlankEditorSnapshot(base)
-  const { fill } = starter
+  const { fill, duration } = starter
   const shapeLook = {
     color: fill.stops[0].color,
     colorSecondary: fill.stops.at(-1)!.color,
@@ -175,7 +192,7 @@ export function createStarterEditorSnapshot(
   }
   const still: EditorSnapshot = {
     ...blank,
-    duration: STARTER_DURATION,
+    duration,
     shapes: [
       {
         ...createShapeStop(starter.icon, 0),
@@ -203,42 +220,43 @@ export function createStarterEditorSnapshot(
       ...still,
       shapes: [
         {
-          ...createShapeStop(starter.icon, 0.8),
+          ...createShapeStop(starter.icon, duration * 0.2),
           ...shapeLook,
           transitionType: "wipe" as const,
           wipeDirection: { x: 0.707, y: -0.707 },
           easing: "ease-in-out" as const,
         },
-        { ...createShapeStop(slashedIcon(starter.icon), 2.2), ...shapeLook },
+        {
+          ...createShapeStop(slashedIcon(starter.icon), duration * 0.5),
+          ...shapeLook,
+          transitionType: "wipe" as const,
+          wipeDirection: { x: -0.707, y: 0.707 },
+          easing: "ease-in-out" as const,
+        },
+        { ...createShapeStop(starter.icon, duration * 0.9), ...shapeLook },
       ],
-      // One full turn that eases through the wipe, so the slash lands mid-spin.
+      // Wipe on, then off during one full turn. The loop ends on its opening icon.
+      rotationAxisKeyframes: flowingTurn(duration, 0.3),
+    }
+  }
+
+  if (starter.motion === "ring") {
+    // A gentle continuous swing; matching ends keep the loop seamless.
+    return {
+      ...still,
       rotationAxisKeyframes: rotationKeys(
         [
-          [0, {}],
-          [STARTER_DURATION, { y: 360 }],
+          [0, { z: -10 }],
+          [duration / 2, { z: 10 }],
+          [duration, { z: -10 }],
         ],
         "ease-in-out"
       ),
     }
   }
 
-  if (starter.motion === "ring") {
-    // A quick, decaying swing, then a rest before the loop rings again.
-    return {
-      ...still,
-      rotationAxisKeyframes: rotationKeys(
-        [
-          [0, {}],
-          [0.2, { z: 22 }],
-          [0.45, { z: -18 }],
-          [0.7, { z: 12 }],
-          [0.95, { z: -6 }],
-          [1.2, {}],
-          [STARTER_DURATION, {}],
-        ],
-        "ease-in-out"
-      ),
-    }
+  if (starter.motion === "spin") {
+    return { ...still, rotationAxisKeyframes: flowingTurn(duration, 0.35) }
   }
 
   const scaleTrack =
@@ -246,8 +264,8 @@ export function createStarterEditorSnapshot(
     createInitialTimelineTracks().find((track) => track.id === "scale")!
   const preset = createAnimationPreset({
     id: starter.motion,
-    duration: STARTER_DURATION,
-    intensity: starter.motion === "pulse" ? 0.7 : 1,
+    duration,
+    intensity: starter.motion === "pulse" ? 0.45 : 1,
     rotation: still.rotationOffset,
     scale: 1,
     scaleTrack,

@@ -145,7 +145,7 @@ test("records and downloads a short video, then offers a separate model export",
   ).toContainText("Video downloaded")
   await page.getByRole("button", { name: "3D model", exact: true }).click()
   await expect(
-    page.getByRole("button", { name: "Download 3D model", exact: true })
+    page.getByRole("button", { name: "Download GLB", exact: true })
   ).toBeEnabled()
   await expect(
     page.getByText("Gradients become standard 3D materials", { exact: false })

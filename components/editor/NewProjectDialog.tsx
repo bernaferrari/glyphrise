@@ -361,7 +361,7 @@ function NewProjectForm({
           />
         </label>
       </div>
-      <div className="grid grid-cols-presets gap-2">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
         <StartTile
           type="submit"
           label="Start blank"

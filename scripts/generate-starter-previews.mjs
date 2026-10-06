@@ -50,7 +50,7 @@ try {
     if (name === "/") {
       response.setHeader("Content-Type", "text/html")
       response.end(
-        '<style>html,body,#root{margin:0;width:256px;height:256px}#root>div{width:100%;height:100%}canvas{display:block}span{display:none}</style><div id="root"></div><script type="module" src="/renderer.js"></script>'
+        '<style>html,body,#root{margin:0;width:512px;height:512px}#root>div{width:100%;height:100%}canvas{display:block}span{display:none}</style><div id="root"></div><script type="module" src="/renderer.js"></script>'
       )
       return
     }
@@ -64,20 +64,22 @@ try {
   })
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
   browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: 256, height: 256 } })
+  const page = await browser.newPage({ viewport: { width: 512, height: 512 } })
   page.on("pageerror", (error) => process.stderr.write(`${error.message}\n`))
   await page.goto(`http://127.0.0.1:${server.address().port}`)
   await page.waitForFunction(() => window.starterPreview?.ready)
-  const ids = await page.evaluate(() => window.starterPreview.ids)
+  const starters = await page.evaluate(() => window.starterPreview.starters)
   await mkdir(output, { recursive: true })
-  for (const id of ids) {
+  for (const [starterIndex, { id, duration }] of starters.entries()) {
     const frames = join(temporary, id)
     await mkdir(frames)
-    // Sample the authored three-second motion over six seconds at full fps.
-    for (let index = 0; index < 144; index++) {
+    // Continuous motion with no held endpoint or duplicated loop frame.
+    // Offset the loops so the four motions don't all peak together.
+    const phase = starterIndex * 0.7
+    for (let index = 0; index < Math.round(duration * 30); index++) {
       const png = await page.evaluate(
         ({ id, time }) => window.starterPreview.render(id, time),
-        { id, time: index / 48 }
+        { id, time: (index / 30 + phase) % duration }
       )
       await writeFile(
         join(frames, `${String(index).padStart(3, "0")}.png`),
@@ -86,14 +88,14 @@ try {
     }
     encode([
       "-framerate",
-      "24",
+      "30",
       "-i",
       join(frames, "%03d.png"),
       "-an",
       "-c:v",
       "libx264",
       "-crf",
-      "23",
+      "20",
       "-preset",
       "slow",
       "-pix_fmt",
@@ -108,7 +110,7 @@ try {
     )
     const video = await readFile(join(output, `${id}.mp4`))
     console.log(
-      `${id}: ${(video.length / 1024).toFixed(1)} KB, 256px, 6s at 24fps`
+      `${id}: ${(video.length / 1024).toFixed(1)} KB, 512px, ${duration}s at 30fps`
     )
   }
 } finally {

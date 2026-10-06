@@ -96,7 +96,7 @@ export function ExportCodeView({
           <>
             <ol className="grid gap-1.5 text-xs leading-5 text-muted-foreground">
               <li>
-                1. Download the 3D model and save it as{" "}
+                1. Download the GLB model and save it as{" "}
                 <code className="font-mono text-foreground">
                   app/src/main/assets/exports/icon.glb
                 </code>
@@ -121,12 +121,12 @@ export function ExportCodeView({
           </>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-4 border-t border-border px-5 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:pb-safe-bottom">
-        <p className="min-w-0 flex-1 text-xs text-muted-foreground max-sm:text-center">
-          {target === "r3f"
-            ? "Mesh gradients and custom finishes are simplified."
-            : "Filament versions are pinned; bump them together."}
-        </p>
+      <div className="flex shrink-0 items-center justify-end gap-4 border-t border-border px-5 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:pb-safe-bottom">
+        {target === "r3f" ? (
+          <p className="min-w-0 flex-1 text-xs text-muted-foreground max-sm:text-center">
+            Mesh gradients and custom finishes are simplified.
+          </p>
+        ) : null}
         <ExportCopyButton
           variant="primary"
           label={target === "r3f" ? "Copy code" : "Copy both files"}

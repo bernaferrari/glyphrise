@@ -64,7 +64,7 @@ const studio = {
 declare global {
   interface Window {
     starterPreview?: {
-      ids: string[]
+      starters: { id: string; duration: number }[]
       ready: boolean
       render: (id: string, time: number) => Promise<string>
     }
@@ -78,12 +78,12 @@ function AssetRenderer() {
     if (!ready || !canvas.current) return
     const surface = canvas.current
     surface.prepareExportRender({
-      width: 256,
-      height: 256,
+      width: 512,
+      height: 512,
       backgroundColor: "#09090b",
     })
     window.starterPreview = {
-      ids: STARTERS.map((starter) => starter.id),
+      starters: STARTERS.map(({ id, duration }) => ({ id, duration })),
       ready: true,
       async render(id, time) {
         const snapshot = createStarterEditorSnapshot(base, id)

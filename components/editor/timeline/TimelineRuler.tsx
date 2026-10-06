@@ -118,7 +118,7 @@ export const TimelineRuler = React.forwardRef<
         event.preventDefault()
         onKeyboardTimeChange(nextTime)
       }}
-      className="sticky top-0 z-(--stack-order) h-(--timeline-ruler-height) shrink-0 cursor-ew-resize touch-none bg-(--timeline-surface) select-none focus-visible:ring-2 focus-visible:ring-ring/45 focus-visible:outline-none focus-visible:ring-inset"
+      className="sticky top-0 z-(--stack-order) h-(--timeline-ruler-height) shrink-0 cursor-ew-resize touch-none bg-(--timeline-surface) outline-none select-none"
       style={{ "--stack-order": TIMELINE_LAYER.ruler } as React.CSSProperties}
     >
       <div

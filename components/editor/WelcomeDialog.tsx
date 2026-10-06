@@ -18,24 +18,17 @@ import {
 import { STARTERS, type Starter } from "./StarterProjectModel"
 
 /** Real editor renders, encoded ahead of time instead of four live WebGL scenes. */
-function StarterPreview({
-  starter,
-  selected,
-}: {
-  starter: Starter
-  selected: boolean
-}) {
+function StarterPreview({ starter }: { starter: Starter }) {
   const videoRef = useRef<HTMLVideoElement>(null)
   useEffect(() => {
     const video = videoRef.current
     if (!video) return
     let visible = false
     const syncPlayback = () => {
-      if (selected && visible && !document.hidden) {
+      if (visible && !document.hidden) {
         void video.play().catch(() => {})
       } else {
         video.pause()
-        if (!selected && video.currentTime > 0) video.currentTime = 0
       }
     }
     const observer = new IntersectionObserver(([entry]) => {
@@ -49,7 +42,7 @@ function StarterPreview({
       document.removeEventListener("visibilitychange", syncPlayback)
       video.pause()
     }
-  }, [selected])
+  }, [])
   return (
     <span
       aria-hidden="true"
@@ -59,8 +52,8 @@ function StarterPreview({
         ref={videoRef}
         src={`/starter-previews/${starter.id}.mp4`}
         poster={`/starter-previews/${starter.id}.png`}
-        width={256}
-        height={256}
+        width={512}
+        height={512}
         muted
         loop
         playsInline
@@ -127,10 +120,7 @@ export function WelcomeDialog({
               }
               className="group relative flex flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-muted/30 bg-starter-glow p-2 pb-3 text-left transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary"
             >
-              <StarterPreview
-                starter={starter}
-                selected={starter.id === selectedId}
-              />
+              <StarterPreview starter={starter} />
               <span className="flex flex-col gap-0.5 px-1.5">
                 <span className="text-sm font-medium">{starter.label}</span>
                 <span className="text-xs text-muted-foreground">

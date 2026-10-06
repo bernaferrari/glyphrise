@@ -130,7 +130,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-x-edge stroke-axis"
+          className="stroke-axis-x-edge stroke-2"
           strokeLinecap="round"
         />
         <line
@@ -139,7 +139,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-y-edge stroke-axis"
+          className="stroke-axis-y-edge stroke-2"
           strokeLinecap="round"
         />
         <line
@@ -148,7 +148,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-z-edge stroke-axis"
+          className="stroke-axis-z-edge stroke-2"
           strokeLinecap="round"
         />
 

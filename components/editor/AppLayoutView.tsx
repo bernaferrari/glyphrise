@@ -146,7 +146,6 @@ export function AppLayoutView({
   const { markExportComplete } = viewportProps.creationJourney
   const exportModalProps = {
     ...exportModalPropsProp,
-    artwork: inspectorProps.transformProps.shapeNavigation,
     // The export checklist step completes only on a real export action,
     // not on opening the surface.
     onExportGltf: async () => {

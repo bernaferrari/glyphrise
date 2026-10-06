@@ -35,7 +35,7 @@
     "shadcn/no-arbitrary-values": [
       "error",
       {
-        "allow": ["transition-[*]"]
+        "allow": ["transition-[*]", "grid-cols-[*]"]
       }
     ],
     "shadcn/no-inline-styles": "error",

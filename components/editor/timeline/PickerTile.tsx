@@ -4,7 +4,8 @@ import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 /** One grid for every picker tab, so symbols, wipe pairs and presets line up. */
-export const PICKER_GRID_CLASS = "grid grid-cols-picker content-start gap-1"
+export const PICKER_GRID_CLASS =
+  "grid grid-cols-[repeat(auto-fill,minmax(76px,1fr))] content-start gap-1"
 
 /** "calendar_month" → "Calendar Month", matching preset and wipe pair names. */
 export const symbolLabel = (name: string) =>

@@ -13,6 +13,9 @@ import { createProjectFromTemplateAction } from "./EditorProjectActivation"
 import { MOTION_RECIPES } from "./MotionRecipes"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
 import { createEditorSnapshotFromRecipe } from "./RecipeModel"
+import { createStarterEditorSnapshot } from "./StarterProjectModel"
+import { evaluateMorphRenderState } from "./useMorphRenderState"
+import { interpolateLightPositionKeyframes } from "./KeyframeInterpolationModel"
 
 const validSnapshot = (fillColor: string): EditorSnapshot => ({
   activeRecipeId: null,
@@ -118,6 +121,71 @@ const failingStore = (source: EditorProjectStore, failOnWrite: number) => {
 }
 
 describe("createProjectFromTemplateAction", () => {
+  it("keeps the bell moving through the end of its loop", () => {
+    const rotationAt = (id: string, time: number) => {
+      const snapshot = createStarterEditorSnapshot(validSnapshot("#abcdef"), id)
+      return interpolateLightPositionKeyframes(
+        time,
+        snapshot.rotationOffset,
+        snapshot.rotationAxisKeyframes
+      )
+    }
+    expect(rotationAt("bell", 2.1).z).not.toBe(rotationAt("bell", 2.5).z)
+    expect(rotationAt("bell", 0)).toEqual(rotationAt("bell", 3))
+  })
+
+  it.each(["calendar", "wifi"])(
+    "gives %s a slower flowing turn without stopping or changing speed at the seam",
+    (id) => {
+      const snapshot = createStarterEditorSnapshot(validSnapshot("#abcdef"), id)
+      const angleAt = (time: number) =>
+        interpolateLightPositionKeyframes(
+          time,
+          snapshot.rotationOffset,
+          snapshot.rotationAxisKeyframes
+        ).y
+      const duration = snapshot.duration
+      expect(duration).toBeGreaterThan(3)
+      expect(duration).toBeLessThan(4)
+      const step = duration / 120
+      const openingSpeed = angleAt(step) - angleAt(0)
+      const closingSpeed = angleAt(duration) - angleAt(duration - step)
+      const middleSpeed = angleAt(duration / 2 + step) - angleAt(duration / 2)
+      expect(closingSpeed).toBeCloseTo(openingSpeed)
+      expect(middleSpeed).toBeGreaterThan(openingSpeed * 1.5)
+      expect(angleAt(duration) - angleAt(0)).toBeCloseTo(360)
+      for (let frame = 0; frame < 120; frame++) {
+        expect(
+          angleAt((frame + 1) * step) - angleAt(frame * step)
+        ).toBeGreaterThan(0)
+      }
+    }
+  )
+
+  it("returns the Wi-Fi starter to its unslashed opening shape before looping", () => {
+    const snapshot = createStarterEditorSnapshot(
+      validSnapshot("#abcdef"),
+      "wifi"
+    )
+    const at = (currentTime: number) =>
+      evaluateMorphRenderState({ ...snapshot, currentTime })
+    const start = at(0)
+    const off = at(snapshot.duration / 2)
+    const end = at(snapshot.duration)
+
+    expect(start.morph.progress).toBe(0)
+    expect(off.morph.progress).toBe(1)
+    expect(off.morph.to.svgContent).toContain("data-glyphrise-slash")
+    expect(end.morph.progress).toBe(1)
+    expect(end.transitionType).toBe("wipe")
+    expect(end.morph.to.svgContent).toBe(start.morph.from.svgContent)
+    expect(end.morph.to.fillStops).toEqual(start.morph.from.fillStops)
+    expect(snapshot.shapes.at(-1)!.time).toBeLessThan(snapshot.duration)
+    expect(snapshot.rotationAxisKeyframes.at(-1)!.value.y % 360).toBe(
+      snapshot.rotationAxisKeyframes[0].value.y
+    )
+  })
+
   const recipe = MOTION_RECIPES[0]
 
   it("leaves a customized project and its Undo stack unchanged when any write fails", () => {

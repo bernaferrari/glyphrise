@@ -242,7 +242,7 @@ export function TimelineKeyframeEditor({
 
 function PanelRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="grid min-h-8 grid-cols-property items-center gap-3">
+    <div className="grid min-h-8 grid-cols-[56px_minmax(0,1fr)] items-center gap-3">
       <span className="text-xs text-muted-foreground">{label}</span>
       <div className="min-w-0">{children}</div>
     </div>
