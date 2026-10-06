@@ -13,6 +13,7 @@ import type { TimelineMenuItem } from "./TimelineMenuModel"
 export const EASING_OPTIONS: Array<{ value: EasingType; label: string }> = [
   { value: "linear", label: "Linear" },
   { value: "ease-in-out", label: "Smooth" },
+  { value: "flow", label: "Flow" },
   { value: "spring", label: "Spring" },
   { value: "bounce", label: "Bounce" },
 ]

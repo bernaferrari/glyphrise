@@ -244,16 +244,18 @@ test.describe("touch intent on the phone timeline", () => {
 
     // Two fingers spreading on the lanes zoom time around them.
     const ruler = page.getByRole("slider", { name: "Timeline playhead" })
-    const before = (await ruler.boundingBox())!.width
-    const y = center.y + 60
+    const rulerBounds = (await ruler.boundingBox())!
+    const before = rulerBounds.width
+    const pinchX = rulerBounds.x + rulerBounds.width / 2
+    const y = rulerBounds.y + rulerBounds.height + 60
     await touch("touchStart", [
-      { x: center.x - 20, y },
-      { x: center.x + 20, y },
+      { x: pinchX - 20, y },
+      { x: pinchX + 20, y },
     ])
     for (const spread of [40, 70, 100])
       await touch("touchMove", [
-        { x: center.x - spread, y },
-        { x: center.x + spread, y },
+        { x: pinchX - spread, y },
+        { x: pinchX + spread, y },
       ])
     await touch("touchEnd", [])
     expect((await ruler.boundingBox())!.width).toBeGreaterThan(before * 1.5)

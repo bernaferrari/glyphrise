@@ -138,6 +138,14 @@ describe("createProjectFromTemplateAction", () => {
     "gives %s a slower flowing turn without stopping or changing speed at the seam",
     (id) => {
       const snapshot = createStarterEditorSnapshot(validSnapshot("#abcdef"), id)
+      expect(snapshot.rotationAxisKeyframes).toHaveLength(2)
+      const store = createMemoryStorage()
+      const project = createProjectMetadata(id)
+      writePersistedEditorDocument(snapshot, project, store)
+      expect(
+        readPersistedEditorProject(project.id, store)?.snapshot
+          .rotationAxisKeyframes
+      ).toEqual(snapshot.rotationAxisKeyframes)
       const angleAt = (time: number) =>
         interpolateLightPositionKeyframes(
           time,

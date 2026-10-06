@@ -39,7 +39,13 @@ export const isObjectRecord = (
 const MAX_COLLECTION_SIZE = 2_000
 const MAX_SHAPE_COUNT = 100
 const MAX_STRING_LENGTH = 256
-const EASING_TYPES = new Set(["linear", "ease-in-out", "spring", "bounce"])
+const EASING_TYPES = new Set([
+  "linear",
+  "ease-in-out",
+  "flow",
+  "spring",
+  "bounce",
+])
 const TRANSITION_TYPES = new Set(["cut", "fade", "wipe"])
 const GRADIENT_TYPES = new Set(["linear", "radial", "conic", "mesh"])
 

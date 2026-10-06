@@ -27,6 +27,8 @@ const GEOMETRY_EXPORT_GROUP_NAME = "GlyphriseGeometry"
 const applyExportEasing = (easing: SvgExportEasing, t: number) => {
   if (easing === "ease-in-out")
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  if (easing === "flow")
+    return t - (0.35 * Math.sin(t * Math.PI * 2)) / (Math.PI * 2)
   if (easing === "spring") {
     if (t === 0 || t === 1) return t
     const c4 = (2 * Math.PI) / 3

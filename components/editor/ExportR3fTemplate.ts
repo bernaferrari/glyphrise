@@ -127,7 +127,7 @@ import { Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
-type EasingType = 'linear' | 'ease-in-out' | 'spring' | 'bounce';
+type EasingType = 'linear' | 'ease-in-out' | 'flow' | 'spring' | 'bounce';
 type Vec3 = { x: number; y: number; z: number };
 type ScalarKeyframe = { id: string; time: number; value: number; easing: EasingType };
 type VectorKeyframe = { id: string; time: number; value: Vec3; easing: EasingType };
@@ -256,6 +256,7 @@ const normalizeSvgToIconViewBox = (svgContent: string) => {
 
 const applyEasing = (easing: EasingType, t: number) => {
   if (easing === 'ease-in-out') return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  if (easing === 'flow') return t - 0.35 * Math.sin(t * Math.PI * 2) / (Math.PI * 2);
   if (easing === 'spring') {
     if (t === 0 || t === 1) return t;
     const c4 = (2 * Math.PI) / 3;

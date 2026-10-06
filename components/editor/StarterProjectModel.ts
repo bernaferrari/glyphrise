@@ -153,18 +153,14 @@ const rotationKeys = (
     easing,
   }))
 
-// Sample a soft speed wave into editable keys. Slower at the front, faster
-// around the back, with equal nonzero speed at both ends of the loop.
-const flowingTurn = (duration: number, variation: number) =>
+// Two editable endpoints; Flow eases the speed without pausing at the loop seam.
+const flowingTurn = (duration: number) =>
   rotationKeys(
-    Array.from({ length: 17 }, (_, index): [number, Partial<Vec3>] => {
-      const progress = index / 16
-      const angle =
-        progress -
-        (variation * Math.sin(progress * Math.PI * 2)) / (Math.PI * 2)
-      return [progress * duration, { y: angle * 360 }]
-    }),
-    "linear"
+    [
+      [0, { y: 0 }],
+      [duration, { y: 360 }],
+    ],
+    "flow"
   )
 
 export function createStarterEditorSnapshot(
@@ -231,7 +227,7 @@ export function createStarterEditorSnapshot(
         { ...createShapeStop(starter.icon, duration * 0.9), ...shapeLook },
       ],
       // Wipe on, then off during one full turn. The loop ends on its opening icon.
-      rotationAxisKeyframes: flowingTurn(duration, 0.3),
+      rotationAxisKeyframes: flowingTurn(duration),
     }
   }
 
@@ -251,7 +247,7 @@ export function createStarterEditorSnapshot(
   }
 
   if (starter.motion === "spin") {
-    return { ...still, rotationAxisKeyframes: flowingTurn(duration, 0.35) }
+    return { ...still, rotationAxisKeyframes: flowingTurn(duration) }
   }
 
   const scaleTrack =

@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test"
 import { test } from "./fixtures"
+import { EDGE_INSET } from "../components/editor/timeline/TimelineGeometry"
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/")
@@ -26,7 +27,7 @@ for (const width of [390, 1280]) {
     const box = (await ruler.boundingBox())!
     const duration = Number(await ruler.getAttribute("aria-valuemax"))
     const xAt = (time: number) =>
-      box.x + 24 + ((box.width - 48) * time) / duration
+      box.x + EDGE_INSET + ((box.width - EDGE_INSET * 2) * time) / duration
     const handle = (await ruler.locator("svg").boundingBox())!
     await page.mouse.move(
       handle.x + handle.width / 2,
@@ -79,7 +80,8 @@ test.describe("touch playhead scrubbing", () => {
     const x = line.x + line.width / 2
     const y = line.y + 120
     const duration = Number(await ruler.getAttribute("aria-valuemax"))
-    const destinationX = box.x + 24 + ((box.width - 48) * 3) / duration
+    const destinationX =
+      box.x + EDGE_INSET + ((box.width - EDGE_INSET * 2) * 3) / duration
     const scrollBefore = await ruler.evaluate(
       (element) => element.parentElement!.parentElement!.scrollTop
     )
@@ -671,7 +673,10 @@ for (const width of [390, 1280]) {
       await page.getByRole("button", { name: "Motion", exact: true }).click()
     const ruler = page.locator('[aria-label="Timeline playhead"]')
     const time = async () => Number(await ruler.getAttribute("aria-valuenow"))
-    const next = page.getByRole("button", {
+    const stepped = (time: number, frames: number) =>
+      Number((Math.max(0, Math.round(time * 60) + frames) / 60).toFixed(3))
+    const toolbar = page.getByRole("toolbar", { name: "Timeline", exact: true })
+    const next = toolbar.getByRole("button", {
       name: "Next keyframe",
       exact: true,
     })
@@ -680,10 +685,10 @@ for (const width of [390, 1280]) {
     await page.waitForTimeout(250)
     const checkpoint = await time()
     await page.keyboard.press("ArrowRight")
-    await expect.poll(time).toBeCloseTo(checkpoint + 1 / 60, 3)
+    await expect.poll(time).toBeCloseTo(stepped(checkpoint, 1), 3)
     await page.keyboard.press("ArrowLeft")
     await expect.poll(time).toBeCloseTo(checkpoint, 3)
-    const previous = page.getByRole("button", {
+    const previous = toolbar.getByRole("button", {
       name: "Previous keyframe",
       exact: true,
     })
@@ -691,21 +696,21 @@ for (const width of [390, 1280]) {
     await page.waitForTimeout(250)
     const previousTime = await time()
     await page.keyboard.press("ArrowRight")
-    await expect.poll(time).toBeCloseTo(previousTime + 1 / 60, 3)
+    await expect.poll(time).toBeCloseTo(stepped(previousTime, 1), 3)
 
-    await page
+    await toolbar
       .getByRole("button", { name: /^Play(?: timeline)?$/, exact: false })
       .click()
     await expect(
-      page.getByRole("button", { name: /^Pause(?: timeline)?$/ })
+      toolbar.getByRole("button", { name: /^Pause(?: timeline)?$/ })
     ).toBeVisible()
     await page.keyboard.press("ArrowRight")
     await expect(
-      page.getByRole("button", { name: /^Play(?: timeline)?$/ })
+      toolbar.getByRole("button", { name: /^Play(?: timeline)?$/ })
     ).toBeVisible()
     const pausedTime = await time()
     await page.keyboard.press("Shift+ArrowRight")
-    await expect.poll(time).toBeCloseTo(pausedTime + 10 / 60, 3)
+    await expect.poll(time).toBeCloseTo(stepped(pausedTime, 10), 3)
 
     // Clicking empty timeline space must release focus from the time input.
     const input = page.getByLabel("Playhead time in seconds", { exact: true })
@@ -721,11 +726,11 @@ for (const width of [390, 1280]) {
     await expect(ruler).toBeFocused()
     const backgroundTime = await time()
     await page.keyboard.press("ArrowLeft")
-    await expect.poll(time).toBeCloseTo(Math.max(0, backgroundTime - 1 / 60), 3)
+    await expect.poll(time).toBeCloseTo(stepped(backgroundTime, -1), 3)
     await page.keyboard.press("Shift+ArrowRight")
     await expect
       .poll(time)
-      .toBeCloseTo(Math.max(0, backgroundTime - 1 / 60) + 10 / 60, 3)
+      .toBeCloseTo(stepped(stepped(backgroundTime, -1), 10), 3)
     if (width < 768) {
       await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await expect

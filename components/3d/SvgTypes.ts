@@ -4,7 +4,12 @@ export type GradientType = "linear" | "radial" | "conic" | "mesh"
 
 export type Vector3Value = { x: number; y: number; z: number }
 
-export type SvgExportEasing = "linear" | "ease-in-out" | "spring" | "bounce"
+export type SvgExportEasing =
+  | "linear"
+  | "ease-in-out"
+  | "flow"
+  | "spring"
+  | "bounce"
 
 export type ExportRenderOptions = {
   width: number

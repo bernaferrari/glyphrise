@@ -1,7 +1,7 @@
 import { defaultMeshPoint } from "../../lib/mesh-warp"
 import type { PathOverride } from "../3d/SvgTypes"
 
-export type EasingType = "linear" | "ease-in-out" | "spring" | "bounce"
+export type EasingType = "linear" | "ease-in-out" | "flow" | "spring" | "bounce"
 export type TransitionType = "cut" | "fade" | "wipe"
 
 export interface Keyframe {
@@ -101,6 +101,9 @@ const bounceEase = (t: number) => {
 
 export const applyEasing = (easing: EasingType, t: number): number => {
   if (easing === "ease-in-out") return easeInOut(t)
+  // A flowing turn varies speed while keeping equal, nonzero endpoint velocity.
+  if (easing === "flow")
+    return t - (0.35 * Math.sin(t * Math.PI * 2)) / (Math.PI * 2)
   if (easing === "spring") return springEase(t)
   if (easing === "bounce") return bounceEase(t)
   return t
