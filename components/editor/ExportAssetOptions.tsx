@@ -1,27 +1,22 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import {
-  Box,
-  Check,
-  Download,
-  Image as ImageIcon,
-  LoaderCircle,
-  Video,
-} from "lucide-react"
+import { Check, Download, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { VideoContainer } from "../3d/SvgTypes"
 import type { ExportSettings } from "./ExportSettingsModel"
 import { ExportRenderSettings } from "./ExportRenderSettings"
 
+export type AssetFormat = "image" | "video" | "model"
+
 type Props = {
+  format: AssetFormat
   isRecording: boolean
   isGltfExporting: boolean
   isPngExporting: boolean
   exportedGltf: boolean
   exportedPng: boolean
   exportedVideo: boolean
-  durationSeconds: number
   progress: number
   videoExportCanceled: boolean
   settings: ExportSettings
@@ -34,19 +29,13 @@ type Props = {
   onCancelVideoExport: () => void
 }
 
-const FORMATS = [
-  { id: "image", name: "Image", detail: "PNG", Icon: ImageIcon },
-  { id: "video", name: "Video", detail: "Full animation", Icon: Video },
-  { id: "model", name: "3D model", detail: "GLB", Icon: Box },
-] as const
+const NAMES = { image: "Image", video: "Video", model: "3D model" } as const
 
-const DESCRIPTIONS = {
-  image: "This frame, exactly as rendered.",
-  video:
-    "The whole animation, start to finish. Keep this window open while it records.",
-  model:
-    "An editable 3D file. Some gradients and finishes are simplified; icon transitions are left out.",
-} as const
+const MODEL_NOTES = [
+  "Shape, depth, bevels and finish",
+  "Gradients become standard 3D materials",
+  "Icon-to-icon transitions are left out",
+]
 
 /** The output frame at its real proportions, with the chosen background. */
 function OutputPreview({
@@ -54,13 +43,11 @@ function OutputPreview({
   settings,
   onCapturePreview,
   busy,
-  durationSeconds,
 }: {
-  format: "image" | "video" | "model"
+  format: AssetFormat
   settings: ExportSettings
   busy: boolean
   onCapturePreview: Props["onCapturePreview"]
-  durationSeconds: number
 }) {
   const [preview, setPreview] = useState<{ url: string; key: string } | null>(
     null
@@ -120,15 +107,9 @@ function OutputPreview({
   // Percent of a square stage, so the frame scales with the stage size.
   const width = ratio >= 1 ? 100 : 100 * ratio
   const height = ratio >= 1 ? 100 / ratio : 100
-  const caption =
-    format === "model"
-      ? "GLB · editable 3D"
-      : format === "video"
-        ? `${settings.width} × ${settings.height} · ${durationSeconds.toFixed(1)}s · ${settings.frameRate} fps`
-        : `${settings.width} × ${settings.height} · PNG`
   return (
-    <div className="flex flex-col items-center justify-center gap-3 bg-muted/40 p-6 max-md:flex-row max-md:justify-start max-md:gap-4 max-md:px-5 max-md:py-4">
-      <div className="grid size-56 place-items-center max-md:size-24">
+    <div className="grid place-items-center bg-muted/40 p-6 max-md:p-4">
+      <div className="grid size-72 place-items-center max-md:size-40">
         <div
           className="relative grid h-(--element-height) w-(--element-width) place-items-center overflow-hidden rounded-lg shadow-export-preview transition-[width,height] duration-200 bg-preview"
           style={
@@ -165,15 +146,12 @@ function OutputPreview({
           )}
         </div>
       </div>
-      <p className="text-center text-xs text-muted-foreground tabular-nums max-md:text-left">
-        {caption}
-      </p>
     </div>
   )
 }
 
 export function ExportAssetOptions(props: Props) {
-  const [format, setFormat] = useState<"image" | "video" | "model">("image")
+  const { format, settings } = props
   const busy =
     props.isRecording || props.isGltfExporting || props.isPngExporting
   const videoSupported = props.supportedVideoContainers.length > 0
@@ -184,18 +162,12 @@ export function ExportAssetOptions(props: Props) {
         ? props.exportedVideo
         : props.exportedGltf
   const invalidSize =
-    !Number.isFinite(props.settings.width) ||
-    !Number.isFinite(props.settings.height) ||
-    props.settings.width < 64 ||
-    props.settings.height < 64 ||
-    props.settings.width > 4096 ||
-    props.settings.height > 4096
-  const title =
-    format === "image"
-      ? "Download image"
-      : format === "video"
-        ? "Download video"
-        : "Download 3D model"
+    !Number.isFinite(settings.width) ||
+    !Number.isFinite(settings.height) ||
+    settings.width < 64 ||
+    settings.height < 64 ||
+    settings.width > 4096 ||
+    settings.height > 4096
   const action =
     format === "image"
       ? props.onExportPng
@@ -203,65 +175,49 @@ export function ExportAssetOptions(props: Props) {
         ? props.onExportVideo
         : props.onExportGltf
   const progress = Math.max(0, Math.min(1, props.progress))
+  const status = saved
+    ? `${NAMES[format]} downloaded. Find it in your downloads.`
+    : format === "video" && props.videoExportCanceled
+      ? "Recording canceled. You can try again."
+      : props.isRecording
+        ? "Keep this window open while it records."
+        : null
 
   return (
-    <div className="grid md:grid-cols-export">
-      <OutputPreview
-        format={format}
-        settings={props.settings}
-        onCapturePreview={props.onCapturePreview}
-        busy={busy}
-        durationSeconds={props.durationSeconds}
-      />
+    <div className="flex min-h-0 flex-1 flex-col border-t border-border">
+      <div className="editor-scrollbar grid min-h-0 flex-1 overflow-y-auto md:grid-cols-export md:overflow-hidden">
+        <OutputPreview
+          format={format}
+          settings={settings}
+          onCapturePreview={props.onCapturePreview}
+          busy={busy}
+        />
 
-      <div className="flex min-w-0 flex-col">
-        <div className="editor-scrollbar grid gap-5 p-5 md:max-h-(--spacing-export-options) md:overflow-y-auto">
-          <div className="grid gap-3">
-            <div
-              role="group"
-              aria-label="Export format"
-              className="grid grid-cols-3 gap-2"
-            >
-              {FORMATS.map(({ id, name, detail, Icon }) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-label={`${name} ${detail}`}
-                  aria-pressed={format === id}
-                  disabled={busy}
-                  onClick={() => {
-                    if (id === "video")
-                      props.onSettingsChange({ backgroundMode: "color" })
-                    setFormat(id)
-                  }}
-                  className="flex min-h-16 flex-col items-start justify-center gap-1 rounded-xl border border-border px-3 py-2.5 text-left transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection"
-                >
-                  <span className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-foreground">
-                    <Icon
+        <div className="editor-scrollbar grid content-start gap-6 p-5 md:min-h-0 md:overflow-y-auto md:border-l md:border-border">
+          {format === "model" ? (
+            <div className="grid gap-3">
+              <p className="text-sm leading-6 text-foreground">
+                An editable 3D file of this icon, ready for other 3D tools.
+              </p>
+              <ul className="grid gap-2 text-xs text-muted-foreground">
+                {MODEL_NOTES.map((note) => (
+                  <li key={note} className="flex items-center gap-2">
+                    <span
                       aria-hidden="true"
-                      className="size-4 shrink-0 text-muted-foreground max-[440px]:hidden"
+                      className="size-1 shrink-0 rounded-full bg-muted-foreground/60"
                     />
-                    {name}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {id === "video"
-                      ? `${props.durationSeconds.toFixed(1)}s`
-                      : detail}
-                  </span>
-                </button>
-              ))}
+                    {note}
+                  </li>
+                ))}
+              </ul>
             </div>
-            <p className="text-xs leading-5 text-muted-foreground">
-              {DESCRIPTIONS[format]}
-            </p>
-          </div>
-
-          {format !== "model" && (
+          ) : (
             <ExportRenderSettings
-              settings={props.settings}
+              settings={settings}
               formats={props.supportedVideoContainers}
               video={format === "video"}
               disabled={busy}
+              invalidSize={invalidSize}
               onChange={props.onSettingsChange}
             />
           )}
@@ -270,78 +226,74 @@ export function ExportAssetOptions(props: Props) {
               role="status"
               className="rounded-lg bg-muted p-3 text-xs leading-5 text-muted-foreground"
             >
-              Video recording isn’t supported in this browser. Choose Image or
-              3D model, or try a browser that supports video recording.
-            </p>
-          )}
-          {invalidSize && format !== "model" && (
-            <p role="alert" className="text-xs text-destructive">
-              Enter a width and height between 64 and 4096 pixels.
+              This browser can’t record video. Try Image or 3D model, or open
+              Glyphrise in Chrome, Edge or Safari.
             </p>
           )}
         </div>
+      </div>
 
-        <div className="sticky bottom-0 mt-auto grid gap-2 border-t border-border bg-popover px-5 py-4 md:static md:bg-transparent">
-          {saved && (
-            <p
-              role="status"
-              className="flex items-center gap-2 text-xs text-foreground"
-            >
-              <Check aria-hidden="true" className="size-4 text-primary" />
-              {format === "video"
-                ? "Video"
-                : format === "image"
-                  ? "Image"
-                  : "3D model"}{" "}
-              downloaded. Find it in your downloads.
-            </p>
-          )}
-          {format === "video" && props.videoExportCanceled && (
-            <p role="status" className="text-xs text-muted-foreground">
-              Recording canceled. You can try again.
-            </p>
-          )}
-          <Button
-            shape="rounded"
-            disabled={
-              !props.isRecording &&
-              (busy ||
-                (format !== "model" && invalidSize) ||
-                (format === "video" && !videoSupported))
-            }
-            onClick={props.isRecording ? props.onCancelVideoExport : action}
-            className="relative min-h-11 w-full overflow-hidden"
-          >
-            {props.isRecording ? (
-              <>
-                <span
+      <div className="flex shrink-0 items-center justify-end gap-4 border-t border-border bg-popover px-5 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:pb-safe-bottom">
+        <p
+          role="status"
+          className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground empty:hidden max-sm:justify-center"
+        >
+          {status ? (
+            <>
+              {saved ? (
+                <Check
                   aria-hidden="true"
-                  className="absolute inset-0 origin-left transform-(--element-transform) bg-white/15 transition-transform"
-                  style={
-                    {
-                      "--element-transform": `scaleX(${progress})`,
-                    } as React.CSSProperties
-                  }
+                  className="size-4 shrink-0 text-primary"
                 />
-                <span className="relative tabular-nums">
-                  Recording {Math.round(progress * 100)}% · Cancel
-                </span>
-              </>
-            ) : (
-              <>
-                {busy ? (
-                  <LoaderCircle
-                    aria-hidden="true"
-                    className="size-4 animate-spin"
-                  />
-                ) : (
-                  <Download aria-hidden="true" className="size-4" />
-                )}
-                {busy ? "Preparing your download…" : title}
-              </>
-            )}
-          </Button>
-        </div>
+              ) : null}
+              <span className={saved ? "text-foreground" : undefined}>
+                {status}
+              </span>
+            </>
+          ) : null}
+        </p>
+        <Button
+          shape="rounded"
+          disabled={
+            !props.isRecording &&
+            (busy ||
+              (format !== "model" && invalidSize) ||
+              (format === "video" && !videoSupported))
+          }
+          onClick={props.isRecording ? props.onCancelVideoExport : action}
+          className="relative h-10 min-w-48 overflow-hidden max-sm:h-11 max-sm:w-full"
+        >
+          {props.isRecording ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="absolute inset-0 origin-left transform-(--element-transform) bg-white/15 transition-transform"
+                style={
+                  {
+                    "--element-transform": `scaleX(${progress})`,
+                  } as React.CSSProperties
+                }
+              />
+              <span className="relative tabular-nums">
+                Recording {Math.round(progress * 100)}% · Cancel
+              </span>
+            </>
+          ) : (
+            <>
+              {busy ? (
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-4 animate-spin"
+                />
+              ) : (
+                <Download aria-hidden="true" className="size-4" />
+              )}
+              {busy
+                ? "Preparing…"
+                : `Download ${format === "model" ? "3D model" : format}`}
+            </>
+          )}
+        </Button>
       </div>
     </div>
   )

@@ -1,16 +1,9 @@
 "use client"
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  type Dispatch,
-  type RefObject,
-  type SetStateAction,
-} from "react"
+import { useCallback, useMemo, useRef, type RefObject } from "react"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
-import type { ShapeStop } from "./TimelineModel"
+import type { PresetIcon } from "./IconLibrary"
 import { useEditorFileSurface } from "./useEditorFileSurface"
 import { useExportSceneSnapshot } from "./useExportSceneSnapshot"
 import type { ExportSettings } from "./ExportSettingsModel"
@@ -25,27 +18,25 @@ type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
     rimLightColor: string
   }
   selectedShapeId: string | null
-  setShapes: Dispatch<SetStateAction<ShapeStop[]>>
+  onShapeIconChange: (shapeId: string, icon: PresetIcon) => void
   canvasRef: RefObject<SvgCanvasRef | null>
   exportTimelineVideo: (settings: ExportSettings) => Promise<void>
   stopVideoExportRecording: () => void
   cancelVideoExport: () => void
   isVideoExporting: boolean
   videoExportProgress: number
-  markCustom: () => void
 }
 
 export function useEditorExportSurface({
   selectedShapeId,
   previewState,
-  setShapes,
+  onShapeIconChange,
   canvasRef,
   exportTimelineVideo,
   stopVideoExportRecording: _stopVideoExportRecording,
   cancelVideoExport,
   isVideoExporting,
   videoExportProgress,
-  markCustom,
   ...sceneArgs
 }: UseEditorExportSurfaceArgs) {
   const {
@@ -60,8 +51,7 @@ export function useEditorExportSurface({
     clearSvgImportError,
   } = useEditorFileSurface({
     selectedShapeId,
-    setShapes,
-    markCustom,
+    onShapeIconChange,
   })
 
   const scene = useExportSceneSnapshot(sceneArgs)

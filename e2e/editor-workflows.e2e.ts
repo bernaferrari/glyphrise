@@ -389,18 +389,11 @@ test("resets artwork rotation, position, and scale together with undo", async ({
 
 test("describes code exports as implementation starters", async ({ page }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page
-    .getByRole("button", { name: "Developer exports", exact: true })
-    .click()
-  await page.getByRole("tab", { name: "React starter" }).click()
+  await page.getByRole("button", { name: "Code", exact: true }).click()
 
-  await expect(
-    page.getByText(/Starter code preserves timing, transforms, wipes/)
-  ).toBeVisible()
-  await page.getByRole("tab", { name: "Android viewer" }).click()
-  await expect(
-    page.getByText(/static Filament viewer, not the editor timeline/)
-  ).toBeVisible()
+  await expect(page.getByText(/Keeps timing, transforms, wipes/)).toBeVisible()
+  await page.getByRole("radio", { name: "Android" }).click()
+  await expect(page.getByText(/static Filament viewer/)).toBeVisible()
 })
 
 test("offers production render controls and an honest fidelity matrix", async ({
@@ -408,14 +401,15 @@ test("offers production render controls and an honest fidelity matrix", async ({
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
 
-  await expect(page.getByText("Aspect ratio", { exact: true })).toBeVisible()
+  await expect(page.getByRole("group", { name: "Aspect ratio" })).toBeVisible()
   await page.getByRole("button", { name: "Custom background color" }).click()
   await page
     .getByRole("textbox", { name: "Hex color", exact: true })
     .fill("FF6633")
   await expect(
     page.getByRole("button", { name: "Custom background color" })
-  ).toHaveText("#FF6633")
+  ).toHaveAttribute("aria-pressed", "true")
+  await expect(page.getByText("#FF6633", { exact: true })).toBeVisible()
   await page.keyboard.press("Escape")
   await expect(
     page.getByRole("textbox", { name: "Hex color", exact: true })
@@ -426,26 +420,25 @@ test("offers production render controls and an honest fidelity matrix", async ({
   await expect(
     page.getByRole("button", { name: "Transparent background" })
   ).toHaveAttribute("aria-pressed", "false")
-  await page
-    .getByRole("button", { name: "Video Full animation", exact: true })
-    .click()
-  await page.getByText("More settings", { exact: true }).click()
+  await page.getByRole("button", { name: "Video", exact: true }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1080")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
   await page
     .getByRole("radiogroup", { name: "Frame rate" })
     .getByRole("radio", { name: "24 fps" })
     .click()
-  await expect(page.getByText(/· 24 fps/)).toBeVisible()
+  await expect(page.getByRole("radio", { name: "24 fps" })).toHaveAttribute(
+    "aria-checked",
+    "true"
+  )
   await page.getByRole("button", { name: "Landscape" }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1920")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
 
-  await page.getByText("Format details", { exact: true }).click()
-  await expect(page.getByText("Export fidelity")).toBeVisible()
-  await expect(page.getByRole("cell", { name: "Full timeline" })).toBeVisible()
-  await expect(page.getByRole("cell", { name: "Subset" })).toBeVisible()
-  await expect(page.getByRole("cell", { name: "Compatible PBR" })).toBeVisible()
+  await page.getByRole("button", { name: "3D model", exact: true }).click()
+  await expect(
+    page.getByText("Icon-to-icon transitions are left out")
+  ).toBeVisible()
 })
 
 test.describe("mobile bottom navigation gestures", () => {
@@ -541,4 +534,57 @@ test("steps past transition checkpoints that round to the current frame", async 
     .getByRole("button", { name: "Previous keyframe", exact: true })
     .click()
   await expect(time).toHaveValue("0:01.02")
+})
+
+test("adding an icon commits only after selection and cancel leaves no edit", async ({
+  page,
+}) => {
+  const clips = page.locator(
+    'button[aria-label$=" icon clip"]:not([aria-label="Add icon clip"])'
+  )
+  const before = await clips.count()
+  const undo = page.getByRole("button", { name: "Undo", exact: true })
+  await expect(undo).toBeDisabled()
+  await page.getByRole("button", { name: "Add icon clip", exact: true }).click()
+  await expect(
+    page.getByRole("heading", { name: "Add icon", exact: true })
+  ).toBeVisible()
+  await expect(page.getByText(/replacing /)).toHaveCount(0)
+  await expect(clips).toHaveCount(before)
+  await page.keyboard.press("Escape")
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(clips).toHaveCount(before)
+  await expect(undo).toBeDisabled()
+
+  await page.getByRole("button", { name: "Add icon clip", exact: true }).click()
+  await page.getByRole("tab", { name: "Presets", exact: true }).click()
+  await page.getByRole("button", { name: "Choose Bell", exact: true }).click()
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(clips).toHaveCount(before + 1)
+  await expect(
+    page.getByRole("button", { name: "Bell icon clip", exact: true })
+  ).toBeVisible()
+  await undo.click()
+  await expect(clips).toHaveCount(before)
+  await expect(undo).toBeDisabled()
+
+  await page.getByRole("button", { name: "Add icon clip", exact: true }).click()
+  await page.getByRole("tab", { name: "Upload", exact: true }).click()
+  const choose = page.waitForEvent("filechooser")
+  await page.getByRole("button", { name: "Upload SVG", exact: true }).click()
+  await expect(clips).toHaveCount(before)
+  await (
+    await choose
+  ).setFiles({
+    name: "custom.svg",
+    mimeType: "image/svg+xml",
+    buffer: Buffer.from(
+      '<svg viewBox="0 0 24 24"><path d="M4 4H20V20H4Z"/></svg>'
+    ),
+  })
+  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(clips).toHaveCount(before + 1)
+  await expect(
+    page.getByRole("button", { name: "Custom icon clip", exact: true })
+  ).toBeVisible()
 })

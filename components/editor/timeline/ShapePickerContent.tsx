@@ -1,5 +1,5 @@
 import { memo, useState, type RefObject } from "react"
-import { Check, Upload } from "lucide-react"
+import { Check, Plus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,6 +28,7 @@ import { useMaterialSymbolFont } from "./useMaterialSymbolFont"
 
 function ShapePickerDialog({
   open,
+  adding = false,
   finalFocusRef,
   onOpenChange,
   stop,
@@ -54,6 +55,7 @@ function ShapePickerDialog({
   onUploadShape,
 }: {
   open: boolean
+  adding?: boolean
   finalFocusRef?: RefObject<HTMLElement | null>
   onOpenChange: (open: boolean) => void
   stop: ShapeStop
@@ -115,17 +117,28 @@ function ShapePickerDialog({
       >
         <DialogHeader variant="picker" className="shrink-0">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span
-              aria-hidden="true"
-              className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-(--element-color) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
-              style={{ "--element-color": stop.color } as React.CSSProperties}
-              dangerouslySetInnerHTML={{ __html: stop.svgContent }}
-            />
-            <DialogTitle truncate={true} variant="editor" className="min-w-0">
-              Choose icon
-              <span className="ml-1.5 font-normal text-muted-foreground">
-                replacing {stop.iconName ?? stop.iconId}
+            {adding ? (
+              <span
+                aria-hidden="true"
+                className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground"
+              >
+                <Plus className="size-4" />
               </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-(--element-color) [&_svg]:size-4 [&_svg]:fill-current [&_svg]:stroke-current"
+                style={{ "--element-color": stop.color } as React.CSSProperties}
+                dangerouslySetInnerHTML={{ __html: stop.svgContent }}
+              />
+            )}
+            <DialogTitle truncate={true} variant="editor" className="min-w-0">
+              {adding ? "Add icon" : "Choose icon"}
+              {!adding && (
+                <span className="ml-1.5 font-normal text-muted-foreground">
+                  replacing {stop.iconName ?? stop.iconId}
+                </span>
+              )}
             </DialogTitle>
             <DialogDescription className="sr-only">
               Choose the symbol, wipe pair, preset, or uploaded SVG for this
@@ -302,7 +315,6 @@ function ShapePickerDialog({
                   type="button"
                   onClick={() => {
                     onUploadShape(stop.id)
-                    onOpenShapePicker(null)
                   }}
                 >
                   Upload SVG

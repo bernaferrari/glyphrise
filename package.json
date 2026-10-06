@@ -13,6 +13,7 @@
     "format:check": "oxfmt --check .",
     "generate:wipe-pairs": "node scripts/generate-material-wipe-pairs.mjs",
     "generate:material-symbols": "node scripts/generate-material-symbol-names.mjs",
+    "generate:starter-previews": "node scripts/generate-starter-previews.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test"

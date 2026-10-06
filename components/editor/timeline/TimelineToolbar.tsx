@@ -47,6 +47,7 @@ export type TimelineToolbarProps = {
   onZoomChange: (zoom: number) => void
   onFitTimeline: () => void
   onSeek: (time: number) => void
+  onFocusTimeline?: () => void
 }
 
 // Transport sits tight around Play, like a video editor's.
@@ -83,6 +84,7 @@ export function TimelineToolbar({
   onZoomChange,
   onFitTimeline,
   onSeek,
+  onFocusTimeline,
 }: TimelineToolbarProps) {
   return (
     <div
@@ -96,7 +98,10 @@ export function TimelineToolbar({
           aria-label="Previous keyframe"
           title="Previous keyframe (,)"
           disabled={!playback.hasPreviousKeyMoment}
-          onClick={playback.onPreviousKeyMoment}
+          onClick={() => {
+            onFocusTimeline?.()
+            playback.onPreviousKeyMoment()
+          }}
           className={transportButton}
         >
           <ChevronLeft className="size-3.5" />
@@ -117,7 +122,10 @@ export function TimelineToolbar({
                 : "Play"
           }
           title={playback.isPlaying ? "Pause (Space)" : "Play (Space)"}
-          onClick={playback.onPlayToggle}
+          onClick={() => {
+            onFocusTimeline?.()
+            playback.onPlayToggle()
+          }}
         >
           {playback.isPlaying ? (
             <Pause className="size-3 fill-current" />
@@ -132,7 +140,10 @@ export function TimelineToolbar({
           aria-label="Next keyframe"
           title="Next keyframe (.)"
           disabled={!playback.hasNextKeyMoment}
-          onClick={playback.onNextKeyMoment}
+          onClick={() => {
+            onFocusTimeline?.()
+            playback.onNextKeyMoment()
+          }}
           className={transportButton}
         >
           <ChevronRight className="size-3.5" />

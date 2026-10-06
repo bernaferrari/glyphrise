@@ -186,9 +186,6 @@ export function LightDirectionPicker({
             onChange={onSoftnessChange}
           />
         </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Color and softness apply throughout.
-        </p>
       </PopoverContent>
     </Popover>
   )

@@ -61,7 +61,23 @@ export const Timeline: React.FC<TimelineProps> = (props) => {
       }}
     >
       <ContextMenuTrigger className="contents">
-        <div className="timeline-density flex h-full flex-col overflow-hidden bg-(--timeline-lane) font-sans select-none">
+        <div
+          data-timeline-step-surface
+          onMouseDownCapture={(event) => {
+            if (!(event.target instanceof Element) || event.button !== 0) return
+            if (
+              event.target.closest(
+                'button, input, textarea, select, a[href], [contenteditable="true"], [role="button"], [role="slider"], [role="tab"], [role="checkbox"], [role="radio"], [role="menuitem"]'
+              )
+            )
+              return
+            event.preventDefault()
+            lanesSurfaceProps.viewport.laneRef.current?.focus({
+              preventScroll: true,
+            })
+          }}
+          className="timeline-density flex h-full flex-col overflow-hidden bg-(--timeline-lane) font-sans select-none"
+        >
           <div className="flex min-h-0 flex-1 overflow-hidden">
             <TimelineLeftRailPanel
               {...leftRailProps}

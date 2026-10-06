@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useId, useState, type ReactNode } from "react"
-import { Check, ChevronDown, Eye, EyeOff, Layers } from "lucide-react"
+import { Check, ChevronDown, Eye, EyeOff, Layers, X } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -183,33 +183,66 @@ function LayerSwitcherComponent({
       </div>
 
       {showLayerControls ? (
-        <div className="flex flex-col gap-0.5 border-t border-border/40 px-1 pt-2 pb-3">
-          <InspectorRow label="Scale">
-            <InspectorSlider
-              value={selectedLayerOverride.scale?.x ?? 1}
-              min={0.1}
-              max={2.25}
-              sliderMax={1.6}
-              step={0.01}
-              scrubStep={0.03}
-              precision={2}
-              ariaLabel="SVG layer scale"
-              onChange={onScaleChange}
-            />
-          </InspectorRow>
-          <InspectorRow label="Depth">
-            <InspectorSlider
-              value={selectedLayerOverride.depthMultiplier}
-              min={0.05}
-              max={2.5}
-              sliderMax={1.8}
-              step={0.05}
-              precision={2}
-              ariaLabel="SVG layer depth"
-              onChange={onDepthChange}
-            />
-          </InspectorRow>
-        </div>
+        <section
+          aria-label={`${selected?.name ?? "Layer"} settings`}
+          className={
+            leading
+              ? "mb-1 rounded-xl bg-muted/40 ring-1 ring-primary/25"
+              : "mx-3 mb-1 rounded-xl bg-muted/40 ring-1 ring-primary/25"
+          }
+        >
+          <div className="flex items-center gap-2 border-b border-border/50 py-1.5 pr-1 pl-2.5">
+            <span className="size-5 shrink-0 text-primary">
+              <LayerThumbnail
+                layer={selected}
+                contextId={contextId}
+                viewBox={viewBox}
+              />
+            </span>
+            <span className="min-w-0 flex-1 truncate text-xs">
+              <span className="text-muted-foreground">Only </span>
+              <span className="font-medium text-foreground">
+                {selected?.name}
+              </span>
+            </span>
+            <button
+              type="button"
+              aria-label="Back to all layers"
+              title="Back to all layers"
+              onClick={() => onSelectLayer(ALL_LAYERS_ID)}
+              className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <X aria-hidden="true" className="size-3.5" />
+            </button>
+          </div>
+          <div className="flex flex-col gap-0.5 pt-1 pb-1.5">
+            <InspectorRow label="Scale">
+              <InspectorSlider
+                value={selectedLayerOverride.scale?.x ?? 1}
+                min={0.1}
+                max={2.25}
+                sliderMax={1.6}
+                step={0.01}
+                scrubStep={0.03}
+                precision={2}
+                ariaLabel="SVG layer scale"
+                onChange={onScaleChange}
+              />
+            </InspectorRow>
+            <InspectorRow label="Depth">
+              <InspectorSlider
+                value={selectedLayerOverride.depthMultiplier}
+                min={0.05}
+                max={2.5}
+                sliderMax={1.8}
+                step={0.05}
+                precision={2}
+                ariaLabel="SVG layer depth"
+                onChange={onDepthChange}
+              />
+            </InspectorRow>
+          </div>
+        </section>
       ) : null}
     </div>
   )

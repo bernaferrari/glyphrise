@@ -3,7 +3,12 @@
 import { cssLength } from "@/lib/utils"
 
 import React from "react"
-import { EDGE_INSET, formatTimelineTick, xForFrac } from "./TimelineGeometry"
+import {
+  EDGE_INSET,
+  formatTimelineTick,
+  xForFrac,
+  TIMELINE_FRAME_RATE,
+} from "./TimelineGeometry"
 import { TIMELINE_LAYER } from "./TimelineLayering"
 
 type TimelineTick = {
@@ -21,7 +26,7 @@ type TimelineRulerProps = {
   onKeyboardTimeChange: (time: number) => void
 }
 
-const TIMELINE_KEYBOARD_STEP = 0.1
+const TIMELINE_KEYBOARD_STEP = 1 / TIMELINE_FRAME_RATE
 const TIMELINE_KEYBOARD_LARGE_STEP = 1
 
 export const timelineTimeForKeyboardKey = ({
@@ -35,17 +40,19 @@ export const timelineTimeForKeyboardKey = ({
   key: string
   shiftKey?: boolean
 }) => {
-  const step = shiftKey ? TIMELINE_KEYBOARD_LARGE_STEP : TIMELINE_KEYBOARD_STEP
+  const step = TIMELINE_KEYBOARD_STEP * (shiftKey ? 10 : 1)
+  const frameTime =
+    Math.round(currentTime * TIMELINE_FRAME_RATE) / TIMELINE_FRAME_RATE
   let nextTime: number
 
   switch (key) {
     case "ArrowLeft":
     case "ArrowDown":
-      nextTime = currentTime - step
+      nextTime = frameTime - step
       break
     case "ArrowRight":
     case "ArrowUp":
-      nextTime = currentTime + step
+      nextTime = frameTime + step
       break
     case "PageDown":
       nextTime = currentTime - TIMELINE_KEYBOARD_LARGE_STEP
@@ -86,7 +93,7 @@ export const TimelineRuler = React.forwardRef<
       ref={ref}
       role="slider"
       data-timeline-playback-surface
-      aria-keyshortcuts="Space"
+      aria-keyshortcuts="Space ArrowLeft ArrowRight Shift+ArrowLeft Shift+ArrowRight"
       tabIndex={0}
       aria-label="Timeline playhead"
       aria-orientation="horizontal"
@@ -100,6 +107,7 @@ export const TimelineRuler = React.forwardRef<
       }}
       onContextMenu={onContextMenu}
       onKeyDown={(event) => {
+        if (event.metaKey || event.ctrlKey || event.altKey) return
         const nextTime = timelineTimeForKeyboardKey({
           currentTime,
           duration,

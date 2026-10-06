@@ -167,6 +167,22 @@ const CORE_ICONS: PresetIcon[] = [
     svgContent: `<svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>`,
   },
   {
+    id: "calendar",
+    name: "Calendar Month",
+    defaultTint: "#ff5a5f",
+    category: "Objects",
+    tags: ["date", "event", "schedule", "today"],
+    svgContent: `<svg viewBox="0 0 24 24"><g transform="matrix(0.025 0 0 0.025 0 24)"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></g></svg>`,
+  },
+  {
+    id: "wifi",
+    name: "Wi-Fi",
+    defaultTint: "#3d8bff",
+    category: "Devices",
+    tags: ["wireless", "signal", "network", "internet"],
+    svgContent: `<svg viewBox="0 0 24 24"><path data-name="Outer wave" d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9z"/><path data-name="Inner wave" d="M5 13l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/><path data-name="Dot" d="M9 17l3 3 3-3c-1.65-1.66-4.34-1.66-6 0z"/></svg>`,
+  },
+  {
     id: "cloud",
     name: "Cloud",
     defaultTint: "#bcd1ff",

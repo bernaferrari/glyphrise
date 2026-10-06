@@ -7,21 +7,33 @@ type ExportCopyButtonProps = {
   copied: boolean
   onCopy: () => void
   label?: string
+  /** Primary fills the footer action; the default sits quietly in a file header. */
+  variant?: "quiet" | "primary"
 }
 
 export function ExportCopyButton({
   copied,
   onCopy,
-  label = "Copy Code",
+  label = "Copy code",
+  variant = "quiet",
 }: ExportCopyButtonProps) {
-  return (
-    <Button size="sm" variant="outline" onClick={onCopy}>
-      {copied ? (
-        <Check className="h-3.5 w-3.5 text-success" />
-      ) : (
-        <Copy className="h-3.5 w-3.5" />
-      )}
-      {copied ? "Copied!" : label}
+  const Icon = copied ? Check : Copy
+  return variant === "primary" ? (
+    <Button
+      shape="rounded"
+      onClick={onCopy}
+      className="h-10 min-w-48 max-sm:h-11 max-sm:w-full"
+    >
+      <Icon aria-hidden="true" className="size-4" />
+      {copied ? "Copied" : label}
+    </Button>
+  ) : (
+    <Button size="sm" variant="ghost" onClick={onCopy}>
+      <Icon
+        aria-hidden="true"
+        className={copied ? "size-3.5 text-success" : "size-3.5"}
+      />
+      {copied ? "Copied" : label}
     </Button>
   )
 }

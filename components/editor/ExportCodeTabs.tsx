@@ -1,111 +1,144 @@
 "use client"
 
-import { Info } from "lucide-react"
 import { ExportCodeBlock } from "./ExportCodeBlock"
 import { ExportCopyButton } from "./ExportCopyButton"
 
-type ExportReactCodeTabProps = {
-  code: string
-  copied: Record<string, boolean>
-  onCopy: (key: string, text: string) => void
-}
+export type CodeTarget = "r3f" | "android"
 
-export function ExportReactCodeTab({
-  code,
-  copied,
-  onCopy,
-}: ExportReactCodeTabProps) {
-  return (
-    <div className="relative min-w-0 p-4 outline-none">
-      <div className="absolute top-6 right-6 z-10">
-        <ExportCopyButton
-          copied={Boolean(copied.r3f)}
-          onCopy={() => onCopy("r3f", code)}
-        />
-      </div>
-      <div className="mb-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5 pr-24 text-xs leading-5 text-muted-foreground">
-        <Info className="mt-0.5 size-4 shrink-0" />
-        <p>
-          Starter code preserves timing, transforms, wipes, path visibility and
-          depth, per-path colors, plus animated lighting. Mesh gradients, custom
-          finish shaders, and crown roofs are simplified.
-        </p>
-      </div>
-      <ExportCodeBlock code={code} lang="tsx" />
-    </div>
-  )
-}
+const TARGETS: { id: CodeTarget; label: string }[] = [
+  { id: "r3f", label: "React Three Fiber" },
+  { id: "android", label: "Android" },
+]
 
-type ExportAndroidCodeTabProps = {
+type ExportCodeViewProps = {
+  target: CodeTarget
+  onTargetChange: (target: CodeTarget) => void
+  r3fCode: string
   gradleCode: string
   filamentCode: string
   copied: Record<string, boolean>
   onCopy: (key: string, text: string) => void
 }
 
-export function ExportAndroidCodeTab({
+function CodeFile({
+  name,
+  code,
+  lang,
+  copied,
+  onCopy,
+}: {
+  name: string
+  code: string
+  lang: string
+  copied: boolean
+  onCopy: () => void
+}) {
+  return (
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-muted/30">
+      <div className="flex items-center justify-between gap-2 border-b border-border py-1.5 pr-1.5 pl-3">
+        <span className="truncate font-mono text-xs text-muted-foreground">
+          {name}
+        </span>
+        <ExportCopyButton copied={copied} onCopy={onCopy} label="Copy" />
+      </div>
+      <ExportCodeBlock code={code} lang={lang} />
+    </div>
+  )
+}
+
+export function ExportCodeView({
+  target,
+  onTargetChange,
+  r3fCode,
   gradleCode,
   filamentCode,
   copied,
   onCopy,
-}: ExportAndroidCodeTabProps) {
+}: ExportCodeViewProps) {
   return (
-    <div className="relative min-w-0 p-4 outline-none">
-      <div className="absolute top-6 right-6 z-10">
-        <ExportCopyButton
-          label="Copy both files"
-          copied={Boolean(copied.androidCombined)}
-          onCopy={() =>
-            onCopy("androidCombined", `${gradleCode}\n\n${filamentCode}`)
-          }
-        />
-      </div>
-      <div className="mb-3 rounded-lg border border-border bg-muted/30 px-3 py-2 text-2xs text-muted-foreground">
-        This is a static Filament viewer, not the editor timeline. Place the
-        exported GLB at{" "}
-        <span className="font-mono text-foreground">
-          app/src/main/assets/exports/icon.glb
-        </span>
-        . The Gradle dependencies are pinned to a specific Filament release;
-        bump them together with the{" "}
-        <span className="font-mono text-foreground">
-          com.google.android.filament
-        </span>{" "}
-        artifacts if your project uses a newer version.
-      </div>
-      <div className="editor-scrollbar flex max-h-(--spacing-code) min-w-0 flex-col gap-3 overflow-auto">
-        <div className="min-w-0">
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <div className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
-              Gradle
-            </div>
-            <ExportCopyButton
+    <div className="flex min-h-0 flex-1 flex-col border-t border-border">
+      <div className="editor-scrollbar grid min-h-0 flex-1 content-start gap-4 overflow-y-auto p-5">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div
+            role="radiogroup"
+            aria-label="Platform"
+            className="flex rounded-lg bg-muted/70 p-0.5"
+          >
+            {TARGETS.map(({ id, label }) => (
+              <button
+                key={id}
+                type="button"
+                role="radio"
+                aria-checked={target === id}
+                onClick={() => onTargetChange(id)}
+                className="min-h-8 rounded-md px-3 text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-checked:bg-background aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="min-w-0 text-xs text-muted-foreground">
+            {target === "r3f"
+              ? "Keeps timing, transforms, wipes, colors and lighting."
+              : "A static Filament viewer for the exported GLB."}
+          </p>
+        </div>
+
+        {target === "r3f" ? (
+          <CodeFile
+            name="App.tsx"
+            code={r3fCode}
+            lang="tsx"
+            copied={Boolean(copied.r3f)}
+            onCopy={() => onCopy("r3f", r3fCode)}
+          />
+        ) : (
+          <>
+            <ol className="grid gap-1.5 text-xs leading-5 text-muted-foreground">
+              <li>
+                1. Download the 3D model and save it as{" "}
+                <code className="font-mono text-foreground">
+                  app/src/main/assets/exports/icon.glb
+                </code>
+                .
+              </li>
+              <li>2. Add the Gradle dependencies, then the Kotlin viewer.</li>
+            </ol>
+            <CodeFile
+              name="build.gradle.kts"
+              code={gradleCode}
+              lang="kotlin"
               copied={Boolean(copied.gradle)}
               onCopy={() => onCopy("gradle", gradleCode)}
             />
-          </div>
-          <ExportCodeBlock
-            code={gradleCode}
-            lang="kotlin"
-            className="max-h-none"
-          />
-        </div>
-        <div className="min-w-0">
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <div className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
-              Kotlin
-            </div>
-            <ExportCopyButton
+            <CodeFile
+              name="FilamentIconView.kt"
+              code={filamentCode}
+              lang="kotlin"
               copied={Boolean(copied.filament)}
               onCopy={() => onCopy("filament", filamentCode)}
             />
-          </div>
-          <ExportCodeBlock
-            code={filamentCode}
-            lang="kotlin"
-            className="max-h-none"
-          />
-        </div>
+          </>
+        )}
+      </div>
+      <div className="flex shrink-0 items-center gap-4 border-t border-border px-5 py-3 max-sm:flex-col max-sm:items-stretch max-sm:gap-2 max-sm:pb-safe-bottom">
+        <p className="min-w-0 flex-1 text-xs text-muted-foreground max-sm:text-center">
+          {target === "r3f"
+            ? "Mesh gradients and custom finishes are simplified."
+            : "Filament versions are pinned; bump them together."}
+        </p>
+        <ExportCopyButton
+          variant="primary"
+          label={target === "r3f" ? "Copy code" : "Copy both files"}
+          copied={Boolean(
+            target === "r3f" ? copied.r3f : copied.androidCombined
+          )}
+          onCopy={() =>
+            target === "r3f"
+              ? onCopy("r3f", r3fCode)
+              : onCopy("androidCombined", `${gradleCode}\n\n${filamentCode}`)
+          }
+        />
       </div>
     </div>
   )

@@ -1,12 +1,6 @@
 import { useRef, useState } from "react"
-import type {
-  ChangeEvent,
-  Dispatch,
-  DragEvent,
-  RefObject,
-  SetStateAction,
-} from "react"
-import type { ShapeStop } from "./TimelineModel"
+import type { ChangeEvent, DragEvent, RefObject } from "react"
+import type { PresetIcon } from "./IconLibrary"
 import {
   isSvgFile,
   svgImportMessage,
@@ -42,12 +36,10 @@ const readSvgFile = (
 
 export const useSvgUpload = ({
   selectedShapeId,
-  setShapes,
-  markCustom,
+  onShapeIconChange,
 }: {
   selectedShapeId: string | null
-  setShapes: Dispatch<SetStateAction<ShapeStop[]>>
-  markCustom: () => void
+  onShapeIconChange: (shapeId: string, icon: PresetIcon) => void
 }): {
   uploadFileRef: RefObject<HTMLInputElement | null>
   triggerShapeUpload: (shapeId: string) => void
@@ -66,14 +58,12 @@ export const useSvgUpload = ({
 
   const applyCustomSvg = (shapeId: string, svgContent: string) => {
     setSvgImportError(null)
-    markCustom()
-    setShapes((prev) =>
-      prev.map((shape) =>
-        shape.id === shapeId
-          ? { ...shape, iconId: "custom", iconName: "Custom", svgContent }
-          : shape
-      )
-    )
+    onShapeIconChange(shapeId, {
+      id: "custom",
+      name: "Custom",
+      svgContent,
+      defaultTint: "#ffffff",
+    })
   }
 
   const uploadSvgToShape = (

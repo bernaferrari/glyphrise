@@ -17,6 +17,76 @@ const FALLBACK_MATERIAL_SYMBOL_NAMES = [
   "bolt",
 ]
 
+// Browsing opens on icons people animate most, not the alphabetical "10k, 11mp" run.
+const FEATURED_MATERIAL_SYMBOLS = [
+  "home",
+  "favorite",
+  "star",
+  "notifications",
+  "calendar_month",
+  "wifi",
+  "bolt",
+  "rocket_launch",
+  "mail",
+  "chat_bubble",
+  "person",
+  "settings",
+  "search",
+  "photo_camera",
+  "music_note",
+  "play_arrow",
+  "lock",
+  "cloud",
+  "light_mode",
+  "dark_mode",
+  "local_fire_department",
+  "eco",
+  "pets",
+  "celebration",
+  "emoji_events",
+  "diamond",
+  "auto_awesome",
+  "thumb_up",
+  "check_circle",
+  "verified",
+  "bookmark",
+  "location_on",
+  "flight",
+  "directions_car",
+  "coffee",
+  "cake",
+  "redeem",
+  "shopping_cart",
+  "savings",
+  "lightbulb",
+  "headphones",
+  "mic",
+  "videocam",
+  "alarm",
+  "battery_full",
+  "bluetooth",
+  "public",
+  "water_drop",
+  "palette",
+  "sports_esports",
+]
+
+const browseOrder = (names: string[]) => {
+  const available = new Set(names)
+  const featured = FEATURED_MATERIAL_SYMBOLS.filter((name) =>
+    available.has(name)
+  )
+  const shown = new Set(featured)
+  const rest = names.filter((name) => !shown.has(name))
+  // Spec badges like "10k" and "4g_mobiledata" read as noise up front.
+  const isBadge = (name: string) => /^\d/.test(name)
+  return [
+    ...featured,
+    ...rest.filter((name) => !isBadge(name)),
+    ...rest.filter(isBadge),
+  ]
+}
+
 export const materialSymbolQuery = (query: string) =>
   normalizeMaterialSymbolName(query)
 
@@ -81,7 +151,7 @@ export const visibleMaterialSymbols = (
         .filter(({ score }) => Number.isFinite(score))
         .sort((a, b) => a.score - b.score || a.name.localeCompare(b.name))
         .map(({ name }) => name)
-    : uniqueSource
+    : browseOrder(uniqueSource)
   return filtered.slice(0, limit)
 }
 

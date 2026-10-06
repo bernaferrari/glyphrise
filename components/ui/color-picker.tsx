@@ -42,7 +42,10 @@ interface ColorPickerProps extends Pick<
   alpha?: number
   onAlphaChange?: (alpha: number) => void
   className?: string
-  variant?: "default" | "inspector"
+  /** "swatch" is a round custom-color button that sits among preset swatches. */
+  variant?: "default" | "inspector" | "swatch"
+  /** Swatch only: whether the custom color is the current choice. */
+  selected?: boolean
   // Optional gradient support — when onGradientToggle is provided, the popover
   // shows a Solid/Gradient toggle and editable stops.
   gradient?: boolean
@@ -81,6 +84,7 @@ export function ColorPicker({
   secondaryAlpha,
   onSecondaryAlphaChange,
   "aria-label": ariaLabel,
+  selected,
 }: ColorPickerProps) {
   const compact = useCompactViewport()
   const supportsGradient = !!onGradientToggle
@@ -273,39 +277,60 @@ export function ColorPicker({
         setIsOpen(open)
       }}
     >
-      <PopoverTrigger
-        ref={rootTriggerRef}
-        aria-label={ariaLabel}
-        className={cn(
-          "flex items-center gap-2 rounded-lg border border-border bg-muted/45 px-2.5 py-2 text-left transition-colors hover:border-ring/50 hover:bg-muted/70 focus:ring-2 focus:ring-ring/35 focus:outline-none active:scale-99",
-          variant === "inspector" &&
-            "rounded-md border-0 bg-muted/80 px-2 py-0 text-xs text-foreground hover:bg-muted",
-          className
-        )}
-      >
-        {isGradient && gradientType === "mesh" ? (
-          <MeshPreviewCanvas
-            variant="swatch"
-            stops={normalizedStops}
-            fallback={primaryHex}
-            width={14}
-            height={14}
-            className="size-3.5 shrink-0"
-          />
-        ) : (
-          <div
-            className="size-3.5 shrink-0 rounded-preview border border-foreground/10 shadow-sm bg-preview"
+      {variant === "swatch" ? (
+        <PopoverTrigger
+          ref={rootTriggerRef}
+          aria-label={ariaLabel}
+          aria-pressed={selected}
+          title={primaryHex.toUpperCase()}
+          className={cn(
+            "group/swatch relative grid size-8 shrink-0 place-items-center rounded-full bg-custom-swatch transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover",
+            className
+          )}
+        >
+          <span
+            aria-hidden="true"
+            className="size-5 rounded-full ring-2 ring-popover bg-preview"
             style={
-              {
-                "--preview-background": isGradient ? gradientCss : primaryHex,
-              } as React.CSSProperties
+              { "--preview-background": primaryHex } as React.CSSProperties
             }
           />
-        )}
-        <span className="min-w-0 flex-1 truncate text-2xs font-medium text-foreground">
-          {isGradient ? "Gradient" : primaryHex}
-        </span>
-      </PopoverTrigger>
+        </PopoverTrigger>
+      ) : (
+        <PopoverTrigger
+          ref={rootTriggerRef}
+          aria-label={ariaLabel}
+          className={cn(
+            "flex items-center gap-2 rounded-lg border border-border bg-muted/45 px-2.5 py-2 text-left transition-colors hover:border-ring/50 hover:bg-muted/70 focus:ring-2 focus:ring-ring/35 focus:outline-none active:scale-99",
+            variant === "inspector" &&
+              "rounded-md border-0 bg-muted/80 px-2 py-0 text-xs text-foreground hover:bg-muted",
+            className
+          )}
+        >
+          {isGradient && gradientType === "mesh" ? (
+            <MeshPreviewCanvas
+              variant="swatch"
+              stops={normalizedStops}
+              fallback={primaryHex}
+              width={14}
+              height={14}
+              className="size-3.5 shrink-0"
+            />
+          ) : (
+            <div
+              className="size-3.5 shrink-0 rounded-preview border border-foreground/10 shadow-sm bg-preview"
+              style={
+                {
+                  "--preview-background": isGradient ? gradientCss : primaryHex,
+                } as React.CSSProperties
+              }
+            />
+          )}
+          <span className="min-w-0 flex-1 truncate text-base text-foreground tabular-nums md:text-xs">
+            {isGradient ? "Gradient" : primaryHex.toUpperCase()}
+          </span>
+        </PopoverTrigger>
+      )}
 
       <PopoverContent
         density="flush"

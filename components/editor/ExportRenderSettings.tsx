@@ -1,14 +1,9 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ColorPicker } from "@/components/ui/color-picker"
 import { EXPORT_SIZE_PRESETS, type ExportSettings } from "./ExportSettingsModel"
 import type { VideoContainer } from "../3d/SvgTypes"
-import { ExportFormatDetails } from "./ExportFormatDetails"
-
-const fieldClass =
-  "mt-1 h-9 w-full rounded-md bg-muted/80 px-2.5 text-sm text-foreground tabular-nums focus-visible:outline-2 focus-visible:outline-ring"
 
 /** Backgrounds people actually pick, plus any color. */
 const BACKGROUND_SWATCHES = [
@@ -17,20 +12,61 @@ const BACKGROUND_SWATCHES = [
   { color: "#000000", label: "Black" },
 ]
 
-function SectionLabel({
-  children,
+function Section({
+  label,
   value,
+  children,
 }: {
-  children: React.ReactNode
+  label: string
   value?: React.ReactNode
+  children: React.ReactNode
 }) {
   return (
-    <div className="mb-2 flex items-baseline justify-between gap-3 text-xs">
-      <span className="font-medium text-foreground">{children}</span>
-      {value ? (
-        <span className="text-muted-foreground tabular-nums">{value}</span>
-      ) : null}
-    </div>
+    <section className="grid gap-2.5">
+      <div className="flex items-baseline justify-between gap-3 text-xs">
+        <h3 className="font-medium text-foreground">{label}</h3>
+        {value ? (
+          <span className="text-muted-foreground tabular-nums">{value}</span>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function SizeField({
+  label,
+  short,
+  value,
+  invalid,
+  onChange,
+}: {
+  label: string
+  short: string
+  value: number
+  invalid: boolean
+  onChange: (value: number) => void
+}) {
+  return (
+    <label className="flex h-9 min-w-0 items-center gap-2 rounded-lg bg-muted/70 px-3 text-xs focus-within:ring-2 focus-within:ring-ring/40">
+      <span aria-hidden="true" className="font-medium text-muted-foreground">
+        {short}
+      </span>
+      <input
+        type="number"
+        inputMode="numeric"
+        aria-label={label}
+        aria-invalid={invalid || undefined}
+        min={64}
+        max={4096}
+        value={Number.isFinite(value) ? value : ""}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="min-w-0 flex-1 bg-transparent text-base text-foreground tabular-nums outline-none aria-invalid:text-destructive md:text-xs"
+      />
+      <span aria-hidden="true" className="text-muted-foreground">
+        px
+      </span>
+    </label>
   )
 }
 
@@ -39,28 +75,27 @@ export function ExportRenderSettings({
   formats,
   video,
   disabled,
+  invalidSize,
   onChange,
 }: {
   settings: ExportSettings
   formats: VideoContainer[]
   video: boolean
   disabled: boolean
+  invalidSize: boolean
   onChange: (patch: Partial<ExportSettings>) => void
 }) {
   const transparent = settings.backgroundMode === "transparent"
   const swatchClass =
-    "relative size-8 shrink-0 rounded-full  shadow-export-setting transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
+    "relative size-8 shrink-0 rounded-full shadow-export-setting transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
 
   return (
-    <fieldset disabled={disabled} className="grid gap-5 disabled:opacity-60">
-      <div>
-        <SectionLabel value={`${settings.width} × ${settings.height}`}>
-          Aspect ratio
-        </SectionLabel>
+    <fieldset disabled={disabled} className="grid gap-6 disabled:opacity-60">
+      <Section label="Size">
         <div
           role="group"
           aria-label="Aspect ratio"
-          className="grid grid-cols-2 gap-2"
+          className="grid grid-cols-4 gap-1.5"
         >
           {EXPORT_SIZE_PRESETS.map((preset) => {
             const ratio = preset.width / preset.height
@@ -68,7 +103,8 @@ export function ExportRenderSettings({
               <button
                 key={preset.id}
                 type="button"
-                aria-label={preset.label}
+                aria-label={`${preset.label} ${preset.ratio}`}
+                title={preset.label}
                 aria-pressed={
                   settings.width === preset.width &&
                   settings.height === preset.height
@@ -76,14 +112,14 @@ export function ExportRenderSettings({
                 onClick={() =>
                   onChange({ width: preset.width, height: preset.height })
                 }
-                className="group relative flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border border-border bg-muted/25 px-3 py-2.5 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.07] aria-pressed:shadow-preset-selection max-[720px]:min-h-14 max-[720px]:flex-row max-[720px]:justify-start max-[720px]:px-2 max-[720px]:py-2"
+                className="group flex flex-col items-center gap-1.5 rounded-lg border border-border px-1 pt-2.5 pb-2 text-foreground transition-[background-color,border-color,box-shadow] hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/[0.08] aria-pressed:shadow-preset-selection"
               >
                 <span
                   aria-hidden="true"
-                  className="grid size-12 shrink-0 place-items-center max-[720px]:size-8"
+                  className="grid size-6 place-items-center"
                 >
                   <span
-                    className="h-(--element-height) w-(--element-width) rounded-sm border-2 border-muted-foreground/55 bg-muted transition-[background-color,border-color] group-aria-pressed:border-primary group-aria-pressed:bg-primary/15"
+                    className="h-(--element-height) w-(--element-width) rounded-preview border-2 border-muted-foreground/50 transition-colors group-aria-pressed:border-primary group-aria-pressed:bg-primary/20"
                     style={
                       {
                         "--element-width": `${ratio >= 1 ? 100 : 100 * ratio}%`,
@@ -92,26 +128,42 @@ export function ExportRenderSettings({
                     }
                   />
                 </span>
-                <span className="flex w-full items-baseline justify-center gap-2 max-[720px]:w-auto max-[720px]:flex-col max-[720px]:items-start max-[720px]:gap-0">
-                  <span className="text-xs font-medium">{preset.label}</span>
-                  <span className="text-2xs text-muted-foreground tabular-nums">
-                    {preset.ratio}
-                  </span>
+                <span className="text-xs font-medium tabular-nums">
+                  {preset.ratio}
                 </span>
               </button>
             )
           })}
         </div>
-      </div>
+        <div className="grid grid-cols-2 gap-2">
+          <SizeField
+            label="Width"
+            short="W"
+            value={settings.width}
+            invalid={invalidSize}
+            onChange={(width) => onChange({ width })}
+          />
+          <SizeField
+            label="Height"
+            short="H"
+            value={settings.height}
+            invalid={invalidSize}
+            onChange={(height) => onChange({ height })}
+          />
+        </div>
+        {invalidSize ? (
+          <p role="alert" className="text-xs text-destructive">
+            Use a width and height between 64 and 4096 px.
+          </p>
+        ) : null}
+      </Section>
 
-      <div>
-        <SectionLabel
-          value={
-            transparent ? "Transparent" : settings.backgroundColor.toUpperCase()
-          }
-        >
-          Background
-        </SectionLabel>
+      <Section
+        label="Background"
+        value={
+          transparent ? "Transparent" : settings.backgroundColor.toUpperCase()
+        }
+      >
         <div className="flex flex-wrap items-center gap-2.5 px-0.5">
           {!video && (
             <button
@@ -145,109 +197,61 @@ export function ExportRenderSettings({
           ))}
           <ColorPicker
             aria-label="Custom background color"
-            variant="inspector"
+            variant="swatch"
+            selected={
+              !transparent &&
+              !BACKGROUND_SWATCHES.some(
+                (swatch) =>
+                  swatch.color === settings.backgroundColor.toLowerCase()
+              )
+            }
             value={settings.backgroundColor}
             onChange={(backgroundColor) =>
               onChange({ backgroundMode: "color", backgroundColor })
             }
-            className="h-8 w-24 shrink-0"
           />
         </div>
         {video && (
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Videos can’t be transparent. Use Image for a cutout.
           </p>
         )}
-      </div>
+      </Section>
 
-      {video && formats.length > 1 && (
-        <Choice
-          label="Video format"
-          value={settings.container}
-          options={formats.map((format) => ({
-            value: format,
-            label: format.toUpperCase(),
-          }))}
-          onChange={(container) => onChange({ container })}
-        />
-      )}
-
-      <details className="group/more text-xs">
-        <summary className="flex min-h-8 w-fit cursor-pointer list-none items-center gap-1 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-          More settings
-          <ChevronDown
-            aria-hidden="true"
-            className="size-3.5 transition-transform group-open/more:rotate-180"
+      {video && (
+        <>
+          <Choice
+            label="Frame rate"
+            value={settings.frameRate}
+            options={([24, 30, 60] as const).map((rate) => ({
+              value: rate,
+              label: `${rate} fps`,
+            }))}
+            onChange={(frameRate) => onChange({ frameRate })}
           />
-        </summary>
-        <div className="grid gap-4 pt-3">
-          <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs">
-              Width
-              <input
-                type="number"
-                min={64}
-                max={4096}
-                value={settings.width}
-                onChange={(event) =>
-                  onChange({ width: Number(event.target.value) })
-                }
-                className={fieldClass}
-              />
-            </label>
-            <label className="text-xs">
-              Height
-              <input
-                type="number"
-                min={64}
-                max={4096}
-                value={settings.height}
-                onChange={(event) =>
-                  onChange({ height: Number(event.target.value) })
-                }
-                className={fieldClass}
-              />
-            </label>
-          </div>
-          {video && (
-            <div className="grid grid-cols-2 gap-3">
-              <Choice
-                label="Frame rate"
-                value={settings.frameRate}
-                options={([24, 30, 60] as const).map((rate) => ({
-                  value: rate,
-                  label: `${rate} fps`,
-                }))}
-                onChange={(frameRate) => onChange({ frameRate })}
-              />
-              <Choice
-                label="Video quality"
-                value={settings.videoBitsPerSecond}
-                options={[
-                  { value: 4_000_000, label: "Standard" },
-                  { value: 8_000_000, label: "High" },
-                  { value: 16_000_000, label: "Max" },
-                ]}
-                onChange={(videoBitsPerSecond) =>
-                  onChange({ videoBitsPerSecond })
-                }
-              />
-            </div>
+          <Choice
+            label="Quality"
+            value={settings.videoBitsPerSecond}
+            options={[
+              { value: 4_000_000, label: "Standard" },
+              { value: 8_000_000, label: "High" },
+              { value: 16_000_000, label: "Max" },
+            ]}
+            onChange={(videoBitsPerSecond) => onChange({ videoBitsPerSecond })}
+          />
+          {formats.length > 1 && (
+            <Choice
+              label="File type"
+              value={settings.container}
+              options={formats.map((format) => ({
+                value: format,
+                label: format.toUpperCase(),
+              }))}
+              onChange={(container) => onChange({ container })}
+            />
           )}
-          <details className="group/details">
-            <summary className="flex min-h-8 w-fit cursor-pointer list-none items-center gap-1 rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-              Format details
-              <ChevronDown
-                aria-hidden="true"
-                className="size-3.5 transition-transform group-open/details:rotate-180"
-              />
-            </summary>
-            <div className="pt-2">
-              <ExportFormatDetails />
-            </div>
-          </details>
-        </div>
-      </details>
+        </>
+      )}
     </fieldset>
   )
 }
@@ -265,12 +269,11 @@ function Choice<T extends string | number>({
   onChange: (value: T) => void
 }) {
   return (
-    <div className="grid min-w-0 gap-2 text-xs font-medium">
-      <span>{label}</span>
+    <Section label={label}>
       <div
         role="radiogroup"
         aria-label={label}
-        className="flex rounded-lg bg-muted p-0.5"
+        className="flex rounded-lg bg-muted/70 p-0.5"
       >
         {options.map((option) => (
           <button
@@ -285,6 +288,6 @@ function Choice<T extends string | number>({
           </button>
         ))}
       </div>
-    </div>
+    </Section>
   )
 }

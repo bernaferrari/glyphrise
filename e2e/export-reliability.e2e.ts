@@ -10,13 +10,12 @@ async function bytes(download: Download) {
 async function createMotion(page: Page) {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Start with Spin", exact: true })
+    .getByRole("button", { name: "Start with Calendar", exact: true })
     .click()
   await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
 }
@@ -41,9 +40,7 @@ for (const [container, fps] of [
         })
     })
     await createMotion(page)
-    await page
-      .getByRole("button", { name: "Video Full animation", exact: true })
-      .click()
+    await page.getByRole("button", { name: "Video", exact: true }).click()
     if (container === "mp4") {
       const mp4 = page.getByRole("radio", { name: "MP4", exact: true })
       await expect(
@@ -156,7 +153,6 @@ test("imports exported SVG markup directly at entry and finishes with a still im
   await page
     .getByRole("button", { name: "Export a still image", exact: true })
     .click()
-  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
   const downloading = page.waitForEvent("download")
@@ -175,17 +171,16 @@ test("immediately undoes the first edit through the button and keyboard", async 
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Start with Spin", exact: true })
+    .getByRole("button", { name: "Start with Calendar", exact: true })
     .click()
   const undo = page.getByRole("button", { name: "Undo", exact: true })
   await expect(undo).toBeDisabled()
   const original = await page
     .locator('[aria-label="Popular finishes"] [aria-pressed="true"]')
     .getAttribute("aria-label")
-  const changed = page.getByRole("button", {
-    name: "Use Satin finish",
-    exact: true,
-  })
+  const changed = page
+    .locator('[aria-label="Popular finishes"] [aria-pressed="false"]')
+    .first()
   await changed.click()
   await undo.click()
   await expect(
@@ -204,7 +199,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Start with Spin", exact: true })
+    .getByRole("button", { name: "Start with Calendar", exact: true })
     .click()
   await page
     .getByRole("button", { name: "Open file menu", exact: true })
@@ -233,7 +228,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   }, deletedId)
   await page.getByRole("button", { name: "Delete file", exact: true }).click()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-    "Star spin"
+    "Calendar"
   )
   await expect(page.getByRole("alert")).toContainText(
     "Deletion cleanup is incomplete"
@@ -245,7 +240,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   ).not.toBeNull()
   await page.reload()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-    "Star spin"
+    "Calendar"
   )
   expect(
     await page.evaluate(

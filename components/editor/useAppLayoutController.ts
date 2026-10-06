@@ -465,7 +465,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     exportModalProps,
   } = useEditorExportSurface({
     selectedShapeId,
-    setShapes,
+    onShapeIconChange: setShapeIcon,
     previewState: {
       document: documentSnapshot,
       currentTime,
@@ -522,7 +522,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
     rimLightIntensity,
     svgPathA: iconAContent,
     svgPathB: iconBContent,
-    markCustom,
   })
 
   const applyRecipeFromGuide = (recipe: MotionRecipe) => {
@@ -621,11 +620,16 @@ export function useAppLayoutController(): AppLayoutViewProps {
     onPreviousKeyframe: goToPreviousKeyMoment,
     onNextKeyframe: goToNextKeyMoment,
     onStepFrames: (frames) => {
+      cancelAnimatedSeek()
       stopPlayback()
-      setCurrentTime(
+      setCurrentTime((time) =>
         Math.max(
           0,
-          Math.min(duration, currentTime + frames / TIMELINE_FRAME_RATE)
+          Math.min(
+            duration,
+            (Math.round(time * TIMELINE_FRAME_RATE) + frames) /
+              TIMELINE_FRAME_RATE
+          )
         )
       )
     },
@@ -823,8 +827,8 @@ export function useAppLayoutController(): AppLayoutViewProps {
     })
 
   return {
-    onCreateStarter: (iconId, name, svgContent) => {
-      if (!createNewProject("blank", name, iconId, svgContent)) return false
+    onCreateStarter: (starterId, name, svgContent) => {
+      if (!createNewProject("blank", name, starterId, svgContent)) return false
       setAutoKeyEnabled(false)
       return true
     },

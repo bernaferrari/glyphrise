@@ -16,6 +16,9 @@ const dialogContentVariants = cva("", {
       flush: "gap-0 p-0",
       picker: "gap-0 p-0 shadow-2xl",
       welcome: "gap-5 p-5 sm:gap-6 sm:p-8",
+      /** Flush card on wide screens, a bottom sheet on phones. */
+      sheet:
+        "flex flex-col gap-0 overflow-hidden p-0 max-sm:top-auto max-sm:bottom-0 max-sm:max-h-(--spacing-export-sheet) max-sm:max-w-full max-sm:translate-y-0 max-sm:rounded-b-none sm:h-(--spacing-export-height)",
     },
   },
   defaultVariants: { variant: "default" },
@@ -25,7 +28,7 @@ const dialogHeaderVariants = cva("", {
     variant: {
       default: "",
       picker: "px-4 pt-3.5 pr-12 pb-1",
-      export: "gap-2 border-b border-border px-5 py-3.5 pr-12",
+      export: "shrink-0 gap-1 px-5 pt-4 pr-14 pb-3",
       files: "px-6 pt-6 pb-2",
       welcome: "gap-2 pr-8 sm:gap-3",
     },

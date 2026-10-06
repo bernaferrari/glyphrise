@@ -191,7 +191,6 @@ test("downloads a rendered PNG with the requested dimensions", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("256")
   await page.getByLabel("Height", { exact: true }).fill("256")
   const downloadPromise = page.waitForEvent("download")
@@ -662,3 +661,94 @@ test.describe("phone shared canvas transition", () => {
     ).toBeHidden()
   })
 })
+
+for (const width of [390, 1280]) {
+  test(`arrows step time after transport and background clicks at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 })
+    if (width < 768)
+      await page.getByRole("button", { name: "Motion", exact: true }).click()
+    const ruler = page.locator('[aria-label="Timeline playhead"]')
+    const time = async () => Number(await ruler.getAttribute("aria-valuenow"))
+    const next = page.getByRole("button", {
+      name: "Next keyframe",
+      exact: true,
+    })
+    await next.click()
+    // Let the existing 180ms animated checkpoint seek settle before measuring steps.
+    await page.waitForTimeout(250)
+    const checkpoint = await time()
+    await page.keyboard.press("ArrowRight")
+    await expect.poll(time).toBeCloseTo(checkpoint + 1 / 60, 3)
+    await page.keyboard.press("ArrowLeft")
+    await expect.poll(time).toBeCloseTo(checkpoint, 3)
+    const previous = page.getByRole("button", {
+      name: "Previous keyframe",
+      exact: true,
+    })
+    await previous.click()
+    await page.waitForTimeout(250)
+    const previousTime = await time()
+    await page.keyboard.press("ArrowRight")
+    await expect.poll(time).toBeCloseTo(previousTime + 1 / 60, 3)
+
+    await page
+      .getByRole("button", { name: /^Play(?: timeline)?$/, exact: false })
+      .click()
+    await expect(
+      page.getByRole("button", { name: /^Pause(?: timeline)?$/ })
+    ).toBeVisible()
+    await page.keyboard.press("ArrowRight")
+    await expect(
+      page.getByRole("button", { name: /^Play(?: timeline)?$/ })
+    ).toBeVisible()
+    const pausedTime = await time()
+    await page.keyboard.press("Shift+ArrowRight")
+    await expect.poll(time).toBeCloseTo(pausedTime + 10 / 60, 3)
+
+    // Clicking empty timeline space must release focus from the time input.
+    const input = page.getByLabel("Playhead time in seconds", { exact: true })
+    await input.focus()
+    const beforeInputArrow = await time()
+    await page.keyboard.press("ArrowRight")
+    expect(await time()).toBe(beforeInputArrow)
+    const lanes = page
+      .locator("[data-timeline-step-surface] .editor-scrollbar")
+      .last()
+    const box = (await lanes.boundingBox())!
+    await page.mouse.click(box.x + box.width - 30, box.y + box.height - 15)
+    await expect(ruler).toBeFocused()
+    const backgroundTime = await time()
+    await page.keyboard.press("ArrowLeft")
+    await expect.poll(time).toBeCloseTo(Math.max(0, backgroundTime - 1 / 60), 3)
+    await page.keyboard.press("Shift+ArrowRight")
+    await expect
+      .poll(time)
+      .toBeCloseTo(Math.max(0, backgroundTime - 1 / 60) + 10 / 60, 3)
+    if (width < 768) {
+      await page.getByRole("button", { name: "Canvas", exact: true }).click()
+      await expect
+        .poll(() =>
+          page.evaluate(() => document.documentElement.dataset.panelTransition)
+        )
+        .toBeUndefined()
+      await page
+        .getByRole("button", { name: "Next keyframe", exact: true })
+        .click()
+      await page.waitForTimeout(250)
+      const canvasTime = await time()
+      await page.keyboard.press("ArrowRight")
+      await expect.poll(time).toBeCloseTo(canvasTime + 1 / 60, 3)
+      await page.keyboard.press("ArrowLeft")
+      await expect.poll(time).toBeCloseTo(canvasTime, 3)
+    }
+    await expect(
+      page.getByRole("button", {
+        name: "Undo",
+        exact: true,
+        includeHidden: true,
+      })
+    ).toBeDisabled()
+  })
+}

@@ -376,6 +376,7 @@ export function useTimelineController({
       onLoopChange,
       onZoomChange: setZoom,
       onFitTimeline: fitTimeline,
+      onFocusTimeline: () => laneRef.current?.focus({ preventScroll: true }),
       onSeek: (time: number) => {
         clearSelection()
         onScrubStart?.()

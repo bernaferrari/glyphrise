@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ComponentProps, type RefObject } from "react"
 import dynamic from "next/dynamic"
-import { Box, SlidersHorizontal, Waypoints } from "lucide-react"
+import { Box, SlidersHorizontal, Waypoints, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCompactViewport } from "@/lib/use-compact-viewport"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
@@ -31,7 +31,7 @@ const LazyAnimateDialog = dynamic(
 
 export type AppLayoutViewProps = {
   onCreateStarter: (
-    iconId: string,
+    starterId: string,
     name: string,
     svgContent?: string
   ) => boolean
@@ -198,7 +198,7 @@ export function AppLayoutView({
           aria-live="polite"
           aria-atomic="true"
           className={cn(
-            "pointer-events-none absolute top-3 left-1/2 z-50 -translate-x-1/2 rounded-full border border-primary/25 bg-background/90 px-3 py-1.5 text-xs font-medium text-foreground shadow-lg backdrop-blur-md transition-[opacity,transform] duration-150",
+            "pointer-events-none absolute top-3 left-1/2 z-50 max-w-(--spacing-toast) -translate-x-1/2 truncate rounded-xl bg-popover px-3.5 py-2 text-xs font-medium text-popover-foreground shadow-dialog ring-1 ring-border transition-[opacity,transform] duration-150",
             keyframeNotice
               ? "translate-y-0 opacity-100"
               : "-translate-y-2 opacity-0"
@@ -209,15 +209,24 @@ export function AppLayoutView({
         {returnTo && (
           <div
             role="status"
-            className="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-popover py-1.5 pr-1.5 pl-4 text-xs text-popover-foreground shadow-xl max-[720px]:bottom-20"
+            className="absolute bottom-4 left-1/2 z-50 flex h-11 w-max max-w-(--spacing-toast) -translate-x-1/2 animate-in items-center gap-1 rounded-xl bg-popover pr-1 pl-3.5 text-xs text-popover-foreground shadow-dialog ring-1 ring-border duration-150 fade-in-0 slide-in-from-bottom-2 max-[720px]:bottom-(--spacing-toast-bottom)"
           >
-            Started a new project
+            <span className="min-w-0 flex-1 truncate">New project created</span>
             <button
               type="button"
+              title={`Back to ${returnTo.name}`}
               onClick={goBack}
-              className="rounded-full bg-foreground px-3 py-1.5 font-medium text-background hover:opacity-90 focus-visible:outline-2 focus-visible:outline-ring"
+              className="h-9 shrink-0 rounded-lg px-2.5 font-medium text-primary hover:bg-primary/10 focus-visible:outline-2 focus-visible:outline-ring"
             >
-              Back to {returnTo.name}
+              Undo
+            </button>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setReturnTo(null)}
+              className="grid size-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <X aria-hidden="true" className="size-4" />
             </button>
           </div>
         )}
@@ -451,7 +460,7 @@ export function AppLayoutView({
         currentProjectName={
           manualWelcomeOpen ? topBarProps.projectName : undefined
         }
-        onCreate={(iconId, name, svgContent) => {
+        onCreate={(starterId, name, svgContent) => {
           const previous =
             manualWelcomeOpen && newProjectDialogProps.currentProjectId
               ? {
@@ -459,7 +468,7 @@ export function AppLayoutView({
                   name: topBarProps.projectName,
                 }
               : null
-          if (!onCreateStarter(iconId, name, svgContent)) return false
+          if (!onCreateStarter(starterId, name, svgContent)) return false
           setReturnTo(previous)
           dismissWelcome()
           setStartJourney(true)

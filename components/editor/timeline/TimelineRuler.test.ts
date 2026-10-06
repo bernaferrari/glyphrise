@@ -2,21 +2,21 @@ import { describe, expect, it } from "vitest"
 import { timelineTimeForKeyboardKey } from "./TimelineRuler"
 
 describe("timelineTimeForKeyboardKey", () => {
-  it("moves by a tenth of a second with arrow keys", () => {
+  it("moves by one frame with arrow keys", () => {
     expect(
       timelineTimeForKeyboardKey({
         currentTime: 1,
         duration: 5,
         key: "ArrowRight",
       })
-    ).toBe(1.1)
+    ).toBe(1.017)
     expect(
       timelineTimeForKeyboardKey({
         currentTime: 1,
         duration: 5,
         key: "ArrowLeft",
       })
-    ).toBe(0.9)
+    ).toBe(0.983)
   })
 
   it("supports large steps and timeline boundaries", () => {
@@ -27,7 +27,7 @@ describe("timelineTimeForKeyboardKey", () => {
         key: "ArrowRight",
         shiftKey: true,
       })
-    ).toBe(2)
+    ).toBe(1.167)
     expect(
       timelineTimeForKeyboardKey({
         currentTime: 1,

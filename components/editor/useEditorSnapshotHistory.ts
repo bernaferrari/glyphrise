@@ -500,7 +500,7 @@ export function useEditorSnapshotHistory({
   const createNewProject = (
     kind: "blank" | "example",
     requestedName: string,
-    starterIconId?: string,
+    starterId?: string,
     svgContent?: string
   ) => {
     const baseSnapshot = initialSnapshotRef.current
@@ -512,8 +512,8 @@ export function useEditorSnapshotHistory({
     try {
       const nextSnapshot: EditorSnapshot = svgContent
         ? createImportedEditorSnapshot(baseSnapshot, svgContent)
-        : starterIconId
-          ? createStarterEditorSnapshot(baseSnapshot, starterIconId)
+        : starterId
+          ? createStarterEditorSnapshot(baseSnapshot, starterId)
           : kind === "example"
             ? baseSnapshot
             : createBlankEditorSnapshot(baseSnapshot)

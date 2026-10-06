@@ -13,7 +13,6 @@ async function backup(page: Page) {
 
 async function renderPng(page: Page) {
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByText("More settings", { exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("256")
   await page.getByLabel("Height", { exact: true }).fill("256")
   const downloaded = page.waitForEvent("download")
@@ -177,7 +176,6 @@ test("phone workflow reaches animated motion preview and export", async ({
   ).toBeVisible()
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await expect(page.getByRole("dialog")).toBeVisible()
-  await page.getByText("More settings", { exact: true }).click()
   await expect(page.getByLabel("Width", { exact: true })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     390

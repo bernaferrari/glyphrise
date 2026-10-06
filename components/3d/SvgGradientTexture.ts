@@ -63,9 +63,15 @@ export const iconGradientTexture = (
         encoded.copy(sample((x + 0.5) / size, (y + 0.5) / size))
         gradeFinishSurfaceColor(preset, encoded).convertLinearToSRGB()
         const offset = (y * size + x) * 4
-        baked[offset] = Math.round(encoded.r * 255)
-        baked[offset + 1] = Math.round(encoded.g * 255)
-        baked[offset + 2] = Math.round(encoded.b * 255)
+        // Finish grades can exceed 1. Clamp before storing in bytes, which
+        // otherwise wrap bright channels back to dark and change the hue.
+        baked[offset] = Math.round(THREE.MathUtils.clamp(encoded.r, 0, 1) * 255)
+        baked[offset + 1] = Math.round(
+          THREE.MathUtils.clamp(encoded.g, 0, 1) * 255
+        )
+        baked[offset + 2] = Math.round(
+          THREE.MathUtils.clamp(encoded.b, 0, 1) * 255
+        )
         baked[offset + 3] = 255
       }
     }

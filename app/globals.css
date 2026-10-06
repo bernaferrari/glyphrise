@@ -16,7 +16,6 @@
     ease-in-out infinite;
   --animate-motion-pulse: motion-preview-pulse var(--motion-duration, 3s)
     ease-in-out infinite;
-  --animate-starter-slash-off: starter-slash-off 3s ease-in-out infinite;
 
   --background-export-checkerboard: repeating-conic-gradient(
       color-mix(in oklab, var(--foreground) 9%, transparent) 0 25%,
@@ -46,18 +45,21 @@
   --color-light-pad-edge: #27272a;
   --color-light-pad-shadow: #0b0b0d;
   --color-light-keyframe: #ffd9a0;
+  --color-starter-background: #09090b;
 
   --spacing-tab-trigger: calc(100% - 1px);
   --spacing-mobile-tabs: calc(4rem + env(safe-area-inset-bottom));
+  --spacing-toast: calc(100vw - 24px);
+  --spacing-toast-bottom: calc(var(--spacing-mobile-tabs) + 5rem);
   --spacing-shape-picker-height: min(78vh, 620px);
   --spacing-code: 52vh;
-  --spacing-code-expanded: 56vh;
   --spacing-dialog-height: calc(100dvh - 32px);
   --spacing-finish-picker-width: min(340px, calc(100vw - 24px));
   --spacing-finish-picker-height: min(600px, var(--available-height));
   --spacing-files-dialog: min(720px, calc(100dvh - 32px));
-  --spacing-export-mobile: calc(100dvh - 160px);
-  --spacing-export-options: min(480px, calc(100dvh - 220px));
+  --spacing-export-sheet: calc(100dvh - 40px);
+  --spacing-export-height: min(640px, calc(100dvh - 32px));
+  --spacing-safe-bottom: max(0.75rem, env(safe-area-inset-bottom));
   --spacing-dialog-width: calc(100% - 2rem);
   --spacing-screen-inset-2: calc(100vw - 16px);
   --spacing-screen-inset-4: calc(100vw - 32px);
@@ -446,21 +448,6 @@
     transform: scale(calc(1 + 0.25 * var(--motion-amount, 1)));
   }
 }
-/* Welcome "Slash" card: the slashed icon (the same glyph plus a bar) wipes in
-   over the still original, holds, and wipes back, like the transition it creates. */
-@keyframes starter-slash-off {
-  0%,
-  15% {
-    clip-path: polygon(0 0, 0 0, 0 0);
-  }
-  45%,
-  70% {
-    clip-path: polygon(0 0, 200% 0, 0 200%);
-  }
-  100% {
-    clip-path: polygon(0 0, 0 0, 0 0);
-  }
-}
 :root[data-panel-transition] #glyphrise-preview-pane {
   view-transition-name: editor-preview;
 }
@@ -640,20 +627,38 @@
   grid-template-columns: 56px minmax(0, 1fr);
 }
 
-@utility grid-cols-symbol-search {
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
-}
-
-@utility grid-cols-symbols {
-  grid-template-columns: repeat(auto-fill, minmax(44px, 44px));
+@utility grid-cols-picker {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
 }
 
 @utility grid-cols-presets {
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
 }
 
+@utility bg-starter-glow {
+  background-image: radial-gradient(
+    120% 80% at 50% 30%,
+    color-mix(in oklab, var(--starter-accent) 24%, transparent),
+    transparent 75%
+  );
+}
+
+/* A custom-color swatch: the color wheel around the current pick. */
+@utility bg-custom-swatch {
+  background-image: conic-gradient(
+    from 90deg,
+    #ff4d4d,
+    #ffd84d,
+    #4dff88,
+    #4dd8ff,
+    #7a5cff,
+    #ff4dd8,
+    #ff4d4d
+  );
+}
+
 @utility grid-cols-export {
-  grid-template-columns: 288px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 320px;
 }
 
 @utility bg-timeline-keyframe {
@@ -766,7 +771,11 @@
   border-width: 1.5px;
 }
 @utility stroke-axis {
-  stroke-width: 1.5;
+  stroke-width: 2;
+}
+
+@utility stroke-hairline {
+  stroke-width: 0.75;
 }
 
 @utility bg-checkerboard {

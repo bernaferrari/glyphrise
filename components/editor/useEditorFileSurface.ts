@@ -1,23 +1,20 @@
 "use client"
 
-import { useState, type Dispatch, type SetStateAction } from "react"
-import type { ShapeStop } from "./TimelineModel"
+import { useState } from "react"
+import type { PresetIcon } from "./IconLibrary"
 import { useSvgUpload } from "./useSvgUpload"
 
 export function useEditorFileSurface({
   selectedShapeId,
-  setShapes,
-  markCustom,
+  onShapeIconChange,
 }: {
   selectedShapeId: string | null
-  setShapes: Dispatch<SetStateAction<ShapeStop[]>>
-  markCustom: () => void
+  onShapeIconChange: (shapeId: string, icon: PresetIcon) => void
 }) {
   const [isExportOpen, setIsExportOpen] = useState(false)
   const upload = useSvgUpload({
     selectedShapeId,
-    setShapes,
-    markCustom,
+    onShapeIconChange,
   })
 
   return {

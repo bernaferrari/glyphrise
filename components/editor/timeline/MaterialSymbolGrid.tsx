@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import type { ShapeStop } from "../TimelineModel"
 import { cssLength, cn } from "@/lib/utils"
 import type { MaterialSymbolStatus } from "./ShapePickerSymbolModel"
+import { PICKER_GRID_CLASS, PickerTile, symbolLabel } from "./PickerTile"
 
 const DEFAULT_COLUMN_COUNT = 12
 const DEFAULT_ROW_HEIGHT = 50
@@ -123,8 +124,8 @@ export function MaterialSymbolGrid({
       ref={gridRef}
       onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       className={cn(
-        "editor-scrollbar grid max-h-62.5 grid-cols-symbols content-start justify-between gap-2 overflow-y-auto pr-1",
-        normalizedShapeQuery && "grid-cols-symbol-search",
+        PICKER_GRID_CLASS,
+        "editor-scrollbar max-h-80 overflow-y-auto pr-1",
         className
       )}
     >
@@ -140,21 +141,12 @@ export function MaterialSymbolGrid({
         />
       )}
       {visibleSymbols.map((symbolName) => (
-        <div
-          key={`material-symbol-${stop.id}-${symbolName}`}
-          data-symbol-tile
-          className={cn(
-            "group/symbol relative aspect-square",
-            normalizedShapeQuery && "aspect-auto min-h-20"
-          )}
-        >
-          <button
-            type="button"
-            title={symbolName.replace(/_/g, " ")}
-            aria-label={symbolName.replace(/_/g, " ")}
-            aria-pressed={symbolName === selectedSymbol}
+        <div key={`material-symbol-${stop.id}-${symbolName}`} data-symbol-tile>
+          <PickerTile
+            label={symbolLabel(symbolName)}
+            ariaLabel={symbolName.replace(/_/g, " ")}
+            selected={symbolName === selectedSymbol}
             onClick={() => onChooseMaterialSymbol(stop.id, symbolName)}
-            className="flex size-full flex-col items-center justify-center gap-2 rounded-lg border border-transparent p-1 text-foreground transition-colors hover:border-border hover:bg-muted/70 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring aria-pressed:border-primary/40 aria-pressed:bg-primary/10 aria-pressed:text-primary"
           >
             <span
               aria-hidden="true"
@@ -167,12 +159,7 @@ export function MaterialSymbolGrid({
             >
               {symbolName}
             </span>
-            {normalizedShapeQuery && (
-              <span className="text-center text-xs leading-4">
-                {symbolName.replace(/_/g, " ")}
-              </span>
-            )}
-          </button>
+          </PickerTile>
         </div>
       ))}
       {bottomSpacerHeight > 0 && (

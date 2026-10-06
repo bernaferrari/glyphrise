@@ -48,6 +48,17 @@ export const updateOrientationGizmo = (
     refs.lineZRef.current.setAttribute("y2", ptZ.y.toFixed(1))
   }
 
+  // Axes pointing away from the viewer fade back, so depth reads at a glance.
+  const depthOpacity = (z: number) => (z < -0.05 ? "0.4" : "1")
+  for (const [line, marker, point] of [
+    [refs.lineXRef, refs.markerXRef, ptX],
+    [refs.lineYRef, refs.markerYRef, ptY],
+    [refs.lineZRef, refs.markerZRef, ptZ],
+  ] as const) {
+    line.current?.setAttribute("opacity", depthOpacity(point.z))
+    marker.current?.setAttribute("opacity", depthOpacity(point.z))
+  }
+
   refs.markerXRef.current?.setAttribute(
     "transform",
     `translate(${ptX.x.toFixed(1)} ${ptX.y.toFixed(1)})`
@@ -62,6 +73,37 @@ export const updateOrientationGizmo = (
   )
 }
 
+const NUDGES = [
+  {
+    label: "Tilt up 45 degrees",
+    Icon: ChevronUp,
+    axis: "x",
+    direction: 1,
+    className: "col-start-2 row-start-1",
+  },
+  {
+    label: "Tilt down 45 degrees",
+    Icon: ChevronDown,
+    axis: "x",
+    direction: -1,
+    className: "col-start-2 row-start-3",
+  },
+  {
+    label: "Rotate left 45 degrees",
+    Icon: ChevronLeft,
+    axis: "y",
+    direction: 1,
+    className: "col-start-1 row-start-2",
+  },
+  {
+    label: "Rotate right 45 degrees",
+    Icon: ChevronRight,
+    axis: "y",
+    direction: -1,
+    className: "col-start-3 row-start-2",
+  },
+] as const
+
 export function OrientationGizmo({
   refs,
   onNudgeViewRotation,
@@ -72,14 +114,15 @@ export function OrientationGizmo({
   onAlignViewToAxis: (axis: "x" | "y" | "z") => void
 }) {
   return (
+    // The axes in the middle, 45° nudges around them.
     <div
       role="group"
       aria-label="Artwork orientation"
-      className="pointer-events-auto absolute right-3 bottom-2 z-20 grid size-28 touch-manipulation grid-cols-3 grid-rows-3 place-items-center gap-3.5 select-none max-[720px]:right-1 max-[720px]:bottom-16"
+      className="pointer-events-auto absolute right-2 bottom-2 z-20 grid size-28 touch-manipulation grid-cols-3 grid-rows-3 place-items-center select-none max-[720px]:right-1 max-[720px]:bottom-16"
     >
       <svg
         viewBox="0 0 80 80"
-        className="pointer-events-none absolute inset-3.5 size-21"
+        className="pointer-events-none absolute inset-0 m-auto size-20 drop-shadow-gizmo"
       >
         <line
           ref={refs.lineXRef}
@@ -87,7 +130,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-x-edge/70 stroke-axis"
+          className="stroke-axis-x-edge stroke-axis"
           strokeLinecap="round"
         />
         <line
@@ -96,7 +139,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-y-edge/70 stroke-axis"
+          className="stroke-axis-y-edge stroke-axis"
           strokeLinecap="round"
         />
         <line
@@ -105,7 +148,7 @@ export function OrientationGizmo({
           y1="40"
           x2="40"
           y2="40"
-          className="stroke-axis-z-edge/70 stroke-axis"
+          className="stroke-axis-z-edge stroke-axis"
           strokeLinecap="round"
         />
 
@@ -113,62 +156,37 @@ export function OrientationGizmo({
           ref={refs.markerXRef}
           label="X"
           onClick={() => onAlignViewToAxis("x")}
-          colorClass="fill-axis-x-surface/18 stroke-axis-x-edge/85"
-          textClass="fill-axis-x-label"
+          colorClass="fill-axis-x-surface"
         />
         <AxisMarker
           ref={refs.markerYRef}
           label="Y"
           onClick={() => onAlignViewToAxis("y")}
-          colorClass="fill-axis-y-surface/18 stroke-axis-y-edge/85"
-          textClass="fill-axis-y-label"
+          colorClass="fill-axis-y-surface"
         />
         <AxisMarker
           ref={refs.markerZRef}
           label="Z"
           onClick={() => onAlignViewToAxis("z")}
-          colorClass="fill-axis-z-surface/18 stroke-axis-z-edge/85"
-          textClass="fill-axis-z-label"
+          colorClass="fill-axis-z-surface"
         />
 
-        <circle cx="40" cy="40" r="1.5" className="fill-white/50" />
+        <circle cx="40" cy="40" r="2" className="fill-white/70" />
       </svg>
-      <Button
-        variant="viewport-ghost"
-        size="icon-sm"
-        aria-label="Tilt up 45 degrees"
-        className="col-start-2 row-start-1"
-        onClick={() => onNudgeViewRotation("x", 1)}
-      >
-        <ChevronUp />
-      </Button>
-      <Button
-        variant="viewport-ghost"
-        size="icon-sm"
-        aria-label="Tilt down 45 degrees"
-        className="col-start-2 row-start-3"
-        onClick={() => onNudgeViewRotation("x", -1)}
-      >
-        <ChevronDown />
-      </Button>
-      <Button
-        variant="viewport-ghost"
-        size="icon-sm"
-        aria-label="Rotate left 45 degrees"
-        className="col-start-1 row-start-2"
-        onClick={() => onNudgeViewRotation("y", 1)}
-      >
-        <ChevronLeft />
-      </Button>
-      <Button
-        variant="viewport-ghost"
-        size="icon-sm"
-        aria-label="Rotate right 45 degrees"
-        className="col-start-3 row-start-2"
-        onClick={() => onNudgeViewRotation("y", -1)}
-      >
-        <ChevronRight />
-      </Button>
+      {NUDGES.map(({ label, Icon, axis, direction, className }) => (
+        <Button
+          key={label}
+          variant="viewport-ghost"
+          size="icon-sm"
+          shape="pill"
+          aria-label={label}
+          title={label}
+          className={className}
+          onClick={() => onNudgeViewRotation(axis, direction)}
+        >
+          <Icon />
+        </Button>
+      ))}
     </div>
   )
 }
@@ -178,10 +196,9 @@ const AxisMarker = React.forwardRef<
   {
     label: string
     colorClass: string
-    textClass: string
     onClick: () => void
   }
->(({ label, colorClass, textClass, onClick }, ref) => (
+>(({ label, colorClass, onClick }, ref) => (
   <g
     ref={ref}
     role="button"
@@ -196,18 +213,17 @@ const AxisMarker = React.forwardRef<
       onClick()
     }}
   >
-    <circle cx="0" cy="0" r="10" className="fill-transparent" />
-    <circle cx="0" cy="0" r="8" className="fill-black/35 blur-hairline" />
+    <circle cx="0" cy="0" r="11" className="fill-transparent" />
     <circle
       cx="0"
       cy="0"
       r="7"
-      className={`${colorClass} stroke-1 group-hover/axis:brightness-125 group-focus-visible/axis:stroke-white`}
+      className={`${colorClass} stroke-black/40 stroke-hairline transition-[filter] group-hover/axis:brightness-125 group-focus-visible/axis:stroke-white`}
     />
     <text
       x="0"
-      y="0.3"
-      className={`${textClass} font-sans text-gizmo font-semibold select-none`}
+      y="0.4"
+      className="fill-white font-sans text-gizmo font-bold select-none"
       textAnchor="middle"
       dominantBaseline="central"
     >

@@ -1,5 +1,6 @@
 "use client"
 
+import { isAddIconPickerTarget } from "../ShapePickerTarget"
 import { ShapePickerContent } from "./ShapePickerContent"
 import type { TimelineShapeLaneProps } from "./TimelineLanesSurfaceTypes"
 
@@ -24,6 +25,7 @@ export function TimelineShapePicker({
   | "onShapeIconChange"
   | "onUploadShape"
 >) {
+  const adding = isAddIconPickerTarget(openShapePicker)
   const stop =
     shapes.find((shape) => shape.id === openShapePicker) ??
     shapes.find((shape) => shape.id === selectedShapeId) ??
@@ -32,15 +34,20 @@ export function TimelineShapePicker({
   return (
     <ShapePickerContent
       open={Boolean(openShapePicker)}
+      adding={adding}
       onOpenChange={(open) => {
         if (!open) {
           onOpenShapePicker(null)
           return
         }
-        onSelectShape(stop.id)
-        onOpenShapePicker(stop.id)
+        if (!adding) onSelectShape(stop.id)
+        onOpenShapePicker(adding ? openShapePicker : stop.id)
       }}
-      stop={stop}
+      stop={
+        adding
+          ? { ...stop, id: openShapePicker!, iconId: "", svgContent: "" }
+          : stop
+      }
       visibleShapeOptions={shapePicker.visibleShapeOptions}
       recentMaterialSymbols={shapePicker.recentMaterialSymbols}
       filteredMaterialSymbols={shapePicker.filteredMaterialSymbols}

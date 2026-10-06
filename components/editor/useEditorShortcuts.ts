@@ -63,7 +63,8 @@ export const useEditorShortcuts = ({
 
 /**
  * Stepping matches ShapeShifter: `,` and `.` jump between keyframes (the ‹ ›
- * transport buttons), `<` and `>` (Shift) move one frame.
+ * transport buttons), `<` and `>` (Shift) move one frame. On timeline
+ * surfaces, arrows step one frame and Shift+arrows step ten.
  */
 export const useTimelineStepShortcuts = ({
   onPreviousKeyframe,
@@ -88,7 +89,24 @@ export const useTimelineStepShortcuts = ({
       if (document.querySelector('[role="dialog"], [role="alertdialog"]'))
         return
       const callbacks = callbacksRef.current
-      if (event.key === "<" || event.key === ">") {
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        if (
+          !(event.target instanceof Element) ||
+          !event.target.closest("[data-timeline-step-surface]")
+        )
+          return
+        // Sliders, tabs, menus, and focused keyframes own their arrow keys.
+        if (
+          event.target.closest(
+            '[role="slider"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="menuitem"], [role="option"]'
+          )
+        )
+          return
+        event.preventDefault()
+        callbacks.onStepFrames(
+          (event.key === "ArrowLeft" ? -1 : 1) * (event.shiftKey ? 10 : 1)
+        )
+      } else if (event.key === "<" || event.key === ">") {
         event.preventDefault()
         callbacks.onStepFrames(event.key === "<" ? -1 : 1)
       } else if (event.key === ",") {

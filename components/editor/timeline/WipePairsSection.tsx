@@ -2,6 +2,7 @@ import type { MaterialSymbolPreviewStyle } from "../IconLibrary"
 import type { MaterialWipeIconPair } from "../MaterialWipePairs"
 import type { ShapeStop } from "../TimelineModel"
 import { cn } from "@/lib/utils"
+import { PICKER_GRID_CLASS, PickerTile } from "./PickerTile"
 import { WipePairPreview } from "./WipePairPreview"
 
 export function WipePairsSection({
@@ -22,33 +23,27 @@ export function WipePairsSection({
   if (filteredWipePairs.length === 0) return null
 
   return (
-    // Same tiles as the Presets tab: preview on top, name underneath.
-    <div className={cn("mb-3", className)}>
-      <div className="grid grid-cols-presets gap-2 pr-1">
-        {filteredWipePairs.map((pair) => (
-          <button
-            key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}
-            type="button"
-            title={`${pair.label}: ${pair.enabled} -> ${pair.disabled}`}
-            onClick={() => onChooseWipePair(stop.id, pair)}
-            className="wipe-pair-option group/pair flex min-h-20 min-w-0 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-2 py-3 text-center transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
-          >
-            <WipePairPreview
-              pair={pair}
-              className={materialSymbolClass}
-              style={
-                {
-                  "--symbol-variation": symbolStyle["--symbol-variation"],
-                } as React.CSSProperties
-              }
-              mode={pair.disabled.endsWith("_off") ? "slash" : "real"}
-            />
-            <span className="line-clamp-2 w-full text-xs font-medium text-foreground">
-              {pair.label}
-            </span>
-          </button>
-        ))}
-      </div>
+    <div className={cn(PICKER_GRID_CLASS, "mb-3 pr-1", className)}>
+      {filteredWipePairs.map((pair) => (
+        <PickerTile
+          key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}
+          label={pair.label}
+          title={`${pair.label}: ${pair.enabled} → ${pair.disabled}`}
+          className="wipe-pair-option"
+          onClick={() => onChooseWipePair(stop.id, pair)}
+        >
+          <WipePairPreview
+            pair={pair}
+            className={materialSymbolClass}
+            style={
+              {
+                "--symbol-variation": symbolStyle["--symbol-variation"],
+              } as React.CSSProperties
+            }
+            mode={pair.disabled.endsWith("_off") ? "slash" : "real"}
+          />
+        </PickerTile>
+      ))}
     </div>
   )
 }

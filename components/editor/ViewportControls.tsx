@@ -253,6 +253,11 @@ export function PlaybackControls({
   return (
     <div
       data-slot="viewport-playback"
+      tabIndex={-1}
+      onClickCapture={(event) =>
+        event.currentTarget.focus({ preventScroll: true })
+      }
+      data-timeline-step-surface
       className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-white/10 bg-black/45 p-1.5 text-white shadow-lg backdrop-blur-xl max-[720px]:bottom-2 max-[720px]:gap-0.5 max-[720px]:p-1"
     >
       <Button

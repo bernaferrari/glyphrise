@@ -7,7 +7,7 @@ test.describe("short phone creation", () => {
   }) => {
     await page.goto("/")
     const create = page.getByRole("button", {
-      name: "Start with Spin",
+      name: "Start with Calendar",
       exact: true,
     })
     await expect(create).toBeInViewport({ ratio: 1 })
@@ -18,16 +18,10 @@ test.describe("short phone creation", () => {
       exact: true,
     })
     await expect(download).toBeInViewport({ ratio: 1 })
-    await page.getByText("More settings", { exact: true }).click()
     await page.getByLabel("Width", { exact: true }).fill("128")
     await page.getByLabel("Height", { exact: true }).fill("128")
     await expect(download).toBeInViewport({ ratio: 1 })
     await expect(download).toBeEnabled()
-    const actionBounds = await download.boundingBox()
-    const footerBounds = await page
-      .getByRole("button", { name: "Developer exports", exact: true })
-      .boundingBox()
-    expect(actionBounds!.y + actionBounds!.height).toBeLessThan(footerBounds!.y)
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth)
     ).toBe(320)
@@ -43,16 +37,16 @@ for (const width of [390, 1280]) {
       await page.goto("/")
       const welcome = page.getByRole("dialog", { name: "Make something move." })
       await expect(welcome).toBeVisible()
-      // The intro starts from motion; Spin is the default first choice.
-      const spin = welcome.getByRole("button", { name: /^Spin/ })
-      await expect(spin).toHaveAttribute("aria-pressed", "true")
-      await welcome.getByRole("button", { name: /^Pulse/ }).click()
-      await spin.click()
+      // Calendar is the default first starter.
+      const calendar = welcome.getByRole("button", { name: /^Calendar/ })
+      await expect(calendar).toHaveAttribute("aria-pressed", "true")
+      await welcome.getByRole("button", { name: /^Heart/ }).click()
+      await calendar.click()
       await welcome
-        .getByRole("button", { name: "Start with Spin", exact: true })
+        .getByRole("button", { name: "Start with Calendar", exact: true })
         .click()
       await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-        "Star spin"
+        "Calendar"
       )
       const guide = page.getByRole("complementary", { name: "Your first icon" })
       await expect(guide).toBeVisible()
@@ -71,12 +65,8 @@ for (const width of [390, 1280]) {
       await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
       await page.getByRole("button", { name: /^Apply Tilt/ }).click()
       await guide.getByRole("button", { name: "Play your motion" }).click()
-      await guide.getByRole("button", { name: "Export your icon" }).click()
-      const exporter = page.getByRole("dialog", { name: "Export your icon" })
-      await expect(
-        exporter.getByRole("tab", { name: "React starter" })
-      ).toBeHidden()
-      await exporter.getByText("More settings", { exact: true }).click()
+      await guide.getByRole("button", { name: "Export" }).click()
+      const exporter = page.getByRole("dialog", { name: "Export" })
       await exporter.getByLabel("Width", { exact: true }).fill("128")
       await exporter.getByLabel("Height", { exact: true }).fill("128")
       const downloading = page.waitForEvent("download")
@@ -101,14 +91,17 @@ for (const width of [390, 1280]) {
       await page.reload()
       await expect(welcome).toHaveCount(0)
       await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
-        "Star spin"
+        "Calendar"
       )
       if (width < 720)
         await page
           .getByRole("button", { name: "Properties", exact: true })
           .click()
       await expect(
-        page.getByRole("button", { name: "Change icon for Star", exact: true })
+        page.getByRole("button", {
+          name: "Change icon for Calendar Month",
+          exact: true,
+        })
       ).toBeVisible()
       await expect(
         page.getByRole("button", { name: "Use Satin finish", exact: true })
@@ -125,16 +118,13 @@ test("records and downloads a short video, then offers a separate model export",
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Start with Spin", exact: true })
+    .getByRole("button", { name: "Start with Calendar", exact: true })
     .click()
   await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page
-    .getByRole("button", { name: "Video Full animation", exact: true })
-    .click()
-  await page.getByText("More settings", { exact: true }).click()
+  await page.getByRole("button", { name: "Video", exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
   const downloading = page.waitForEvent("download")
@@ -153,12 +143,12 @@ test("records and downloads a short video, then offers a separate model export",
       .getByRole("status")
       .filter({ hasText: "downloaded" })
   ).toContainText("Video downloaded")
-  await page.getByRole("button", { name: "3D model GLB", exact: true }).click()
+  await page.getByRole("button", { name: "3D model", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Download 3D model", exact: true })
   ).toBeEnabled()
   await expect(
-    page.getByText("Some gradients and finishes", { exact: false })
+    page.getByText("Gradients become standard 3D materials", { exact: false })
   ).toBeVisible()
 })
 
@@ -167,15 +157,12 @@ test("closing an active recording cancels it and reopening export restores the d
 }) => {
   await page.goto("/")
   await page
-    .getByRole("button", { name: "Start with Spin", exact: true })
+    .getByRole("button", { name: "Start with Calendar", exact: true })
     .click()
   await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page
-    .getByRole("button", { name: "Video Full animation", exact: true })
-    .click()
-  await page.getByText("More settings", { exact: true }).click()
+  await page.getByRole("button", { name: "Video", exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
   await page
@@ -185,7 +172,7 @@ test("closing an active recording cancels it and reopening export restores the d
     page.getByRole("button", { name: /Recording .*Cancel/ })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Image PNG", exact: true })
+    page.getByRole("button", { name: "Image", exact: true })
   ).toBeDisabled()
   await page.getByRole("button", { name: "Close", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
@@ -196,15 +183,12 @@ test("closing an active recording cancels it and reopening export restores the d
   await expect(
     page.getByText("Video downloaded.", { exact: false })
   ).toHaveCount(0)
-  await page
-    .getByRole("button", { name: "Developer exports", exact: true })
-    .click()
-  await page.getByRole("tab", { name: "React starter", exact: true }).click()
+  await page.getByRole("button", { name: "Code", exact: true }).click()
   await page.keyboard.press("Escape")
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await expect(
-    page.getByRole("tab", { name: "React starter", exact: true })
-  ).toBeHidden()
+    page.getByRole("button", { name: "Image", exact: true })
+  ).toHaveAttribute("aria-pressed", "true")
   await expect(
     page.getByRole("button", { name: "Download image", exact: true })
   ).toBeEnabled()

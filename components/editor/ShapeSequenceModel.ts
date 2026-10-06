@@ -115,12 +115,13 @@ export const addShapeStopAtTime = ({
   shapes,
   time,
   duration,
+  icon = PRESET_ICONS[shapes.length % PRESET_ICONS.length],
 }: {
   shapes: ShapeStop[]
   time: number
   duration: number
+  icon?: PresetIcon
 }) => {
-  const icon = PRESET_ICONS[shapes.length % PRESET_ICONS.length]
   const availableTime = findAvailableShapeStopTime({
     times: shapes.map((shape) => shape.time),
     requestedTime: time,

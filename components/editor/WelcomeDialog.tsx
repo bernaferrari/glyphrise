@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ArrowRight, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,44 +15,57 @@ import {
   isSvgFile,
   svgImportMessage,
 } from "./SvgImportModel"
-import { MotionPresetPreview } from "./MotionPresetPreview"
-import {
-  STARTERS,
-  slashedIcon,
-  type StarterMotion,
-} from "./StarterProjectModel"
-import type { PresetIcon } from "./IconLibrary"
+import { STARTERS, type Starter } from "./StarterProjectModel"
 
-/** Each card shows its motion, so choosing reads as "how should it move?". */
+/** Real editor renders, encoded ahead of time instead of four live WebGL scenes. */
 function StarterPreview({
-  motion,
-  icon,
+  starter,
+  selected,
 }: {
-  motion: StarterMotion
-  icon: PresetIcon
+  starter: Starter
+  selected: boolean
 }) {
-  if (motion !== "slash")
-    return (
-      <span
-        className="text-(--element-color)"
-        style={{ "--element-color": icon.defaultTint } as React.CSSProperties}
-      >
-        <MotionPresetPreview preset={motion} svgContent={icon.svgContent} />
-      </span>
-    )
+  const videoRef = useRef<HTMLVideoElement>(null)
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    let visible = false
+    const syncPlayback = () => {
+      if (selected && visible && !document.hidden) {
+        void video.play().catch(() => {})
+      } else {
+        video.pause()
+        if (!selected && video.currentTime > 0) video.currentTime = 0
+      }
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting
+      syncPlayback()
+    })
+    observer.observe(video)
+    document.addEventListener("visibilitychange", syncPlayback)
+    return () => {
+      observer.disconnect()
+      document.removeEventListener("visibilitychange", syncPlayback)
+      video.pause()
+    }
+  }, [selected])
   return (
     <span
       aria-hidden="true"
-      className="relative grid size-12 shrink-0 place-items-center text-(--element-color) [&_svg]:size-9 [&_svg_*]:fill-current"
-      style={{ "--element-color": icon.defaultTint } as React.CSSProperties}
+      className="relative block aspect-video w-full overflow-hidden rounded-xl bg-starter-background sm:aspect-square"
     >
-      <span
-        className="col-start-1 row-start-1 grid place-items-center"
-        dangerouslySetInnerHTML={{ __html: icon.svgContent }}
-      />
-      <span
-        className="col-start-1 row-start-1 grid animate-starter-slash-off place-items-center"
-        dangerouslySetInnerHTML={{ __html: slashedIcon(icon).svgContent }}
+      <video
+        ref={videoRef}
+        src={`/starter-previews/${starter.id}.mp4`}
+        poster={`/starter-previews/${starter.id}.png`}
+        width={256}
+        height={256}
+        muted
+        loop
+        playsInline
+        preload="none"
+        className="h-full w-full object-cover"
       />
     </span>
   )
@@ -69,60 +82,66 @@ export function WelcomeDialog({
   currentProjectName?: string
   open: boolean
   onDismiss: () => void
-  onCreate: (iconId: string, name: string, svgContent?: string) => boolean
+  onCreate: (starterId: string, name: string, svgContent?: string) => boolean
   error?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [isImporting, setIsImporting] = useState(false)
-  const [selectedMotion, setSelectedMotion] = useState<StarterMotion>("spin")
-  const selected = STARTERS.find(
-    (starter) => starter.motion === selectedMotion
-  )!
+  const [selectedId, setSelectedId] = useState(STARTERS[0].id)
+  const selected =
+    STARTERS.find((starter) => starter.id === selectedId) ?? STARTERS[0]
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onDismiss()}>
       <DialogContent
         variant="welcome"
         scrollable={true}
-        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-xl"
+        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-2xl"
       >
         <DialogHeader variant="welcome">
           <span className="text-xs font-medium text-primary">
             Glyphrise · Icon motion
           </span>
           <DialogTitle variant="welcome">Make something move.</DialogTitle>
-          <DialogDescription variant="welcome" className="sm:max-w-sm">
-            Pick how it moves. Make it yours with color and depth, then download
-            it.
+          <DialogDescription variant="welcome" className="sm:max-w-md">
+            Start from a look you like. Every color, layer and keyframe stays
+            editable.
           </DialogDescription>
         </DialogHeader>
         <div
-          className="grid gap-2 sm:grid-cols-3 sm:gap-3"
-          aria-label="Starter motion"
+          role="group"
+          className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3"
+          aria-label="Starter"
         >
-          {STARTERS.map(({ motion, label, hint, icon }) => (
+          {STARTERS.map((starter) => (
             <button
               type="button"
-              key={motion}
-              aria-pressed={motion === selectedMotion}
-              onClick={() => setSelectedMotion(motion)}
-              className="group relative flex min-h-16 items-center gap-4 rounded-2xl border border-border bg-muted/30 px-4 py-3 text-left text-sm font-medium transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary sm:min-h-44 sm:flex-col sm:justify-center sm:gap-3 sm:p-3 sm:text-center"
+              key={starter.id}
+              aria-pressed={starter.id === selectedId}
+              aria-label={`${starter.label}, ${starter.hint}`}
+              onClick={() => setSelectedId(starter.id)}
+              style={
+                {
+                  "--starter-accent": starter.fill.stops.at(-1)!.color,
+                } as React.CSSProperties
+              }
+              className="group relative flex flex-col gap-2.5 overflow-hidden rounded-2xl border border-border bg-muted/30 bg-starter-glow p-2 pb-3 text-left transition-[background-color,border-color,box-shadow] duration-150 hover:bg-muted/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:ring-1 aria-pressed:ring-primary"
             >
-              <StarterPreview motion={motion} icon={icon} />
-              <span className="flex flex-1 flex-col gap-0.5 sm:flex-none">
-                <span>{label}</span>
-                <span className="text-xs font-normal text-muted-foreground">
-                  {hint}
+              <StarterPreview
+                starter={starter}
+                selected={starter.id === selectedId}
+              />
+              <span className="flex flex-col gap-0.5 px-1.5">
+                <span className="text-sm font-medium">{starter.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {starter.hint}
                 </span>
               </span>
               <span
                 aria-hidden="true"
-                className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-muted-foreground/40 text-primary-foreground transition-[background-color,border-color,opacity] duration-150 group-aria-pressed:border-primary group-aria-pressed:bg-primary sm:absolute sm:top-3 sm:right-3 sm:opacity-0 sm:group-aria-pressed:opacity-100"
+                className="absolute top-3.5 right-3.5 grid size-5 place-items-center rounded-full bg-primary text-primary-foreground opacity-0 transition-opacity duration-150 group-aria-pressed:opacity-100"
               >
-                <Check
-                  className="size-3 scale-50 opacity-0 transition-[opacity,scale] duration-150 group-aria-pressed:scale-100 group-aria-pressed:opacity-100"
-                  strokeWidth={3}
-                />
+                <Check className="size-3" strokeWidth={3} />
               </span>
             </button>
           ))}
@@ -132,17 +151,12 @@ export function WelcomeDialog({
             {importError || error}
           </p>
         )}
-        <div className="grid gap-2">
+        <div className="grid gap-2 max-sm:sticky max-sm:bottom-0 max-sm:-mx-5 max-sm:-mb-5 max-sm:bg-popover max-sm:px-5 max-sm:pt-3 max-sm:pb-5 sm:flex sm:flex-wrap">
           <Button
             shape="rounded"
-            className="min-h-12 w-full"
+            className="min-h-12 w-full sm:flex-1"
             disabled={isImporting}
-            onClick={() =>
-              onCreate(
-                selected.icon.id,
-                `${selected.icon.name} ${selected.label.toLowerCase()}`
-              )
-            }
+            onClick={() => onCreate(selected.id, selected.label)}
           >
             Start with {selected.label}
             <ArrowRight aria-hidden="true" className="size-4" />
@@ -180,7 +194,8 @@ export function WelcomeDialog({
             shape="rounded"
             variant="outline"
             disabled={isImporting}
-            className="min-h-11 w-full"
+            size="lg"
+            className="min-h-12 w-full sm:w-auto sm:min-w-36"
             onClick={() => inputRef.current?.click()}
           >
             {isImporting ? "Reading your SVG…" : "Use my SVG"}
@@ -188,7 +203,7 @@ export function WelcomeDialog({
           <button
             type="button"
             onClick={onDismiss}
-            className="min-h-11 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            className="min-h-11 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring sm:w-full"
           >
             {currentProjectName
               ? `Keep working on ${currentProjectName}`

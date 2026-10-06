@@ -5,7 +5,11 @@ import { updateGroupFillColors } from "./SvgMaterialState"
 import { prepareFilamentExportObject } from "./SvgExport"
 import { disposeObjectTree } from "./SvgSceneUtils"
 import { iconGradientTexture } from "./SvgGradientTexture"
-import { gradeFinishSurfaceColor } from "./MaterialPresets"
+import {
+  FINISH_SPECS,
+  gradeFinishSurfaceColor,
+  type MaterialPresetId,
+} from "./MaterialPresets"
 import * as SvgColor from "./SvgColor"
 
 const makeIcon = () => {
@@ -50,6 +54,35 @@ const sample = (texture: THREE.DataTexture, u: number, v: number) => {
 }
 
 describe("portable icon gradient", () => {
+  it.each(
+    (Object.keys(FINISH_SPECS) as MaterialPresetId[]).flatMap((preset) =>
+      ["#ff5c8f", "#38bdf8"].map((color) => ({ preset, color }))
+    )
+  )(
+    "preserves the graded channels of a saturated $preset mesh fill ($color)",
+    ({ preset, color }) => {
+      const stops = Array.from({ length: 9 }, (_, index) => ({
+        color,
+        position: index / 8,
+      }))
+      const texture = iconGradientTexture(
+        new THREE.Group(),
+        "mesh",
+        stops,
+        preset
+      )
+      const source = SvgColor.createIconGradientSampler("mesh", stops)(0.5, 0.5)
+      const expected = gradeFinishSurfaceColor(preset, source)
+      const actual = sample(texture, 0.5, 0.5)
+      for (const channel of ["r", "g", "b"] as const) {
+        expect(actual[channel]).toBeCloseTo(
+          THREE.MathUtils.clamp(expected[channel], 0, 1),
+          2
+        )
+      }
+      texture.dispose()
+    }
+  )
   it("reuses baked colors across rebuilt icons without sharing disposable textures", () => {
     const sampler = vi.spyOn(SvgColor, "createIconGradientSampler")
     const stops = [

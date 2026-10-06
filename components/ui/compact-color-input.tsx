@@ -150,7 +150,7 @@ export function CompactColorInput({
   return (
     <span
       className={cn(
-        "flex h-8 min-w-0 items-center gap-2 rounded-lg bg-muted/45 px-2 font-mono text-foreground uppercase transition-colors focus-within:ring-2 focus-within:ring-ring/35",
+        "flex h-8 min-w-0 items-center gap-2 rounded-lg bg-muted/45 px-2 text-base text-foreground uppercase tabular-nums transition-colors focus-within:ring-2 focus-within:ring-ring/35 md:text-xs",
         className
       )}
       onClick={(event) => event.stopPropagation()}
@@ -206,7 +206,7 @@ export function CompactColorInput({
         onChange={(event) => handleTextChange(event.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={commitInput}
-        className="h-full min-w-0 flex-1 bg-transparent p-0 font-mono text-xs text-foreground uppercase outline-none"
+        className="h-full min-w-0 flex-1 bg-transparent p-0 text-base text-foreground uppercase tabular-nums outline-none md:text-xs"
       />
     </span>
   )
