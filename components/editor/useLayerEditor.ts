@@ -14,6 +14,7 @@ import {
   ALL_LAYERS_ID,
   extractSvgLayers,
   getLayerSelectionOverride,
+  getPathOverride,
   getLayerSelectionTargets,
   updatePathOverridesForLayers,
 } from "./SvgLayerModel"
@@ -70,6 +71,17 @@ export const useLayerEditor = ({
     [layers, selectedLayerId, selectedShape]
   )
 
+  const hiddenLayerIds = useMemo(
+    () =>
+      layers
+        .filter(
+          (layer) =>
+            !getPathOverride(layer, selectedShape?.pathOverrides).visible
+        )
+        .map((layer) => layer.id),
+    [layers, selectedShape?.pathOverrides]
+  )
+
   const selectedLayerTargets = useMemo(
     () =>
       getLayerSelectionTargets({
@@ -89,11 +101,12 @@ export const useLayerEditor = ({
     }
   }, [layers, selectedLayerId])
 
-  const updateSelectedLayerOverride = useCallback(
+  const updateLayerOverrides = useCallback(
     (
+      targets: typeof layers,
       updater: Parameters<typeof updatePathOverridesForLayers>[0]["updater"]
     ) => {
-      if (!selectedShape || selectedLayerTargets.length === 0) return
+      if (!selectedShape || targets.length === 0) return
       onEdit()
       setShapes((prev) =>
         prev.map((shape) =>
@@ -102,7 +115,7 @@ export const useLayerEditor = ({
                 ...shape,
                 pathOverrides: updatePathOverridesForLayers({
                   overrides: shape.pathOverrides,
-                  layers: selectedLayerTargets,
+                  layers: targets,
                   updater,
                 }),
               }
@@ -110,7 +123,13 @@ export const useLayerEditor = ({
         )
       )
     },
-    [onEdit, selectedLayerTargets, selectedShape, setShapes]
+    [onEdit, selectedShape, setShapes]
+  )
+
+  const updateSelectedLayerOverride = useCallback(
+    (updater: Parameters<typeof updatePathOverridesForLayers>[0]["updater"]) =>
+      updateLayerOverrides(selectedLayerTargets, updater),
+    [selectedLayerTargets, updateLayerOverrides]
   )
 
   const updateSelectedLayerScale = useCallback(
@@ -135,16 +154,24 @@ export const useLayerEditor = ({
     [updateSelectedLayerOverride]
   )
 
-  const toggleSelectedLayerVisibility = useCallback(() => {
-    updateSelectedLayerOverride((override) => ({
-      ...override,
-      visible: !override.visible,
-    }))
-  }, [updateSelectedLayerOverride])
+  /** Toggles the selected layer, or a specific one from the layer list. */
+  const toggleSelectedLayerVisibility = useCallback(
+    (layerId?: string) => {
+      const targets = layerId
+        ? layers.filter((layer) => layer.id === layerId)
+        : selectedLayerTargets
+      updateLayerOverrides(targets, (override) => ({
+        ...override,
+        visible: !override.visible,
+      }))
+    },
+    [layers, selectedLayerTargets, updateLayerOverrides]
+  )
 
   return {
     layers,
     selectedLayerOverride,
+    hiddenLayerIds,
     selectedLayerId,
     setSelectedLayerId,
     updateSelectedLayerScale,

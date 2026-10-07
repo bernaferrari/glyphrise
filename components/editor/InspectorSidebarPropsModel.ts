@@ -78,6 +78,7 @@ export type UseInspectorSidebarPropsArgs = {
   selectedShapeLayers: SvgLayer[]
   selectedLayerId: string
   selectedLayerOverride: PathOverride | null
+  hiddenLayerIds: string[]
   shapeNavigation?: SidebarTransformProps["shapeNavigation"]
   transformKeyframeControl: ReactNode
   onScaleLockChange: (locked: boolean) => void
@@ -86,7 +87,7 @@ export type UseInspectorSidebarPropsArgs = {
   onRotationAxisChange: (axis: keyof LightPosition, value: number) => void
   onMoveAxisChange: (axis: keyof LightPosition, value: number) => void
   onSelectLayer: (id: string) => void
-  onToggleLayerVisibility: () => void
+  onToggleLayerVisibility: (layerId?: string) => void
   onLayerScaleChange: (value: number) => void
   onLayerDepthChange: (value: number) => void
 
@@ -170,6 +171,7 @@ export type TransformSidebarPropsArgs = Pick<
   | "selectedShapeLayers"
   | "selectedLayerId"
   | "selectedLayerOverride"
+  | "hiddenLayerIds"
   | "shapeNavigation"
   | "transformKeyframeControl"
   | "setSelectedMotionTrackId"

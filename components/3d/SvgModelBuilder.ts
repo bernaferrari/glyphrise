@@ -68,10 +68,7 @@ export const buildSvgIconGroup = ({
   }
 
   const { paths, shapesByPath } = parsedSvg
-  const layerCount = shapesByPath.reduce(
-    (count, shapes) => count + shapes.length,
-    0
-  )
+  const pathCount = paths.length
   const centerOffset = new THREE.Vector3()
   const pendingLayerScales: Array<{
     mesh: THREE.Mesh
@@ -80,15 +77,17 @@ export const buildSvgIconGroup = ({
   const baseExtrude = svgExtrudeBaseSettings(props)
   const depthLayers: SvgDepthLayer[] = []
   const layerSpacing = finiteNumber(props.layerSpacing, 0)
-  // Each layer is nudged forward by layerOrder * gap to avoid z-fighting
-  // between stacked coplanar shapes. The depth-proportional term exists for
+  // Separate SVG paths are nudged forward to avoid z-fighting between
+  // stacked coplanar fills. Disconnected pieces of one compound path share
+  // a plane; otherwise repeated details become a staircase in depth.
+  // The depth-proportional term exists for
   // layered/colored looks, but under cut finishes the icon must read as ONE
   // carved solid — scaling the gap with extrusion depth visibly pushes upper
   // shapes (e.g. a database icon's top ring) in front of the body, so cut
   // finishes keep only the constant anti-z-fight epsilon. Explicit layer
   // spacing still applies.
   const pathLayerGap =
-    layerCount > 1
+    pathCount > 1
       ? Math.max(
           SVG_PATH_LAYER_GAP_MIN,
           baseExtrude.crownEnabled
@@ -297,7 +296,7 @@ export const buildSvgIconGroup = ({
         isIconA,
         isCrossfade,
         gradientMap,
-        layerOrder,
+        layerOrder: pathIndex,
         isSlashOverlay,
         clippingPlanes,
       })
@@ -349,7 +348,7 @@ export const buildSvgIconGroup = ({
         shapeSize,
         depthMultiplier,
         isSlashOverlay,
-        layerOrder,
+        pathIndex,
         extrude,
       })
       mesh.userData.pathLayerId = layerId
@@ -359,7 +358,7 @@ export const buildSvgIconGroup = ({
           extrude.shapeDepth / 2 +
           pathLayerGap +
           baseExtrude.depth * GLYPHRISE_SLASH_FORWARD_RATIO
-        : layerOrder * pathLayerGap
+        : pathIndex * pathLayerGap
       mesh.renderOrder = isSlashOverlay ? 100 + layerOrder : layerOrder
       mesh.castShadow = true
       mesh.receiveShadow = true
@@ -393,7 +392,7 @@ export const buildSvgIconGroup = ({
   })
 
   applySvgModelScale(group)
-  registerSvgGroupDepth(group, layerCount, depthLayers)
+  registerSvgGroupDepth(group, pathCount, depthLayers)
   const capPlane = isIconA ? clipPlaneA : clipPlaneB
   if (capPlane) attachSvgWipeCaps(group, capPlane)
 

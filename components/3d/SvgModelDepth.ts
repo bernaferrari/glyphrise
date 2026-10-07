@@ -21,19 +21,19 @@ export type SvgDepthLayer = {
   shapeSize: THREE.Vector2
   depthMultiplier: number
   isSlashOverlay: boolean
-  layerOrder: number
+  pathIndex: number
   extrude: SafeShapeExtrudeSettings
 }
 const groupDepths = new WeakMap<
   THREE.Group,
-  { layerCount: number; layers: SvgDepthLayer[] }
+  { pathCount: number; layers: SvgDepthLayer[] }
 >()
 export const registerSvgGroupDepth = (
   group: THREE.Group,
-  layerCount: number,
+  pathCount: number,
   layers: SvgDepthLayer[]
 ) => {
-  groupDepths.set(group, { layerCount, layers })
+  groupDepths.set(group, { pathCount, layers })
 }
 
 /** Move the front/back halves without altering the bevel or reallocating GPU resources.
@@ -46,7 +46,7 @@ export const planSvgGroupDepthUpdate = (
   const base = svgExtrudeBaseSettings(props)
   if (!stored || base.crownEnabled) return null
   const gap =
-    stored.layerCount > 1
+    stored.pathCount > 1
       ? Math.max(
           SVG_PATH_LAYER_GAP_MIN,
           base.depth * SVG_PATH_LAYER_GAP_RATIO,
@@ -80,7 +80,7 @@ export const planSvgGroupDepthUpdate = (
         extrude.shapeDepth / 2 +
         gap +
         base.depth * GLYPHRISE_SLASH_FORWARD_RATIO
-      : layer.layerOrder * gap
+      : layer.pathIndex * gap
     plans.push({ layer, extrude, offset })
   }
   return () => {

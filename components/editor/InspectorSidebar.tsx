@@ -28,7 +28,8 @@ export type SidebarStyleProps = StyleInspectorSectionProps
 export type SidebarGeometryProps = GeometryInspectorSectionProps
 export type SidebarTransformProps = TransformInspectorSectionProps & {
   onSelectLayer: (id: string) => void
-  onToggleLayerVisibility: () => void
+  hiddenLayerIds: string[]
+  onToggleLayerVisibility: (layerId?: string) => void
 }
 export type SidebarLightProps = LightInspectorSectionProps
 

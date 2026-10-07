@@ -1,7 +1,7 @@
 "use client"
 
 import { memo, useId, useState, type ReactNode } from "react"
-import { Check, ChevronDown, Eye, EyeOff, Layers, X } from "lucide-react"
+import { ChevronDown, Eye, EyeOff, Layers, X } from "lucide-react"
 import {
   Popover,
   PopoverContent,
@@ -17,8 +17,11 @@ type LayerSwitcherProps = {
   layers: SvgLayer[]
   selectedLayerId: string
   selectedLayerOverride: PathOverride | null
+  /** Layers the user switched off; they fade out of every thumbnail. */
+  hiddenLayerIds: string[]
   onSelectLayer: (id: string) => void
-  onToggleVisibility: () => void
+  /** Toggles the selected layer, or the given one from the list. */
+  onToggleVisibility: (layerId?: string) => void
   onScaleChange: (value: number) => void
   onDepthChange: (value: number) => void
   /** Replaces the "Layers" label, letting phones fit the row on one line. */
@@ -29,10 +32,12 @@ function LayerThumbnail({
   layer,
   contextId,
   viewBox,
+  hidden = false,
 }: {
   layer?: SvgLayer
   contextId: string
   viewBox?: string
+  hidden?: boolean
 }) {
   if (!viewBox) return <Layers aria-hidden="true" className="size-5 shrink-0" />
 
@@ -53,7 +58,9 @@ function LayerThumbnail({
           fillRule="evenodd"
           stroke="currentColor"
           strokeWidth="0.3"
-          className="text-foreground"
+          className={
+            hidden ? "text-muted-foreground opacity-50" : "text-foreground"
+          }
         />
       )}
     </svg>
@@ -64,6 +71,7 @@ function LayerSwitcherComponent({
   layers,
   selectedLayerId,
   selectedLayerOverride,
+  hiddenLayerIds,
   onSelectLayer,
   onToggleVisibility,
   onScaleChange,
@@ -84,6 +92,7 @@ function LayerSwitcherComponent({
   const selected = layers.find((layer) => layer.id === selectedLayerId)
   const contextId = useId()
   const viewBox = layers.find((layer) => layer.preview)?.preview?.viewBox
+  const hidden = new Set(hiddenLayerIds)
 
   if (layers.length === 0) return null
 
@@ -92,9 +101,15 @@ function LayerSwitcherComponent({
       <svg className="absolute size-0" aria-hidden="true">
         <defs>
           <g id={contextId}>
-            {layers.map((layer) => (
-              <path key={layer.id} d={layer.preview?.path} fillRule="evenodd" />
-            ))}
+            {layers
+              .filter((layer) => !hidden.has(layer.id))
+              .map((layer) => (
+                <path
+                  key={layer.id}
+                  d={layer.preview?.path}
+                  fillRule="evenodd"
+                />
+              ))}
           </g>
         </defs>
       </svg>
@@ -120,11 +135,22 @@ function LayerSwitcherComponent({
                 layer={selected}
                 contextId={contextId}
                 viewBox={viewBox}
+                hidden={selected ? hidden.has(selected.id) : false}
               />
             </span>
             <span className="truncate">
               {selected?.name ?? `All layers · ${layers.length}`}
             </span>
+            {(selected ? hidden.has(selected.id) : hidden.size > 0) && (
+              <span
+                className="flex shrink-0 items-center gap-0.5 text-muted-foreground tabular-nums"
+                title={`${hidden.size} hidden`}
+              >
+                <EyeOff aria-hidden="true" className="size-3.5" />
+                {!selected && hidden.size}
+                <span className="sr-only">hidden</span>
+              </span>
+            )}
             <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" />
           </PopoverTrigger>
           <PopoverContent
@@ -137,40 +163,81 @@ function LayerSwitcherComponent({
               {[
                 { id: ALL_LAYERS_ID, name: "All layers", color: "" },
                 ...layers,
-              ].map((layer, index) => (
-                <button
-                  key={layer.id}
-                  type="button"
-                  aria-pressed={layer.id === selectedLayerId}
-                  title={
-                    index > 0 ? `SVG layer ${index}: ${layer.name}` : undefined
-                  }
-                  onClick={() => {
-                    onSelectLayer(layer.id)
-                    setOpen(false)
-                  }}
-                  className="flex min-h-12 w-full items-center gap-3 rounded-md px-2 py-1 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:font-medium"
-                >
-                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-muted/50 p-0.5">
-                    <LayerThumbnail
-                      layer={layer.id === ALL_LAYERS_ID ? undefined : layer}
-                      contextId={contextId}
-                      viewBox={viewBox}
-                    />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{layer.name}</span>
-                    {"preview" in layer && layer.preview?.position && (
-                      <span className="block truncate text-xs font-normal text-muted-foreground">
-                        {layer.preview.position}
-                      </span>
+              ].map((layer, index) => {
+                const isLayer = layer.id !== ALL_LAYERS_ID
+                const isHidden = hidden.has(layer.id)
+                return (
+                  <div
+                    key={layer.id}
+                    className={cn(
+                      "group relative flex items-center rounded-md transition-colors hover:bg-muted",
+                      layer.id === selectedLayerId && "bg-muted"
                     )}
-                  </span>
-                  {layer.id === selectedLayerId && (
-                    <Check aria-hidden="true" className="size-3.5" />
-                  )}
-                </button>
-              ))}
+                  >
+                    <button
+                      type="button"
+                      aria-pressed={layer.id === selectedLayerId}
+                      title={
+                        isLayer
+                          ? `SVG layer ${index}: ${layer.name}`
+                          : undefined
+                      }
+                      onClick={() => {
+                        onSelectLayer(layer.id)
+                        setOpen(false)
+                      }}
+                      className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-md py-1 pr-10 pl-2 text-left text-sm focus-visible:outline-2 focus-visible:outline-ring aria-pressed:font-medium"
+                    >
+                      <span
+                        className={cn(
+                          "grid size-10 shrink-0 place-items-center rounded-md bg-muted/50 p-0.5 transition-opacity",
+                          isHidden && "opacity-50"
+                        )}
+                      >
+                        <LayerThumbnail
+                          layer={isLayer ? (layer as SvgLayer) : undefined}
+                          contextId={contextId}
+                          viewBox={viewBox}
+                          hidden={isHidden}
+                        />
+                      </span>
+                      <span
+                        className={cn(
+                          "min-w-0 flex-1",
+                          isHidden && "text-muted-foreground"
+                        )}
+                      >
+                        <span className="block truncate">{layer.name}</span>
+                        {"preview" in layer && layer.preview?.position && (
+                          <span className="block truncate text-xs font-normal text-muted-foreground">
+                            {isHidden ? "Hidden" : layer.preview.position}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                    {isLayer && (
+                      <button
+                        type="button"
+                        aria-label={`${isHidden ? "Show" : "Hide"} ${layer.name}`}
+                        aria-pressed={isHidden}
+                        title={isHidden ? "Show layer" : "Hide layer"}
+                        onClick={() => onToggleVisibility(layer.id)}
+                        className={cn(
+                          "absolute right-1.5 grid size-7 place-items-center rounded-md text-muted-foreground transition-opacity hover:bg-background hover:text-foreground focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-ring",
+                          !isHidden &&
+                            "opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100"
+                        )}
+                      >
+                        {isHidden ? (
+                          <EyeOff aria-hidden="true" className="size-3.5" />
+                        ) : (
+                          <Eye aria-hidden="true" className="size-3.5" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </PopoverContent>
         </Popover>
@@ -213,7 +280,7 @@ function LayerSwitcherComponent({
               aria-label={visible ? "Hide SVG layer" : "Show SVG layer"}
               aria-pressed={!visible}
               title={visible ? "Hide layer" : "Show layer"}
-              onClick={onToggleVisibility}
+              onClick={() => onToggleVisibility()}
               className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:text-foreground"
             >
               {visible ? (

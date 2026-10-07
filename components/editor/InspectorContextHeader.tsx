@@ -90,6 +90,7 @@ export function InspectorContextHeader({
       layers={layers}
       selectedLayerId={transformProps.selectedLayerId}
       selectedLayerOverride={transformProps.selectedLayerOverride}
+      hiddenLayerIds={transformProps.hiddenLayerIds}
       onSelectLayer={transformProps.onSelectLayer}
       onToggleVisibility={transformProps.onToggleLayerVisibility}
       onScaleChange={transformProps.onLayerScaleChange}
