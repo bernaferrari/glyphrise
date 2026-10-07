@@ -342,7 +342,7 @@ for (const width of [320, 390]) {
       await page.getByRole("button", { name: "Animate", exact: true }).click()
       await expect(
         page.getByRole("dialog").locator('[data-slot="motion-preview"] svg')
-      ).toHaveCount(4)
+      ).toHaveCount(3)
       await expect(
         page.getByRole("button", { name: /^Apply Spin/ })
       ).toBeEnabled()

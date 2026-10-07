@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { Minus, Plus } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,6 @@ import {
   ANIMATION_PRESETS,
   type AnimationPresetId,
 } from "./AnimationPresetModel"
-import { TimelineRowIcon } from "./timeline/TimelineRowIcon"
 
 export type AnimateDialogProps = {
   svgContent?: string
@@ -25,13 +25,14 @@ export type AnimateDialogProps = {
   onApply: (id: AnimationPresetId, duration: number, intensity: number) => void
 }
 
-const LENGTHS = [1, 2, 3, 5]
+const MIN_LENGTH = 0.5
+const MAX_LENGTH = 30
 const AMOUNTS = [
   { label: "Subtle", value: 0.5 },
   { label: "Normal", value: 1 },
   { label: "Strong", value: 1.75 },
 ]
-const PROPERTY_ROW_ID = { Rotation: "rotation", Scale: "scale" } as const
+const TURNS = [1, 2, 3].map((value) => ({ label: `${value}×`, value }))
 
 export function AnimateDialog({
   svgContent,
@@ -46,7 +47,7 @@ export function AnimateDialog({
       <DialogContent
         scrollable={true}
         variant="flush"
-        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-md"
+        className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-sm"
       >
         {open && (
           <AnimationChoices
@@ -79,7 +80,7 @@ function Segmented<T extends number>({
     <div
       role="group"
       aria-label={label}
-      className="flex flex-1 rounded-lg bg-muted p-0.5"
+      className="flex w-44 rounded-lg bg-muted p-0.5"
     >
       {options.map((option) => (
         <button
@@ -87,7 +88,7 @@ function Segmented<T extends number>({
           type="button"
           aria-pressed={value === option.value}
           onClick={() => onChange(option.value)}
-          className="min-h-8 flex-1 rounded-md px-2 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+          className="h-7 flex-1 rounded-md text-xs font-medium text-muted-foreground tabular-nums transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
         >
           {option.label}
         </button>
@@ -96,79 +97,62 @@ function Segmented<T extends number>({
   )
 }
 
-/**
- * What applying the preset does, drawn the way the timeline will show it:
- * one property row with its new keyframes across the whole animation.
- */
-function ResultPreview({
-  property,
-  fractions,
-  length,
-  existing,
+function LengthStepper({
+  value,
+  valid,
+  onChange,
 }: {
-  property: "Rotation" | "Scale"
-  fractions: readonly number[]
-  length: number
-  existing: number
+  value: string
+  valid: boolean
+  onChange: (value: string) => void
 }) {
+  const step = (delta: number) => {
+    const current = Number(value)
+    const base = Number.isFinite(current) ? current : 2
+    const next = Math.round((base + delta) * 2) / 2
+    onChange(String(Math.max(MIN_LENGTH, Math.min(MAX_LENGTH, next))))
+  }
+  const stepButton =
+    "grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-40 disabled:hover:bg-transparent"
   return (
-    <div className="grid gap-2 rounded-xl border border-border bg-muted/30 p-3">
-      <div className="flex items-center justify-between text-2xs text-muted-foreground">
-        <span>On your timeline</span>
-        <span className="tabular-nums">0s → {Number(length.toFixed(2))}s</span>
-      </div>
-      <div className="flex items-center gap-2.5">
-        <span className="flex w-20 shrink-0 items-center gap-1.5 text-xs font-medium">
-          <TimelineRowIcon
-            id={PROPERTY_ROW_ID[property]}
-            className="size-3.5 text-muted-foreground"
-          />
-          {property}
-        </span>
-        <span className="relative h-5 flex-1">
-          <span className="absolute inset-x-1.5 top-1/2 h-px -translate-y-1/2 bg-(--timeline-accent)" />
-          {fractions.map((fraction) => (
-            <svg
-              key={fraction}
-              aria-hidden="true"
-              viewBox="0 0 16 16"
-              className="absolute top-1/2 left-(--position-x) size-3.5 -translate-x-1/2 -translate-y-1/2"
-              style={
-                {
-                  "--position-x": `calc(6px + (100% - 12px) * ${fraction})`,
-                } as React.CSSProperties
-              }
-            >
-              <rect
-                x="4"
-                y="4"
-                width="8"
-                height="8"
-                rx="1.2"
-                transform="rotate(45 8 8)"
-                className="fill-(--shape-fill) stroke-(--shape-stroke) stroke-(length:--shape-stroke-width)"
-                style={
-                  {
-                    "--shape-fill": "var(--timeline-lane, var(--background))",
-                    "--shape-stroke": "var(--timeline-accent)",
-                    "--shape-stroke-width": 1.5,
-                  } as React.CSSProperties
-                }
-              />
-            </svg>
-          ))}
-        </span>
-      </div>
-      <p
-        className={cn(
-          "text-2xs leading-4",
-          existing > 0 ? "text-warning" : "text-muted-foreground"
-        )}
+    <div
+      className={cn(
+        "flex w-44 items-center rounded-lg bg-muted p-0.5",
+        !valid && "ring-1 ring-destructive"
+      )}
+    >
+      <button
+        type="button"
+        aria-label="Shorter"
+        disabled={Number(value) <= MIN_LENGTH}
+        onClick={() => step(-0.5)}
+        className={stepButton}
       >
-        {existing > 0
-          ? `Replaces the ${existing} ${property} keyframe${existing === 1 ? "" : "s"} you have now. Other motion stays.`
-          : `Adds ${fractions.length} ${property} keyframes. Other motion stays.`}
-      </p>
+        <Minus className="size-3.5" />
+      </button>
+      <label className="flex flex-1 items-baseline justify-center text-xs font-medium tabular-nums">
+        <input
+          aria-label="Motion duration"
+          aria-invalid={!valid}
+          type="number"
+          min={MIN_LENGTH}
+          max={MAX_LENGTH}
+          step="0.5"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="w-10 no-spinner bg-transparent text-right outline-none"
+        />
+        <span className="pl-0.5 text-muted-foreground">s</span>
+      </label>
+      <button
+        type="button"
+        aria-label="Longer"
+        disabled={Number(value) >= MAX_LENGTH}
+        onClick={() => step(0.5)}
+        className={stepButton}
+      >
+        <Plus className="size-3.5" />
+      </button>
     </div>
   )
 }
@@ -188,141 +172,88 @@ function AnimationChoices({
   const [seconds, setSeconds] = useState(String(initialDuration))
   const [intensity, setIntensity] = useState(1)
   const [turns, setTurns] = useState(1)
-  const motionAmount = selected === "spin" ? turns : intensity
+  const isSpin = selected === "spin"
+  const motionAmount = isSpin ? turns : intensity
   const length = Number(seconds)
-  const valid = Number.isFinite(length) && length >= 0.5 && length <= 30
+  const valid =
+    Number.isFinite(length) && length >= MIN_LENGTH && length <= MAX_LENGTH
   const previewLength = valid ? length : initialDuration
   const preset = ANIMATION_PRESETS.find((item) => item.id === selected)!
+  const existing = existingKeyframes[preset.property] ?? 0
 
   return (
-    <>
-      <div className="relative grid h-36 place-items-center overflow-hidden bg-muted/40 bg-motion-preview">
-        <div className="scale-190">
-          <MotionPresetPreview
-            key={`${selected}-${previewLength}-${motionAmount}`}
-            preset={selected}
-            svgContent={svgContent}
-            duration={previewLength}
-            intensity={motionAmount}
+    <div className="grid gap-5 p-5">
+      <div className="pr-8">
+        <DialogTitle variant="preset">Animate</DialogTitle>
+        <DialogDescription variant="compact" className="mt-0.5">
+          {preset.description}
+        </DialogDescription>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2" aria-label="Motion presets">
+        {ANIMATION_PRESETS.map((item) => {
+          const active = selected === item.id
+          return (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={active}
+              aria-label={item.name}
+              onClick={() => setSelected(item.id)}
+              className="group grid justify-items-center gap-1.5 rounded-2xl bg-muted/50 pt-4 pb-2.5 text-xs font-medium text-muted-foreground ring-1 ring-transparent transition-[background-color,color,box-shadow] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:ring-foreground/25"
+            >
+              <MotionPresetPreview
+                key={active ? `${previewLength}-${motionAmount}` : "idle"}
+                preset={item.id}
+                svgContent={svgContent}
+                size="lg"
+                duration={active ? previewLength : 2}
+                intensity={active ? motionAmount : 1}
+                className="animation-paused group-hover:animation-running group-aria-pressed:animation-running"
+              />
+              {item.name}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="grid divide-y divide-border rounded-xl border border-border">
+        <div className="flex h-12 items-center justify-between gap-3 px-3">
+          <span className="text-xs font-medium">Length</span>
+          <LengthStepper value={seconds} valid={valid} onChange={setSeconds} />
+        </div>
+        <div className="flex h-12 items-center justify-between gap-3 px-3">
+          <span className="text-xs font-medium">
+            {isSpin ? "Turns" : "Amount"}
+          </span>
+          <Segmented
+            label={isSpin ? "Spin turns" : "Motion amount"}
+            options={isSpin ? TURNS : AMOUNTS}
+            value={motionAmount}
+            onChange={isSpin ? setTurns : setIntensity}
           />
         </div>
       </div>
 
-      <div className="grid gap-4 p-5">
-        <div>
-          <DialogTitle variant="preset">Motion presets</DialogTitle>
-          <DialogDescription variant="compact" className="mt-1">
-            Animates the whole icon from the start of the timeline to the end.
-          </DialogDescription>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2" aria-label="Motion presets">
-          {ANIMATION_PRESETS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              aria-pressed={selected === item.id}
-              aria-label={item.name}
-              onClick={() => setSelected(item.id)}
-              className="flex flex-col items-center gap-1 rounded-xl border border-border bg-background py-2.5 text-xs font-medium transition-colors hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring aria-pressed:border-foreground/60 aria-pressed:bg-muted"
-            >
-              <MotionPresetPreview
-                preset={item.id}
-                svgContent={svgContent}
-                duration={2}
-                intensity={1}
-              />
-              {item.name}
-              <span className="text-3xs font-normal text-muted-foreground">
-                {item.property}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <p className="-mt-1 text-xs text-muted-foreground">
-          {preset.description}
-        </p>
-
-        <ResultPreview
-          property={preset.property}
-          fractions={preset.keyframeFractions}
-          length={previewLength}
-          existing={existingKeyframes[preset.property] ?? 0}
-        />
-
-        <div className="grid gap-2">
-          <span className="text-xs font-medium">Timeline length</span>
-          <div className="flex items-center gap-2">
-            <Segmented
-              label="Motion length"
-              options={LENGTHS.map((value) => ({ label: `${value}s`, value }))}
-              value={LENGTHS.includes(length) ? length : null}
-              onChange={(value) => setSeconds(String(value))}
-            />
-            <label
-              className={cn(
-                "flex h-9 w-20 shrink-0 items-center rounded-lg border bg-background pr-2 focus-within:border-ring",
-                valid ? "border-border" : "border-destructive"
-              )}
-            >
-              <input
-                aria-label="Motion duration"
-                type="number"
-                min="0.5"
-                max="30"
-                step="0.5"
-                value={seconds}
-                onChange={(event) => setSeconds(event.target.value)}
-                className="w-full min-w-0 bg-transparent px-2 text-right text-sm tabular-nums outline-none"
-              />
-              <span className="text-xs text-muted-foreground">s</span>
-            </label>
-          </div>
-          {!valid && (
-            <p role="alert" className="text-xs text-destructive">
-              Choose a length between 0.5 and 30 seconds.
-            </p>
-          )}
-        </div>
-
-        <div className="grid gap-2">
-          <span className="text-xs font-medium">
-            {selected === "spin" ? "Turns" : "Amount"}
-          </span>
-          <Segmented
-            label={selected === "spin" ? "Spin turns" : "Motion amount"}
-            options={
-              selected === "spin"
-                ? [1, 2, 3].map((value) => ({ label: String(value), value }))
-                : AMOUNTS
-            }
-            value={motionAmount}
-            onChange={selected === "spin" ? setTurns : setIntensity}
-          />
-          {selected !== "spin" && (
-            <input
-              aria-label="Motion intensity"
-              type="range"
-              min="0.25"
-              max="2"
-              step="0.25"
-              value={intensity}
-              onChange={(event) => setIntensity(Number(event.target.value))}
-              className="sr-only"
-            />
-          )}
-        </div>
-
+      <div className="grid gap-2.5">
         <button
           type="button"
           disabled={!valid}
           onClick={() => onApply(selected, length, motionAmount)}
-          className="min-h-11 rounded-lg bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-99 disabled:opacity-40"
+          className="min-h-11 rounded-xl bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-99 disabled:opacity-40"
         >
-          Apply {preset.name} to {preset.property}
+          Apply {preset.name}
         </button>
+        <p className="text-center text-2xs text-muted-foreground">
+          {existing > 0
+            ? `Replaces your ${existing} ${preset.property.toLowerCase()} keyframe${existing === 1 ? "" : "s"}`
+            : `Adds ${preset.keyframeFractions.length} ${preset.property.toLowerCase()} keyframes`}
+          {" · "}
+          {valid
+            ? `0–${Number(length.toFixed(2))}s`
+            : `${MIN_LENGTH}–${MAX_LENGTH}s only`}
+        </p>
       </div>
-    </>
+    </div>
   )
 }

@@ -13,7 +13,6 @@ export const ANIMATION_PRESETS = [
     description:
       "Whole turns around the vertical axis, returning to the starting pose.",
     property: "Rotation",
-    summary: "Whole turns · 2 keyframes",
     keyframeFractions: [0, 1],
   },
   {
@@ -21,7 +20,6 @@ export const ANIMATION_PRESETS = [
     name: "Tilt",
     description: "Leans to one side halfway through, then returns.",
     property: "Rotation",
-    summary: "Lean and return · 3 keyframes",
     keyframeFractions: [0, 0.5, 1],
   },
   {
@@ -29,7 +27,6 @@ export const ANIMATION_PRESETS = [
     name: "Pulse",
     description: "Grows halfway through, then returns to size.",
     property: "Scale",
-    summary: "Grow and return · 3 keyframes",
     keyframeFractions: [0, 0.5, 1],
   },
 ] as const

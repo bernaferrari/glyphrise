@@ -623,3 +623,19 @@
     linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0) 100%),
     linear-gradient(to right, #fff 0%, hsl(var(--color-hue), 100%, 50%) 100%);
 }
+
+@utility animation-paused {
+  animation-play-state: paused;
+}
+
+@utility animation-running {
+  animation-play-state: running;
+}
+
+@utility no-spinner {
+  appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    appearance: none;
+  }
+}

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
-import { Diamond, Plus } from "lucide-react"
+import { useState } from "react"
+import { Plus } from "lucide-react"
+import { cn } from "@/lib/utils"
 import {
   Popover,
   PopoverContent,
@@ -13,21 +14,13 @@ import {
 } from "../AnimationPresetModel"
 import { MotionPresetPreview } from "../MotionPresetPreview"
 import type { TimelineTrack } from "../TimelineModel"
-import { starterPeak } from "./StarterTrackModel"
-import { describeStarterMotion } from "./TimelinePrimitives"
 import { TimelineRowIcon } from "./TimelineRowIcon"
 
-type Group = {
-  id: string
-  name: string
-  animated: boolean
-  presets: (typeof ANIMATION_PRESETS)[number][]
-  custom?: TimelineTrack
-}
+type Preset = (typeof ANIMATION_PRESETS)[number]
 
 /**
- * One place to add motion, organised by the property it animates — so a
- * preset says exactly which row it creates (or replaces) on the timeline.
+ * One place to add motion: ready-made presets up top, grouped by the
+ * property row they create (or replace), then plain keyframe rows below.
  */
 export function TimelineAddAnimationMenu({
   duration,
@@ -47,40 +40,39 @@ export function TimelineAddAnimationMenu({
   onApplyPreset?: (id: AnimationPresetId) => void
 }) {
   const [open, setOpen] = useState(false)
-  const presetsFor = (property: "Rotation" | "Scale") =>
-    onApplyPreset
-      ? ANIMATION_PRESETS.filter((preset) => preset.property === property)
-      : []
-  const groups: Group[] = [
-    {
-      id: "rotation",
-      name: "Rotation",
-      animated: rotationAnimated,
-      presets: presetsFor("Rotation"),
-    },
-    {
-      id: "scale",
-      name: "Scale",
-      animated: scaleAnimated,
-      presets: presetsFor("Scale"),
-      custom: hiddenTracks.find((track) => track.id === "scale"),
-    },
-    ...hiddenTracks
-      .filter((track) => track.id !== "scale")
-      .map((track) => ({
-        id: track.id,
-        name: track.name,
-        animated: false,
-        presets: [],
-        custom: track,
-      })),
-  ].filter((group) => group.presets.length > 0 || group.custom)
+  const [hovered, setHovered] = useState<Preset | null>(null)
+  const presetGroups = onApplyPreset
+    ? (["Rotation", "Scale"] as const).map((property) => ({
+        property,
+        animated: property === "Rotation" ? rotationAnimated : scaleAnimated,
+        presets: ANIMATION_PRESETS.filter(
+          (preset) => preset.property === property
+        ),
+      }))
+    : []
+  const tracks = [...hiddenTracks].sort(
+    (a, b) => Number(b.id === "scale") - Number(a.id === "scale")
+  )
 
-  if (groups.length === 0) return null
+  if (presetGroups.length === 0 && tracks.length === 0) return null
   const close = () => setOpen(false)
+  const length = `0–${Number(duration.toFixed(2))}s`
+  const hint = hovered
+    ? `${hovered.description}${
+        (hovered.property === "Rotation" ? rotationAnimated : scaleAnimated)
+          ? ` Replaces your ${hovered.property.toLowerCase()} keyframes.`
+          : ""
+      }`
+    : `Animates the whole icon across the timeline, ${length}.`
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        setHovered(null)
+      }}
+    >
       <PopoverTrigger
         render={
           <button
@@ -100,105 +92,95 @@ export function TimelineAddAnimationMenu({
         side="right"
         sideOffset={8}
         collisionPadding={8}
-        className="max-h-(--available-height) overflow-y-auto"
+        className="max-h-(--available-height) w-64 overflow-y-auto"
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="px-2 pt-1 pb-2 text-2xs leading-4 text-muted-foreground">
-          Everything here animates the whole icon across the timeline,{" "}
-          <span className="text-foreground tabular-nums">
-            0s → {Number(duration.toFixed(2))}s
-          </span>
-          . Fine-tune it afterwards with the keyframes.
-        </p>
-        {groups.map((group) => (
-          <section
-            key={group.id}
-            aria-label={group.name}
-            className="border-t border-border py-1.5"
-          >
-            <div className="flex items-center gap-2 px-2 pb-1 text-2xs font-medium text-muted-foreground">
-              <TimelineRowIcon id={group.id} className="size-3.5" />
-              {group.name}
-              {group.animated && (
-                <span className="ml-auto rounded bg-warning/12 px-1.5 py-px text-3xs text-warning">
-                  Replaces current
-                </span>
-              )}
+        {presetGroups.length > 0 && (
+          <div className="grid gap-2 p-1 pb-2">
+            <div className="grid grid-cols-3 gap-1.5">
+              {presetGroups.map((group) => (
+                <section
+                  key={group.property}
+                  aria-label={group.property}
+                  className={cn(
+                    "grid gap-1.5",
+                    group.presets.length === 2
+                      ? "col-span-2 grid-cols-2"
+                      : "col-span-1"
+                  )}
+                >
+                  {group.presets.map((preset) => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      aria-label={preset.name}
+                      onClick={() => {
+                        onApplyPreset?.(preset.id)
+                        close()
+                      }}
+                      onPointerEnter={() => setHovered(preset)}
+                      onPointerLeave={() => setHovered(null)}
+                      onFocus={() => setHovered(preset)}
+                      onBlur={() => setHovered(null)}
+                      className="group relative grid justify-items-center gap-1 rounded-xl bg-muted/50 pt-2.5 pb-2 text-2xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none"
+                    >
+                      <MotionPresetPreview
+                        preset={preset.id}
+                        svgContent={artwork}
+                        duration={2}
+                        className="animation-paused group-hover:animation-running group-focus-visible:animation-running"
+                      />
+                      {preset.name}
+                      {group.animated && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute top-2 right-2 size-1.5 rounded-full bg-warning"
+                        />
+                      )}
+                    </button>
+                  ))}
+                </section>
+              ))}
             </div>
-            {group.presets.map((preset) => (
-              <MenuItem
-                key={preset.id}
-                ariaLabel={preset.name}
-                icon={
-                  <MotionPresetPreview
-                    preset={preset.id}
-                    svgContent={artwork}
-                    duration={2}
-                    size="sm"
-                  />
-                }
-                title={preset.name}
-                description={preset.summary}
-                onSelect={() => {
-                  onApplyPreset?.(preset.id)
-                  close()
-                }}
-              />
-            ))}
-            {group.custom && (
-              <MenuItem
-                ariaLabel={group.custom.name}
-                icon={<Diamond className="size-3.5" />}
-                title={
-                  group.presets.length ? "Your own keyframes" : "Keyframes"
-                }
-                description={describeStarterMotion(
-                  group.custom,
-                  starterPeak(group.custom)
-                )}
-                onSelect={() => {
-                  onAddProperty(group.custom!.id)
-                  close()
-                }}
-              />
+            <p className="min-h-12 px-1 text-2xs leading-4 text-muted-foreground">
+              {hint}
+            </p>
+          </div>
+        )}
+        {tracks.length > 0 && (
+          <section
+            aria-label="Keyframes"
+            className={cn(
+              "grid py-1",
+              presetGroups.length > 0 && "border-t border-border"
             )}
+          >
+            <p className="px-2 pt-1 pb-1 text-2xs font-medium text-muted-foreground">
+              Keyframe a property
+            </p>
+            {tracks.map((track) => (
+              <button
+                key={track.id}
+                type="button"
+                aria-label={track.name}
+                onClick={() => {
+                  onAddProperty(track.id)
+                  close()
+                }}
+                className="group flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-control text-foreground transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+              >
+                <TimelineRowIcon
+                  id={track.id}
+                  className="size-3.5 text-muted-foreground"
+                />
+                <span className="flex-1 truncate">{track.name}</span>
+                <Plus className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+              </button>
+            ))}
           </section>
-        ))}
+        )}
       </PopoverContent>
     </Popover>
-  )
-}
-
-function MenuItem({
-  ariaLabel,
-  icon,
-  title,
-  description,
-  onSelect,
-}: {
-  ariaLabel: string
-  icon: ReactNode
-  title: string
-  description: string
-  onSelect: () => void
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      onClick={onSelect}
-      className="flex min-h-11 w-full items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
-    >
-      <span className="grid size-8 shrink-0 place-items-center overflow-hidden rounded-md bg-muted text-muted-foreground">
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-control text-foreground">{title}</span>
-        <span className="block truncate text-2xs text-muted-foreground tabular-nums">
-          {description}
-        </span>
-      </span>
-    </button>
   )
 }
