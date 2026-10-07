@@ -10,6 +10,7 @@ import type { TimelineTrack } from "./TimelineModel"
 
 export type MotionPropertyControlsOptions = {
   currentTime: number
+  isPlaying: boolean
   duration: number
   autoKeyEnabled: boolean
   tracks: TimelineTrack[]

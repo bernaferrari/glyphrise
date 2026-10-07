@@ -426,6 +426,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     resetView,
   } = useEditorMotionSurface({
     currentTime,
+    isPlaying,
     duration,
     tracks,
     setTracks,

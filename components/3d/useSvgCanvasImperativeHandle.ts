@@ -271,6 +271,7 @@ export function useSvgCanvasImperativeHandle({
         requestRender: () => requestRenderRef.current(),
         artworkTransform:
           resetTransformRef.current ?? liveRenderPropsRef.current,
+        resetArtwork: !liveRenderPropsRef.current.isPlaying,
         onArtworkTransform: (transform) => {
           resetTransformRef.current = transform
         },

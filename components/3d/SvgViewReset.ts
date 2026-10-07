@@ -30,6 +30,7 @@ export const animateSvgViewReset = ({
   onZoomChange,
   requestRender,
   artworkTransform,
+  resetArtwork = true,
   onArtworkTransform,
 }: {
   resetViewFrameRef: React.MutableRefObject<number | null>
@@ -42,6 +43,7 @@ export const animateSvgViewReset = ({
   onZoomChange?: (zoom: number) => void
   requestRender: () => void
   artworkTransform: SvgResetTransform
+  resetArtwork?: boolean
   onArtworkTransform: (transform: SvgResetTransform | null) => void
 }) => {
   if (resetViewFrameRef.current !== null) {
@@ -65,7 +67,7 @@ export const animateSvgViewReset = ({
   }
   // The document commits the reset once; preserve the displayed pose while
   // the tween brings every artwork transform to its target.
-  onArtworkTransform(startArtwork)
+  onArtworkTransform(resetArtwork ? startArtwork : null)
   const duration = 220
   const startTime = performance.now()
 
@@ -79,7 +81,7 @@ export const animateSvgViewReset = ({
 
     currentZoomRef.current = startZoom + (1 - startZoom) * eased
     onArtworkTransform(
-      t === 1
+      !resetArtwork || t === 1
         ? null
         : {
             rotationOffset: towards(startArtwork.rotationOffset, 0, eased),

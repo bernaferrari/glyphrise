@@ -10,6 +10,7 @@ import { useScalarMotionTrackControls } from "./useScalarMotionTrackControls"
 
 export function useMotionPropertyControls({
   currentTime,
+  isPlaying,
   duration,
   autoKeyEnabled,
   tracks,
@@ -97,6 +98,8 @@ export function useMotionPropertyControls({
 
   const resetView = useCallback(() => {
     canvas3DRef.current?.resetRotation()
+    // The sampled playback pose is not an authored edit.
+    if (isPlaying) return
     if (Object.values(activeRotationOffset).some((value) => value !== 0)) {
       handleViewRotationSet({ x: 0, y: 0, z: 0 })
     }
@@ -118,6 +121,7 @@ export function useMotionPropertyControls({
     }
   }, [
     canvas3DRef,
+    isPlaying,
     activeRotationOffset,
     activeMoveOffset,
     activeObjectScale,

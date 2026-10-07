@@ -7,7 +7,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-function setup() {
+function setup(resetArtwork = true) {
   let frame: FrameRequestCallback = () => {}
   vi.spyOn(performance, "now").mockReturnValue(0)
   vi.stubGlobal(
@@ -22,6 +22,7 @@ function setup() {
   const currentZoomRef = { current: 2 }
   const requestRender = vi.fn()
   animateSvgViewReset({
+    resetArtwork,
     resetViewFrameRef: { current: null },
     viewNudgeFrameRef: { current: null },
     isInertiaActiveRef: { current: true },
@@ -62,6 +63,18 @@ it("keeps the displayed artwork at its starting pose, then eases rotation, scale
   })
   expect(currentZoomRef.current).toBeCloseTo(1.125)
   expect(requestRender).toHaveBeenCalledOnce()
+  tick(220)
+  expect(displayed.current).toBeNull()
+  expect(currentZoomRef.current).toBe(1)
+  expect(requestRender).toHaveBeenCalledTimes(2)
+})
+
+it("resets zoom without overriding the playing artwork pose", () => {
+  const { displayed, currentZoomRef, requestRender, tick } = setup(false)
+  expect(displayed.current).toBeNull()
+  tick(110)
+  expect(displayed.current).toBeNull()
+  expect(currentZoomRef.current).toBeCloseTo(1.125)
   tick(220)
   expect(displayed.current).toBeNull()
   expect(currentZoomRef.current).toBe(1)

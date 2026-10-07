@@ -8,6 +8,7 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
   const options: MotionPropertyControlsOptions = {
     currentTime: 1.5,
     duration: 3,
+    isPlaying: false,
     autoKeyEnabled: false,
     tracks: [
       {
@@ -69,6 +70,30 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
 }
 
 describe("Reset view scale", () => {
+  it.each([false, true])(
+    "does not author transforms during playback with auto-key %s",
+    (autoKeyEnabled) => {
+      const { options, controls } = setup({
+        isPlaying: true,
+        autoKeyEnabled,
+        activeRotationOffset: { x: 0, y: 90, z: 0 },
+        activeMoveOffset: { x: 12, y: 0, z: 0 },
+        activeObjectScale: 2,
+        objectScaleAxes: { x: 2, y: 1, z: 0.5 },
+      })
+      controls.resetView()
+      expect(options.canvas3DRef.current?.resetRotation).toHaveBeenCalledOnce()
+      expect(options.setRotationAxisKeyframes).not.toHaveBeenCalled()
+      expect(options.setMoveKeyframes).not.toHaveBeenCalled()
+      expect(options.setTracks).not.toHaveBeenCalled()
+      expect(options.setRotationOffset).not.toHaveBeenCalled()
+      expect(options.setMoveOffset).not.toHaveBeenCalled()
+      expect(options.setObjectScale).not.toHaveBeenCalled()
+      expect(options.setObjectScaleAxes).not.toHaveBeenCalled()
+      expect(options.setActiveRecipeId).not.toHaveBeenCalled()
+    }
+  )
+
   it("restores uniform scale without adding animation to a static object", () => {
     const { options, controls } = setup({ activeObjectScale: 2 })
     controls.resetView()

@@ -31,6 +31,25 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/")
 })
 
+test("Reset during playback keeps the animation running without changing the document", async ({
+  page,
+}) => {
+  const before = await backup(page)
+  const marker = page
+    .getByRole("group", { name: "Artwork orientation" })
+    .getByRole("button", { name: "Align view to X axis", exact: true })
+  await page.getByRole("button", { name: "Play", exact: true }).click()
+  await expect(marker).not.toHaveAttribute("transform", "translate(62.0 40.0)")
+  await page.getByRole("button", { name: "Reset view", exact: true }).click()
+  await expect(
+    page.getByRole("button", { name: "Pause", exact: true })
+  ).toBeVisible()
+  const resetPose = await marker.getAttribute("transform")
+  await expect(marker).not.toHaveAttribute("transform", resetPose!)
+  await page.getByRole("button", { name: "Pause", exact: true }).click()
+  expect(await backup(page)).toEqual(before)
+})
+
 test("a preset picked under its property preserves artwork and undoes in one step", async ({
   page,
 }) => {
