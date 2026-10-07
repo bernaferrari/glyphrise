@@ -1,59 +1,101 @@
 <p align="center">
-  <img src="docs/glyphrise-icon.png" alt="Glyphrise app icon: a dimensional pastel G on a midnight-blue tile" width="128" height="128" />
+  <img src="docs/glyphrise-icon.png" alt="Glyphrise icon" width="128" height="128" />
 </p>
 
 <h1 align="center">Glyphrise</h1>
 
 <p align="center">
   <strong>Give your icons another dimension.</strong><br />
-  Turn flat SVGs into beautiful 3D artwork and motion, right in your browser.
+  Turn SVG icons into 3D artwork and animation, right in your browser.
 </p>
 
 <p align="center">
-  <a href="#get-started">Get started</a> ·
-  <a href="#make-your-first-icon">Make your first icon</a> ·
-  <a href="#take-it-anywhere">Export options</a> ·
-  <a href="CONTRIBUTING.md">Contribute</a>
+  <a href="https://glyphrise.vercel.app">Try Glyphrise</a> ·
+  <a href="#run-locally">Run locally</a> ·
+  <a href="#exports">Exports</a>
 </p>
 
-![Glyphrise editing a rainbow 3D calendar with a Satin finish, live shape and lighting controls, and staggered rotation, depth, and scale keyframes](docs/glyphrise-editor.png)
+![A rainbow 3D calendar in Glyphrise, with finish controls and a keyframe timeline](docs/glyphrise-editor.png)
 
-<p align="center">
-  <sub>A real editor capture: Spectrum Mesh colors, a Satin finish, and three staggered animation tracks.</sub>
-</p>
+Pick an icon or bring your own SVG. Give it depth, choose a finish, then make
+it spin, tilt, or pulse. Export an image, video, or 3D model for your next
+interface, illustration, or motion project. No account required.
 
-An SVG is all you need. Pick an icon or bring your own, give it depth and a
-finish, then make it spin, tilt, or pulse. Start with a preset and refine every
-keyframe when you want more control.
+- **Shape and style.** Depth, bevels, lighting, material finishes, solid colors,
+  and editable gradients, including mesh palettes.
+- **Make it move.** Spin, Tilt, and Pulse presets with editable keyframes,
+  easing, snapping, and timeline zoom.
+- **Build a sequence.** Arrange icon clips, add fades or directional wipes,
+  and animate transforms, depth, colors, materials, and lighting.
+- **Refine the details.** Edit individual SVG paths and use Canvas, Properties,
+  and Motion views on smaller screens.
+- **Keep your work.** Local autosave, named projects, duplication, undo/redo,
+  and portable project files.
 
-Glyphrise is built for designers and developers making product illustrations,
-animated interface icons, dimensional logos, and motion assets. The workflow
-stays focused: **choose → style → animate → export**. No account required.
+## Make your first icon
 
-## Easy to start. Room to go deeper.
+1. **Choose artwork.** Start with Calendar, Heart, Wi-Fi off, or Bell, browse
+   Material Symbols, or use **Use my SVG** to import your own.
+2. **Style it.** Pick a finish and color or gradient, then adjust **Depth**
+   and **Edge roundness** in Properties.
+3. **Animate it.** Open **Animate** for Spin, Tilt, or Pulse. Use **Add property**
+   in the timeline to combine motions, then drag the diamonds to adjust timing.
+4. **Export it.** Press **Play** to preview, then **Export** to download an
+   image, video, or GLB model.
 
-- **From flat to dimensional.** Extrude SVG paths, soften edges with bevels,
-  and adjust depth, scale, and rotation in a live Three.js viewport.
-- **Find your finish.** Try 15 finishes, including satin, chrome, brushed metal,
-  holo, glass, gel, toon, and carved graphite. Pair them with solid colors or editable gradients,
-  including eight mesh palettes.
-- **Motion in a few clicks.** Apply Spin, Tilt, or Pulse, then refine the
-  resulting keyframes. Presets affect their own property, so you can combine
-  rotation and scale without rebuilding your look.
-- **A timeline with real control.** Sequence icon clips, create fades and
-  directional wipes, and animate depth, transforms, fills, materials, and
-  lighting. Fine-tune timing with easing, snapping, and zoom.
-- **Details when you need them.** Edit individual SVG paths, including their
-  visibility, color, depth, and scale. Adjust lighting and material settings
-  beyond the presets.
-- **Keep creating.** Autosave named projects locally, duplicate ideas, undo
-  edits, and download portable backups. Use the full desktop workspace or
-  dedicated preview, properties, and motion views on smaller screens.
+Try the [Calendar sample project](docs/calendar-motion.glyphrise.json) for
+staggered rotation, depth, and scale animation with a Calendar → Calendar Off
+wipe. Download the JSON and choose **Open from computer** in the file menu.
 
-## Get started
+### Controls
 
-Use **Node.js 24.x** and **pnpm 11.x** for the documented development setup.
-The package accepts Node.js 22 or newer.
+| Action                    | Control                                        |
+| ------------------------- | ---------------------------------------------- |
+| Rotate the artwork        | Drag the canvas                                |
+| Zoom                      | Scroll or pinch the canvas                     |
+| Play / pause              | **Play** or `Space` with the workspace focused |
+| Step one frame            | `←` / `→` with the timeline focused            |
+| Step ten frames           | `Shift` + `←` / `→` with the timeline focused  |
+| Previous / next keyframe  | Transport arrows or `,` / `.`                  |
+| Undo / redo               | `⌘/Ctrl Z` / `⌘/Ctrl Shift Z`                  |
+| Edit a keyframe precisely | Double-click a diamond, or tap a selected one  |
+
+Canvas rotation changes the artwork's Rotation controls and its exported pose.
+**Reset view** restores transforms and zoom when paused; during playback it
+resets zoom without adding keyframes.
+
+Editing an animated property creates or updates a keyframe at the playhead.
+Enable **Auto-key** to start keyframing a property that has no animation yet.
+
+## Exports
+
+| Format         | What you get                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **PNG**        | The current frame, with a transparent or solid background and dimensions up to 4096 px per side.                                          |
+| **WebM / MP4** | The animated timeline at 24, 30, or 60 fps. Format and transparency support depend on your browser and codec.                             |
+| **GLB**        | A binary glTF file with geometry, textures, PBR materials, and supported transform/depth animation. Wipes and custom shaders are omitted. |
+
+**Code exports** provide a React Three Fiber component or an Android Filament
+viewer starter. The React component includes timing, transforms, wipes, colors,
+and lighting, with simplified mesh gradients and custom finishes. The Android
+starter displays the exported GLB without playing its timeline; save the model
+at `app/src/main/assets/exports/icon.glb`. Check generated code and appearance
+in your target runtime.
+
+## Your files
+
+Projects autosave in this browser. Rendering and exports run on your device;
+there is no account or cloud sync.
+
+Open the file menu beside the project name. **All files** lets you create,
+switch, duplicate, or delete projects. **Download a copy** saves a portable
+JSON file; **Open from computer** restores one. Clearing browser site data
+removes local projects, so keep copies of work you want to save or move.
+
+## Run locally
+
+Use **Node.js 24.x** and **pnpm 11.x**, matching CI. Node.js 22 or newer is
+supported by the package.
 
 ```bash
 git clone https://github.com/bernaferrari/glyphrise.git
@@ -62,125 +104,38 @@ pnpm install
 pnpm dev
 ```
 
-Open [localhost:3000](http://localhost:3000). The first-run guide takes you from
-a starter icon to your first export.
+Open [localhost:3000](http://localhost:3000).
 
-## Make your first icon
+### Development
 
-1. **Choose your artwork.** Start with Heart, Star, or Bolt in the welcome
-   screen. Use **Change icon** in the inspector to browse presets, search
-   Material Symbols, or upload an SVG.
-2. **Make it yours.** Try a finish swatch, choose a color or gradient, and
-   adjust **Depth** and **Edge roundness**. Changes appear in the preview.
-3. **Add motion.** Choose **Add animation** in the timeline. Pick **Spin** or
-   **Tilt** under Rotation, or **Pulse** under Scale. Add another property
-   to layer in more motion; drag the keyframe diamonds to change the timing.
-4. **Preview and download.** Press **Play**, then **Export**. Choose an image,
-   video, 3D asset, or implementation starter.
+Built with Next.js, React, Three.js, TypeScript, Tailwind CSS, and shadcn/ui
+with Base UI. The editor renders directly with Three.js.
 
-The [Calendar sample project](docs/calendar-motion.glyphrise.json) recreates the Satin calendar look and adds three staggered animation tracks, each
-with only start and end keyframes, plus a Calendar → Calendar Off wipe.
-Save the JSON file, then choose **Open from computer** from the file menu
-to explore it yourself.
+| Command             | Purpose                            |
+| ------------------- | ---------------------------------- |
+| `pnpm test`         | Unit tests                         |
+| `pnpm test:e2e`     | Browser workflows; requires Chrome |
+| `pnpm typecheck`    | TypeScript checks                  |
+| `pnpm lint`         | Oxlint                             |
+| `pnpm format:check` | Oxfmt                              |
+| `pnpm build`        | Production build                   |
+| `pnpm start`        | Serve the production build         |
 
-On smaller screens, switch between **Preview**, **Properties**, and **Motion**.
-The workspace actions menu also provides **Animate** and project tools.
+Source: [`app/`](app/) for the app shell,
+[`components/3d/`](components/3d/) for geometry and rendering,
+[`components/editor/`](components/editor/) for the workspace and timeline,
+[`components/ui/`](components/ui/) for shared controls, and [`e2e/`](e2e/)
+for browser tests.
 
-### A few controls worth knowing
+### Compatibility
 
-| Action                           | Control                                                  |
-| -------------------------------- | -------------------------------------------------------- |
-| Orbit the preview camera         | Drag the preview                                         |
-| Zoom the preview                 | Scroll over the preview                                  |
-| Reset the view and object pose   | **Reset view** in the preview toolbar                    |
-| Change the object in your export | Inspector **Transform** controls or **Transform object** |
-| Play or pause                    | **Play**, or `Space` when the workspace has focus        |
-| Undo / redo                      | `⌘/Ctrl Z` / `⌘/Ctrl Shift Z`                            |
-| Edit a keyframe precisely        | Double-click its diamond                                 |
+Use a browser with **WebGL2**. Video export checks available codecs; Material
+Symbols and web fonts require network access.
 
-Camera orbit and zoom affect the preview only. Use object transforms to change
-the pose in your exported asset.
-
-The inspector tells you whether an edit applies to the **entire animation**,
-updates a **keyframe**, or **adds a keyframe at the playhead**. Once a property
-has animation, editing it at a new time creates a keyframe there. Properties
-without keyframes keep one value throughout.
-
-## Take it anywhere
-
-Render finished artwork or take the geometry and starter code into your app.
-
-| Output                | What you get                                          | What to know                                                                                                                                                        |
-| --------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **PNG**               | A still render with a transparent or solid background | Explicit dimensions up to 4096 px per side; editor guides and selection outlines are excluded.                                                                      |
-| **WebM / MP4**        | The full animated timeline                            | Choose dimensions, quality, background, and 24, 30, or 60 fps. Available formats and transparency depend on the browser and codec.                                  |
-| **GLB**               | An editable glTF binary asset                         | Includes compatible geometry, PBR materials, and supported transform/depth animation. Wipes and custom editor shaders are omitted.                                  |
-| **React Three Fiber** | A generated component as an implementation starter    | Preserves timing, transforms, wipes, per-path edits, animated lighting, and standard PBR settings. Mesh gradients, custom finishes, and crown roofs are simplified. |
-| **Android Filament**  | Gradle and Kotlin code for viewing the exported GLB   | A static viewer starter; editor timeline playback is not reproduced.                                                                                                |
-
-For the Android sample, place the exported GLB at
-`app/src/main/assets/exports/icon.glb`. Verify generated code and material
-appearance in your target runtime before shipping.
-
-## Your projects, on your device
-
-Glyphrise is a local-first prototype. Named projects autosave in browser
-storage, and rendering and exports run on your device. There are no accounts,
-cloud sync, or collaboration features in the current release.
-
-Open the menu beside the project name to create, switch, duplicate, or delete
-projects. Choose **Download backup** to save a portable JSON copy, and
-**Import project file** to restore one. **Clearing browser site data removes
-local projects**, so download backups for work you want to keep or move to
-another device.
-
-### SVG and browser compatibility
-
-For predictable imports, use a plain SVG with a `viewBox` and explicit paths.
-Outline text, expand strokes, and flatten effects before exporting from your
-vector editor. Common paths, groups, fills, and transforms are supported;
-filters, masks, complex clip paths, embedded images, external fonts, and
-`foreignObject` content can be unsupported or unreliable. Imported SVGs are
-sanitized before use.
-
-Use a browser with **WebGL2** support. Desktop provides the most room for
-precise timeline work; smaller screens offer preview, styling, simple edits,
-and playback. Video export checks the browser's codec support before offering
-WebM or MP4. Loading Material Symbols and web fonts requires network access.
-
-## Development
-
-Built with **Next.js 16**, **React 19**, **Three.js**, **TypeScript**,
-**Tailwind CSS 4**, and **Base UI**. React Three Fiber is a generated export
-target; the editor viewport uses Three.js directly.
-
-| Command             | Purpose                                          |
-| ------------------- | ------------------------------------------------ |
-| `pnpm dev`          | Start the development server                     |
-| `pnpm test`         | Run Vitest unit tests                            |
-| `pnpm test:e2e`     | Run Playwright editor workflows; requires Chrome |
-| `pnpm typecheck`    | Check TypeScript                                 |
-| `pnpm lint`         | Run Oxlint                                       |
-| `pnpm format:check` | Check formatting with Oxfmt                      |
-| `pnpm build`        | Create a production build                        |
-| `pnpm start`        | Serve the production build                       |
-
-Tests cover project lifecycle and persistence, SVG import and geometry,
-keyframes and interpolation, undo, export behavior, and desktop and touch
-workflows. Run the checks above before submitting changes.
-
-### Where things live
-
-| Directory                                                    | Responsibility                                                         |
-| ------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| [`app/`](app/)                                               | Entry point, layout, fonts, and theme styles                           |
-| [`components/3d/`](components/3d/)                           | SVG geometry, materials, lighting, viewport interaction, and rendering |
-| [`components/editor/`](components/editor/)                   | Project state, inspector, history, animation, and export               |
-| [`components/editor/timeline/`](components/editor/timeline/) | Icon clips, property tracks, keyframes, and timeline interaction       |
-| [`components/ui/`](components/ui/)                           | Shared controls and color editors                                      |
-| [`e2e/`](e2e/)                                               | Playwright user workflows                                              |
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+For SVG imports, use a `viewBox`, outline text, expand strokes, and flatten
+effects. Plain paths, basic shapes, and groups work best. Filters, masks,
+embedded images, external references, and other unsupported SVG content are
+rejected. Imports are sanitized before use.
 
 ## License
 

@@ -15,7 +15,6 @@
     "coverage/**",
     "dist/**",
     "node_modules/**",
-    "vanilla-mock-backup/**",
     "*.tsbuildinfo"
   ],
   "rules": {
