@@ -21,7 +21,7 @@ it("reuses captures without serializing the document and invalidates every previ
       ambientColor: "#ffffff",
       rimLightColor: "#ffffff",
     },
-    canvasRef: { current: { exportPng } },
+    canvasRef: { current: { exportPng, commitRotationEdit: vi.fn() } },
     selectedShapeId: null,
     onShapeIconChange: vi.fn(),
     cancelVideoExport: vi.fn(),
@@ -31,8 +31,10 @@ it("reuses captures without serializing the document and invalidates every previ
   let capture!: ReturnType<
     typeof useEditorExportSurface
   >["exportModalProps"]["onCapturePreview"]
+  let surface!: ReturnType<typeof useEditorExportSurface>
   function Harness({ args }: { args: Args }) {
-    capture = useEditorExportSurface(args).exportModalProps.onCapturePreview
+    surface = useEditorExportSurface(args)
+    capture = surface.exportModalProps.onCapturePreview
     return null
   }
   const root = createRoot(window.document.createElement("div"))
@@ -78,6 +80,16 @@ it("reuses captures without serializing the document and invalidates every previ
       backgroundColor: "#123456",
     })
     expect(serializeDocument).not.toHaveBeenCalled()
+    // Reopening export refreshes canvas-only inputs such as zoom.
+    act(() => surface.openExport())
+    const openedCapture = capture(DEFAULT_EXPORT_SETTINGS)
+    await openedCapture
+    act(() => surface.exportModalProps.onClose())
+    act(() => surface.openExport())
+    const reopenedCapture = capture(DEFAULT_EXPORT_SETTINGS)
+    expect(reopenedCapture).not.toBe(openedCapture)
+    await reopenedCapture
+    expect(exportPng).toHaveBeenCalledTimes(10)
   } finally {
     act(() => root.unmount())
     vi.unstubAllGlobals()

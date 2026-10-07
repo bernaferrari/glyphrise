@@ -150,6 +150,7 @@ export interface SvgCanvasProps {
 }
 
 export interface SvgCanvasRef {
+  commitRotationEdit: () => void
   renderLayoutSnapshot: () => void
   exportGltf: () => Promise<void>
   exportPng: (options: ExportRenderOptions) => Promise<Blob>

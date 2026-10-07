@@ -54,6 +54,7 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
         stopRecording: vi.fn(),
         cancelRecording: vi.fn(),
         resetRotation: vi.fn(),
+        commitRotationEdit: vi.fn(),
       },
     },
     ...overrides,

@@ -6,6 +6,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export type OrientationGizmoRefs = {
+  centerDotRef: React.RefObject<SVGCircleElement | null>
   lineXRef: React.RefObject<SVGLineElement | null>
   lineYRef: React.RefObject<SVGLineElement | null>
   lineZRef: React.RefObject<SVGLineElement | null>
@@ -71,6 +72,28 @@ export const updateOrientationGizmo = (
     "transform",
     `translate(${ptZ.x.toFixed(1)} ${ptZ.y.toFixed(1)})`
   )
+
+  // SVG paints in DOM order. Keep the center at depth zero, between rear
+  // and front markers, and let the nearest axis win when markers overlap.
+  const points = [
+    { node: refs.centerDotRef.current, depth: 0 },
+    { node: refs.markerXRef.current, depth: ptX.z },
+    { node: refs.markerYRef.current, depth: ptY.z },
+    { node: refs.markerZRef.current, depth: ptZ.z },
+  ]
+  // Round floating-point noise at aligned views to keep ties stable.
+  const depth = (value: number) => (Math.abs(value) < 1e-6 ? 0 : value)
+  points.sort((a, b) => depth(a.depth) - depth(b.depth))
+  const svg = refs.centerDotRef.current?.parentNode
+  if (!svg) return
+  let next: ChildNode | null = null
+  for (let index = points.length - 1; index >= 0; index--) {
+    const node = points[index].node
+    if (!node || node.parentNode !== svg) continue
+    // Most frames don't change the order; avoid moving DOM nodes then.
+    if (node.nextSibling !== next) svg.insertBefore(node, next)
+    next = node
+  }
 }
 
 const NUDGES = [
@@ -152,6 +175,14 @@ export function OrientationGizmo({
           strokeLinecap="round"
         />
 
+        <circle
+          ref={refs.centerDotRef}
+          cx="40"
+          cy="40"
+          r="2"
+          className="fill-white/70"
+        />
+
         <AxisMarker
           ref={refs.markerXRef}
           label="X"
@@ -170,8 +201,6 @@ export function OrientationGizmo({
           onClick={() => onAlignViewToAxis("z")}
           colorClass="fill-axis-z-surface"
         />
-
-        <circle cx="40" cy="40" r="2" className="fill-white/70" />
       </svg>
       {NUDGES.map(({ label, Icon, axis, direction, className }) => (
         <Button

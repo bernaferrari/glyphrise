@@ -109,7 +109,7 @@ test("adding a property supplies a useful animation", async ({ page }) => {
   expect(frames[0].value).toBe(frames[2].value)
 })
 
-test("camera orbit changes the view but preserves exported document state", async ({
+test("canvas rotation is saved, exported, and undone as a single edit", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "View options" }).click()
@@ -143,15 +143,23 @@ test("camera orbit changes the view but preserves exported document state", asyn
   })
   await page.mouse.up()
   expect((await captureIcon()).equals(image)).toBe(false)
-  expect(await backup(page)).toEqual(before)
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-  await page.mouse.wheel(0, -200)
-  expect((await renderPng(page)).equals(originalPng)).toBe(true)
+  const rotated = await backup(page)
+  expect(rotated.rotationOffset).not.toEqual(before.rotationOffset)
+  expect(rotated.shapes).toEqual(before.shapes)
+  expect((await renderPng(page)).equals(originalPng)).toBe(false)
   await expect(
     page.getByRole("button", { name: "Undo", exact: true })
-  ).toBeDisabled()
-  await page.getByRole("button", { name: "Reset view", exact: true }).click()
+  ).toBeEnabled()
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
   await expect.poll(async () => (await captureIcon()).equals(image)).toBe(true)
+  expect(await backup(page)).toEqual(before)
+  expect((await renderPng(page)).equals(originalPng)).toBe(true)
+  // A compass nudge uses the same saved rotation and one undo step too.
+  await page
+    .getByRole("button", { name: "Rotate left 45 degrees", exact: true })
+    .click()
+  await expect(page.getByLabel("Rotation Y", { exact: true })).toHaveValue("45")
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
   expect(await backup(page)).toEqual(before)
 })
 

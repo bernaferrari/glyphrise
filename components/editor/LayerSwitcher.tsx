@@ -130,45 +130,48 @@ function LayerSwitcherComponent({
           <PopoverContent
             density="compact"
             align="end"
-            className="max-h-112 w-64 overflow-y-auto"
+            collisionPadding={12}
+            className="max-h-(--available-height) w-64"
           >
-            {[
-              { id: ALL_LAYERS_ID, name: "All layers", color: "" },
-              ...layers,
-            ].map((layer, index) => (
-              <button
-                key={layer.id}
-                type="button"
-                aria-pressed={layer.id === selectedLayerId}
-                title={
-                  index > 0 ? `SVG layer ${index}: ${layer.name}` : undefined
-                }
-                onClick={() => {
-                  onSelectLayer(layer.id)
-                  setOpen(false)
-                }}
-                className="flex min-h-12 w-full items-center gap-3 rounded-md px-2 py-1 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:font-medium"
-              >
-                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-muted/50 p-0.5">
-                  <LayerThumbnail
-                    layer={layer.id === ALL_LAYERS_ID ? undefined : layer}
-                    contextId={contextId}
-                    viewBox={viewBox}
-                  />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate">{layer.name}</span>
-                  {"preview" in layer && layer.preview?.position && (
-                    <span className="block truncate text-xs font-normal text-muted-foreground">
-                      {layer.preview.position}
-                    </span>
+            <div className="max-h-112 min-h-0 overflow-y-auto overscroll-contain">
+              {[
+                { id: ALL_LAYERS_ID, name: "All layers", color: "" },
+                ...layers,
+              ].map((layer, index) => (
+                <button
+                  key={layer.id}
+                  type="button"
+                  aria-pressed={layer.id === selectedLayerId}
+                  title={
+                    index > 0 ? `SVG layer ${index}: ${layer.name}` : undefined
+                  }
+                  onClick={() => {
+                    onSelectLayer(layer.id)
+                    setOpen(false)
+                  }}
+                  className="flex min-h-12 w-full items-center gap-3 rounded-md px-2 py-1 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:font-medium"
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-muted/50 p-0.5">
+                    <LayerThumbnail
+                      layer={layer.id === ALL_LAYERS_ID ? undefined : layer}
+                      contextId={contextId}
+                      viewBox={viewBox}
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{layer.name}</span>
+                    {"preview" in layer && layer.preview?.position && (
+                      <span className="block truncate text-xs font-normal text-muted-foreground">
+                        {layer.preview.position}
+                      </span>
+                    )}
+                  </span>
+                  {layer.id === selectedLayerId && (
+                    <Check aria-hidden="true" className="size-3.5" />
                   )}
-                </span>
-                {layer.id === selectedLayerId && (
-                  <Check aria-hidden="true" className="size-3.5" />
-                )}
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
       </div>

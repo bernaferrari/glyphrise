@@ -11,7 +11,7 @@ type ViewNudgeState = {
 }
 
 interface SvgViewNudgeOptions {
-  rotationRef: React.MutableRefObject<Vector3Value>
+  getRotation: () => Vector3Value
   isInertiaActiveRef: React.MutableRefObject<boolean>
   rotationVelocityRef: React.MutableRefObject<{ x: number; y: number }>
   onViewRotationSetRef: React.MutableRefObject<
@@ -24,7 +24,7 @@ interface SvgViewNudgeOptions {
 }
 
 export function useSvgViewNudge({
-  rotationRef,
+  getRotation,
   isInertiaActiveRef,
   rotationVelocityRef,
   onViewRotationSetRef,
@@ -48,11 +48,11 @@ export function useSvgViewNudge({
 
   const nudgeViewRotation = (axis: ViewNudgeAxis, direction: -1 | 1) => {
     // Reset can cancel the frame externally. Start the next nudge from the
-    // current camera rather than an interrupted target.
+    // current rotation rather than an interrupted target.
     if (viewNudgeFrameRef.current === null) cancelViewNudge()
     isInertiaActiveRef.current = false
     rotationVelocityRef.current = { x: 0, y: 0 }
-    const current = rotationRef.current
+    const current = getRotation()
     const nudgeState = viewNudgeStateRef.current[axis]
     const startValue = nudgeState.value ?? current[axis]
     const targetBase = nudgeState.target ?? current[axis]

@@ -24,12 +24,11 @@ export const animateSvgViewReset = ({
   viewNudgeFrameRef,
   isInertiaActiveRef,
   rotationVelocityRef,
-  liveRotation,
   currentZoomRef,
   targetZoomRef,
   animationStartRef,
   onZoomChange,
-  onViewRotationSet,
+  requestRender,
   artworkTransform,
   onArtworkTransform,
 }: {
@@ -37,15 +36,11 @@ export const animateSvgViewReset = ({
   viewNudgeFrameRef: React.MutableRefObject<number | null>
   isInertiaActiveRef: React.MutableRefObject<boolean>
   rotationVelocityRef: React.MutableRefObject<{ x: number; y: number }>
-  liveRotation: Vector3Value
   currentZoomRef: React.MutableRefObject<number>
   targetZoomRef: React.MutableRefObject<number>
   animationStartRef: React.MutableRefObject<number>
   onZoomChange?: (zoom: number) => void
-  onViewRotationSet?: (
-    rotation: Partial<Vector3Value>,
-    options?: { commit?: boolean; updateTimeline?: boolean }
-  ) => void
+  requestRender: () => void
   artworkTransform: SvgResetTransform
   onArtworkTransform: (transform: SvgResetTransform | null) => void
 }) => {
@@ -61,7 +56,6 @@ export const animateSvgViewReset = ({
   isInertiaActiveRef.current = false
   rotationVelocityRef.current = { x: 0, y: 0 }
 
-  const startRotation = liveRotation
   const startZoom = currentZoomRef.current
   const startArtwork: SvgResetTransform = {
     rotationOffset: { ...artworkTransform.rotationOffset },
@@ -70,7 +64,7 @@ export const animateSvgViewReset = ({
     objectScaleAxes: { ...artworkTransform.objectScaleAxes },
   }
   // The document commits the reset once; preserve the displayed pose while
-  // the same camera tween brings every artwork transform to its target.
+  // the tween brings every artwork transform to its target.
   onArtworkTransform(startArtwork)
   const duration = 220
   const startTime = performance.now()
@@ -95,14 +89,7 @@ export const animateSvgViewReset = ({
             objectScaleAxes: towards(startArtwork.objectScaleAxes, 1, eased),
           }
     )
-    onViewRotationSet?.(
-      {
-        x: startRotation.x * (1 - eased),
-        y: startRotation.y * (1 - eased),
-        z: startRotation.z * (1 - eased),
-      },
-      { commit: false }
-    )
+    requestRender()
 
     if (t < 1) {
       resetViewFrameRef.current = requestAnimationFrame(tick)
@@ -111,7 +98,6 @@ export const animateSvgViewReset = ({
 
     resetViewFrameRef.current = null
     currentZoomRef.current = 1.0
-    onViewRotationSet?.({ x: 0, y: 0, z: 0 }, { commit: true })
   }
 
   resetViewFrameRef.current = requestAnimationFrame(tick)

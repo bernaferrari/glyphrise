@@ -17,7 +17,7 @@ function setup() {
   let controls!: ReturnType<typeof useSvgViewNudge>
   function Harness() {
     controls = useSvgViewNudge({
-      rotationRef,
+      getRotation: () => rotationRef.current,
       isInertiaActiveRef: { current: false },
       rotationVelocityRef: { current: { x: 0, y: 0 } },
       onViewRotationSetRef: {
@@ -37,7 +37,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe("interrupted camera nudges", () => {
+describe("interrupted rotation nudges", () => {
   it.each([
     [20, 1, 45],
     [20, -1, 0],
@@ -73,7 +73,7 @@ describe("interrupted camera nudges", () => {
     }
   )
 
-  it("uses the dragged camera position after cancelling a nudge", () => {
+  it("uses the dragged rotation after cancelling a nudge", () => {
     const { controls, rotationRef, tick } = setup()
     controls.nudgeViewRotation("x", 1)
     tick(110)
@@ -84,7 +84,7 @@ describe("interrupted camera nudges", () => {
     expect(rotationRef.current.x).toBe(45)
   })
 
-  it("uses the reset camera position after reset cancels its frame", () => {
+  it("uses the reset rotation after reset cancels its frame", () => {
     const { controls, rotationRef, tick } = setup()
     controls.nudgeViewRotation("x", 1)
     tick(110)

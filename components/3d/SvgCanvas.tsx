@@ -123,13 +123,15 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       onMoveOffsetChangeRef,
       onRotationAxisChangeRef,
     })
-    const cameraOrbitRef = useRef({ x: 0, y: 0, z: 0 })
-    const onCameraRotationSetRef =
+    const { applyViewRotationDelta, setViewRotation, finishViewRotation } =
+      useSvgRotationDrag({
+        liveRenderPropsRef,
+        onViewRotationSet: props.onViewRotationSet,
+        requestRender: () => requestRenderRef.current(),
+      })
+    const onArtworkRotationSetRef =
       useRef<SvgCanvasProps["onViewRotationSet"]>(undefined)
-    onCameraRotationSetRef.current = (rotation) => {
-      cameraOrbitRef.current = { ...cameraOrbitRef.current, ...rotation }
-      requestRenderRef.current()
-    }
+    onArtworkRotationSetRef.current = setViewRotation
     const cancelViewReset = () => {
       if (resetViewFrameRef.current === null) return false
       cancelAnimationFrame(resetViewFrameRef.current)
@@ -143,21 +145,15 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       nudgeViewRotation,
       alignViewToAxis,
     } = useSvgViewNudge({
-      rotationRef: cameraOrbitRef,
+      getRotation: () => liveRenderPropsRef.current.rotationOffset,
       isInertiaActiveRef,
       rotationVelocityRef,
-      onViewRotationSetRef: onCameraRotationSetRef,
+      onViewRotationSetRef: onArtworkRotationSetRef,
     })
 
     useEffect(() => {
       props.onModelReadyChange?.(modelReady)
     }, [modelReady, props.onModelReadyChange])
-
-    const { applyViewRotationDelta } = useSvgRotationDrag({
-      cameraOrbitRef,
-      onCameraRotationSet: (rotation) =>
-        onCameraRotationSetRef.current?.(rotation),
-    })
 
     useSvgCanvasImperativeHandle({
       exportCaptureRef,
@@ -185,8 +181,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       currentZoomRef,
       targetZoomRef,
       animationStartRef,
-      cameraOrbitRef,
-      onViewRotationSet: onCameraRotationSetRef.current,
+      finishViewRotation,
     })
 
     // Synchronize sidebar zooms with internal targetZoomRef
@@ -309,7 +304,6 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
 
     useSvgRenderLoop({
       exportCaptureRef,
-      cameraOrbitRef,
       sceneRef,
       rendererRef,
       cameraRef,
@@ -318,6 +312,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       isInertiaActiveRef,
       rotationVelocityRef,
       applyViewRotationDelta,
+      finishViewRotation,
       pivotGroupRef,
       iconAGroupRef,
       iconBGroupRef,
@@ -329,6 +324,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
       centerMarkerRef,
       transformGizmoGroupRef,
       exportRenderOptionsRef,
+      exportRenderSnapshotRef,
       requestRenderRef,
       renderFrameRef,
       isDraggingRef,
@@ -350,9 +346,8 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         className="relative h-full min-h-0 w-full overflow-hidden bg-preview-background"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
-          Drag to orbit the preview camera; pinch or scroll to zoom. These
-          change the view only. Use Transform properties or the transform gizmo
-          to rotate the artwork.
+          Drag to rotate the artwork. Pinch or scroll to zoom. Rotation is
+          shared with Transform properties and the timeline.
         </span>
         <canvas
           ref={canvasRef}
@@ -373,7 +368,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
             // An arrow after Reset steps from its destination, rather than
             // snapping an almost-zero tween value back to zero.
             if (cancelViewReset()) {
-              onCameraRotationSetRef.current?.({ x: 0, y: 0, z: 0 })
+              onArtworkRotationSetRef.current?.({ x: 0, y: 0, z: 0 })
               currentZoomRef.current = targetZoomRef.current
             }
             nudgeViewRotation(axis, direction)

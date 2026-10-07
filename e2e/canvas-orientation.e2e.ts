@@ -58,10 +58,12 @@ for (const width of [320, 1280]) {
         if (width < 720) await button.tap()
         else await button.click()
         for (const [index, transform] of transforms.entries()) {
-          await expect(gizmo.locator("svg > g").nth(index)).toHaveAttribute(
-            "transform",
-            transform
-          )
+          await expect(
+            gizmo.getByRole("button", {
+              name: `Align view to ${["X", "Y", "Z"][index]} axis`,
+              exact: true,
+            })
+          ).toHaveAttribute("transform", transform)
         }
       }
       await expect(
@@ -70,9 +72,9 @@ for (const width of [320, 1280]) {
           exact: true,
           includeHidden: true,
         })
-      ).toBeDisabled()
+      ).toBeEnabled()
     })
-    test("follows artwork, playback, camera nudges, and reset", async ({
+    test("shares rotation between canvas, properties, nudges, playback, and reset", async ({
       page,
     }) => {
       await page.goto("/")
@@ -81,12 +83,15 @@ for (const width of [320, 1280]) {
         "false"
       )
       const gizmo = page.getByRole("group", { name: "Artwork orientation" })
-      const marker = gizmo.locator("svg > g").first()
+      const marker = gizmo.getByRole("button", {
+        name: "Align view to X axis",
+        exact: true,
+      })
       await expect(marker).toHaveAttribute("transform", "translate(62.0 40.0)")
       const initial = await marker.getAttribute("transform")
       const canvas = page.locator("#glyphrise-preview-frame canvas")
       const bounds = (await canvas.boundingBox())!
-      // A single movement must start orbiting immediately, including a
+      // A single movement must start rotating immediately, including a
       // touch-sized drag. The former threshold path discarded this event.
       await page.mouse.move(
         bounds.x + bounds.width * 0.25,
@@ -105,7 +110,7 @@ for (const width of [320, 1280]) {
           .click()
         await expect(
           page.getByLabel("Rotation Y", { exact: true })
-        ).toHaveValue("0")
+        ).not.toHaveValue("0")
         await page.getByRole("button", { name: "Canvas", exact: true }).click()
       }
       await page
@@ -124,7 +129,10 @@ for (const width of [320, 1280]) {
         .getByRole("button", { name: "Reset view", exact: true })
         .click()
       await expect(marker).toHaveAttribute("transform", initial!)
-      const verticalMarker = gizmo.locator("svg > g").nth(1)
+      const verticalMarker = gizmo.getByRole("button", {
+        name: "Align view to Y axis",
+        exact: true,
+      })
       for (const name of ["Tilt up 45 degrees", "Tilt down 45 degrees"]) {
         for (const y of ["24.4", "40.0", "55.6", "62.0"]) {
           const tilt = gizmo.getByRole("button", { name, exact: true })

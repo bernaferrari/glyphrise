@@ -23,13 +23,13 @@ import {
   shouldScheduleSvgRenderFrame,
   type RotationVelocity,
 } from "./SvgRenderLoopModel"
-import { applySvgCameraOrbit } from "./SvgCameraOrbit"
 import { framedCameraDistance } from "./SvgSceneUtils"
 import { applySvgTransitionState } from "./SvgTransitionState"
 import { prepareSvgScene } from "./SvgSceneWarmup"
 import type { SvgCanvasLiveRenderProps } from "./useSvgCanvasLiveRefs"
 import type { ExportRenderOptions } from "./SvgTypes"
 import type { SvgResetTransform } from "./SvgViewReset"
+import type { ExportRenderSnapshot } from "./useSvgCanvasSceneRefs"
 
 type NullableRef<T> = MutableRefObject<T | null>
 
@@ -38,7 +38,6 @@ type UseSvgRenderLoopOptions = {
     onFrame: () => void
     onCancel: () => void
   } | null>
-  cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
   sceneRef: NullableRef<THREE.Scene>
   rendererRef: NullableRef<THREE.WebGLRenderer>
   cameraRef: NullableRef<THREE.PerspectiveCamera>
@@ -47,6 +46,7 @@ type UseSvgRenderLoopOptions = {
   isInertiaActiveRef: MutableRefObject<boolean>
   rotationVelocityRef: MutableRefObject<RotationVelocity>
   applyViewRotationDelta: (delta: RotationVelocity) => void
+  finishViewRotation: () => void
   pivotGroupRef: NullableRef<THREE.Group>
   iconAGroupRef: NullableRef<THREE.Group>
   iconBGroupRef: NullableRef<THREE.Group>
@@ -58,6 +58,7 @@ type UseSvgRenderLoopOptions = {
   centerMarkerRef: NullableRef<THREE.Group>
   transformGizmoGroupRef: NullableRef<THREE.Group>
   exportRenderOptionsRef: MutableRefObject<ExportRenderOptions | null>
+  exportRenderSnapshotRef: MutableRefObject<ExportRenderSnapshot | null>
   requestRenderRef: MutableRefObject<() => void>
   renderFrameRef: MutableRefObject<() => void>
   isDraggingRef: MutableRefObject<boolean>
@@ -69,7 +70,6 @@ type UseSvgRenderLoopOptions = {
 
 export function useSvgRenderLoop({
   exportCaptureRef,
-  cameraOrbitRef,
   sceneRef,
   rendererRef,
   cameraRef,
@@ -78,6 +78,7 @@ export function useSvgRenderLoop({
   isInertiaActiveRef,
   rotationVelocityRef,
   applyViewRotationDelta,
+  finishViewRotation,
   pivotGroupRef,
   iconAGroupRef,
   iconBGroupRef,
@@ -89,17 +90,20 @@ export function useSvgRenderLoop({
   centerMarkerRef,
   transformGizmoGroupRef,
   exportRenderOptionsRef,
+  exportRenderSnapshotRef,
   requestRenderRef,
   renderFrameRef,
   isDraggingRef,
   updateTransformGizmo,
 }: UseSvgRenderLoopOptions) {
   const applyViewRotationDeltaRef = useRef(applyViewRotationDelta)
+  const finishViewRotationRef = useRef(finishViewRotation)
   const updateTransformGizmoRef = useRef(updateTransformGizmo)
 
   useEffect(() => {
     applyViewRotationDeltaRef.current = applyViewRotationDelta
-  }, [applyViewRotationDelta])
+    finishViewRotationRef.current = finishViewRotation
+  }, [applyViewRotationDelta, finishViewRotation])
 
   useEffect(() => {
     updateTransformGizmoRef.current = updateTransformGizmo
@@ -140,17 +144,25 @@ export function useSvgRenderLoop({
       }
 
       const exportRenderOptions = exportRenderOptionsRef.current
+      const exportView = exportRenderSnapshotRef.current
       const liveProps =
         resetTransformRef.current && !exportRenderOptions
           ? { ...liveRenderPropsRef.current, ...resetTransformRef.current }
           : liveRenderPropsRef.current
       const progress = liveProps.transitionProgress
 
-      if (isInertiaActiveRef.current) {
+      if (isInertiaActiveRef.current && !exportRenderOptions) {
         applyViewRotationDeltaRef.current(rotationVelocityRef.current)
         const inertia = advanceInertiaVelocity(rotationVelocityRef.current)
         rotationVelocityRef.current = inertia.velocity
         isInertiaActiveRef.current = inertia.active
+      }
+      if (
+        !isDraggingRef.current &&
+        !isInertiaActiveRef.current &&
+        !exportRenderOptions
+      ) {
+        finishViewRotationRef.current()
       }
 
       const displayRotation = svgDisplayRotationFromDegrees(
@@ -167,15 +179,18 @@ export function useSvgRenderLoop({
         })
       }
 
-      currentZoomRef.current +=
-        (targetZoomRef.current - currentZoomRef.current) * ZOOM_DAMPING
-      const orbit = exportRenderOptions
-        ? { x: 0, y: 0 }
-        : cameraOrbitRef.current
+      if (!exportRenderOptions) {
+        currentZoomRef.current +=
+          (targetZoomRef.current - currentZoomRef.current) * ZOOM_DAMPING
+      }
+      // Artwork rotation is shared by canvas, properties, and exports.
+      // Only the preview zoom is held steady during encoding.
       const distance =
         framedCameraDistance(camera) /
-        (exportRenderOptions ? 1 : currentZoomRef.current)
-      applySvgCameraOrbit(camera, { ...orbit, z: 0 }, distance)
+        (exportView?.zoom ?? currentZoomRef.current)
+      camera.rotation.set(0, 0, 0)
+      camera.position.set(0, 0, distance)
+      camera.updateMatrixWorld()
 
       artworkOrientation.setFromEuler(
         artworkEuler.set(
@@ -287,7 +302,6 @@ export function useSvgRenderLoop({
     }
   }, [
     exportCaptureRef,
-    cameraOrbitRef,
     cameraRef,
     centerMarkerRef,
     clipPlaneARef,
@@ -306,6 +320,7 @@ export function useSvgRenderLoop({
     targetZoomRef,
     transformGizmoGroupRef,
     exportRenderOptionsRef,
+    exportRenderSnapshotRef,
     requestRenderRef,
     renderFrameRef,
     isDraggingRef,

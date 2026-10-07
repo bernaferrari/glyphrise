@@ -40,6 +40,8 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
   })
 
   const historySurface = useEditorHistorySurface({
+    beforeHistoryChange: () =>
+      playback.canvas3DRef.current?.commitRotationEdit(),
     activeRecipeId: shapes.activeRecipeId,
     setActiveRecipeId: shapes.setActiveRecipeId,
     shapes: shapes.shapes,

@@ -9,6 +9,7 @@ export type ExportRenderSnapshot = {
   size: THREE.Vector2
   pixelRatio: number
   cameraAspect: number
+  zoom: number
   clearColor: THREE.Color
   clearAlpha: number
 }
@@ -50,6 +51,7 @@ export function useSvgCanvasSceneRefs(initialZoom: number) {
   const clipPlaneARef = useRef<THREE.Plane | null>(null)
   const clipPlaneBRef = useRef<THREE.Plane | null>(null)
 
+  const centerDotRef = useRef<SVGCircleElement>(null)
   const lineXRef = useRef<SVGLineElement>(null)
   const lineYRef = useRef<SVGLineElement>(null)
   const lineZRef = useRef<SVGLineElement>(null)
@@ -58,6 +60,7 @@ export function useSvgCanvasSceneRefs(initialZoom: number) {
   const markerZRef = useRef<SVGGElement>(null)
   const orientationGizmoRefs = useMemo<OrientationGizmoRefs>(
     () => ({
+      centerDotRef,
       lineXRef,
       lineYRef,
       lineZRef,

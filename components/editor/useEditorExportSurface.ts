@@ -65,8 +65,23 @@ export function useEditorExportSurface({
     rimLightColor,
   } = previewState
   const previewKey = useMemo(
-    () => [snapshot, currentTime, wireframe, ambientColor, rimLightColor],
-    [snapshot, currentTime, wireframe, ambientColor, rimLightColor]
+    // Opening export starts a fresh capture, including the latest zoom.
+    () => [
+      snapshot,
+      currentTime,
+      wireframe,
+      ambientColor,
+      rimLightColor,
+      isExportOpen,
+    ],
+    [
+      snapshot,
+      currentTime,
+      wireframe,
+      ambientColor,
+      rimLightColor,
+      isExportOpen,
+    ]
   )
 
   const cancelRequestRef = useRef(0)
@@ -131,7 +146,10 @@ export function useEditorExportSurface({
   }
 
   return {
-    openExport,
+    openExport: () => {
+      canvasRef.current?.commitRotationEdit()
+      openExport()
+    },
     uploadFileRef,
     handleUploadInputChange,
     handleDropSvg,

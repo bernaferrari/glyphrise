@@ -56,8 +56,7 @@ type SvgCanvasImperativeHandleOptions = {
   currentZoomRef: MutableRefObject<number>
   targetZoomRef: MutableRefObject<number>
   animationStartRef: MutableRefObject<number>
-  cameraOrbitRef: MutableRefObject<{ x: number; y: number; z: number }>
-  onViewRotationSet: SvgCanvasProps["onViewRotationSet"]
+  finishViewRotation: (force?: boolean) => void
   liveRenderPropsRef: MutableRefObject<SvgCanvasLiveRenderProps>
   resetTransformRef: MutableRefObject<SvgResetTransform | null>
 }
@@ -86,12 +85,25 @@ export function useSvgCanvasImperativeHandle({
   currentZoomRef,
   targetZoomRef,
   animationStartRef,
-  onViewRotationSet,
-  cameraOrbitRef,
+  finishViewRotation,
   liveRenderPropsRef,
   resetTransformRef,
 }: SvgCanvasImperativeHandleOptions) {
   const capturedCanvasRef = useRef<HTMLCanvasElement | null>(null)
+  const commitRotationEdit = () => {
+    if (resetViewFrameRef.current !== null) {
+      cancelAnimationFrame(resetViewFrameRef.current)
+      resetViewFrameRef.current = null
+      resetTransformRef.current = null
+    }
+    if (viewNudgeFrameRef.current !== null) {
+      cancelAnimationFrame(viewNudgeFrameRef.current)
+      viewNudgeFrameRef.current = null
+    }
+    isInertiaActiveRef.current = false
+    rotationVelocityRef.current = { x: 0, y: 0 }
+    finishViewRotation(true)
+  }
   const captureRenderedFrame = () =>
     new Promise<HTMLCanvasElement>((resolve, reject) => {
       exportCaptureRef.current?.onCancel()
@@ -127,6 +139,7 @@ export function useSvgCanvasImperativeHandle({
     if (exportRenderSnapshotRef.current) {
       throw new Error("Another render export is already running.")
     }
+    commitRotationEdit()
 
     const width = Math.max(64, Math.round(options.width))
     const height = Math.max(64, Math.round(options.height))
@@ -134,6 +147,7 @@ export function useSvgCanvasImperativeHandle({
       size: renderer.getSize(new THREE.Vector2()),
       pixelRatio: renderer.getPixelRatio(),
       cameraAspect: camera.aspect,
+      zoom: currentZoomRef.current,
       clearColor: renderer.getClearColor(new THREE.Color()).clone(),
       clearAlpha: renderer.getClearAlpha(),
     }
@@ -173,6 +187,7 @@ export function useSvgCanvasImperativeHandle({
   }
 
   useImperativeHandle(ref, () => ({
+    commitRotationEdit,
     renderLayoutSnapshot() {
       if (!containerRef.current || exportRenderOptionsRef.current) return
       resizeSvgScene({
@@ -243,17 +258,17 @@ export function useSvgCanvasImperativeHandle({
     },
 
     resetRotation() {
+      commitRotationEdit()
       animateSvgViewReset({
         resetViewFrameRef,
         viewNudgeFrameRef,
         isInertiaActiveRef,
         rotationVelocityRef,
-        liveRotation: cameraOrbitRef.current,
         currentZoomRef,
         targetZoomRef,
         animationStartRef,
         onZoomChange: props.onZoomChange,
-        onViewRotationSet,
+        requestRender: () => requestRenderRef.current(),
         artworkTransform:
           resetTransformRef.current ?? liveRenderPropsRef.current,
         onArtworkTransform: (transform) => {

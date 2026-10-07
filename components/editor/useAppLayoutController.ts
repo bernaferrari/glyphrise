@@ -475,6 +475,7 @@ export function useAppLayoutController(): AppLayoutViewProps {
     },
     canvasRef: canvas3DRef,
     exportTimelineVideo: (settings) => {
+      canvas3DRef.current?.commitRotationEdit()
       cancelAnimatedSeek()
       const frozenDocument = structuredClone(documentSnapshot)
       const studio = { ...canvasProps }

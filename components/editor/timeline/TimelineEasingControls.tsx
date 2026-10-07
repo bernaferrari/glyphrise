@@ -175,13 +175,14 @@ export function EasingChoices({
     <div
       role="group"
       aria-label={label}
-      className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1"
+      className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1 max-md:grid-cols-5"
     >
       {EASING_OPTIONS.map((option) => (
         <button
           key={option.value}
           type="button"
           aria-pressed={option.value === value}
+          aria-label={option.label}
           title={option.label}
           onClick={() => onChange(option.value)}
           className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-9 gap-1.5 px-2 text-xs" : "min-h-11 flex-col gap-0.5 text-3xs"}`}
@@ -202,7 +203,7 @@ export function EasingChoices({
               strokeLinejoin="round"
             />
           </svg>
-          {option.label}
+          <span className="hidden md:inline">{option.label}</span>
         </button>
       ))}
     </div>

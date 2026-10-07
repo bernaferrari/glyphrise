@@ -330,7 +330,9 @@ test("persists the latest edit during an immediate reload", async ({
   )
 })
 
-test("orbits the camera without editing the document", async ({ page }) => {
+test("canvas dragging shares saved Rotation values and undoes in one step", async ({
+  page,
+}) => {
   const canvas = page
     .getByRole("region", { name: "3D preview" })
     .locator("canvas")
@@ -346,12 +348,22 @@ test("orbits the camera without editing the document", async ({ page }) => {
 
   const rotationX = page.getByLabel("Rotation X", { exact: true })
   const rotationY = page.getByLabel("Rotation Y", { exact: true })
+  await expect(rotationX).not.toHaveValue("0")
+  await expect(rotationY).not.toHaveValue("0")
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
   await expect(rotationX).toHaveValue("0")
   await expect(rotationY).toHaveValue("0")
-  await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
+  await expect(
+    page.getByRole("button", { name: "Undo", exact: true })
+  ).toBeDisabled()
+  await page.getByRole("button", { name: "Redo", exact: true }).click()
+  await expect(rotationY).not.toHaveValue("0")
+  const editedRotation = await rotationY.inputValue()
+  await page.reload()
+  await expect(rotationY).toHaveValue(editedRotation)
   await page.getByRole("button", { name: "Reset view", exact: true }).click()
   await expect(rotationY).toHaveValue("0")
-  await expect(page.getByRole("button", { name: "Undo" })).toBeDisabled()
+  await expect(page.getByRole("button", { name: "Undo" })).toBeEnabled()
 
   // An explicit object edit still participates in document undo.
   await rotationY.fill("25")

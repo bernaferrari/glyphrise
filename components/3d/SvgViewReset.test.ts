@@ -20,13 +20,12 @@ function setup() {
   vi.stubGlobal("cancelAnimationFrame", vi.fn())
   const displayed: { current: SvgResetTransform | null } = { current: null }
   const currentZoomRef = { current: 2 }
-  const onViewRotationSet = vi.fn()
+  const requestRender = vi.fn()
   animateSvgViewReset({
     resetViewFrameRef: { current: null },
     viewNudgeFrameRef: { current: null },
     isInertiaActiveRef: { current: true },
     rotationVelocityRef: { current: { x: 2, y: 1 } },
-    liveRotation: { x: 20, y: 40, z: 0 },
     currentZoomRef,
     targetZoomRef: { current: 2 },
     animationStartRef: { current: 0 },
@@ -39,18 +38,18 @@ function setup() {
     onArtworkTransform: (transform) => {
       displayed.current = transform
     },
-    onViewRotationSet,
+    requestRender,
   })
   return {
     displayed,
     currentZoomRef,
-    onViewRotationSet,
+    requestRender,
     tick: (time: number) => frame(time),
   }
 }
 
-it("keeps the displayed artwork at its starting pose, then eases all transforms with the camera", () => {
-  const { displayed, currentZoomRef, onViewRotationSet, tick } = setup()
+it("keeps the displayed artwork at its starting pose, then eases rotation, scale, position and zoom", () => {
+  const { displayed, currentZoomRef, requestRender, tick } = setup()
   expect(displayed.current?.rotationOffset.y).toBe(90)
   tick(110)
   expect(displayed.current?.rotationOffset.y).toBeCloseTo(11.25)
@@ -62,15 +61,9 @@ it("keeps the displayed artwork at its starting pose, then eases all transforms 
     z: 0.9375,
   })
   expect(currentZoomRef.current).toBeCloseTo(1.125)
-  expect(onViewRotationSet).toHaveBeenLastCalledWith(
-    { x: 2.5, y: 5, z: 0 },
-    { commit: false }
-  )
+  expect(requestRender).toHaveBeenCalledOnce()
   tick(220)
   expect(displayed.current).toBeNull()
   expect(currentZoomRef.current).toBe(1)
-  expect(onViewRotationSet).toHaveBeenLastCalledWith(
-    { x: 0, y: 0, z: 0 },
-    { commit: true }
-  )
+  expect(requestRender).toHaveBeenCalledTimes(2)
 })

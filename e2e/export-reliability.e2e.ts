@@ -20,6 +20,80 @@ async function createMotion(page: Page) {
   await page.getByLabel("Height", { exact: true }).fill("128")
 }
 
+test("refreshes image and video previews after rotating and exports that pose", async ({
+  page,
+}) => {
+  await createMotion(page)
+  await page.getByRole("button", { name: "Video", exact: true }).click()
+  const image = page.getByRole("img", { name: "Rendered export frame" })
+  await expect(image).toBeVisible()
+  const readPreview = () =>
+    image.evaluate(async (node) => {
+      const img = node as HTMLImageElement
+      await img.decode()
+      const blob = await (await fetch(img.src)).blob()
+      return Array.from(new Uint8Array(await blob.arrayBuffer()))
+    })
+  const front = await readPreview()
+  await page.keyboard.press("Escape")
+  const gizmo = page.getByRole("group", { name: "Artwork orientation" })
+  await gizmo
+    .getByRole("button", { name: "Rotate left 45 degrees", exact: true })
+    .click()
+  await expect(
+    gizmo.getByRole("button", { name: "Align view to X axis", exact: true })
+  ).toHaveAttribute("transform", "translate(55.6 40.0)")
+  await page.getByRole("button", { name: "Export", exact: true }).click()
+  await expect(image).toBeVisible()
+  expect(await readPreview()).not.toEqual(front)
+  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await expect(image).toBeVisible()
+  const angled = await readPreview()
+  expect(angled).not.toEqual(front)
+  const downloading = page.waitForEvent("download")
+  await page
+    .getByRole("button", { name: "Download video", exact: true })
+    .click()
+  const download = await downloading
+  const encoded = await bytes(download)
+  const difference = await page.evaluate(
+    async ({ png, videoBytes, container }) => {
+      const video = document.createElement("video")
+      video.muted = true
+      video.src = `data:video/${container};base64,${videoBytes}`
+      await new Promise<void>((resolve, reject) => {
+        video.onloadeddata = () => resolve()
+        video.onerror = () => reject(new Error("Cannot decode exported video"))
+      })
+      const still = await createImageBitmap(
+        new Blob([new Uint8Array(png)], { type: "image/png" })
+      )
+      const surface = document.createElement("canvas")
+      surface.width = surface.height = 128
+      const ctx = surface.getContext("2d")!
+      ctx.drawImage(still, 0, 0)
+      const expected = ctx.getImageData(0, 0, 128, 128).data
+      ctx.drawImage(video, 0, 0)
+      const actual = ctx.getImageData(0, 0, 128, 128).data
+      let error = 0
+      for (let index = 0; index < actual.length; index++) {
+        if (index % 4 !== 3) error += Math.abs(actual[index] - expected[index])
+      }
+      still.close()
+      video.removeAttribute("src")
+      video.load()
+      return error / (128 * 128 * 3)
+    },
+    {
+      png: angled,
+      videoBytes: encoded.toString("base64"),
+      container: download.suggestedFilename().endsWith("mp4") ? "mp4" : "webm",
+    }
+  )
+  // Lossy encoding may change colors slightly, but must keep the same view.
+  expect(difference).toBeLessThan(8)
+})
+
 for (const [container, fps] of [
   ["webm", 24],
   ["webm", 30],

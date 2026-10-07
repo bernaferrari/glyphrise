@@ -50,7 +50,7 @@ test("pinching with the transform gizmo visible doesn't edit the artwork", async
   ).toBeDisabled()
 })
 
-test("pinching the phone canvas zooms the view without orbiting or editing artwork", async ({
+test("pinching the phone canvas zooms the view without rotating or editing artwork", async ({
   page,
 }) => {
   await page.goto("/")
@@ -67,9 +67,17 @@ test("pinching the phone canvas zooms the view without orbiting or editing artwo
   const orientation = page
     .getByRole("group", { name: "Artwork orientation" })
     .locator("svg > g")
-  const originalOrientation = await orientation.evaluateAll((markers) =>
-    markers.map((marker) => marker.getAttribute("transform"))
-  )
+  const readOrientation = () =>
+    orientation.evaluateAll((markers) =>
+      markers
+        .sort((a, b) =>
+          a
+            .getAttribute("aria-label")!
+            .localeCompare(b.getAttribute("aria-label")!)
+        )
+        .map((marker) => marker.getAttribute("transform"))
+    )
+  const originalOrientation = await readOrientation()
   const coloredPixels = async () => {
     const png = (await canvas.screenshot()).toString("base64")
     return page.evaluate(async (png) => {
@@ -120,11 +128,7 @@ test("pinching the phone canvas zooms the view without orbiting or editing artwo
   for (const spread of [45, 55, 70]) await touch("touchMove", spread)
   await touch("touchEnd", null)
   await expect.poll(coloredPixels).toBeGreaterThan(before * 1.5)
-  expect(
-    await orientation.evaluateAll((markers) =>
-      markers.map((marker) => marker.getAttribute("transform"))
-    )
-  ).toEqual(originalOrientation)
+  expect(await readOrientation()).toEqual(originalOrientation)
   expect(await page.evaluate(() => window.visualViewport!.scale)).toBe(1)
   await expect(
     page.getByRole("button", { name: /^Undo(?: edit)?$/, exact: true })
@@ -137,22 +141,16 @@ test("pinching the phone canvas zooms the view without orbiting or editing artwo
   })
   await expect.poll(coloredPixels).toBeGreaterThan(before * 0.95)
   await expect.poll(coloredPixels).toBeLessThan(before * 1.05)
-  // Keeping one finger down resumes orbiting from its current position.
+  // Keeping one finger down resumes artwork rotation from its current position.
   await cdp.send("Input.dispatchTouchEvent", {
     type: "touchMove",
     touchPoints: [{ id: 2, x: center.x + 80, y: center.y }],
   })
   await touch("touchEnd", null)
-  await expect
-    .poll(() =>
-      orientation.evaluateAll((markers) =>
-        markers.map((marker) => marker.getAttribute("transform"))
-      )
-    )
-    .not.toEqual(originalOrientation)
+  await expect.poll(readOrientation).not.toEqual(originalOrientation)
   await expect(
     page.getByRole("button", { name: /^Undo(?: edit)?$/, exact: true })
-  ).toBeDisabled()
+  ).toBeEnabled()
   await page.getByRole("button", { name: "Reset view", exact: true }).click()
   await expect.poll(coloredPixels).toBeGreaterThan(before * 0.95)
   await expect.poll(coloredPixels).toBeLessThan(before * 1.05)
