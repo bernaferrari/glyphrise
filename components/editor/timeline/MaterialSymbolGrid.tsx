@@ -150,7 +150,7 @@ export function MaterialSymbolGrid({
           >
             <span
               aria-hidden="true"
-              className={`${materialSymbolClass} text-symbol leading-none`}
+              className={`${materialSymbolClass} text-xl leading-none`}
               style={
                 {
                   "--symbol-variation": symbolStyle["--symbol-variation"],

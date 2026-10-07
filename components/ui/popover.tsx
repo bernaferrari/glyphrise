@@ -118,22 +118,15 @@ function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function PopoverTitle({
   className,
-  size = "default",
   truncate = false,
   ...props
 }: PopoverPrimitive.Title.Props & {
-  size?: "default" | "control"
   truncate?: boolean
 }) {
   return (
     <PopoverPrimitive.Title
       data-slot="popover-title"
-      className={cn(
-        "font-medium",
-        size === "control" && "text-control",
-        truncate && "truncate",
-        className
-      )}
+      className={cn("font-medium", truncate && "truncate", className)}
       {...props}
     />
   )

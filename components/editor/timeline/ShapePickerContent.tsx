@@ -215,7 +215,7 @@ function ShapePickerDialog({
             >
               {recentMaterialSymbols.length > 0 && (
                 <section className="mb-3 shrink-0">
-                  <div className="mb-1.5 px-0.5 text-2xs font-medium tracking-label text-muted-foreground uppercase">
+                  <div className="mb-1.5 px-0.5 text-2xs font-medium tracking-widest text-muted-foreground uppercase">
                     Recent
                   </div>
                   <MaterialSymbolGrid
@@ -233,7 +233,7 @@ function ShapePickerDialog({
               )}
 
               {!searching && (
-                <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-2xs font-medium tracking-label text-muted-foreground uppercase">
+                <div className="mb-1.5 flex shrink-0 items-baseline gap-1.5 px-0.5 text-2xs font-medium tracking-widest text-muted-foreground uppercase">
                   All symbols
                   <span className="font-normal tracking-normal normal-case tabular-nums">
                     {filteredMaterialSymbols.length.toLocaleString()}

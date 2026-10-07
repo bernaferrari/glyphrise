@@ -10,22 +10,21 @@ export const ANIMATION_PRESETS = [
   {
     id: "spin",
     name: "Spin",
-    description:
-      "Whole turns around the vertical axis, returning to the starting pose.",
+    description: "Full turns, ending where it started.",
     property: "Rotation",
     keyframeFractions: [0, 1],
   },
   {
     id: "tilt",
     name: "Tilt",
-    description: "Leans to one side halfway through, then returns.",
+    description: "Leans to one side, then returns.",
     property: "Rotation",
     keyframeFractions: [0, 0.5, 1],
   },
   {
     id: "pulse",
     name: "Pulse",
-    description: "Grows halfway through, then returns to size.",
+    description: "Grows, then settles back to size.",
     property: "Scale",
     keyframeFractions: [0, 0.5, 1],
   },

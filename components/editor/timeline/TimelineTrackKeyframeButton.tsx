@@ -200,7 +200,7 @@ export function TimelineTrackKeyframeButton({
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.stopPropagation()}
         >
-          <label className="mb-1 block text-left text-2xs font-medium tracking-label text-muted-foreground uppercase">
+          <label className="mb-1 block text-left text-2xs font-medium tracking-widest text-muted-foreground uppercase">
             Time (0–{duration.toFixed(1)}s)
           </label>
           <div

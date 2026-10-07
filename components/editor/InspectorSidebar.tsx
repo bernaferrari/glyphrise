@@ -131,12 +131,7 @@ function InspectorSidebarContent({
                     ["lighting", "Lighting"],
                   ] as const
                 ).map(([value, label]) => (
-                  <TabsTrigger
-                    size="inspector"
-                    key={value}
-                    value={value}
-                    className="h-9"
-                  >
+                  <TabsTrigger key={value} value={value} className="h-9">
                     {label}
                   </TabsTrigger>
                 ))}

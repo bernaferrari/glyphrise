@@ -71,7 +71,7 @@ export function SymbolOptionsPopover({
         className="w-64"
         {...stopPopoverPropagation}
       >
-        <div className="mb-2 text-2xs font-medium tracking-label text-muted-foreground uppercase">
+        <div className="mb-2 text-2xs font-medium tracking-widest text-muted-foreground uppercase">
           Symbol options
         </div>
         <div className="mb-2 grid grid-cols-3 rounded-lg bg-muted/50 p-0.5">

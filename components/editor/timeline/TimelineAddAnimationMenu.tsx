@@ -123,14 +123,16 @@ export function TimelineAddAnimationMenu({
                       onPointerLeave={() => setHovered(null)}
                       onFocus={() => setHovered(preset)}
                       onBlur={() => setHovered(null)}
-                      className="group relative grid justify-items-center gap-1 rounded-xl bg-muted/50 pt-2.5 pb-2 text-2xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none"
+                      className="group relative grid justify-items-center rounded-xl bg-muted/50 pb-2 text-2xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none"
                     >
-                      <MotionPresetPreview
-                        preset={preset.id}
-                        svgContent={artwork}
-                        duration={2}
-                        className="animation-paused group-hover:animation-running group-focus-visible:animation-running"
-                      />
+                      <span className="grid aspect-square w-full place-items-center">
+                        <MotionPresetPreview
+                          preset={preset.id}
+                          svgContent={artwork}
+                          duration={2}
+                          className="animation-paused group-hover:animation-running group-focus-visible:animation-running"
+                        />
+                      </span>
                       {preset.name}
                       {group.animated && (
                         <span
@@ -143,7 +145,7 @@ export function TimelineAddAnimationMenu({
                 </section>
               ))}
             </div>
-            <p className="min-h-12 px-1 text-2xs leading-4 text-muted-foreground">
+            <p className="line-clamp-2 h-8 px-1 text-2xs leading-4 text-muted-foreground">
               {hint}
             </p>
           </div>
@@ -168,7 +170,7 @@ export function TimelineAddAnimationMenu({
                   onAddProperty(track.id)
                   close()
                 }}
-                className="group flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-control text-foreground transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+                className="group flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-sm text-foreground transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
               >
                 <TimelineRowIcon
                   id={track.id}

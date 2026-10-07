@@ -154,7 +154,7 @@ function ViewportToggleGroup({
       aria-label={label}
       className="border-t border-border pt-1.5 pb-1"
     >
-      <div className="px-2 pb-1 text-3xs font-semibold tracking-label text-muted-foreground uppercase">
+      <div className="px-2 pb-1 text-3xs font-semibold tracking-widest text-muted-foreground uppercase">
         {label}
       </div>
       {children}

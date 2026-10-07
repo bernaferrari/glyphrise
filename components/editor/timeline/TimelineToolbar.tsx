@@ -201,7 +201,7 @@ function MenuSwitch({
       aria-label={ariaLabel}
       aria-pressed={checked}
       onClick={onChange}
-      className="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-control hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
+      className="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
     >
       <span className="min-w-0 flex-1">
         <span className="block">{label}</span>
@@ -276,7 +276,7 @@ function OptionsMenu({
         className="w-64"
       >
         <div className="flex items-center gap-1 px-1 pb-1">
-          <span className="flex-1 px-1.5 text-control">Zoom</span>
+          <span className="flex-1 px-1.5 text-sm">Zoom</span>
           <button
             type="button"
             aria-label="Zoom timeline out"
@@ -307,7 +307,7 @@ function OptionsMenu({
         </div>
         {compactMode && (
           <div className="flex items-center gap-1 px-1 pb-1">
-            <span className="flex-1 px-1.5 text-control">Length</span>
+            <span className="flex-1 px-1.5 text-sm">Length</span>
             {[3, 5, 10].map((value) => (
               <button
                 key={value}
@@ -486,7 +486,7 @@ function DurationPopover({
                 onDurationEditorChange(null)
               }
             }}
-            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-control text-foreground outline-none"
+            className="min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-sm text-foreground outline-none"
           />
           <span className="pr-2 text-2xs text-muted-foreground">s</span>
         </div>

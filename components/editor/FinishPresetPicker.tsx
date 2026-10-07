@@ -173,7 +173,7 @@ export function FinishPresetPicker({
               />
             ))}
             {/* One soft highlight across the quadrants makes them read as one sphere. */}
-            <span className="absolute inset-0 rounded-full bg-finish-highlight shadow-finish-swatch" />
+            <span className="absolute inset-0 rounded-full pattern-finish-highlight shadow-finish-swatch" />
           </span>
           <span className="absolute right-0 bottom-0 grid size-3.5 place-items-center rounded-full bg-foreground text-background ring-2 ring-background">
             <Plus className="size-2.5" strokeWidth={3} aria-hidden="true" />
@@ -203,7 +203,7 @@ export function FinishPresetPicker({
         >
           {FINISH_GROUPS.map((group) => (
             <div key={group.label} role="group" aria-label={group.label}>
-              <div className="mb-1 px-1 text-3xs font-semibold tracking-label text-muted-foreground uppercase">
+              <div className="mb-1 px-1 text-3xs font-semibold tracking-widest text-muted-foreground uppercase">
                 {group.label}
               </div>
               <div className="grid grid-cols-5 gap-1">

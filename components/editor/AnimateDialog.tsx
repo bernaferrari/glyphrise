@@ -130,7 +130,7 @@ function LengthStepper({
       >
         <Minus className="size-3.5" />
       </button>
-      <label className="flex flex-1 items-baseline justify-center text-xs font-medium tabular-nums">
+      <label className="flex flex-1 items-baseline justify-center gap-0.5 text-xs font-medium tabular-nums">
         <input
           aria-label="Motion duration"
           aria-invalid={!valid}
@@ -140,9 +140,14 @@ function LengthStepper({
           step="0.5"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="w-10 no-spinner bg-transparent text-right outline-none"
+          style={
+            {
+              "--field-width": `${Math.max(1, value.length) + 0.25}ch`,
+            } as React.CSSProperties
+          }
+          className="w-(--field-width) no-spinner bg-transparent text-center outline-none"
         />
-        <span className="pl-0.5 text-muted-foreground">s</span>
+        <span className="text-muted-foreground">s</span>
       </label>
       <button
         type="button"
@@ -200,17 +205,19 @@ function AnimationChoices({
               aria-pressed={active}
               aria-label={item.name}
               onClick={() => setSelected(item.id)}
-              className="group grid justify-items-center gap-1.5 rounded-2xl bg-muted/50 pt-4 pb-2.5 text-xs font-medium text-muted-foreground ring-1 ring-transparent transition-[background-color,color,box-shadow] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:ring-foreground/25"
+              className="group grid justify-items-center rounded-2xl bg-muted/50 pb-2.5 text-xs font-medium text-muted-foreground ring-1 ring-transparent transition-[background-color,color,box-shadow] hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-muted aria-pressed:text-foreground aria-pressed:ring-foreground/25"
             >
-              <MotionPresetPreview
-                key={active ? `${previewLength}-${motionAmount}` : "idle"}
-                preset={item.id}
-                svgContent={svgContent}
-                size="lg"
-                duration={active ? previewLength : 2}
-                intensity={active ? motionAmount : 1}
-                className="animation-paused group-hover:animation-running group-aria-pressed:animation-running"
-              />
+              <span className="grid aspect-square w-full place-items-center">
+                <MotionPresetPreview
+                  key={active ? `${previewLength}-${motionAmount}` : "idle"}
+                  preset={item.id}
+                  svgContent={svgContent}
+                  size="lg"
+                  duration={active ? previewLength : 2}
+                  intensity={active ? motionAmount : 1}
+                  className="animation-paused group-hover:animation-running group-aria-pressed:animation-running"
+                />
+              </span>
               {item.name}
             </button>
           )

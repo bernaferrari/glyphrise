@@ -64,9 +64,7 @@ export function TimelineClipPanel({
                 dangerouslySetInnerHTML={{ __html: stop.svgContent }}
               />
               <div className="min-w-0 flex-1">
-                <PopoverTitle size="control" truncate={true}>
-                  {label}
-                </PopoverTitle>
+                <PopoverTitle truncate={true}>{label}</PopoverTitle>
                 {stop.time === 0 ? (
                   <p className="text-2xs text-muted-foreground tabular-nums">
                     Opens the animation

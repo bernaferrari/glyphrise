@@ -43,7 +43,7 @@ export const TimelineContextMenu = ({
       onClick={(event) => event.stopPropagation()}
     >
       {menu.title && (
-        <div className="px-2 pt-0.5 pb-1 text-2xs font-medium tracking-section text-muted-foreground uppercase">
+        <div className="px-2 pt-0.5 pb-1 text-2xs font-medium tracking-widest text-muted-foreground uppercase">
           {menu.title}
         </div>
       )}

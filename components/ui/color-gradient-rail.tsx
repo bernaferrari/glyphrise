@@ -62,7 +62,7 @@ export function ColorGradientRail({
           type="button"
           aria-label="Add gradient stop in the middle"
           title="Add a color stop in the middle"
-          className="absolute top-1/2 -right-3 z-10 flex size-5 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-control leading-none font-light text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
+          className="absolute top-1/2 -right-3 z-10 flex size-5 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-sm leading-none font-light text-muted-foreground shadow-sm hover:bg-muted hover:text-foreground"
           onPointerDown={(event) => event.stopPropagation()}
           onClick={() => {
             const rect = railRef.current?.getBoundingClientRect()

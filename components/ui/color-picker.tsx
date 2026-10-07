@@ -367,7 +367,7 @@ export function ColorPicker({
                       <button
                         type="button"
                         aria-expanded={pointsOpen}
-                        className="-ml-1.5 flex h-7 flex-1 items-center gap-1 rounded-md px-1.5 text-left text-control font-semibold text-foreground transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
+                        className="-ml-1.5 flex h-7 flex-1 items-center gap-1 rounded-md px-1.5 text-left text-sm font-semibold text-foreground transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
                         onClick={() => setPointsOpen((open) => !open)}
                       >
                         <ChevronRight
@@ -449,7 +449,7 @@ export function ColorPicker({
                   />
 
                   <div className="grid h-6 grid-cols-[1fr_28px] items-center gap-1">
-                    <span className="text-control font-semibold text-foreground">
+                    <span className="text-sm font-semibold text-foreground">
                       Stops
                     </span>
                     <button

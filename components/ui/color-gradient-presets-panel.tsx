@@ -26,7 +26,7 @@ export function ColorGradientPresetsPanel({
   return (
     <div className="space-y-1.5">
       <div className="flex h-6 items-center justify-between">
-        <div className="text-2xs font-medium tracking-label text-muted-foreground uppercase">
+        <div className="text-2xs font-medium tracking-widest text-muted-foreground uppercase">
           Presets
         </div>
         {gradientType === "mesh" && (

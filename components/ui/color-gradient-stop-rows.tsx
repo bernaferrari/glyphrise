@@ -132,7 +132,7 @@ export function ColorGradientStopRows({
             onPointerEnter={() => onHoverStop?.(stop)}
             onPointerLeave={() => onHoverStop?.(null)}
             className={cn(
-              "group/row relative -mx-1.5 grid h-8 items-center gap-x-1 rounded-md px-1.5 text-left text-control",
+              "group/row relative -mx-1.5 grid h-8 items-center gap-x-1 rounded-md px-1.5 text-left text-sm",
               reorderable
                 ? "grid-cols-[16px_minmax(0,1fr)_24px]"
                 : "grid-cols-[52px_minmax(0,1fr)_28px]",

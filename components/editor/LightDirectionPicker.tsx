@@ -105,7 +105,7 @@ export function LightDirectionPicker({
         className="w-60"
       >
         <div className="flex items-center justify-between">
-          <span className="text-2xs font-medium tracking-section text-muted-foreground uppercase">
+          <span className="text-2xs font-medium tracking-widest text-muted-foreground uppercase">
             Light Source
           </span>
           {keyframeControls ?? (

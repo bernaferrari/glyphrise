@@ -52,7 +52,7 @@ const dialogDescriptionVariants = cva("", {
     variant: {
       default: "",
       welcome: "leading-6 text-pretty",
-      detail: "text-control leading-5",
+      detail: "text-sm leading-5",
       compact: "text-xs",
     },
   },

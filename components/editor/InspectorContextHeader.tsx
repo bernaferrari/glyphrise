@@ -51,10 +51,7 @@ export function InspectorContextHeader({
           <span className="min-w-0">
             <span
               title={shape.label}
-              className={cn(
-                "block truncate font-semibold",
-                compact ? "text-control" : "text-sm"
-              )}
+              className={"block truncate text-sm font-semibold"}
             >
               {shape.label}
             </span>

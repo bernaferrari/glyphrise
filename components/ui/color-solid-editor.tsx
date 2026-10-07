@@ -106,7 +106,7 @@ export function SolidColorEditor({
         )}
       >
         <div
-          className="absolute inset-px rounded-md bg-color-area"
+          className="absolute inset-px rounded-md pattern-color-area"
           style={
             {
               "--color-hue": h,

@@ -137,7 +137,7 @@ export function TimelineTransitionWindow({
             "group/transition @container absolute inset-y-1.5 flex cursor-pointer items-center justify-center gap-1 text-2xs font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
             isCut
               ? "-translate-x-1/2 rounded-md bg-muted"
-              : "rounded-md bg-transition-window hover:bg-transition-window-hover",
+              : "rounded-md pattern-transition-window hover:pattern-transition-window-hover",
             "left-(--position-x) w-(--element-width) min-w-(--element-min-width)"
           )}
           style={

@@ -58,7 +58,7 @@ export function TimelineGoToPopover({
         onClick={(event) => event.stopPropagation()}
         onContextMenu={(event) => event.preventDefault()}
       >
-        <label className="mb-1 block text-2xs font-medium tracking-label text-muted-foreground uppercase">
+        <label className="mb-1 block text-2xs font-medium tracking-widest text-muted-foreground uppercase">
           Go to
         </label>
         <div className="flex h-8 items-center rounded-md bg-muted/70 ring-1 ring-border">
