@@ -93,12 +93,8 @@ export function ViewOptionsPopover({
           className="max-h-(--available-height) w-72 max-w-(--spacing-toast) overflow-y-auto overscroll-contain"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to orbit the preview camera.
-            {/* Scrolling needs a mouse or trackpad. */}
-            <span className="pointer-coarse:hidden">
-              {" "}
-              Scroll to zoom. Both affect the preview only.
-            </span>
+            Drag to orbit the preview camera. Pinch or scroll to zoom. Both
+            affect the preview only.
           </p>
           <ViewportToggleGroup label="Feel">
             <ViewportToggleRow

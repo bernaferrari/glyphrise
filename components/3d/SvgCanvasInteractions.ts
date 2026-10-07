@@ -2,8 +2,10 @@ import * as THREE from "three"
 import type { MutableRefObject } from "react"
 import type { TransformAxis, TransformGizmoHandle } from "./TransformGizmo"
 import {
+  clampZoom,
   hasViewDragExceededThreshold,
   nextWheelZoom,
+  pointerDistance,
   shouldStartViewInertia,
   viewRotationVelocityFromPointerDelta,
   type RotationVelocity,
@@ -91,12 +93,65 @@ export const bindSvgCanvasPointerInteractions = ({
   onDeselectLayers,
   requestRender,
 }: SvgCanvasPointerBindings) => {
+  const touchPointers = new Map<number, PointerPosition>()
+  let pinchStart: { distance: number; zoom: number } | null = null
+  const touchDistance = () => {
+    const [first, second] = touchPointers.values()
+    return pointerDistance(first, second)
+  }
+  const updateZoom = (zoom: number) => {
+    targetZoomRef.current = zoom
+    onZoomChange?.(Number(zoom.toFixed(2)))
+  }
+  const beginPinch = (event: PointerEvent) => {
+    beginViewDrag(event)
+    isDraggingRef.current = false
+    activePointerIdRef.current = null
+    hasViewDragMovedRef.current = true
+    isInertiaActiveRef.current = false
+    rotationVelocityRef.current = { x: 0, y: 0 }
+    pinchStart = {
+      distance: Math.max(1, touchDistance()),
+      zoom: targetZoomRef.current,
+    }
+    setTransformGizmoHighlight(null, null)
+  }
+  const endTouch = (event: PointerEvent) => {
+    if (!touchPointers.delete(event.pointerId) || !pinchStart) return false
+    if (touchPointers.size >= 2) beginPinch(event)
+    else {
+      pinchStart = null
+      const remaining = touchPointers.entries().next().value
+      isDraggingRef.current = Boolean(remaining)
+      activePointerIdRef.current = remaining?.[0] ?? null
+      if (remaining) {
+        pointerStartPositionRef.current = remaining[1]
+        previousPointerPositionRef.current = remaining[1]
+      }
+      // A finger lifted after pinching is never a selection click or fling.
+      hasViewDragMovedRef.current = true
+      isInertiaActiveRef.current = false
+      rotationVelocityRef.current = { x: 0, y: 0 }
+    }
+    safelyReleasePointerCapture(canvas, event.pointerId)
+    return true
+  }
   const setHoverSelectable = (selectable: boolean) => {
     canvas.style.cursor = selectable ? "pointer" : ""
   }
   const handlePointerDown = (event: PointerEvent) => {
     requestRender()
     if (event.button !== 0) return
+    if (event.pointerType === "touch") {
+      touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+      safelySetPointerCapture(canvas, event.pointerId)
+      if (touchPointers.size >= 2) {
+        event.preventDefault()
+        if (!pinchStart) beginPinch(event)
+        return
+      }
+    }
+    if (activePointerIdRef.current !== null) return
     const transformHandle = hitTransformGizmo(event)
     if (transformHandle) {
       if (transformHandle.kind === "scale") {
@@ -148,6 +203,7 @@ export const bindSvgCanvasPointerInteractions = ({
 
   const handlePointerUp = (event: PointerEvent) => {
     requestRender()
+    if (endTouch(event)) return
     const wasViewDrag = activePointerIdRef.current === event.pointerId
     // endViewDrag resets hasViewDragMovedRef.current, so the sub-threshold
     // "this release was a click" decision must be snapshotted first.
@@ -239,6 +295,17 @@ export const bindSvgCanvasPointerInteractions = ({
 
   const handlePointerMove = (event: PointerEvent) => {
     requestRender()
+    if (touchPointers.has(event.pointerId)) {
+      touchPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+      if (pinchStart) {
+        // The pinch owns both fingers, including a drag begun on a transform handle.
+        event.stopPropagation()
+        updateZoom(
+          clampZoom((pinchStart.zoom * touchDistance()) / pinchStart.distance)
+        )
+        return
+      }
+    }
     if (!isDraggingRef.current) {
       const transformHandle = hitTransformGizmo(event)
       setTransformGizmoHighlight(transformHandle)
@@ -283,13 +350,23 @@ export const bindSvgCanvasPointerInteractions = ({
   }
 
   const handlePointerCancel = (event: PointerEvent) => {
-    if (activePointerIdRef.current !== event.pointerId) return
+    if (
+      activePointerIdRef.current !== event.pointerId &&
+      !touchPointers.has(event.pointerId)
+    )
+      return
+    const captures = [...touchPointers.keys()]
+    touchPointers.clear()
+    pinchStart = null
     isDraggingRef.current = false
     hasViewDragMovedRef.current = false
     activePointerIdRef.current = null
     isInertiaActiveRef.current = false
     rotationVelocityRef.current = { x: 0, y: 0 }
     safelyReleasePointerCapture(canvas, event.pointerId)
+    captures.forEach((pointerId) =>
+      safelyReleasePointerCapture(canvas, pointerId)
+    )
   }
 
   const handlePointerLeave = () => {
@@ -304,8 +381,7 @@ export const bindSvgCanvasPointerInteractions = ({
     event.preventDefault()
     if (!onZoomChange) return
     const newZoom = nextWheelZoom(targetZoomRef.current, event.deltaY)
-    targetZoomRef.current = newZoom
-    onZoomChange(Number(newZoom.toFixed(2)))
+    updateZoom(newZoom)
   }
 
   const handleDoubleClick = () => {
@@ -319,6 +395,7 @@ export const bindSvgCanvasPointerInteractions = ({
   canvas.addEventListener("pointermove", handlePointerMove)
   canvas.addEventListener("pointerup", handlePointerUp)
   canvas.addEventListener("pointercancel", handlePointerCancel)
+  canvas.addEventListener("lostpointercapture", handlePointerCancel)
   canvas.addEventListener("pointerleave", handlePointerLeave)
   canvas.addEventListener("wheel", handleWheel, { passive: false })
   canvas.addEventListener("dblclick", handleDoubleClick)
@@ -328,8 +405,13 @@ export const bindSvgCanvasPointerInteractions = ({
     canvas.removeEventListener("pointermove", handlePointerMove)
     canvas.removeEventListener("pointerup", handlePointerUp)
     canvas.removeEventListener("pointercancel", handlePointerCancel)
+    canvas.removeEventListener("lostpointercapture", handlePointerCancel)
     canvas.removeEventListener("pointerleave", handlePointerLeave)
     canvas.removeEventListener("wheel", handleWheel)
     canvas.removeEventListener("dblclick", handleDoubleClick)
+    touchPointers.forEach((_, pointerId) =>
+      safelyReleasePointerCapture(canvas, pointerId)
+    )
+    touchPointers.clear()
   }
 }

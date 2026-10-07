@@ -350,9 +350,9 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         className="relative h-full min-h-0 w-full overflow-hidden bg-preview-background"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
-          Drag to orbit the preview camera; scroll to zoom. These change the
-          view only. Use Transform properties or the transform gizmo to rotate
-          the artwork.
+          Drag to orbit the preview camera; pinch or scroll to zoom. These
+          change the view only. Use Transform properties or the transform gizmo
+          to rotate the artwork.
         </span>
         <canvas
           ref={canvasRef}
