@@ -1,13 +1,21 @@
 "use client"
 
 import React from "react"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, FlipHorizontal2, Spline } from "lucide-react"
+import { beginDocumentEdit, endDocumentEdit } from "@/lib/editor-transactions"
+import { EasingCurve } from "./EasingCurve"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { applyEasing, EasingType } from "../TimelineModel"
+import {
+  applyEasing,
+  cubicBezierEasing,
+  easingPoints,
+  type BezierPoints,
+  type EasingType,
+} from "../TimelineModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 
 export const EASING_OPTIONS: Array<{ value: EasingType; label: string }> = [
@@ -19,7 +27,7 @@ export const EASING_OPTIONS: Array<{ value: EasingType; label: string }> = [
 ]
 
 export const getEasingLabel = (easing: EasingType) =>
-  EASING_OPTIONS.find((option) => option.value === easing)?.label ?? easing
+  EASING_OPTIONS.find((option) => option.value === easing)?.label ?? "Custom"
 
 export const easingCurvePath = (easing: EasingType): string => {
   const points: string[] = []
@@ -158,54 +166,189 @@ export const EasingPicker: React.FC<{
   )
 }
 
-/** Inline easing choices with curve previews — no nested popover. */
-export function EasingChoices({
+const CUSTOM = "custom"
+
+const selectValue = (easing: EasingType) =>
+  EASING_OPTIONS.some((option) => option.value === easing) ? easing : CUSTOM
+
+const formatCurve = (points: BezierPoints) =>
+  points.map((value) => Number(value.toFixed(3))).join(", ")
+
+function EasingIcon({ easing }: { easing: EasingType }) {
+  return (
+    <svg
+      aria-hidden="true"
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-muted-foreground"
+    >
+      <path
+        d={easingCurvePath(easing)}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+/** The named easings as a native select with the current curve beside it. */
+export function EasingSelect({
   value,
   label,
-  compact = false,
   onChange,
 }: {
   value: EasingType
   label: string
-  /** One tight row: curve and name side by side. */
-  compact?: boolean
   onChange: (easing: EasingType) => void
 }) {
+  const current = selectValue(value)
   return (
-    <div
-      role="group"
-      aria-label={label}
-      className="grid grid-cols-4 gap-1 rounded-lg bg-muted p-1 max-md:grid-cols-5"
-    >
-      {EASING_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={option.value === value}
-          aria-label={option.label}
-          title={option.label}
-          onClick={() => onChange(option.value)}
-          className={`flex items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm ${compact ? "h-9 gap-1.5 px-2 text-xs" : "min-h-11 flex-col gap-0.5 text-3xs"}`}
-        >
-          <svg
-            aria-hidden="true"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="shrink-0"
+    <div className="relative">
+      <EasingIcon easing={value} />
+      <select
+        value={current}
+        aria-label={label}
+        onChange={(event) => {
+          const next = event.target.value
+          if (next === CUSTOM)
+            onChange(
+              cubicBezierEasing(easingPoints(value) ?? [0.45, 0, 0.55, 1])
+            )
+          else onChange(next as EasingType)
+        }}
+        className="h-8 w-full appearance-none rounded-md border border-transparent bg-secondary pr-7 pl-8 text-xs text-foreground outline-none hover:border-border focus:border-primary pointer-coarse:h-9"
+      >
+        {EASING_OPTIONS.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+        <option value={CUSTOM}>Custom bézier</option>
+      </select>
+      <ChevronDown className="pointer-events-none absolute top-1/2 right-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+    </div>
+  )
+}
+
+/**
+ * The easing of one motion segment, like Figma's easing panel: a preset
+ * select, a curve whose handles can be dragged, and the bézier numbers.
+ */
+export function EasingEditor({
+  value,
+  label,
+  onChange,
+}: {
+  value: EasingType
+  label: string
+  onChange: (easing: EasingType) => void
+}) {
+  const points = easingPoints(value)
+  const updateCurve = (next: BezierPoints) => {
+    const easing = cubicBezierEasing(next)
+    if (easing !== value) onChange(easing)
+  }
+  return (
+    <div className="grid gap-2">
+      <EasingSelect value={value} label={label} onChange={onChange} />
+      <div className="grid place-items-center rounded-lg bg-secondary/60 py-3 text-foreground">
+        <EasingCurve
+          easing={value}
+          onChange={updateCurve}
+          onEditStart={beginDocumentEdit}
+          onEditEnd={() => endDocumentEdit()}
+          onEditCancel={() => endDocumentEdit(true)}
+        />
+      </div>
+      {points ? (
+        <div className="flex items-start gap-1">
+          <CurveInput
+            ariaLabel={`${label} curve`}
+            points={points}
+            onCommit={updateCurve}
+          />
+          <button
+            type="button"
+            onClick={() =>
+              updateCurve([
+                1 - points[2],
+                1 - points[3],
+                1 - points[0],
+                1 - points[1],
+              ])
+            }
+            aria-label="Flip curve"
+            title="Flip curve"
+            className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
           >
-            <path
-              d={easingCurvePath(option.value)}
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="hidden md:inline">{option.label}</span>
-        </button>
-      ))}
+            <FlipHorizontal2 className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <p className="px-1 text-xs text-muted-foreground">
+          Choose Custom bézier to shape this curve by hand.
+        </p>
+      )}
+    </div>
+  )
+}
+
+/** The bézier numbers as one field, validated on Enter or when leaving it. */
+function CurveInput({
+  ariaLabel,
+  points,
+  onCommit,
+}: {
+  ariaLabel: string
+  points: BezierPoints
+  onCommit: (points: BezierPoints) => void
+}) {
+  const [draft, setDraft] = React.useState<string | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
+  const commit = () => {
+    if (draft == null) return
+    const numbers = draft
+      .split(/[\s,]+/)
+      .filter(Boolean)
+      .map(Number)
+    if (numbers.length !== 4 || !numbers.every(Number.isFinite))
+      return setError("Use four numbers, like 0.4, 0, 0.2, 1.")
+    if (numbers[0] < 0 || numbers[0] > 1 || numbers[2] < 0 || numbers[2] > 1)
+      return setError("The 1st and 3rd numbers must be between 0 and 1.")
+    setError(null)
+    setDraft(null)
+    onCommit(numbers as BezierPoints)
+  }
+  return (
+    <div className="min-w-0 flex-1">
+      <div className="relative">
+        <Spline className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          aria-label={ariaLabel}
+          aria-invalid={error ? true : undefined}
+          value={draft ?? formatCurve(points)}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={commit}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") commit()
+            if (event.key === "Escape") {
+              setDraft(null)
+              setError(null)
+            }
+          }}
+          className="h-8 w-full rounded-md border border-transparent bg-secondary pr-2 pl-7 text-xs text-foreground tabular-nums outline-none hover:border-border focus:border-primary aria-invalid:border-destructive"
+        />
+      </div>
+      {error && (
+        <p role="alert" className="mt-1 text-2xs text-destructive">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

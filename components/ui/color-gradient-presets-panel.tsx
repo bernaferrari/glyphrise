@@ -3,7 +3,6 @@
 import { Check, Move, Shuffle } from "lucide-react"
 import { GRADIENT_PRESETS, type GradientPreset } from "./color-gradient-presets"
 import { type GradientType } from "./color-gradient-mode-toggle"
-import { isWarpedMesh, meshNodePoints } from "../../lib/mesh-warp"
 import { gradientPreviewCss } from "./color-picker-utils"
 import { MeshPreviewCanvas } from "./color-mesh-preview"
 import type { EditableColorStop } from "./color-stop-model"
@@ -15,6 +14,9 @@ interface ColorGradientPresetsPanelProps {
   onShuffleMeshColors: () => void
   onShuffleMeshPoints: () => void
 }
+
+const samePoint = (a?: number, b?: number) =>
+  Math.abs((a ?? 0) - (b ?? 0)) < 1e-3
 
 export function ColorGradientPresetsPanel({
   gradientType,
@@ -63,13 +65,15 @@ export function ColorGradientPresetsPanel({
           const selected =
             gradientType === preset.type &&
             stops.length === preset.stops.length &&
-            !(preset.type === "mesh" && isWarpedMesh(meshNodePoints(stops))) &&
-            stops.every(
-              (stop, index) =>
-                stop.color.toLowerCase() ===
-                  preset.stops[index].color.toLowerCase() &&
-                stop.position === preset.stops[index].position
-            )
+            stops.every((stop, index) => {
+              const match = preset.stops[index]
+              return (
+                stop.color.toLowerCase() === match.color.toLowerCase() &&
+                stop.position === match.position &&
+                (preset.type !== "mesh" ||
+                  (samePoint(stop.x, match.x) && samePoint(stop.y, match.y)))
+              )
+            })
           return (
             <button
               key={preset.name}

@@ -44,6 +44,9 @@ export const replaceShapeIcon = (
           iconId: icon.id,
           iconName: icon.name,
           svgContent: icon.svgContent,
+          // Layer IDs are local to this SVG; a different icon has unrelated layers.
+          pathOverrides:
+            shape.svgContent === icon.svgContent ? shape.pathOverrides : [],
         }
       : shape
   )

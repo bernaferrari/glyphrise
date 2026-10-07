@@ -1,7 +1,7 @@
 import { isMaterialPresetId, type MaterialPresetId } from "./MaterialPresets"
 
 // Bump this version when the preview stage or finish rendering changes.
-const STORAGE_KEY = "glyphrise:finish-thumbnails:v1"
+const STORAGE_KEY = "glyphrise:finish-thumbnails:v2"
 const MAX_STORED_SIZE = 512_000
 export type StoredFinishThumbnails = {
   fillKey: string

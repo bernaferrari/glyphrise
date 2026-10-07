@@ -7,7 +7,7 @@ import { FillMode, MaterialSettingKey, MaterialSettings } from "./EditorModel"
 import { AdvancedMaterialControls } from "./AdvancedMaterialControls"
 import { FinishPresetStrip } from "./FinishPresetStrip"
 import type { FinishPreviewFill } from "../3d/FinishThumbnails"
-import { isGraphiteCutPreset } from "../3d/MaterialPresets"
+import { isCarvedPreset } from "../3d/MaterialPresets"
 import { CarvedVariantControl } from "./CarvedVariantControl"
 import { MATERIAL_METADATA, finishLabel } from "./FinishRegistry"
 import { InspectorRow, InspectorSection } from "./InspectorPrimitives"
@@ -123,7 +123,7 @@ export function StyleInspectorSection({
           fill={previewFill}
           onChange={onMaterialPresetChange}
         />
-        {isGraphiteCutPreset(materialPreset) ? (
+        {isCarvedPreset(materialPreset) ? (
           <CarvedVariantControl
             value={materialPreset}
             onChange={onMaterialPresetChange}

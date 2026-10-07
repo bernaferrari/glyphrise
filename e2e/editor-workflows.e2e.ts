@@ -105,7 +105,7 @@ test("reuses real finish previews on reload without recreating their WebGL stage
     .poll(async () =>
       page.evaluate(() => {
         const serialized = localStorage.getItem(
-          "glyphrise:finish-thumbnails:v1"
+          "glyphrise:finish-thumbnails:v2"
         )
         return serialized
           ? Object.keys(JSON.parse(serialized).thumbnails).length

@@ -9,7 +9,6 @@ import {
   applySvgModelScale,
 } from "./SvgSceneUtils"
 import { applyIconGradientUvs, iconGradientTexture } from "./SvgGradientTexture"
-import { isGraphiteCutPreset } from "./MaterialPresets"
 import { attachSvgWipeCaps } from "./SvgWipeCaps"
 import { finiteNumber } from "./SvgGeometry"
 import {
@@ -128,15 +127,14 @@ export const buildSvgIconGroup = ({
       ? props.colorASecondary || props.colorA
       : props.colorBSecondary || props.colorB
   )
-  const gradientMap =
-    props.enableGradient && !isGraphiteCutPreset(props.materialPreset)
-      ? iconGradientTexture(
-          group,
-          gradientType,
-          gradientStops,
-          props.materialPreset
-        )
-      : null
+  const gradientMap = props.enableGradient
+    ? iconGradientTexture(
+        group,
+        gradientType,
+        gradientStops,
+        props.materialPreset
+      )
+    : null
 
   // Under cut finishes every visible shape across all paths is welded into
   // one region before roofing: overlapping or abutting strokes then share a

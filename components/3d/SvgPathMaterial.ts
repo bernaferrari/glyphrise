@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { createThreeMaterial, isGraphiteCutPreset } from "./MaterialPresets"
+import { createThreeMaterial } from "./MaterialPresets"
 import type { SvgCanvasProps } from "./SvgTypes"
 
 export type SvgPathMaterialOptions = {
@@ -23,14 +23,9 @@ export const createSvgPathMaterial = ({
   isSlashOverlay,
   clippingPlanes,
 }: SvgPathMaterialOptions) => {
-  const forceGraphiteCut = isGraphiteCutPreset(props.materialPreset)
-  const map = forceGraphiteCut ? null : gradientMap
+  const map = gradientMap
   const material = createThreeMaterial(props.materialPreset, {
-    color: forceGraphiteCut
-      ? "#2f3031"
-      : props.enableGradient
-        ? "#ffffff"
-        : color,
+    color: props.enableGradient ? "#ffffff" : color,
     roughness: props.roughness,
     metalness: props.metalness,
     reflectance: props.reflectance,

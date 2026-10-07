@@ -127,7 +127,7 @@ import { Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
-type EasingType = 'linear' | 'ease-in-out' | 'flow' | 'spring' | 'bounce';
+type EasingType = 'linear' | 'ease-in-out' | 'flow' | 'spring' | 'bounce' | \`cubic-bezier(\${string})\`;
 type Vec3 = { x: number; y: number; z: number };
 type ScalarKeyframe = { id: string; time: number; value: number; easing: EasingType };
 type VectorKeyframe = { id: string; time: number; value: Vec3; easing: EasingType };
@@ -269,6 +269,21 @@ const applyEasing = (easing: EasingType, t: number) => {
     if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
     if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
     return n1 * (t -= 2.625 / d1) * t + 0.984375;
+  }
+  const bezier = /^cubic-bezier\\(([^)]*)\\)$/.exec(easing);
+  if (bezier) {
+    const [x1, y1, x2, y2] = bezier[1].split(',').map(Number);
+    const at = (a: number, b: number, s: number) =>
+      3 * a * s * (1 - s) ** 2 + 3 * b * s * s * (1 - s) + s ** 3;
+    let low = 0;
+    let high = 1;
+    let s = t;
+    for (let index = 0; index < 24; index++) {
+      s = (low + high) / 2;
+      if (at(x1, x2, s) < t) low = s;
+      else high = s;
+    }
+    return at(y1, y2, s);
   }
   return t;
 };

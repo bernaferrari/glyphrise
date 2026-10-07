@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { applySceneToneMapping } from "./SvgSceneSetup"
 import {
   createThreeMaterial,
   finishDefaultSettings,
@@ -7,9 +8,10 @@ import {
   isGlowingFinish,
   isTranslucentFinish,
   type MaterialPresetId,
+  finishEnvironmentIntensity,
 } from "./MaterialPresets"
 import { applyGradientVertexColors } from "./SvgColor"
-import { createStudioEnvironmentTexture } from "./SvgSceneUtils"
+import { createStudioEnvironment } from "./SvgSceneUtils"
 
 import {
   readStoredFinishThumbnails,
@@ -144,11 +146,10 @@ const getStage = (): ThumbnailStage | null => {
     })
     renderer.setPixelRatio(1)
     renderer.setSize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, false)
-    renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.setClearColor(0x000000, 0)
 
     const scene = new THREE.Scene()
-    scene.environment = createStudioEnvironmentTexture()
+    scene.environment = createStudioEnvironment(renderer)
 
     const stripes = createBackdropTexture()
     const backdrop = new THREE.Mesh(
@@ -300,10 +301,8 @@ const renderNow = async (
   } = current
   const materialLight = 1.1 * finishLightMultiplier(preset)
   keyLight.intensity = materialLight * 1.25
-  renderer.toneMappingExposure = Math.max(
-    0.45,
-    Math.min(1.8, 0.75 + materialLight * 0.08)
-  )
+  scene.environmentIntensity = finishEnvironmentIntensity(preset)
+  applySceneToneMapping(renderer, materialLight)
 
   applyPreviewFill(sphere.geometry, fillKey, fill)
   const usesGradient = sphere.geometry.hasAttribute("color")

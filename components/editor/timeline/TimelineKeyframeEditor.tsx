@@ -1,11 +1,15 @@
 "use client"
 
 import { ChevronLeft, ChevronRight, Trash2, X } from "lucide-react"
-import { useRef, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { Popover, PopoverContent, PopoverTitle } from "@/components/ui/popover"
 import { InspectorSlider } from "../InspectorSlider"
 import type { EasingType } from "../TimelineModel"
-import { EasingChoices } from "./TimelineEasingControls"
+import {
+  EasingEditor,
+  easingCurvePath,
+  getEasingLabel,
+} from "./TimelineEasingControls"
 
 export type ListFrame = {
   id: string
@@ -68,6 +72,11 @@ export function TimelineKeyframeEditor({
   const index = frame ? sorted.findIndex((item) => item.id === frame.id) : -1
   const previous = index > 0 ? sorted[index - 1] : undefined
   const next = index >= 0 ? sorted[index + 1] : undefined
+  // The easing view belongs to one keyframe; moving to another closes it.
+  const [easingFrameId, setEasingFrameId] = useState<string | null>(null)
+  const showEasing = Boolean(
+    frame && next && row?.onEasing && easingFrameId === frame.id
+  )
 
   return (
     <Popover
@@ -101,12 +110,46 @@ export function TimelineKeyframeEditor({
         }
         aria-label={row ? `${row.name} keyframe` : "Keyframe"}
         density="flush"
-        className="w-116 max-w-[calc(100vw-1rem)]"
+        className="w-88 max-w-[calc(100vw-1rem)]"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        {row && frame && (
+        {row && frame && showEasing && next ? (
+          <>
+            <div className="flex items-center gap-1 border-b border-border py-2 pr-2 pl-1.5">
+              <button
+                type="button"
+                aria-label="Back to keyframe"
+                onClick={() => setEasingFrameId(null)}
+                className={headerButton}
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+              <PopoverTitle truncate={true} className="min-w-0 flex-1">
+                Easing
+                <span className="ml-1.5 font-normal text-muted-foreground tabular-nums">
+                  {frame.time.toFixed(2)}–{next.time.toFixed(2)}s
+                </span>
+              </PopoverTitle>
+              <button
+                type="button"
+                aria-label="Close keyframe editor"
+                onClick={onClose}
+                className={headerButton}
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="p-3">
+              <EasingEditor
+                label={`${row.name} keyframe easing`}
+                value={frame.easing ?? "ease-in-out"}
+                onChange={(easing) => row.onEasing?.(frame, easing)}
+              />
+            </div>
+          </>
+        ) : row && frame ? (
           <>
             <div className="flex items-center gap-1 border-b border-border px-4 py-2">
               <svg
@@ -224,17 +267,38 @@ export function TimelineKeyframeEditor({
 
               {row.onEasing && next && (
                 <PanelRow label="Easing">
-                  <EasingChoices
-                    compact
-                    label={`${row.name} keyframe easing`}
-                    value={frame.easing ?? "ease-in-out"}
-                    onChange={(easing) => row.onEasing?.(frame, easing)}
-                  />
+                  <button
+                    type="button"
+                    aria-label={`${row.name} keyframe easing: ${getEasingLabel(frame.easing ?? "ease-in-out")}`}
+                    onClick={() => setEasingFrameId(frame.id)}
+                    className="flex h-8 w-full items-center gap-2 rounded-md bg-secondary px-2 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring pointer-coarse:h-9"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      className="shrink-0 text-muted-foreground"
+                    >
+                      <path
+                        d={easingCurvePath(frame.easing ?? "ease-in-out")}
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    <span className="flex-1 truncate">
+                      {getEasingLabel(frame.easing ?? "ease-in-out")}
+                    </span>
+                    <ChevronRight className="size-3.5 text-muted-foreground" />
+                  </button>
                 </PanelRow>
               )}
             </div>
           </>
-        )}
+        ) : null}
       </PopoverContent>
     </Popover>
   )

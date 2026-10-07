@@ -1,7 +1,71 @@
 import { defaultMeshPoint } from "../../lib/mesh-warp"
 import type { PathOverride } from "../3d/SvgTypes"
 
-export type EasingType = "linear" | "ease-in-out" | "flow" | "spring" | "bounce"
+export type NamedEasing =
+  | "linear"
+  | "ease-in-out"
+  | "flow"
+  | "spring"
+  | "bounce"
+/** A custom curve, written like CSS: `cubic-bezier(x1, y1, x2, y2)`. */
+export type CubicBezierEasing = `cubic-bezier(${string})`
+export type EasingType = NamedEasing | CubicBezierEasing
+export type BezierPoints = [number, number, number, number]
+
+const NAMED_EASINGS: readonly NamedEasing[] = [
+  "linear",
+  "ease-in-out",
+  "flow",
+  "spring",
+  "bounce",
+]
+
+/** Named easings that are cubic béziers, so their handles can be edited. */
+export const NAMED_EASING_POINTS: Partial<Record<NamedEasing, BezierPoints>> = {
+  linear: [0, 0, 1, 1],
+  "ease-in-out": [0.45, 0, 0.55, 1],
+}
+
+export const parseCubicBezier = (easing: string): BezierPoints | null => {
+  const match = /^cubic-bezier\(([^)]*)\)$/.exec(easing.trim())
+  if (!match) return null
+  const numbers = match[1].split(",").map((part) => Number(part.trim()))
+  if (numbers.length !== 4 || !numbers.every(Number.isFinite)) return null
+  const [x1, , x2] = numbers
+  if (x1 < 0 || x1 > 1 || x2 < 0 || x2 > 1) return null
+  return numbers as BezierPoints
+}
+
+export const cubicBezierEasing = (points: BezierPoints): CubicBezierEasing =>
+  `cubic-bezier(${points.map((value) => Number(value.toFixed(3))).join(", ")})`
+
+export const easingPoints = (easing: EasingType): BezierPoints | null =>
+  NAMED_EASING_POINTS[easing as NamedEasing] ?? parseCubicBezier(easing)
+
+export const isEasingType = (value: unknown): value is EasingType =>
+  typeof value === "string" &&
+  (NAMED_EASINGS.includes(value as NamedEasing) ||
+    parseCubicBezier(value) !== null)
+
+/** Eases t along a CSS-style cubic bézier by solving its x(s) = t. */
+export const sampleCubicBezier = (
+  [x1, y1, x2, y2]: BezierPoints,
+  t: number
+) => {
+  if (t <= 0) return 0
+  if (t >= 1) return 1
+  const bezier = (a: number, b: number, s: number) =>
+    3 * a * s * (1 - s) ** 2 + 3 * b * s * s * (1 - s) + s ** 3
+  let low = 0
+  let high = 1
+  let s = t
+  for (let index = 0; index < 24; index++) {
+    s = (low + high) / 2
+    if (bezier(x1, x2, s) < t) low = s
+    else high = s
+  }
+  return bezier(y1, y2, s)
+}
 export type TransitionType = "cut" | "fade" | "wipe"
 
 export interface Keyframe {
@@ -106,7 +170,8 @@ export const applyEasing = (easing: EasingType, t: number): number => {
     return t - (0.35 * Math.sin(t * Math.PI * 2)) / (Math.PI * 2)
   if (easing === "spring") return springEase(t)
   if (easing === "bounce") return bounceEase(t)
-  return t
+  const points = parseCubicBezier(easing)
+  return points ? sampleCubicBezier(points, t) : t
 }
 
 export const interpolateKeyframes = (

@@ -1,9 +1,7 @@
 import * as THREE from "three"
 import {
   finishEmissiveIntensity,
-  finishEnvMapIntensity,
   finishMetalness,
-  isGraphiteCutPreset,
   type MaterialPresetId,
 } from "./MaterialPresets"
 import { gradientStopsFromFill } from "./SvgColor"
@@ -98,7 +96,6 @@ export const updateGroupMaterialSettings = (
   > & { materialPreset: MaterialPresetId }
 ) => {
   if (!group) return
-  const envMapIntensity = finishEnvMapIntensity(materialPreset, reflectance)
   const presetMetalness = finishMetalness(materialPreset, metalness)
   const presetEmissive = finishEmissiveIntensity(
     materialPreset,
@@ -117,7 +114,6 @@ export const updateGroupMaterialSettings = (
         roughness?: number
         metalness?: number
         reflectivity?: number
-        envMapIntensity?: number
         clearcoat?: number
         clearcoatRoughness?: number
         transmission?: number
@@ -133,9 +129,6 @@ export const updateGroupMaterialSettings = (
       }
       if (writable.reflectivity !== undefined)
         writable.reflectivity = reflectance
-      if (writable.envMapIntensity !== undefined) {
-        writable.envMapIntensity = envMapIntensity
-      }
       if (writable.clearcoat !== undefined) writable.clearcoat = clearcoat
       if (writable.clearcoatRoughness !== undefined) {
         writable.clearcoatRoughness = clearcoatRoughness
@@ -181,8 +174,7 @@ export const updateGroupFillColors = (
   }
 ) => {
   if (!group) return
-  const forceGraphiteCut = isGraphiteCutPreset(materialPreset)
-  const useGradient = Boolean(enableGradient && !forceGraphiteCut)
+  const useGradient = Boolean(enableGradient)
   const stops = gradientStopsFromFill(
     colorStops,
     color,
@@ -235,9 +227,7 @@ export const updateGroupFillColors = (
         needsUpdate = true
       }
       if (writable.color) {
-        writable.color.set(
-          forceGraphiteCut ? "#2f3031" : useGradient ? "#ffffff" : color
-        )
+        writable.color.set(useGradient ? "#ffffff" : color)
       }
       if (writable.emissive && emissiveIntensity > 0 && !useGradient) {
         writable.emissive.set(color)

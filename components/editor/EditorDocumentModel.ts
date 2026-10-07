@@ -6,6 +6,7 @@ import {
 } from "./EditorModel"
 import { validateAndSanitizeSvg } from "./SvgImportModel"
 import { isMaterialPresetId } from "../3d/MaterialPresets"
+import { isEasingType } from "./TimelineModel"
 
 export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v2"
 export const EDITOR_RECENT_PROJECTS_KEY = "glyphrise.editor.recent-projects.v2"
@@ -39,13 +40,6 @@ export const isObjectRecord = (
 const MAX_COLLECTION_SIZE = 2_000
 const MAX_SHAPE_COUNT = 100
 const MAX_STRING_LENGTH = 256
-const EASING_TYPES = new Set([
-  "linear",
-  "ease-in-out",
-  "flow",
-  "spring",
-  "bounce",
-])
 const TRANSITION_TYPES = new Set(["cut", "fade", "wipe"])
 const GRADIENT_TYPES = new Set(["linear", "radial", "conic", "mesh"])
 
@@ -80,8 +74,7 @@ const isVec2 = (value: unknown) =>
   isFiniteEditorNumber(value.x) &&
   isFiniteEditorNumber(value.y)
 
-const isEasing = (value: unknown) =>
-  typeof value === "string" && EASING_TYPES.has(value)
+const isEasing = isEasingType
 
 const isGradientType = (value: unknown) =>
   typeof value === "string" && GRADIENT_TYPES.has(value)

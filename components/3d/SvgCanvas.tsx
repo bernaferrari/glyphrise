@@ -246,6 +246,7 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         softboxLight: softboxLightRef.current,
         rimLight: rimLightRef.current,
         renderer: rendererRef.current,
+        scene: sceneRef.current,
       })
     }, [
       props.ambientColor,

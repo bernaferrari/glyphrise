@@ -80,8 +80,6 @@ type FinishSpec = {
   model: "standard" | "physical" | "toon"
   defaults: FinishSettings
   grade?: FinishGrade
-  /** Ignores the fill entirely (graphite carvings). */
-  fixedColor?: string
   emissiveFloor?: number
   metalnessCap?: number
   ior?: number
@@ -96,8 +94,11 @@ type FinishSpec = {
   sheen?: { amount: number; roughness: number; color: string; fillMix?: number }
   iridescence?: { amount: number; ior: number; range: [number, number] }
   anisotropy?: { amount: number; rotation: number }
-  /** envMapIntensity = max(floor, reflectance * scale). */
-  env?: { floor: number; scale: number }
+  /**
+   * How strongly the studio room lights and reflects in this finish, as a
+   * multiple of the default. Mirror-like finishes need more of it.
+   */
+  environment?: number
   /** Scales the key light so dark and bright finishes read at equal weight. */
   light: number
   shader?: ShaderEffectId
@@ -126,9 +127,8 @@ const settings = (
 
 const CARVED_BASE = {
   model: "physical",
-  fixedColor: "#2f3031",
-  sheen: { amount: 0.42, roughness: 0.54, color: "#e5e7eb" },
-  env: { floor: 0.42, scale: 1.4 },
+  sheen: { amount: 0.42, roughness: 0.54, color: "#ffffff", fillMix: 0.6 },
+  environment: 0.42,
   light: 0.95,
 } as const satisfies Partial<FinishSpec>
 
@@ -136,7 +136,6 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
   matte: {
     model: "standard",
     defaults: settings(1, 0, 0.04, 0, 0.8, 0, 0.35, 0.02),
-    grade: { saturation: 0.78, brightness: 0.9 },
     light: 0.9,
   },
   satin: {
@@ -149,13 +148,13 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     model: "physical",
     defaults: settings(0.2, 0, 0.72, 1, 0.03, 0, 0.5, 0.04),
     grade: { saturation: 1.2 },
-    env: { floor: 0.9, scale: 1.2 },
+    environment: 0.9,
     light: 1.2,
   },
   pearl: {
     model: "physical",
     defaults: settings(0.42, 0, 0.86, 0.72, 0.22, 0, 0.6, 0.035),
-    grade: { mix: { color: "#ffffff", amount: 0.35 }, brightness: 1.05 },
+    grade: { mix: { color: "#ffffff", amount: 0.18 } },
     sheen: { amount: 0.8, roughness: 0.36, color: "#c4b5fd", fillMix: 0.48 },
     light: 1.35,
     shader: "pearl",
@@ -167,22 +166,20 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     sheen: { amount: 1, roughness: 0.28, color: "#ffffff", fillMix: 0.3 },
     light: 1.15,
   },
+  // True metal: the fill tints a mirror of the studio room.
   chrome: {
     model: "physical",
-    defaults: settings(0.075, 0.48, 1, 1, 0.02, 0, 0.4, 0.08),
-    grade: { mix: { color: "#ffffff", amount: 0.18 }, saturation: 0.75 },
-    emissiveFloor: 0.08,
-    metalnessCap: 0.52,
-    sheen: { amount: 0.35, roughness: 0.18, color: "#ffffff" },
-    env: { floor: 1.8, scale: 2.4 },
-    light: 2.35,
+    defaults: settings(0.08, 1, 1, 1, 0.02, 0, 0.4, 0),
+    grade: { mix: { color: "#ffffff", amount: 0.25 } },
+    environment: 2.6,
+    light: 1.4,
   },
   brushed: {
     model: "physical",
     defaults: settings(0.34, 0.92, 0.9, 0.35, 0.3, 0, 0.4, 0.04),
     grade: { mix: { color: "#ffffff", amount: 0.12 }, saturation: 0.85 },
     anisotropy: { amount: 0.85, rotation: Math.PI / 2 },
-    env: { floor: 1.4, scale: 1.9 },
+    environment: 1.4,
     light: 1.9,
   },
   holo: {
@@ -192,7 +189,7 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     metalnessCap: 0.08,
     sheen: { amount: 0.6, roughness: 0.24, color: "#f0abfc" },
     iridescence: { amount: 1, ior: 2.2, range: [260, 920] },
-    env: { floor: 0.9, scale: 1.15 },
+    environment: 0.9,
     light: 1.28,
     shader: "holo",
   },
@@ -204,7 +201,7 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     metalnessCap: 0.74,
     sheen: { amount: 0.62, roughness: 0.08, color: "#67e8f9" },
     iridescence: { amount: 0.78, ior: 2.15, range: [120, 920] },
-    env: { floor: 2.6, scale: 3.2 },
+    environment: 2.6,
     light: 2.85,
     shader: "prism",
   },
@@ -226,7 +223,7 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     attenuationDistance: 0.9,
     ior: 1.52,
     translucency: "clear",
-    env: { floor: 1.2, scale: 1.5 },
+    environment: 1.2,
     light: 1.65,
     shader: "glass",
   },
@@ -237,7 +234,7 @@ export const FINISH_SPECS: Record<MaterialPresetId, FinishSpec> = {
     attenuationDistance: 0.45,
     ior: 1.44,
     translucency: "clear",
-    env: { floor: 1.45, scale: 1.75 },
+    environment: 1.45,
     light: 1.8,
     shader: "gel",
   },
@@ -306,7 +303,7 @@ export const isAdditiveFinish = (preset: MaterialPresetId) =>
 export const isGlowingFinish = (preset: MaterialPresetId) =>
   FINISH_SPECS[preset].defaults.emissiveIntensity >= 0.3
 
-export const isGraphiteCutPreset = (preset: MaterialPresetId) =>
+export const isCarvedPreset = (preset: MaterialPresetId) =>
   FINISH_SPECS[preset].carve !== undefined
 
 export const finishCarve = (preset: MaterialPresetId) =>
@@ -315,13 +312,16 @@ export const finishCarve = (preset: MaterialPresetId) =>
 export const finishLightMultiplier = (preset: MaterialPresetId) =>
   FINISH_SPECS[preset].light
 
-export const finishEnvMapIntensity = (
-  preset: MaterialPresetId,
-  reflectance: number
-) => {
-  const env = FINISH_SPECS[preset].env
-  return env ? Math.max(env.floor, reflectance * env.scale) : reflectance
-}
+/** The studio room is bright and white; scaled so finishes keep their color. */
+const STUDIO_ENVIRONMENT_INTENSITY = 0.4
+
+/**
+ * three.js lights every material from `scene.environment` at the scene's
+ * `environmentIntensity`, ignoring per-material values, so the active finish
+ * sets it for the whole scene.
+ */
+export const finishEnvironmentIntensity = (preset: MaterialPresetId) =>
+  STUDIO_ENVIRONMENT_INTENSITY * (FINISH_SPECS[preset].environment ?? 1)
 
 export const finishMetalness = (
   preset: MaterialPresetId,
@@ -468,23 +468,26 @@ float elevatedBand = fract(elevatedFacing * 1.85 + elevatedVertical * 0.72 + nor
 float elevatedRim = pow(elevatedFacing, 3.2);
 float elevatedSide = pow(clamp(1.0 - normal.z * 0.5 - 0.5, 0.0, 1.0), 1.4);`
 
-/** Machined graphite: face-angle shading, a pale rim, and fine grain. */
+/**
+ * Machined stone tinted by the fill: face-angle shading, a pale rim, and fine
+ * grain. Faces turned away fall into a deeper shade of the same color.
+ */
 const carvedEffect = (
   profile: "center" | "inner" | "outer",
   rim: number
 ): ShaderEffect => ({
   after: "#include <normal_fragment_begin>",
   code: `${ELEVATED_FRAME}
-float graphiteFace = abs(normal.z);
-float graphiteTop = smoothstep(0.08, 0.92, normal.y * 0.5 + 0.5);
-float graphiteInset = smoothstep(0.12, 0.82, 1.0 - graphiteFace);
-float graphiteGrain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
-diffuseColor.rgb = mix(vec3(0.12), vec3(0.34), graphiteFace * 0.58 + graphiteTop * 0.28);
-${profile === "inner" ? "diffuseColor.rgb += vec3(0.18) * graphiteInset;" : ""}
-${profile === "outer" ? "diffuseColor.rgb += vec3(0.2) * elevatedRim + vec3(0.1) * graphiteTop;" : ""}
-diffuseColor.rgb += (graphiteGrain - 0.5) * 0.035;
-totalEmissiveRadiance += vec3(0.72, 0.74, 0.76) * elevatedRim * ${glsl(rim)};
-totalEmissiveRadiance += vec3(0.02, 0.025, 0.035) * elevatedSide * 0.28;`,
+vec3 carvedTint = diffuseColor.rgb;
+float carvedFace = abs(normal.z);
+float carvedTop = smoothstep(0.08, 0.92, normal.y * 0.5 + 0.5);
+float carvedInset = smoothstep(0.12, 0.82, 1.0 - carvedFace);
+float carvedGrain = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+diffuseColor.rgb = carvedTint * mix(0.38, 1.0, carvedFace * 0.58 + carvedTop * 0.28);
+${profile === "inner" ? "diffuseColor.rgb += carvedTint * 0.45 * carvedInset;" : ""}
+${profile === "outer" ? "diffuseColor.rgb += carvedTint * (0.5 * elevatedRim + 0.25 * carvedTop);" : ""}
+diffuseColor.rgb *= 1.0 + (carvedGrain - 0.5) * 0.12;
+totalEmissiveRadiance += mix(carvedTint, vec3(1.0), 0.55) * elevatedRim * ${glsl(rim)};`,
 })
 
 /**
@@ -640,13 +643,11 @@ export function createThreeMaterial(
   )
 
   // Gradients and textures are graded per pixel in the shader instead.
-  const color = spec.fixedColor
-    ? new THREE.Color(spec.fixedColor)
-    : usesSurfaceColor
-      ? new THREE.Color("#ffffff")
-      : spec.grade
-        ? gradeColor(fill, spec.grade)
-        : fill
+  const color = usesSurfaceColor
+    ? new THREE.Color("#ffffff")
+    : spec.grade
+      ? gradeColor(fill, spec.grade)
+      : fill
 
   const shared = {
     color,
@@ -673,7 +674,6 @@ export function createThreeMaterial(
       ...shared,
       roughness: value("roughness"),
       metalness: finishMetalness(preset, value("metalness")),
-      envMapIntensity: finishEnvMapIntensity(preset, reflectance),
     })
   } else {
     const physical = new THREE.MeshPhysicalMaterial({
@@ -686,7 +686,6 @@ export function createThreeMaterial(
       thickness: value("thickness"),
       ior: props.ior ?? spec.ior ?? 1.5,
       reflectivity: reflectance,
-      envMapIntensity: finishEnvMapIntensity(preset, reflectance),
     })
     if (spec.attenuationDistance !== undefined && !usesSurfaceColor) {
       physical.attenuationColor = fill.clone()

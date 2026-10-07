@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { applyEasing } from "../editor/TimelineModel"
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js"
 import { containsInvalidPositions, finiteNumber } from "./SvgGeometry"
 import { disposeObjectTree } from "./SvgSceneUtils"
@@ -6,7 +7,6 @@ import type {
   GradientType,
   SvgCanvasProps,
   SvgExportAnimation,
-  SvgExportEasing,
   SvgExportVectorKeyframe,
   Vector3Value,
 } from "./SvgTypes"
@@ -24,26 +24,7 @@ type FilamentExportProps = {
 
 const GEOMETRY_EXPORT_GROUP_NAME = "GlyphriseGeometry"
 
-const applyExportEasing = (easing: SvgExportEasing, t: number) => {
-  if (easing === "ease-in-out")
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-  if (easing === "flow")
-    return t - (0.35 * Math.sin(t * Math.PI * 2)) / (Math.PI * 2)
-  if (easing === "spring") {
-    if (t === 0 || t === 1) return t
-    const c4 = (2 * Math.PI) / 3
-    return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1
-  }
-  if (easing === "bounce") {
-    const n1 = 7.5625
-    const d1 = 2.75
-    if (t < 1 / d1) return n1 * t * t
-    if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75
-    if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375
-    return n1 * (t -= 2.625 / d1) * t + 0.984375
-  }
-  return t
-}
+const applyExportEasing = applyEasing
 
 const keyframePair = <T extends { time: number }>(
   time: number,

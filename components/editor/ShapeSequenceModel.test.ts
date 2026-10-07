@@ -4,10 +4,50 @@ import {
   addShapeStopAtTime,
   applyShapeWipePair,
   createShapeStop,
+  replaceShapeIcon,
 } from "./ShapeSequenceModel"
+import { completePathOverride } from "./SvgLayerOverrideModel"
 import { SHAPE_MIN_GAP } from "./ShapeTimeModel"
 
 describe("ShapeSequenceModel", () => {
+  it("clears SVG-specific edits when replacing a symbol, preserving the clip look and motion", () => {
+    const current = createShapeStop(DEFAULT_WIPE_PAIR[0], 1, "current")
+    current.pathOverrides = [
+      completePathOverride("0:1", "#ff0000", {
+        depthMultiplier: 0.35,
+        scale: { x: 0.5, y: 0.5, z: 0.5 },
+        visible: false,
+      }),
+    ]
+    const other = createShapeStop(DEFAULT_WIPE_PAIR[0], 3, "other")
+    const result = replaceShapeIcon(
+      [current, other],
+      current.id,
+      DEFAULT_WIPE_PAIR[1]
+    )
+    expect(result[0]).toEqual({
+      ...current,
+      iconId: DEFAULT_WIPE_PAIR[1].id,
+      iconName: DEFAULT_WIPE_PAIR[1].name,
+      svgContent: DEFAULT_WIPE_PAIR[1].svgContent,
+      pathOverrides: [],
+    })
+    expect(result[1]).toBe(other)
+  })
+
+  it("keeps layer edits when choosing the same SVG again", () => {
+    const current = createShapeStop(DEFAULT_WIPE_PAIR[0], 1, "current")
+    current.pathOverrides = [
+      completePathOverride("0:1", undefined, { depthMultiplier: 0.35 }),
+    ]
+    const [result] = replaceShapeIcon(
+      [current],
+      current.id,
+      DEFAULT_WIPE_PAIR[0]
+    )
+    expect(result.pathOverrides).toBe(current.pathOverrides)
+  })
+
   it("places repeated additions at distinct valid timestamps", () => {
     const first = createShapeStop(DEFAULT_WIPE_PAIR[0], 1, "first")
     const result = addShapeStopAtTime({

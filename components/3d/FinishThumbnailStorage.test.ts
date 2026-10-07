@@ -11,7 +11,7 @@ import {
 } from "./FinishThumbnails"
 
 const fill = { color: "#ff5b9a" }
-const key = "glyphrise:finish-thumbnails:v1"
+const key = "glyphrise:finish-thumbnails:v2"
 const png = "data:image/png;base64,cHJldmlldw=="
 
 afterEach(() => {

@@ -28,6 +28,7 @@ const popoverContentVariants = cva(
       },
       size: {
         default: "",
+        easing: "w-64 gap-2",
         finish:
           "max-h-finish-picker-height w-85 max-w-(--spacing-toast) max-[720px]:w-96",
       },

@@ -9,10 +9,7 @@ import {
   THUMBNAIL_SPHERE_FILL,
   type FinishPreviewFill,
 } from "../3d/FinishThumbnails"
-import {
-  isGraphiteCutPreset,
-  type MaterialPresetId,
-} from "../3d/MaterialPresets"
+import { isCarvedPreset, type MaterialPresetId } from "../3d/MaterialPresets"
 import {
   Popover,
   PopoverContent,
@@ -257,7 +254,7 @@ export function FinishPresetPicker({
           <p className="mt-1 min-h-8 text-2xs leading-4 text-muted-foreground">
             {detail.description}
           </p>
-          {isGraphiteCutPreset(value) ? (
+          {isCarvedPreset(value) ? (
             <CarvedVariantControl
               value={value}
               onChange={onChange}

@@ -64,9 +64,9 @@ for (const width of [320, 390]) {
         .getByRole("button", { name: /^Rotation ease from 0\.00s to 4\.50s/ })
         .click()
       await page
-        .getByRole("group", { name: "Rotation segment easing" })
-        .getByRole("button", { name: "Bounce", exact: true })
-        .click()
+        .getByLabel("Rotation segment easing", { exact: true })
+        .selectOption("bounce")
+      await page.keyboard.press("Escape")
       await expect(
         page.getByRole("button", {
           name: /^Rotation ease from 0\.00s to 4\.50s: Bounce$/,
@@ -165,9 +165,7 @@ for (const width of [320, 390]) {
       await openKeyframe(page, "Depth", "2.25")
       for (const control of [
         page.getByLabel("Depth keyframe value", { exact: true }),
-        page
-          .getByRole("group", { name: "Depth keyframe easing" })
-          .getByRole("button", { name: "Smooth", exact: true }),
+        page.getByRole("button", { name: /^Depth keyframe easing:/ }),
         page.getByRole("button", {
           name: "Delete Depth keyframe at 2.25s",
           exact: true,

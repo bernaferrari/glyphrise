@@ -1,4 +1,5 @@
 import * as THREE from "three"
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js"
 import type { GradientStop, SvgCanvasProps } from "./SvgTypes"
 
 export const MODEL_SCALE = 0.12
@@ -73,68 +74,15 @@ export const disposeObjectTree = (object: THREE.Object3D | null) => {
   textures.forEach((texture) => texture.dispose())
 }
 
-export const createStudioEnvironmentTexture = () => {
-  const canvas = document.createElement("canvas")
-  canvas.width = 512
-  canvas.height = 256
-  const context = canvas.getContext("2d")
-  if (!context) return null
-
-  const sky = context.createLinearGradient(0, 0, 0, canvas.height)
-  sky.addColorStop(0, "#ffffff")
-  sky.addColorStop(0.16, "#dbeafe")
-  sky.addColorStop(0.34, "#334155")
-  sky.addColorStop(0.52, "#07070a")
-  sky.addColorStop(0.74, "#111827")
-  sky.addColorStop(1, "#fafafa")
-  context.fillStyle = sky
-  context.fillRect(0, 0, canvas.width, canvas.height)
-
-  const addSoftBox = (
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    color: string,
-    alpha: number
-  ) => {
-    const gradient = context.createRadialGradient(
-      x + w * 0.5,
-      y + h * 0.5,
-      1,
-      x + w * 0.5,
-      y + h * 0.5,
-      Math.max(w, h) * 0.65
-    )
-    gradient.addColorStop(0, color)
-    gradient.addColorStop(1, "rgba(255,255,255,0)")
-    context.globalAlpha = alpha
-    context.fillStyle = gradient
-    context.fillRect(x, y, w, h)
-    context.globalAlpha = 1
-  }
-
-  addSoftBox(20, 12, 190, 78, "#ffffff", 0.95)
-  addSoftBox(342, 28, 140, 52, "#93c5fd", 0.7)
-  addSoftBox(40, 118, 180, 44, "#06b6d4", 0.62)
-  addSoftBox(286, 104, 168, 52, "#f97316", 0.52)
-  addSoftBox(230, 30, 120, 74, "#d946ef", 0.44)
-  addSoftBox(160, 172, 190, 42, "#ffffff", 0.55)
-
-  context.globalAlpha = 0.8
-  context.fillStyle = "rgba(255,255,255,0.9)"
-  context.fillRect(0, 104, canvas.width, 5)
-  context.fillStyle = "rgba(96,165,250,0.42)"
-  context.fillRect(0, 118, canvas.width, 3)
-  context.fillStyle = "rgba(34,211,238,0.48)"
-  context.fillRect(0, 132, canvas.width, 2)
-  context.fillStyle = "rgba(249,115,22,0.4)"
-  context.fillRect(0, 148, canvas.width, 3)
-  context.globalAlpha = 1
-
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.mapping = THREE.EquirectangularReflectionMapping
-  texture.colorSpace = THREE.SRGBColorSpace
-  texture.needsUpdate = true
+/**
+ * three.js's neutral studio room, prefiltered for image-based lighting. It
+ * gives every finish soft, colorless fill and clean softbox reflections.
+ */
+export const createStudioEnvironment = (renderer: THREE.WebGLRenderer) => {
+  const pmrem = new THREE.PMREMGenerator(renderer)
+  const room = new RoomEnvironment()
+  const { texture } = pmrem.fromScene(room, 0.04)
+  room.dispose()
+  pmrem.dispose()
   return texture
 }

@@ -1,8 +1,26 @@
 import * as THREE from "three"
 import { CAMERA_FOV, framedCameraDistance } from "./SvgSceneUtils"
-import { finishLightMultiplier } from "./MaterialPresets"
+import {
+  finishEnvironmentIntensity,
+  finishLightMultiplier,
+} from "./MaterialPresets"
 import { clamp01Number } from "./SvgMaterials"
 import type { SvgCanvasProps } from "./SvgTypes"
+
+/**
+ * Khronos PBR Neutral keeps base colors faithful: lit faces show the fill as
+ * picked, and extra light brightens without washing hues out to white.
+ */
+export const applySceneToneMapping = (
+  renderer: THREE.WebGLRenderer,
+  materialLight: number
+) => {
+  renderer.toneMapping = THREE.NeutralToneMapping
+  renderer.toneMappingExposure = Math.max(
+    0.6,
+    Math.min(2, 0.9 + materialLight * 0.1)
+  )
+}
 
 export const createSvgRenderer = ({
   canvas,
@@ -26,11 +44,7 @@ export const createSvgRenderer = ({
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFShadowMap
   renderer.localClippingEnabled = true
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = Math.max(
-    0.45,
-    Math.min(1.8, 0.75 + materialLight * 0.08)
-  )
+  applySceneToneMapping(renderer, materialLight)
   return renderer
 }
 
@@ -108,6 +122,9 @@ export const createClipPlanes = () => ({
   clipPlaneB: new THREE.Plane(new THREE.Vector3(1, 0, 0), 2.5),
 })
 
+/** Shadows soften with the light, like a bigger softbox. */
+const shadowRadius = (softness: number) => 3 + clamp01Number(softness, 0) * 9
+
 export const createSceneLights = (props: SvgCanvasProps) => {
   const materialLight =
     props.keyLightIntensity * finishLightMultiplier(props.materialPreset)
@@ -125,8 +142,11 @@ export const createSceneLights = (props: SvgCanvasProps) => {
     props.keyLightPosition.z
   )
   keyLight.castShadow = true
-  keyLight.shadow.mapSize.width = 1024
-  keyLight.shadow.mapSize.height = 1024
+  keyLight.shadow.mapSize.width = 2048
+  keyLight.shadow.mapSize.height = 2048
+  keyLight.shadow.bias = -0.0004
+  keyLight.shadow.normalBias = 0.02
+  keyLight.shadow.radius = shadowRadius(props.keyLightSoftness)
 
   const softboxLight = new THREE.RectAreaLight(props.keyLightColor, 0, 3.5, 1.6)
   softboxLight.position.set(
@@ -152,6 +172,7 @@ export const updateSceneLights = ({
   softboxLight,
   rimLight,
   renderer,
+  scene,
 }: {
   props: SvgCanvasProps
   ambientLight: THREE.AmbientLight | null
@@ -159,6 +180,7 @@ export const updateSceneLights = ({
   softboxLight: THREE.RectAreaLight | null
   rimLight: THREE.DirectionalLight | null
   renderer: THREE.WebGLRenderer | null
+  scene: THREE.Scene | null
 }) => {
   const materialLight =
     props.keyLightIntensity * finishLightMultiplier(props.materialPreset)
@@ -172,6 +194,7 @@ export const updateSceneLights = ({
   if (keyLight) {
     keyLight.color.set(props.keyLightColor)
     keyLight.intensity = materialLight * (1 - softness * 0.48)
+    keyLight.shadow.radius = shadowRadius(softness)
     keyLight.position.set(
       props.keyLightPosition.x,
       props.keyLightPosition.y,
@@ -194,10 +217,9 @@ export const updateSceneLights = ({
     rimLight.color.set(props.rimLightColor)
     rimLight.intensity = props.rimLightIntensity
   }
-  if (renderer) {
-    renderer.toneMappingExposure = Math.max(
-      0.45,
-      Math.min(1.8, 0.75 + materialLight * 0.08)
+  if (renderer) applySceneToneMapping(renderer, materialLight)
+  if (scene)
+    scene.environmentIntensity = finishEnvironmentIntensity(
+      props.materialPreset
     )
-  }
 }

@@ -4,12 +4,8 @@ export type GradientType = "linear" | "radial" | "conic" | "mesh"
 
 export type Vector3Value = { x: number; y: number; z: number }
 
-export type SvgExportEasing =
-  | "linear"
-  | "ease-in-out"
-  | "flow"
-  | "spring"
-  | "bounce"
+export type { EasingType as SvgExportEasing } from "../editor/TimelineModel"
+import type { EasingType as SvgExportEasing } from "../editor/TimelineModel"
 
 export type ExportRenderOptions = {
   width: number

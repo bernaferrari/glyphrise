@@ -1,6 +1,6 @@
 import {
   finishDefaultSettings,
-  isGraphiteCutPreset,
+  isCarvedPreset,
   type MaterialPresetId,
 } from "../3d/MaterialPresets"
 import type { MaterialSettings } from "./EditorModel"
@@ -101,27 +101,27 @@ export const MATERIAL_METADATA: Record<
   },
   carved: {
     name: "Carved",
-    subtitle: "Graphite · Center",
+    subtitle: "Machined · Center",
     description:
-      "Machined graphite with a ridge along the middle of every stroke.",
+      "Machined in your color, with a ridge along the middle of every stroke.",
   },
   carvedInner: {
     name: "Carved",
-    subtitle: "Graphite · Inner",
+    subtitle: "Machined · Inner",
     description:
-      "Machined graphite whose counters and inner turns read cut inward.",
+      "Machined in your color; counters and inner turns read cut inward.",
   },
   carvedOuter: {
     name: "Carved",
-    subtitle: "Graphite · Outer",
+    subtitle: "Machined · Outer",
     description:
-      "Machined graphite with a raised, highlighted outer bevel and rim.",
+      "Machined in your color, with a raised, highlighted outer bevel and rim.",
   },
   carvedSoft: {
     name: "Carved",
-    subtitle: "Graphite · Soft",
+    subtitle: "Machined · Soft",
     description:
-      "Graphite with a calmer rounded bevel and flat closed caps instead of a ridge.",
+      "Machined with a calmer rounded bevel and flat closed caps instead of a ridge.",
   },
 }
 
@@ -159,11 +159,11 @@ export const CARVED_VARIANTS: Array<{ id: MaterialPresetId; label: string }> = [
 
 /** The tile a finish lives under: Carved variants collapse into one. */
 export const finishTile = (preset: MaterialPresetId): MaterialPresetId =>
-  isGraphiteCutPreset(preset) ? "carved" : preset
+  isCarvedPreset(preset) ? "carved" : preset
 
 export const finishLabel = (preset: MaterialPresetId) => {
   const metadata = MATERIAL_METADATA[preset]
-  if (!isGraphiteCutPreset(preset)) return metadata.name
+  if (!isCarvedPreset(preset)) return metadata.name
   const variant = CARVED_VARIANTS.find((entry) => entry.id === preset)
   return `${metadata.name} · ${variant?.label ?? "Center"}`
 }

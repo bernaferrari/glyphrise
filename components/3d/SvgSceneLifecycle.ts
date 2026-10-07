@@ -4,7 +4,7 @@ import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLigh
 import { createRotationDragOverlay } from "./TransformGizmoOverlay"
 import { createTransformGizmo } from "./TransformGizmo"
 import {
-  createStudioEnvironmentTexture,
+  createStudioEnvironment,
   disposeObjectTree,
   framedCameraDistance,
 } from "./SvgSceneUtils"
@@ -15,7 +15,10 @@ import {
   createSvgCamera,
   createSvgRenderer,
 } from "./SvgSceneSetup"
-import { finishLightMultiplier } from "./MaterialPresets"
+import {
+  finishEnvironmentIntensity,
+  finishLightMultiplier,
+} from "./MaterialPresets"
 import type { SvgCanvasProps } from "./SvgTypes"
 
 type SceneResourceRefs = {
@@ -58,8 +61,9 @@ export const createSvgSceneResources = ({
   const renderer = createSvgRenderer({ canvas, width, height, materialLight })
   refs.rendererRef.current = renderer
 
-  const studioEnvironment = createStudioEnvironmentTexture()
+  const studioEnvironment = createStudioEnvironment(renderer)
   scene.environment = studioEnvironment
+  scene.environmentIntensity = finishEnvironmentIntensity(props.materialPreset)
 
   const camera = createSvgCamera(width, height)
   refs.cameraRef.current = camera

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover"
 import type { EasingType } from "../TimelineModel"
 import {
-  EasingChoices,
+  EasingEditor,
   easingCurvePath,
   getEasingLabel,
 } from "./TimelineEasingControls"
@@ -208,24 +208,25 @@ function MotionSegment({
         </span>
       </PopoverTrigger>
       <PopoverContent
-        density="toolbar"
+        density="spacious"
         side="top"
         sideOffset={8}
         initialFocus={false}
+        size="easing"
         onPointerDown={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
         onClick={(event) => event.stopPropagation()}
       >
-        <p className="text-2xs text-muted-foreground tabular-nums">
-          {name} · {from.time.toFixed(2)}s → {to.time.toFixed(2)}s
-        </p>
-        <EasingChoices
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs font-semibold">Easing</span>
+          <span className="truncate text-2xs text-muted-foreground tabular-nums">
+            {name} · {from.time.toFixed(2)}–{to.time.toFixed(2)}s
+          </span>
+        </div>
+        <EasingEditor
           label={`${name} segment easing`}
           value={easing}
-          onChange={(next) => {
-            onEasingChange(from.id, next)
-            setOpen(false)
-          }}
+          onChange={(next) => onEasingChange(from.id, next)}
         />
       </PopoverContent>
     </Popover>
