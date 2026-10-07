@@ -1,7 +1,5 @@
 import {
   type LightPosition,
-  type MaterialKeyframe,
-  type MaterialSettings,
   type TimeKeyframe,
   type Vector3Keyframe,
   clampNumber,
@@ -159,54 +157,4 @@ export const upsertVectorKeyframeAtTime = ({
       easing: previousEasingFor(keyframes, playheadTime),
     },
   ].sort((a, b) => a.time - b.time)
-}
-
-export const toggleStyleKeyframesAtTime = ({
-  fillKeyframes,
-  materialKeyframes,
-  fillStops,
-  fillGradientType,
-  materialSettings,
-  time,
-  duration,
-}: {
-  fillKeyframes: FillKeyframe[]
-  materialKeyframes: MaterialKeyframe[]
-  fillStops: FillKeyframe["stops"]
-  fillGradientType: FillKeyframe["gradientType"]
-  materialSettings: MaterialSettings
-  time: number
-  duration: number
-}) => {
-  const playheadTime = normalizedPlayheadTime(time, duration)
-  const isKeyedHere = Boolean(
-    findKeyframeAtTime(fillKeyframes, playheadTime) ||
-    findKeyframeAtTime(materialKeyframes, playheadTime)
-  )
-
-  return {
-    fillKeyframes: isKeyedHere
-      ? removeKeyframesAtTime(fillKeyframes, playheadTime)
-      : [
-          ...fillKeyframes,
-          {
-            id: createEditorId("fill"),
-            time: playheadTime,
-            stops: fillStops,
-            gradientType: fillGradientType,
-            easing: previousEasingFor(fillKeyframes, playheadTime),
-          },
-        ].sort((a, b) => a.time - b.time),
-    materialKeyframes: isKeyedHere
-      ? removeKeyframesAtTime(materialKeyframes, playheadTime)
-      : [
-          ...materialKeyframes,
-          {
-            id: createEditorId("material"),
-            time: playheadTime,
-            value: materialSettings,
-            easing: previousEasingFor(materialKeyframes, playheadTime),
-          },
-        ].sort((a, b) => a.time - b.time),
-  }
 }

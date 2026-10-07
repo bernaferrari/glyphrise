@@ -20,6 +20,14 @@ import { createAnimationPreset } from "./AnimationPresetModel"
 import { evaluateExportFrame } from "./ExportFrameModel"
 import { useKeyframeNotice } from "./useKeyframeNotice"
 import { useCreationJourney } from "./useCreationJourney"
+import {
+  addKeyframeAtTime,
+  findKeyframeAtTime,
+  normalizedPlayheadTime,
+  removeKeyframesAtTime,
+  toggleScalarTrackKeyframeAtTime,
+} from "./EditorKeyframeModel"
+import { createEditorId } from "./EditorModel"
 
 export function useAppLayoutController(): AppLayoutViewProps {
   const editor = useEditorBaseState()
@@ -740,10 +748,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
       setTracks,
       setSelectedMotionTrackId,
       setActiveRecipeId,
-      fillKeyframes,
-      setFillKeyframes,
-      materialKeyframes,
-      setMaterialKeyframes,
       selectedShapeFillStops,
       selectedShapeGradientType,
       activeMaterialSettings,
@@ -758,7 +762,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
       keyLightPositionKeyframes,
       lightPositionKeyframeAtPlayhead,
       toggleLightPositionKeyframeAtPlayhead,
-      markCustom,
       stopPlayback,
       setCurrentTime,
       fillRef: inspectorRefs.fill,
@@ -829,6 +832,17 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onToggleLightPositionKeyframe: toggleLightPositionKeyframeAtPlayhead,
       onBrightnessChange: handleBrightnessChange,
     })
+
+  const toggleInspectorPropertyKeyframe = (
+    rowId: string,
+    keyframes: Array<{ id: string; time: number }>
+  ) => {
+    stopPlayback()
+    timelineProps.onTogglePropertyKeyframe?.(
+      rowId,
+      findKeyframeAtTime(keyframes, currentTime)?.id
+    )
+  }
 
   return {
     onCreateStarter: (starterId, name, svgContent) => {
@@ -909,20 +923,87 @@ export function useAppLayoutController(): AppLayoutViewProps {
         autoKeyEnabled,
         onAutoKeyChange: setAutoKeyEnabled,
         properties: [
-          { name: "Rotation", times: rotationAxisKeyframes.map((k) => k.time) },
-          { name: "Position", times: moveKeyframes.map((k) => k.time) },
-          { name: "Fill", times: fillKeyframes.map((k) => k.time) },
-          { name: "Finish", times: materialKeyframes.map((k) => k.time) },
-          { name: "Quality", times: qualityKeyframes.map((k) => k.time) },
+          {
+            name: "Rotation",
+            times: rotationAxisKeyframes.map((k) => k.time),
+            onToggle: () => {
+              canvas3DRef.current?.commitRotationEdit()
+              toggleInspectorPropertyKeyframe("rotation", rotationAxisKeyframes)
+            },
+          },
+          {
+            name: "Position",
+            times: moveKeyframes.map((k) => k.time),
+            onToggle: () =>
+              toggleInspectorPropertyKeyframe("move", moveKeyframes),
+          },
+          {
+            name: "Fill",
+            times: fillKeyframes.map((k) => k.time),
+            onToggle: () =>
+              toggleInspectorPropertyKeyframe("fill", fillKeyframes),
+          },
+          {
+            name: "Finish",
+            times: materialKeyframes.map((k) => k.time),
+            onToggle: () =>
+              toggleInspectorPropertyKeyframe("material", materialKeyframes),
+          },
+          {
+            name: "Quality",
+            times: qualityKeyframes.map((k) => k.time),
+            onToggle: () => {
+              stopPlayback()
+              markCustom()
+              const time = normalizedPlayheadTime(currentTime, duration)
+              setQualityKeyframes((keyframes) =>
+                findKeyframeAtTime(keyframes, time)
+                  ? removeKeyframesAtTime(keyframes, time)
+                  : addKeyframeAtTime({
+                      keyframes,
+                      time,
+                      create: (easing) => ({
+                        id: createEditorId("quality"),
+                        time,
+                        value: activeGeometryQuality,
+                        easing,
+                      }),
+                    })
+              )
+            },
+          },
           {
             name: "Light direction",
             times: keyLightPositionKeyframes.map((k) => k.time),
+            onToggle: () => {
+              stopPlayback()
+              toggleLightPositionKeyframeAtPlayhead()
+            },
           },
           ...tracks
             .filter((t) => t.id !== "rotation" && t.id !== "transition")
             .map((t) => ({
               name: t.name,
               times: t.keyframes.map((k) => k.time),
+              onToggle: () => {
+                stopPlayback()
+                markCustom()
+                const value =
+                  t.id === "scale"
+                    ? activeObjectScale
+                    : t.id === "extrusion"
+                      ? activeExtrusionDepth
+                      : activeKeyLightIntensity
+                setTracks((prev) =>
+                  toggleScalarTrackKeyframeAtTime({
+                    tracks: prev,
+                    trackId: t.id,
+                    value,
+                    time: currentTime,
+                    duration,
+                  })
+                )
+              },
             })),
         ],
       },

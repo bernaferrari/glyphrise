@@ -17,8 +17,6 @@ import {
 } from "./TimelineLeftRailMenuModel"
 import { TimelineRailKeyframeButton } from "./TimelineRailKeyframeButton"
 import { TimelineRowIcon } from "./TimelineRowIcon"
-import { formatValueLabel } from "./TimelinePrimitives"
-import { interpolateKeyframes } from "../TimelineModel"
 
 const neighbourTimes = (times: number[], currentTime: number) => {
   const sorted = [...times].sort((a, b) => a - b)
@@ -93,10 +91,8 @@ function RailRowFrame({
   ariaPressed,
   onSelect,
   onContextMenu,
-  value,
   actions,
 }: {
-  value?: string
   id: string
   name: string
   active: boolean
@@ -135,11 +131,8 @@ function RailRowFrame({
           {name}
         </span>
       </button>
-      <span className="flex h-full shrink-0 items-center justify-center gap-0 pr-1.5 max-md:[&_[data-timeline-easing]]:hidden">
+      <span className="flex h-full shrink-0 items-center pr-1.5">
         {actions}
-        <span className="w-12 shrink-0 truncate pl-1 text-right font-mono text-2xs text-muted-foreground tabular-nums max-md:hidden">
-          {value}
-        </span>
       </span>
     </div>
   )
@@ -276,10 +269,6 @@ export function TimelineTrackRailRow({
       active={selected || isActive}
       isRevealed={isRevealed}
       ariaLabel={`Select ${track.name} track`}
-      value={formatValueLabel(
-        track,
-        interpolateKeyframes(menu.currentTime, track)
-      )}
       ariaPressed={selected || isActive}
       onSelect={() => {
         onClearSelection()

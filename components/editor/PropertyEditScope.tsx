@@ -32,5 +32,6 @@ export function usePropertyEditScope(property?: string) {
       Boolean(definition)
     ),
     time: context.currentTime.toFixed(2),
+    onToggle: definition?.onToggle,
   }
 }

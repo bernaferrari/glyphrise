@@ -22,8 +22,8 @@ import {
   updateGradientStopPositionById,
 } from "./color-gradient-editor-model"
 import {
-  shuffledMeshColors,
-  shuffledMeshPositions,
+  hueShiftedStops,
+  remixedMesh,
   type GradientPreset,
 } from "./color-gradient-presets"
 import type { GradientType } from "./color-gradient-mode-toggle"
@@ -50,6 +50,9 @@ type UseColorGradientEditorArgs = {
   onStopsChange?: (stops: EditableColorStop[]) => void
   onStopPositionChange?: (stop: number, position: number) => void
 }
+
+const HUE_TAP_STEP = 60
+const HUE_DEGREES_PER_PIXEL = 1.5
 
 export function useColorGradientEditor({
   value,
@@ -127,10 +130,10 @@ export function useColorGradientEditor({
     ]
   )
 
-  const shuffleMeshStops = React.useCallback(() => {
+  const remixMeshStops = React.useCallback(() => {
     onGradientToggle?.(true)
     onGradientTypeChange?.("mesh")
-    updateStops(shuffledMeshColors(normalizedStops))
+    updateStops(remixedMesh(normalizedStops))
     closeStopEditorAfterGradientMutation()
   }, [
     closeStopEditorAfterGradientMutation,
@@ -140,18 +143,40 @@ export function useColorGradientEditor({
     updateStops,
   ])
 
-  const shuffleMeshPoints = React.useCallback(() => {
-    onGradientToggle?.(true)
-    onGradientTypeChange?.("mesh")
-    updateStops(shuffledMeshPositions(normalizedStops))
-    closeStopEditorAfterGradientMutation()
-  }, [
-    closeStopEditorAfterGradientMutation,
-    normalizedStops,
-    onGradientToggle,
-    onGradientTypeChange,
-    updateStops,
-  ])
+  const shiftHueStep = React.useCallback(() => {
+    updateStops(hueShiftedStops(normalizedStops, HUE_TAP_STEP))
+  }, [normalizedStops, updateStops])
+
+  /**
+   * Tap spins every hue a step around the wheel; drag sideways scrubs it
+   * live from the colors as they were when the drag began.
+   */
+  const handleHuePointerDown = React.useCallback(
+    (e: React.PointerEvent) => {
+      if (e.button !== 0) return
+      e.preventDefault()
+      e.stopPropagation()
+      const base = normalizedStops
+      const startX = e.clientX
+      let moved = false
+      closeStopEditorAfterGradientMutation()
+      bindWindowPointerDrag({
+        documentEdit: true,
+        pointerId: e.pointerId,
+        onMove: (event) => {
+          const dx = event.clientX - startX
+          if (!moved && Math.abs(dx) < 3) return
+          moved = true
+          updateStops(hueShiftedStops(base, dx * HUE_DEGREES_PER_PIXEL))
+        },
+        onEnd: (event) => {
+          if (!moved && event?.type !== "pointercancel")
+            updateStops(hueShiftedStops(base, HUE_TAP_STEP))
+        },
+      })
+    },
+    [closeStopEditorAfterGradientMutation, normalizedStops, updateStops]
+  )
 
   const updateActiveStopColor = React.useCallback(
     (nextColor: string) => {
@@ -450,8 +475,9 @@ export function useColorGradientEditor({
     setOpenStopEditor,
     setOpenStopEditorAnchor,
     setOpenStopEditorState,
-    shuffleMeshPoints,
-    shuffleMeshStops,
+    handleHuePointerDown,
+    remixMeshStops,
+    shiftHueStep,
     addMeshPoint,
     moveMeshPoint,
     reorderMeshPoints,

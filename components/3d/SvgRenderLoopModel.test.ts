@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import {
+  advanceInertiaVelocity,
   shouldContinueSvgRenderLoop,
   shouldScheduleSvgRenderFrame,
 } from "./SvgRenderLoopModel"
@@ -74,4 +75,21 @@ describe("shouldContinueSvgRenderLoop", () => {
       })
     ).toBe(true)
   })
+})
+
+it("settles a normal canvas fling within 600ms without reversing direction", () => {
+  let velocity = { x: 0.036, y: 0.072 }
+  let active = true
+  let frames = 0
+  while (active && frames <= 60) {
+    const next = advanceInertiaVelocity(velocity)
+    expect(next.velocity.x).toBeGreaterThanOrEqual(0)
+    expect(next.velocity.y).toBeGreaterThanOrEqual(0)
+    expect(next.velocity.y).toBeLessThan(velocity.y)
+    velocity = next.velocity
+    active = next.active
+    frames++
+  }
+  expect(frames * (1000 / 60)).toBeLessThanOrEqual(600)
+  expect(velocity).toEqual({ x: 0, y: 0 })
 })

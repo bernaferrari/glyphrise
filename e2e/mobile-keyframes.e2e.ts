@@ -187,9 +187,20 @@ test.describe("phone style keyframe recovery", () => {
     page,
   }) => {
     await page.goto("/")
-    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    await page.getByRole("button", { name: "Motion", exact: true }).click()
     await page
-      .getByRole("button", { name: "Add style keyframe at 0.00s", exact: true })
+      .getByRole("button", { name: "Timeline options", exact: true })
+      .click()
+    await page
+      .getByRole("button", { name: "Create keyframes when editing" })
+      .click()
+    await page.keyboard.press("Escape")
+    await page.getByRole("button", { name: "Properties", exact: true }).click()
+    await expect(
+      page.getByRole("button", { name: /style keyframe at/ })
+    ).toHaveCount(0)
+    await page
+      .getByRole("button", { name: "Add Fill keyframe at 0.00s", exact: true })
       .click()
     await page.getByRole("button", { name: "Motion", exact: true }).click()
     await openKeyframe(page, "Style", "0.00")

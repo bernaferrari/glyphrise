@@ -3,8 +3,6 @@
 import React from "react"
 import {
   LightPosition,
-  MaterialKeyframe,
-  MaterialSettings,
   MotionTrackId,
   ROTATION_COLOR,
   Vector3Keyframe,
@@ -15,11 +13,10 @@ import {
   findKeyframeAtTime,
   removeKeyframesAtTime,
   toggleScalarTrackKeyframeAtTime,
-  toggleStyleKeyframesAtTime,
   upsertVectorKeyframeAtTime,
 } from "./EditorKeyframeModel"
 import { InspectorKeyframeControl } from "./InspectorKeyframeControl"
-import type { FillKeyframe, FillStop, TimelineTrack } from "./TimelineModel"
+import type { TimelineTrack } from "./TimelineModel"
 
 export function useInspectorKeyframeControls({
   currentTime,
@@ -27,13 +24,6 @@ export function useInspectorKeyframeControls({
   setTracks,
   setSelectedMotionTrackId,
   setActiveRecipeId,
-  fillKeyframes,
-  setFillKeyframes,
-  materialKeyframes,
-  setMaterialKeyframes,
-  selectedShapeFillStops,
-  selectedShapeGradientType,
-  activeMaterialSettings,
   scaleTrack,
   activeObjectScale,
   activeRotationOffset,
@@ -45,7 +35,6 @@ export function useInspectorKeyframeControls({
   keyLightPositionKeyframes,
   lightPositionKeyframeAtPlayhead,
   toggleLightPositionKeyframeAtPlayhead,
-  markCustom,
   stopPlayback,
   setCurrentTime,
 }: {
@@ -54,13 +43,6 @@ export function useInspectorKeyframeControls({
   setTracks: React.Dispatch<React.SetStateAction<TimelineTrack[]>>
   setSelectedMotionTrackId: React.Dispatch<React.SetStateAction<MotionTrackId>>
   setActiveRecipeId: React.Dispatch<React.SetStateAction<string | null>>
-  fillKeyframes: FillKeyframe[]
-  setFillKeyframes: React.Dispatch<React.SetStateAction<FillKeyframe[]>>
-  materialKeyframes: MaterialKeyframe[]
-  setMaterialKeyframes: React.Dispatch<React.SetStateAction<MaterialKeyframe[]>>
-  selectedShapeFillStops: FillStop[]
-  selectedShapeGradientType: FillKeyframe["gradientType"]
-  activeMaterialSettings: MaterialSettings
   scaleTrack: TimelineTrack
   activeObjectScale: number
   activeRotationOffset: LightPosition
@@ -74,7 +56,6 @@ export function useInspectorKeyframeControls({
   keyLightPositionKeyframes: Vector3Keyframe[]
   lightPositionKeyframeAtPlayhead: () => Vector3Keyframe | undefined
   toggleLightPositionKeyframeAtPlayhead: () => void
-  markCustom: () => void
   stopPlayback: () => void
   setCurrentTime: React.Dispatch<React.SetStateAction<number>>
 }) {
@@ -125,41 +106,6 @@ export function useInspectorKeyframeControls({
       isKeyedHere={Boolean(keyframeAtPlayhead(track))}
       color={track.color}
       onToggle={() => toggleKeyframeAtPlayhead(track, value)}
-      onJump={jumpToPropertyKeyframe}
-    />
-  )
-
-  const isStyleKeyedAtPlayhead = () =>
-    Boolean(
-      findKeyframeAtTime(fillKeyframes, currentTime) ||
-      findKeyframeAtTime(materialKeyframes, currentTime)
-    )
-
-  const toggleStyleKeyframeAtPlayhead = () => {
-    markCustom()
-    const next = toggleStyleKeyframesAtTime({
-      fillKeyframes,
-      materialKeyframes,
-      fillStops: selectedShapeFillStops,
-      fillGradientType: selectedShapeGradientType,
-      materialSettings: activeMaterialSettings,
-      time: currentTime,
-      duration,
-    })
-    setFillKeyframes(next.fillKeyframes)
-    setMaterialKeyframes(next.materialKeyframes)
-  }
-
-  const styleKeyframes = [...fillKeyframes, ...materialKeyframes]
-  const renderStyleKeyframeControl = () => (
-    <InspectorKeyframeControl
-      keyframes={styleKeyframes}
-      label="style"
-      currentTime={currentTime}
-      duration={duration}
-      isKeyedHere={isStyleKeyedAtPlayhead()}
-      color="#a78bfa"
-      onToggle={toggleStyleKeyframeAtPlayhead}
       onJump={jumpToPropertyKeyframe}
     />
   )
@@ -239,7 +185,6 @@ export function useInspectorKeyframeControls({
   return {
     renderKeyframeControl,
     renderLightPositionKeyframeControl,
-    renderStyleKeyframeControl,
     renderTransformKeyframeControl,
     keyframeAtPlayhead,
   }

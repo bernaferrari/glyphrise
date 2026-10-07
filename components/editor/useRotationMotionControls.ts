@@ -151,8 +151,6 @@ export function useRotationMotionControls({
       target: Partial<{ x: number; y: number; z: number }>,
       options: { commit?: boolean; updateTimeline?: boolean } = {}
     ) => {
-      setSelectedMotionTrackId("rotation")
-      markCustom()
       const clampedTarget = clampedRotationTarget(target)
 
       const nextRotation = {
@@ -160,13 +158,13 @@ export function useRotationMotionControls({
         y: clampedTarget.y ?? activeRotationOffset.y,
         z: clampedTarget.z ?? activeRotationOffset.z,
       }
-      setRotationOffset(nextRotation)
-
       if (options.updateTimeline === false || options.commit === false) {
         setPreviewRotationOffset(nextRotation)
         return
       }
 
+      setSelectedMotionTrackId("rotation")
+      markCustom()
       setPreviewRotationOffset(null)
       applyRotation(nextRotation, playheadTime())
     },

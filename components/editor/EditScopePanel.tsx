@@ -12,7 +12,7 @@ export type EditScopePanelProps = {
   currentTime: number
   autoKeyEnabled: boolean
   onAutoKeyChange: (enabled: boolean) => void
-  properties: Array<{ name: string; times: number[] }>
+  properties: Array<{ name: string; times: number[]; onToggle?: () => void }>
 }
 
 export function EditScopePanel({

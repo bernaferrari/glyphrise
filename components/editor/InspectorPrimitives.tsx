@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react"
 import { useId, type ReactNode, type RefObject } from "react"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { usePropertyEditScope } from "./PropertyEditScope"
 
@@ -46,6 +47,57 @@ export function InspectorSection({
       </div>
       {children}
     </section>
+  )
+}
+
+function PropertyKeyframeIndicator({
+  scope,
+  property,
+}: {
+  scope: NonNullable<ReturnType<typeof usePropertyEditScope>>
+  property?: string
+}) {
+  const diamond = (
+    <svg aria-hidden="true" viewBox="0 0 16 16" className="size-2.5 shrink-0">
+      <title>{scope.label}</title>
+      <rect
+        x="4"
+        y="4"
+        width="8"
+        height="8"
+        rx="1.2"
+        transform="rotate(45 8 8)"
+        strokeWidth="2"
+        // One keyframe accent everywhere; var() needs style, not attrs.
+        className="fill-(--shape-fill) stroke-(--shape-stroke)"
+        style={
+          {
+            "--shape-fill":
+              scope.kind === "keyframe" ? "var(--timeline-accent)" : "none",
+            "--shape-stroke": "var(--timeline-accent)",
+          } as React.CSSProperties
+        }
+      />
+    </svg>
+  )
+  if (!scope.onToggle) return diamond
+  const label = `${scope.kind === "keyframe" ? "Remove" : "Add"} ${property} keyframe at ${scope.time}s`
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon-xs"
+      className="-mx-1.5"
+      aria-label={label}
+      title={label}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => {
+        event.stopPropagation()
+        scope.onToggle?.()
+      }}
+    >
+      {diamond}
+    </Button>
   )
 }
 
@@ -101,33 +153,7 @@ export function InspectorRow({
         <span className="min-w-0 text-pretty">{label}</span>
         {scope && scope.kind !== "whole" ? (
           // Animated: a diamond, filled when the playhead sits on a keyframe.
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 16 16"
-            className="size-2.5 shrink-0"
-          >
-            <title>{scope.label}</title>
-            <rect
-              x="4"
-              y="4"
-              width="8"
-              height="8"
-              rx="1.2"
-              transform="rotate(45 8 8)"
-              strokeWidth="2"
-              // One keyframe accent everywhere; var() needs style, not attrs.
-              className="fill-(--shape-fill) stroke-(--shape-stroke)"
-              style={
-                {
-                  "--shape-fill":
-                    scope.kind === "keyframe"
-                      ? "var(--timeline-accent)"
-                      : "none",
-                  "--shape-stroke": "var(--timeline-accent)",
-                } as React.CSSProperties
-              }
-            />
-          </svg>
+          <PropertyKeyframeIndicator scope={scope} property={editProperty} />
         ) : dot ? (
           <span className="size-1 shrink-0 rounded-full bg-(--timeline-accent)" />
         ) : null}

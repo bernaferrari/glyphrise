@@ -139,8 +139,9 @@ export function ColorPicker({
     setOpenStopEditor,
     setOpenStopEditorAnchor,
     setOpenStopEditorState,
-    shuffleMeshPoints,
-    shuffleMeshStops,
+    handleHuePointerDown,
+    remixMeshStops,
+    shiftHueStep,
     addMeshPoint,
     moveMeshPoint,
     reorderMeshPoints,
@@ -484,8 +485,9 @@ export function ColorPicker({
                 gradientType={gradientType}
                 stops={normalizedStops}
                 onPresetSelect={applyGradientPreset}
-                onShuffleMeshColors={shuffleMeshStops}
-                onShuffleMeshPoints={shuffleMeshPoints}
+                onRemixMesh={remixMeshStops}
+                onHuePointerDown={handleHuePointerDown}
+                onHueStep={shiftHueStep}
               />
             </div>
           )}

@@ -1,6 +1,6 @@
 "use client"
 
-import { ReactNode, RefObject } from "react"
+import { RefObject } from "react"
 import { ColorPicker } from "@/components/ui/color-picker"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import { FillMode, MaterialSettingKey, MaterialSettings } from "./EditorModel"
@@ -25,7 +25,6 @@ export type StyleInspectorSectionProps = {
   selectedShapeGradientType: FillGradientType
   selectedShapeFillStops: FillStop[]
   fillMode: FillMode
-  styleKeyframeControl: ReactNode
   onFillColorChange: (value: string, secondary?: boolean) => void
   onGradientToggle: (enabled: boolean) => void
   onGradientTypeChange: (gradientType: FillGradientType) => void
@@ -54,7 +53,6 @@ export function StyleInspectorSection({
   selectedShapeGradientType,
   selectedShapeFillStops,
   fillMode,
-  styleKeyframeControl,
   onFillColorChange,
   onGradientToggle,
   onGradientTypeChange,
@@ -80,7 +78,7 @@ export function StyleInspectorSection({
   }
 
   return (
-    <InspectorSection title="STYLE" action={styleKeyframeControl}>
+    <InspectorSection title="STYLE">
       <InspectorRow
         label="Fill"
         rowRef={fillRef}

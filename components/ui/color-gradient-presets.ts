@@ -337,3 +337,19 @@ export const shuffledMeshPositions = (stops: GradientStop[]): GradientStop[] =>
       y: Math.max(0, Math.min(1, home.y + jitter())),
     }
   })
+
+/** Fresh colors and a fresh warp in one go. */
+export const remixedMesh = (stops: GradientStop[]): GradientStop[] =>
+  shuffledMeshPositions(shuffledMeshColors(stops))
+
+/** Spins every stop around the color wheel; greys stay grey. */
+export const hueShiftedStops = <T extends GradientStop>(
+  stops: T[],
+  degrees: number
+): T[] =>
+  stops.map((stop) => {
+    const hsv = hexToHsv(stop.color)
+    if (hsv.s === 0) return stop
+    const h = (((hsv.h + degrees) % 360) + 360) % 360
+    return { ...stop, color: hsvToHex(h, hsv.s, hsv.v) }
+  })

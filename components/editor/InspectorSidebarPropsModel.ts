@@ -29,7 +29,6 @@ export type UseInspectorSidebarPropsArgs = {
   selectedShapeGradientType: FillGradientType
   selectedShapeFillStops: FillStop[]
   fillMode: FillMode
-  styleKeyframeControl: ReactNode
   onFillColorChange: (value: string, secondary?: boolean) => void
   onGradientToggle: (enabled: boolean) => void
   onGradientTypeChange: (gradientType: FillGradientType) => void
@@ -120,7 +119,6 @@ export type StyleSidebarPropsArgs = Pick<
   | "selectedShapeGradientType"
   | "selectedShapeFillStops"
   | "fillMode"
-  | "styleKeyframeControl"
   | "onFillColorChange"
   | "onGradientToggle"
   | "onGradientTypeChange"

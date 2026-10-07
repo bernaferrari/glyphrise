@@ -156,3 +156,33 @@ describe("Reset view scale", () => {
     expect(options.setActiveRecipeId).not.toHaveBeenCalled()
   })
 })
+
+describe("Canvas rotation preview", () => {
+  it("keeps drag and momentum frames out of document history until the final commit", () => {
+    const { controls, options } = setup({ autoKeyEnabled: true })
+    for (let frame = 1; frame <= 60; frame++) {
+      controls.handleViewRotationSet(
+        { x: 10, y: frame, z: 5 },
+        { commit: false }
+      )
+    }
+    expect(options.setPreviewRotationOffset).toHaveBeenLastCalledWith({
+      x: 10,
+      y: 60,
+      z: 5,
+    })
+    expect(options.setRotationOffset).not.toHaveBeenCalled()
+    expect(options.setRotationAxisKeyframes).not.toHaveBeenCalled()
+    expect(options.setActiveRecipeId).not.toHaveBeenCalled()
+    expect(options.setSelectedMotionTrackId).not.toHaveBeenCalled()
+
+    controls.handleViewRotationSet({ x: 10, y: 60, z: 5 }, { commit: true })
+    expect(options.setRotationOffset).toHaveBeenCalledExactlyOnceWith({
+      x: 10,
+      y: 60,
+      z: 5,
+    })
+    expect(options.setRotationAxisKeyframes).toHaveBeenCalledOnce()
+    expect(options.setPreviewRotationOffset).toHaveBeenLastCalledWith(null)
+  })
+})
