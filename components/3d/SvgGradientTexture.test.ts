@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { describe, expect, it, vi } from "vitest"
-import { fallbackGoogleMeshStops, meshGradientColor } from "./SvgColor"
+import { fallbackGoogleMeshStops } from "./SvgColor"
 import { updateGroupFillColors } from "./SvgMaterialState"
 import { prepareFilamentExportObject } from "./SvgExport"
 import { disposeObjectTree } from "./SvgSceneUtils"
@@ -11,6 +11,12 @@ import {
   type MaterialPresetId,
 } from "./MaterialPresets"
 import * as SvgColor from "./SvgColor"
+
+const meshGradientColor = (u: number, v: number) =>
+  SvgColor.createIconGradientSampler("mesh", fallbackGoogleMeshStops)(
+    u,
+    v
+  ).clone()
 
 const makeIcon = () => {
   const geometry = new THREE.PlaneGeometry(24, 24).translate(12, 12, 0)

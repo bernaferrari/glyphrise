@@ -28,54 +28,6 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
   return x * x * (3 - 2 * x)
 }
 
-const mixColor = (a: THREE.Color, b: THREE.Color, t: number) =>
-  a.clone().lerp(b, t)
-
-const bezierColor = (
-  a: THREE.Color,
-  b: THREE.Color,
-  c: THREE.Color,
-  t: number
-) => mixColor(mixColor(a, b, t), mixColor(b, c, t), t)
-
-const clampColor = (color: THREE.Color) =>
-  new THREE.Color(
-    Math.max(0, Math.min(1, color.r)),
-    Math.max(0, Math.min(1, color.g)),
-    Math.max(0, Math.min(1, color.b))
-  )
-
-const saturateIcon3DColor = (color: THREE.Color) => {
-  const luminance = color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722
-  const saturated = mixColor(
-    new THREE.Color(luminance, luminance, luminance),
-    color,
-    1.6
-  )
-  return clampColor(
-    new THREE.Color(
-      (saturated.r - 0.5) * 1.2 + 0.5,
-      (saturated.g - 0.5) * 1.2 + 0.5,
-      (saturated.b - 0.5) * 1.2 + 0.5
-    )
-  )
-}
-
-export const meshGradientColor = (u: number, v: number) => {
-  const x = smoothstep(0.02, 0.98, u)
-  const y = smoothstep(0.02, 0.98, v)
-  const rows = GOOGLE_MESH_PALETTE.map((row) =>
-    bezierColor(
-      new THREE.Color(row[0]),
-      new THREE.Color(row[1]),
-      new THREE.Color(row[2]),
-      x
-    )
-  )
-  const body = bezierColor(rows[0], rows[1], rows[2], y)
-  return saturateIcon3DColor(body)
-}
-
 const colorAtPalettePosition = (palette: THREE.Color[], t: number) => {
   if (palette.length === 0) return new THREE.Color("#ffffff")
   if (palette.length === 1) return palette[0].clone()
@@ -103,7 +55,7 @@ const createMeshSampler = (
   const warped = isWarpedMesh(points)
   const extras = meshExtraPoints(stops).map((point) => ({
     ...point,
-    color: saturateIcon3DColor(new THREE.Color(point.color)),
+    color: new THREE.Color(point.color),
   }))
   const result = new THREE.Color()
   return (u: number, v: number) => {
@@ -117,14 +69,9 @@ const createMeshSampler = (
         x ** 2 * grid[offset + 2][channel]
       return (1 - y) ** 2 * row(0) + 2 * y * (1 - y) * row(3) + y ** 2 * row(6)
     }
+    // Finishes own any saturation/brightness grading, so the mesh renders the
+    // colors exactly as picked (matching the 2D preview).
     result.setRGB(blend("r"), blend("g"), blend("b"))
-    const luminance = result.r * 0.2126 + result.g * 0.7152 + result.b * 0.0722
-    const grade = (value: number) =>
-      Math.max(
-        0,
-        Math.min(1, (luminance + (value - luminance) * 1.6 - 0.5) * 1.2 + 0.5)
-      )
-    result.setRGB(grade(result.r), grade(result.g), grade(result.b))
     for (const extra of extras) {
       result.lerp(extra.color, meshBlobWeight(extra, u, v))
     }
