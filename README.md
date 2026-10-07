@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://glyphrise.vercel.app">Try Glyphrise</a> ·
-  <a href="#run-locally">Run locally</a> ·
+  <a href="#make-your-first-icon">Get started</a> ·
   <a href="#exports">Exports</a>
 </p>
 
@@ -92,42 +92,7 @@ switch, duplicate, or delete projects. **Download a copy** saves a portable
 JSON file; **Open from computer** restores one. Clearing browser site data
 removes local projects, so keep copies of work you want to save or move.
 
-## Run locally
-
-Use **Node.js 24.x** and **pnpm 11.x**, matching CI. Node.js 22 or newer is
-supported by the package.
-
-```bash
-git clone https://github.com/bernaferrari/glyphrise.git
-cd glyphrise
-pnpm install
-pnpm dev
-```
-
-Open [localhost:3000](http://localhost:3000).
-
-### Development
-
-Built with Next.js, React, Three.js, TypeScript, Tailwind CSS, and shadcn/ui
-with Base UI. The editor renders directly with Three.js.
-
-| Command             | Purpose                            |
-| ------------------- | ---------------------------------- |
-| `pnpm test`         | Unit tests                         |
-| `pnpm test:e2e`     | Browser workflows; requires Chrome |
-| `pnpm typecheck`    | TypeScript checks                  |
-| `pnpm lint`         | Oxlint                             |
-| `pnpm format:check` | Oxfmt                              |
-| `pnpm build`        | Production build                   |
-| `pnpm start`        | Serve the production build         |
-
-Source: [`app/`](app/) for the app shell,
-[`components/3d/`](components/3d/) for geometry and rendering,
-[`components/editor/`](components/editor/) for the workspace and timeline,
-[`components/ui/`](components/ui/) for shared controls, and [`e2e/`](e2e/)
-for browser tests.
-
-### Compatibility
+## Compatibility
 
 Use a browser with **WebGL2**. Video export checks available codecs; Material
 Symbols and web fonts require network access.
@@ -136,7 +101,3 @@ For SVG imports, use a `viewBox`, outline text, expand strokes, and flatten
 effects. Plain paths, basic shapes, and groups work best. Filters, masks,
 embedded images, external references, and other unsupported SVG content are
 rejected. Imports are sanitized before use.
-
-## License
-
-[MIT](LICENSE) · Copyright © 2026 Bernardo Ferrari.
