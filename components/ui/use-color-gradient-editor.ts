@@ -52,7 +52,7 @@ type UseColorGradientEditorArgs = {
 }
 
 const HUE_TAP_STEP = 60
-const HUE_DEGREES_PER_PIXEL = 1.5
+const HUE_DIAL_DEAD_ZONE = 6
 
 export function useColorGradientEditor({
   value,
@@ -143,13 +143,16 @@ export function useColorGradientEditor({
     updateStops,
   ])
 
+  // While a drag steers the hue dial it follows the pointer without easing.
+  const [hueScrubbing, setHueScrubbing] = React.useState(false)
+
   const shiftHueStep = React.useCallback(() => {
     updateStops(hueShiftedStops(normalizedStops, HUE_TAP_STEP))
   }, [normalizedStops, updateStops])
 
   /**
-   * Tap spins every hue a step around the wheel; drag sideways scrubs it
-   * live from the colors as they were when the drag began.
+   * Tap spins every hue a step around the wheel. Drag turns the dial like a
+   * knob: circling the pointer around it turns the colors with it, 1:1.
    */
   const handleHuePointerDown = React.useCallback(
     (e: React.PointerEvent) => {
@@ -157,19 +160,40 @@ export function useColorGradientEditor({
       e.preventDefault()
       e.stopPropagation()
       const base = normalizedStops
+      const rect = e.currentTarget.getBoundingClientRect()
+      const cx = rect.left + rect.width / 2
+      const cy = rect.top + rect.height / 2
       const startX = e.clientX
+      const startY = e.clientY
+      // Clockwise from 12 o'clock, like the dial's dots.
+      const pointerAngle = (x: number, y: number) =>
+        (Math.atan2(x - cx, cy - y) * 180) / Math.PI
+      let lastAngle: number | null = null
+      let turned = 0
       let moved = false
       closeStopEditorAfterGradientMutation()
       bindWindowPointerDrag({
         documentEdit: true,
         pointerId: e.pointerId,
         onMove: (event) => {
-          const dx = event.clientX - startX
-          if (!moved && Math.abs(dx) < 3) return
+          if (
+            !moved &&
+            Math.hypot(event.clientX - startX, event.clientY - startY) < 3
+          )
+            return
+          if (!moved) setHueScrubbing(true)
           moved = true
-          updateStops(hueShiftedStops(base, dx * HUE_DEGREES_PER_PIXEL))
+          // Right on top of the center the angle is noise; wait to leave it.
+          if (Math.hypot(event.clientX - cx, event.clientY - cy) < HUE_DIAL_DEAD_ZONE)
+            return
+          const angle = pointerAngle(event.clientX, event.clientY)
+          if (lastAngle !== null)
+            turned += ((((angle - lastAngle) % 360) + 540) % 360) - 180
+          lastAngle = angle
+          updateStops(hueShiftedStops(base, turned))
         },
         onEnd: (event) => {
+          setHueScrubbing(false)
           if (!moved && event?.type !== "pointercancel")
             updateStops(hueShiftedStops(base, HUE_TAP_STEP))
         },
@@ -478,6 +502,7 @@ export function useColorGradientEditor({
     handleHuePointerDown,
     remixMeshStops,
     shiftHueStep,
+    hueScrubbing,
     addMeshPoint,
     moveMeshPoint,
     reorderMeshPoints,

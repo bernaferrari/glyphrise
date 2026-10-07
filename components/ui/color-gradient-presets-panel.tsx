@@ -1,9 +1,10 @@
 "use client"
 
+import * as React from "react"
 import { Check, Shuffle } from "lucide-react"
 import { GRADIENT_PRESETS, type GradientPreset } from "./color-gradient-presets"
 import { type GradientType } from "./color-gradient-mode-toggle"
-import { gradientPreviewCss } from "./color-picker-utils"
+import { gradientPreviewCss, hexToHsv } from "./color-picker-utils"
 import { MeshPreviewCanvas } from "./color-mesh-preview"
 import type { EditableColorStop } from "./color-stop-model"
 
@@ -14,10 +15,84 @@ interface ColorGradientPresetsPanelProps {
   onRemixMesh: () => void
   onHuePointerDown: (event: React.PointerEvent) => void
   onHueStep: () => void
+  hueScrubbing: boolean
 }
 
 const headerButtonClass =
   "grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
+
+const HUE_WHEEL = `conic-gradient(${[0, 60, 120, 180, 240, 300, 360]
+  .map((hue) => `hsl(${hue} 90% 60%)`)
+  .join(", ")})`
+
+const DOT_RADIUS = 7.5
+
+/**
+ * A tiny color-harmony wheel: every color in the gradient sits as a dot at
+ * its hue. Shifting the hue turns the whole constellation together, so the
+ * dial always shows the colors on screen.
+ */
+function HueDial({
+  stops,
+  scrubbing,
+}: {
+  stops: EditableColorStop[]
+  scrubbing: boolean
+}) {
+  const dots = React.useMemo(() => {
+    const seen = new Set<string>()
+    return stops.flatMap((stop) => {
+      const color = stop.color.toLowerCase()
+      const hsv = hexToHsv(color)
+      if (hsv.s < 8 || seen.has(color)) return []
+      seen.add(color)
+      return [{ color, hue: hsv.h }]
+    })
+  }, [stops])
+
+  // Dots sit relative to the first one; only the group turns. A hue shift
+  // keeps their spacing, so it reads as one smooth spin.
+  const anchor = dots[0]?.hue ?? 0
+  // Keep the angle continuous so 350° → 10° turns forward, not all the way back.
+  const [angle, setAngle] = React.useState(anchor)
+  const [shownAnchor, setShownAnchor] = React.useState(anchor)
+  if (anchor !== shownAnchor) {
+    setShownAnchor(anchor)
+    setAngle(angle + ((((anchor - shownAnchor) % 360) + 540) % 360) - 180)
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      data-scrubbing={scrubbing || undefined}
+      className="relative size-5 rounded-full transition-[scale] duration-150 ease-out group-hover/hue:scale-110 data-scrubbing:scale-125"
+    >
+      <span
+        className="absolute inset-0 rounded-full opacity-45 [mask:radial-gradient(circle,transparent_8px,black_8.5px)]"
+        style={{ background: HUE_WHEEL }}
+      />
+      <span
+        data-scrubbing={scrubbing || undefined}
+        className="absolute inset-0 transition-[rotate] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] data-scrubbing:duration-0"
+        style={{ rotate: `${angle}deg` }}
+      >
+        {dots.map(({ color, hue }) => {
+          const theta = ((hue - anchor) * Math.PI) / 180
+          return (
+            <span
+              key={color}
+              className="absolute top-1/2 left-1/2 size-[5px] rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.45)]"
+              style={{
+                backgroundColor: color,
+                translate: `calc(-50% + ${Math.sin(theta) * DOT_RADIUS}px) calc(-50% - ${Math.cos(theta) * DOT_RADIUS}px)`,
+              }}
+            />
+          )
+        })}
+      </span>
+    </span>
+  )
+}
 
 const samePoint = (a?: number, b?: number) =>
   Math.abs((a ?? 0) - (b ?? 0)) < 1e-3
@@ -29,6 +104,7 @@ export function ColorGradientPresetsPanel({
   onRemixMesh,
   onHuePointerDown,
   onHueStep,
+  hueScrubbing,
 }: ColorGradientPresetsPanelProps) {
   return (
     <div className="space-y-1.5">
@@ -39,9 +115,9 @@ export function ColorGradientPresetsPanel({
         <div className="flex items-center gap-1">
           <button
             type="button"
-            title="Shift hue — click to spin, drag to scrub"
+            title="Shift hue — click to spin, drag around to turn"
             aria-label="Shift gradient hue"
-            className={`${headerButtonClass} group/hue cursor-ew-resize touch-none`}
+            className={`${headerButtonClass} group/hue cursor-grab touch-none active:cursor-grabbing`}
             onPointerDown={onHuePointerDown}
             onClick={(event) => {
               event.stopPropagation()
@@ -49,10 +125,7 @@ export function ColorGradientPresetsPanel({
               if (event.detail === 0) onHueStep()
             }}
           >
-            <span
-              aria-hidden="true"
-              className="size-3.5 rounded-full bg-[conic-gradient(#ff4d4d,#ffd84d,#4dff88,#4dd8ff,#7a4dff,#ff4dd8,#ff4d4d)] ring-1 ring-foreground/15 transition-transform duration-300 ease-out group-hover/hue:rotate-90 group-active/hue:scale-90"
-            />
+            <HueDial stops={stops} scrubbing={hueScrubbing} />
           </button>
           {gradientType === "mesh" && (
             <button

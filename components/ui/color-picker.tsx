@@ -142,6 +142,7 @@ export function ColorPicker({
     handleHuePointerDown,
     remixMeshStops,
     shiftHueStep,
+    hueScrubbing,
     addMeshPoint,
     moveMeshPoint,
     reorderMeshPoints,
@@ -488,6 +489,7 @@ export function ColorPicker({
                 onRemixMesh={remixMeshStops}
                 onHuePointerDown={handleHuePointerDown}
                 onHueStep={shiftHueStep}
+                hueScrubbing={hueScrubbing}
               />
             </div>
           )}
