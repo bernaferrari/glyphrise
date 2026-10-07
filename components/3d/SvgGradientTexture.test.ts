@@ -93,8 +93,10 @@ describe("portable icon gradient", () => {
       const first = iconGradientTexture(new THREE.Group(), "mesh", stops)
       const second = iconGradientTexture(new THREE.Group(), "mesh", stops)
       expect(sampler).toHaveBeenCalledTimes(1)
-      expect(second).not.toBe(first)
-      expect(second.image.data).not.toBe(first.image.data)
+      // Compare identity directly so the matcher doesn't deeply inspect
+      // two equal, full-sized texture buffers to explain a negated match.
+      expect(second === first).toBe(false)
+      expect(second.image.data === first.image.data).toBe(false)
       expect(
         second.image.data!.every(
           (value, index) => value === first.image.data![index]
