@@ -1,6 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
-import { MOTION_RECIPES } from "./MotionRecipes"
-import { MATERIAL_PREVIEW } from "./FinishRegistry"
+import { useEffect, useState } from "react"
 import { readCurrentEditorProjectId } from "./EditorDocumentModel"
 
 // Preserve the existing opt-out when upgrading the earlier quick-start UI.
@@ -42,24 +40,12 @@ export function useCreationJourney({
     if (isPlaying && hasMotion) setHasPreviewed(true)
   }, [isPlaying, hasMotion])
 
-  const templates = useMemo(
-    () =>
-      MOTION_RECIPES.slice(0, 3).map((recipe) => ({
-        id: recipe.id,
-        name: recipe.name,
-        description: recipe.description,
-        preview: MATERIAL_PREVIEW[recipe.materialPreset],
-      })),
-    []
-  )
-
   return {
     welcomeOpen,
     hasStyle,
     hasMotion,
     hasPreviewed,
     exportCompleted,
-    templates,
     dismissWelcome: () => {
       window.localStorage.setItem(WELCOME_STORAGE_KEY, "dismissed")
       setWelcomeOpen(false)

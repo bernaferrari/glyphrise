@@ -34,7 +34,6 @@ export const TimelineContextMenu = ({
 
   return (
     <ContextMenuContent
-      variant="editor"
       anchor={anchor}
       positionMethod="fixed"
       collisionPadding={8}
@@ -43,42 +42,35 @@ export const TimelineContextMenu = ({
       onClick={(event) => event.stopPropagation()}
     >
       {menu.title && (
-        <div className="px-2 pt-0.5 pb-1 text-2xs font-medium tracking-widest text-muted-foreground uppercase">
+        <div className="truncate px-1.5 py-1 text-xs font-medium text-muted-foreground">
           {menu.title}
         </div>
       )}
       {menu.items.map((item, index) => {
         if (item.type === "separator") {
-          return (
-            <ContextMenuSeparator
-              variant="editor"
-              key={`separator-${index}`}
-              className="my-1"
-            />
-          )
+          return <ContextMenuSeparator key={`separator-${index}`} />
         }
 
         if (item.type === "submenu") {
           return (
             <ContextMenuSub key={`${item.label}-${index}`}>
-              <ContextMenuSubTrigger size="editor" className="h-7">
+              <ContextMenuSubTrigger>
                 <span className="truncate">{item.label}</span>
                 {item.shortcut && (
-                  <ContextMenuShortcut variant="editor">
+                  <ContextMenuShortcut variant="mono">
                     {item.shortcut}
                   </ContextMenuShortcut>
                 )}
               </ContextMenuSubTrigger>
-              <ContextMenuSubContent variant="editor" className="min-w-36">
+              <ContextMenuSubContent className="min-w-36">
                 {item.items.map((child, childIndex) => (
                   <ContextMenuItem
-                    size="editor-submenu"
                     key={`${child.label}-${childIndex}`}
                     onSelect={() => {
                       child.onSelect()
                       onClose()
                     }}
-                    className="h-7 justify-between"
+                    className="justify-between"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       {child.easing && (
@@ -117,7 +109,6 @@ export const TimelineContextMenu = ({
 
         return (
           <ContextMenuItem
-            size="editor"
             key={`${item.label}-${index}`}
             disabled={item.disabled}
             variant={item.danger ? "destructive" : "default"}
@@ -126,7 +117,7 @@ export const TimelineContextMenu = ({
               item.onSelect()
               onClose()
             }}
-            className="h-7 justify-between"
+            className="justify-between"
           >
             <span className="flex min-w-0 items-center gap-2">
               {item.easing && (

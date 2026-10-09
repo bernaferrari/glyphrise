@@ -41,7 +41,6 @@ import {
   applySuccessfulBackup,
   chooseDeletionReplacement,
   createProjectActionError,
-  createProjectFromTemplateAction,
   flushAutosaveIfAllowed,
   persistCurrentProjectDeletion,
   persistInactiveProjectDeletion,
@@ -51,7 +50,6 @@ import {
   type ProjectActionError,
   type ProjectActivationKind,
 } from "./EditorProjectActivation"
-import { MOTION_RECIPES } from "./MotionRecipes"
 import type { MaterialPresetId } from "../3d/MaterialPresets"
 import type {
   FillGradientType,
@@ -536,47 +534,6 @@ export function useEditorSnapshotHistory({
     }
   }
 
-  const createProjectFromTemplate = (templateId: string, name: string) => {
-    const recipe = MOTION_RECIPES.find(
-      (candidate) => candidate.id === templateId
-    )
-    if (!recipe) {
-      setProjectActionError(
-        createProjectActionError(
-          "create",
-          "That style template is unavailable."
-        )
-      )
-      return false
-    }
-    const result = createProjectFromTemplateAction({
-      baseSnapshot: initialSnapshotRef.current,
-      recipe,
-      name,
-      outgoing: {
-        snapshot: snapshotRef.current,
-        project: projectRef.current,
-      },
-      undoStack: [snapshotRef.current],
-    })
-    if (!result.ok || !result.persisted) {
-      setProjectActionError(result.actionError)
-      return false
-    }
-    restoreSnapshot(result.persisted.snapshot)
-    history.resetHistory(result.persisted.snapshot, true)
-    markSnapshotPersisted(result.persisted.snapshot, result.persisted.project)
-    setProject(result.persisted.project)
-    setRecentProjects(listPersistedEditorProjects())
-    setProjectStatus("saved")
-    setProjectStatusMessage(
-      `${result.persisted.project.name} created and saved locally.`
-    )
-    setProjectActionError(null)
-    setNewProjectDialogOpen(false)
-    return true
-  }
-
   const renameProject = (name: string) => {
     const normalizedName = normalizeProjectName(name)
     if (normalizedName === project.name) return
@@ -889,7 +846,6 @@ export function useEditorSnapshotHistory({
     snapshot,
     newProject: openProjects,
     createNewProject,
-    createProjectFromTemplate,
     finalizeProjectBaseline,
     newProjectDialogOpen,
     setNewProjectDialogOpen,

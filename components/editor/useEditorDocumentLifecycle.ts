@@ -118,7 +118,6 @@ export function useEditorDocumentLifecycle(editor: EditorBaseState) {
       project: historySurface.project,
       renameProject: historySurface.renameProject,
       createNewProject: historySurface.createNewProject,
-      createProjectFromTemplate: historySurface.createProjectFromTemplate,
       finalizeProjectBaseline: historySurface.finalizeProjectBaseline,
       newProjectDialogOpen: historySurface.newProjectDialogOpen,
       setNewProjectDialogOpen: historySurface.setNewProjectDialogOpen,

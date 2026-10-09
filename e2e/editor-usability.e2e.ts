@@ -333,7 +333,7 @@ test("panel visibility eases in both directions", async ({ page }) => {
   const preview = page.locator("#glyphrise-preview-pane")
   const originalWidth = (await preview.boundingBox())!.width
   await page.getByRole("button", { name: "More options", exact: true }).click()
-  await page.getByRole("button", { name: "Hide panels", exact: true }).click()
+  await page.getByRole("menuitem", { name: "Hide panels", exact: true }).click()
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -355,7 +355,7 @@ test("panel visibility eases in both directions", async ({ page }) => {
   expect((await preview.boundingBox())!.width).toBeGreaterThan(originalWidth)
 
   await page.getByRole("button", { name: "More options", exact: true }).click()
-  await page.getByRole("button", { name: "Show panels", exact: true }).click()
+  await page.getByRole("menuitem", { name: "Show panels", exact: true }).click()
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -659,7 +659,7 @@ test.describe("phone shared canvas transition", () => {
       page.getByRole("button", { name: "Focus canvas", exact: true })
     ).toHaveCount(0)
     await expect(
-      page.getByRole("button", { name: "Hide panels", exact: true })
+      page.getByRole("menuitem", { name: "Hide panels", exact: true })
     ).toBeHidden()
   })
 })

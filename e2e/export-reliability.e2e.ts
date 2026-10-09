@@ -278,8 +278,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   await page
     .getByRole("button", { name: "Open file menu", exact: true })
     .click()
-  await page.getByRole("button", { name: "All files", exact: true }).click()
-  await page.getByText("Create a new file", { exact: true }).click()
+  await page.getByRole("menuitem", { name: "All files…", exact: true }).click()
   await page.getByLabel("New file name").fill("Disposable")
   await page.getByRole("button", { name: "Start blank", exact: true }).click()
   const deletedId = await page.evaluate(() =>
@@ -288,7 +287,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   await page
     .getByRole("button", { name: "Open file menu", exact: true })
     .click()
-  await page.getByRole("button", { name: "All files", exact: true }).click()
+  await page.getByRole("menuitem", { name: "All files…", exact: true }).click()
   await page
     .getByRole("button", { name: "Delete Disposable", exact: true })
     .click()

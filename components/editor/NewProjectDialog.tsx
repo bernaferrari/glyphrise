@@ -7,7 +7,6 @@ import {
   FilePlus2,
   FolderOpen,
   Search,
-  Sparkles,
   Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,6 +19,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { EditorProjectMetadata } from "./EditorDocumentModel"
+import { STARTERS } from "./StarterProjectModel"
 import {
   projectsDialogErrorText,
   type ProjectActionError,
@@ -33,15 +33,9 @@ export type NewProjectDialogProps = {
   open: boolean
   currentProjectId: string
   recentProjects: EditorProjectMetadata[]
-  templates: Array<{
-    id: string
-    name: string
-    description: string
-    preview: string
-  }>
   onOpenChange: (open: boolean) => void
-  onCreate: (kind: "blank" | "example", name: string) => void
-  onCreateFromTemplate: (templateId: string, name: string) => void
+  /** Starts a blank file, or one of the welcome starters by id. */
+  onCreate: (kind: "blank", name: string, starterId?: string) => void
   onOpenRecent: (projectId: string) => void
   onDuplicateRecent: (projectId: string) => void
   onDeleteRecent: (projectId: string) => void
@@ -69,9 +63,7 @@ function NewProjectDialogContent({
   open,
   currentProjectId,
   recentProjects,
-  templates,
   onCreate,
-  onCreateFromTemplate,
   onOpenRecent,
   onDuplicateRecent,
   onDeleteRecent,
@@ -228,31 +220,7 @@ function NewProjectDialogContent({
             </div>
           </section>
         ) : null}
-        {recentProjects.length > 0 ? (
-          <details className="group">
-            <summary className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm font-medium hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring">
-              <FilePlus2 className="size-4" />
-              Create a new file
-            </summary>
-            <div className="pt-3">
-              <NewProjectForm
-                name={name}
-                setName={setName}
-                templates={templates}
-                onCreate={onCreate}
-                onCreateFromTemplate={onCreateFromTemplate}
-              />
-            </div>
-          </details>
-        ) : (
-          <NewProjectForm
-            name={name}
-            setName={setName}
-            templates={templates}
-            onCreate={onCreate}
-            onCreateFromTemplate={onCreateFromTemplate}
-          />
-        )}
+        <NewProjectForm name={name} setName={setName} onCreate={onCreate} />
       </div>
 
       <DialogFooter
@@ -319,13 +287,8 @@ function NewProjectDialogContent({
 function NewProjectForm({
   name,
   setName,
-  templates,
   onCreate,
-  onCreateFromTemplate,
-}: Pick<
-  NewProjectDialogProps,
-  "templates" | "onCreate" | "onCreateFromTemplate"
-> & {
+}: Pick<NewProjectDialogProps, "onCreate"> & {
   name: string
   setName: (name: string) => void
 }) {
@@ -345,23 +308,20 @@ function NewProjectForm({
         >
           New file
         </h3>
-        <label className="flex min-w-0 items-center gap-2 text-2xs text-muted-foreground">
-          <span className="sr-only">New file name</span>
-          <input
-            id="new-project-name"
-            aria-label="New file name"
-            value={name}
-            maxLength={80}
-            autoComplete="off"
-            spellCheck={false}
-            data-1p-ignore
-            data-lpignore="true"
-            onChange={(event) => setName(event.currentTarget.value)}
-            className="h-8 w-48 min-w-0 rounded-md bg-muted/60 px-2.5 text-xs text-foreground transition-[background-color,box-shadow] outline-none placeholder:text-muted-foreground hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring/35"
-          />
-        </label>
+        <input
+          id="new-project-name"
+          aria-label="New file name"
+          value={name}
+          maxLength={80}
+          autoComplete="off"
+          spellCheck={false}
+          data-1p-ignore
+          data-lpignore="true"
+          onChange={(event) => setName(event.currentTarget.value)}
+          className="h-8 w-48 min-w-0 rounded-md bg-muted/60 px-2.5 text-base text-foreground transition-[background-color,box-shadow] outline-none placeholder:text-muted-foreground hover:bg-muted focus:bg-muted focus:ring-2 focus:ring-ring/35 md:text-xs"
+        />
       </div>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(88px,1fr))] gap-2">
         <StartTile
           type="submit"
           label="Start blank"
@@ -372,33 +332,18 @@ function NewProjectForm({
             </span>
           }
         />
-        <StartTile
-          label="Use example"
-          hint="Animated pair"
-          onClick={() => onCreate("example", name)}
-          preview={
-            <span className="grid size-full place-items-center rounded-lg bg-muted text-muted-foreground">
-              <Sparkles className="size-5" />
-            </span>
-          }
-        />
-        {templates.map((template) => (
+        {STARTERS.map((starter) => (
           <StartTile
-            key={template.id}
-            label={template.name}
-            hint={template.description}
-            onClick={() => onCreateFromTemplate(template.id, name)}
+            key={starter.id}
+            label={starter.label}
+            hint={starter.hint}
+            onClick={() => onCreate("blank", name, starter.id)}
             preview={
-              <span className="grid size-full place-items-center rounded-lg bg-muted/60">
-                <span
-                  className="size-9 rounded-full shadow-finish-swatch [background:var(--preview-background)]"
-                  style={
-                    {
-                      "--preview-background": template.preview,
-                    } as React.CSSProperties
-                  }
-                />
-              </span>
+              <img
+                src={`/starter-previews/${starter.id}.png`}
+                alt=""
+                className="size-full rounded-lg bg-starter-background object-cover"
+              />
             }
           />
         ))}
@@ -423,13 +368,16 @@ function StartTile({
   return (
     <button
       type={type}
+      aria-label={label}
       onClick={onClick}
-      title={hint}
       className="group flex min-w-0 flex-col gap-2 rounded-xl p-1.5 text-left transition-colors duration-150 hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
     >
-      <span className="block aspect-4/3 w-full">{preview}</span>
-      <span className="line-clamp-2 min-h-8 px-0.5 text-xs leading-4 font-medium text-foreground">
-        {label}
+      <span className="block aspect-square w-full">{preview}</span>
+      <span className="grid gap-0.5 px-0.5">
+        <span className="truncate text-xs font-medium text-foreground">
+          {label}
+        </span>
+        <span className="truncate text-xs text-muted-foreground">{hint}</span>
       </span>
     </button>
   )

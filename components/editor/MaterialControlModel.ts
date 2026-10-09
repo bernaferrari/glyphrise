@@ -13,7 +13,7 @@ export type MaterialControlDefinition = {
 export const MATERIAL_CONTROLS: MaterialControlDefinition[] = [
   {
     key: "roughness",
-    label: "Smoothness",
+    label: "Roughness",
     min: 0,
     max: 1,
     sliderMax: 1,
@@ -49,7 +49,7 @@ export const MATERIAL_CONTROLS: MaterialControlDefinition[] = [
   },
   {
     key: "clearcoatRoughness",
-    label: "Coat Soft",
+    label: "Coat roughness",
     min: 0,
     max: 1,
     sliderMax: 1,
@@ -67,7 +67,7 @@ export const MATERIAL_CONTROLS: MaterialControlDefinition[] = [
   },
   {
     key: "thickness",
-    label: "Glass Depth",
+    label: "Glass thickness",
     min: 0.1,
     max: 4,
     sliderMax: 2,

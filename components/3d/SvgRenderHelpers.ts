@@ -150,6 +150,7 @@ export const renderSvgScene = ({
   iconB,
   marker,
   transformGizmo,
+  showOverlays = true,
 }: {
   isCrossfade: boolean
   scene: THREE.Scene
@@ -159,12 +160,14 @@ export const renderSvgScene = ({
   iconB: THREE.Group | null
   marker: THREE.Group | null
   transformGizmo: THREE.Group | null
+  /** Exports pass false so editor helpers never reach the rendered pixels. */
+  showOverlays?: boolean
 }) => {
   const markerVisible = marker?.visible ?? false
   const transformGizmoVisible = transformGizmo?.visible ?? false
 
   const renderCenterOverlay = () => {
-    if (!markerVisible && !transformGizmoVisible) return
+    if (!showOverlays || (!markerVisible && !transformGizmoVisible)) return
 
     const iconAVisible = iconA?.visible ?? false
     const iconBVisible = iconB?.visible ?? false

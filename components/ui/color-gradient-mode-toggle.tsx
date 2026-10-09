@@ -1,10 +1,10 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export type GradientType = "linear" | "radial" | "conic" | "mesh"
 
-const GRADIENT_TYPES: Array<{
+export const GRADIENT_TYPES: Array<{
   id: GradientType
   label: string
 }> = [
@@ -33,37 +33,27 @@ export function ColorGradientModeToggle({
   onGradientTypeChange,
 }: ColorGradientModeToggleProps) {
   return (
-    <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/45 p-0.5">
-      <button
-        type="button"
-        onClick={() => onGradientToggle?.(false)}
-        className={cn(
-          "h-8 flex-1 rounded-md text-2xs font-medium transition-colors",
-          !isGradient
-            ? "bg-foreground text-background shadow-sm"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-        )}
-      >
-        Solid
-      </button>
-      {VISIBLE_GRADIENT_TYPES.map((type) => (
-        <button
-          key={type.id}
-          type="button"
-          onClick={() => {
-            onGradientToggle?.(true)
-            onGradientTypeChange?.(type.id)
-          }}
-          className={cn(
-            "h-8 flex-1 rounded-md text-2xs font-medium transition-colors",
-            isGradient && gradientType === type.id
-              ? "bg-foreground text-background shadow-sm"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          {type.label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      value={isGradient ? gradientType : "solid"}
+      onValueChange={(value: GradientType | "solid") => {
+        if (value === "solid") {
+          onGradientToggle?.(false)
+          return
+        }
+        onGradientToggle?.(true)
+        onGradientTypeChange?.(value)
+      }}
+    >
+      <TabsList aria-label="Fill type" className="w-full">
+        <TabsTrigger value="solid" size="compact">
+          Solid
+        </TabsTrigger>
+        {VISIBLE_GRADIENT_TYPES.map((type) => (
+          <TabsTrigger key={type.id} value={type.id} size="compact">
+            {type.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   )
 }

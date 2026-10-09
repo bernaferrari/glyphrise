@@ -4,7 +4,7 @@ import { test } from "./fixtures"
 async function backup(page: Page) {
   await page.getByRole("button", { name: "Open file menu" }).click()
   const downloaded = page.waitForEvent("download")
-  await page.getByRole("button", { name: "Download a copy" }).click()
+  await page.getByRole("menuitem", { name: "Download a copy" }).click()
   const stream = await (await downloaded).createReadStream()
   const chunks: Buffer[] = []
   for await (const chunk of stream!) chunks.push(Buffer.from(chunk))

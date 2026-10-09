@@ -37,7 +37,7 @@ test("direct finish choices change the artwork and undo restores the selected fi
 test("gradient presets support pointer and keyboard selection with an accurate selected state", async ({
   page,
 }) => {
-  await page.getByRole("button", { name: "Gradient", exact: true }).click()
+  await page.getByRole("button", { name: "Mesh gradient", exact: true }).click()
   const presets = page.getByRole("button", { name: /^Use .* gradient$/ })
   const first = presets.nth(0)
   const second = presets.nth(1)
@@ -50,7 +50,7 @@ test("gradient presets support pointer and keyboard selection with an accurate s
   await page.keyboard.press("Escape")
   await expect(first).toHaveCount(0)
   await page.getByRole("button", { name: "Undo", exact: true }).click()
-  await page.getByRole("button", { name: "Gradient", exact: true }).click()
+  await page.getByRole("button", { name: "Mesh gradient", exact: true }).click()
   await expect(first).toHaveAttribute("aria-pressed", "true")
 })
 

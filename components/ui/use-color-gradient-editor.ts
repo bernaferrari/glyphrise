@@ -184,7 +184,10 @@ export function useColorGradientEditor({
           if (!moved) setHueScrubbing(true)
           moved = true
           // Right on top of the center the angle is noise; wait to leave it.
-          if (Math.hypot(event.clientX - cx, event.clientY - cy) < HUE_DIAL_DEAD_ZONE)
+          if (
+            Math.hypot(event.clientX - cx, event.clientY - cy) <
+            HUE_DIAL_DEAD_ZONE
+          )
             return
           const angle = pointerAngle(event.clientX, event.clientY)
           if (lastAngle !== null)

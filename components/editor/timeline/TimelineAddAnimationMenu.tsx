@@ -123,7 +123,7 @@ export function TimelineAddAnimationMenu({
                       onPointerLeave={() => setHovered(null)}
                       onFocus={() => setHovered(preset)}
                       onBlur={() => setHovered(null)}
-                      className="group relative grid justify-items-center rounded-xl bg-muted/50 pb-2 text-2xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none"
+                      className="group relative grid justify-items-center rounded-xl bg-muted/50 pb-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:bg-muted focus-visible:text-foreground focus-visible:outline-none"
                     >
                       <span className="grid aspect-square w-full place-items-center">
                         <MotionPresetPreview
@@ -145,7 +145,7 @@ export function TimelineAddAnimationMenu({
                 </section>
               ))}
             </div>
-            <p className="line-clamp-2 h-8 px-1 text-2xs leading-4 text-muted-foreground">
+            <p className="line-clamp-2 h-8 px-1 text-xs leading-4 text-muted-foreground">
               {hint}
             </p>
           </div>
@@ -158,7 +158,7 @@ export function TimelineAddAnimationMenu({
               presetGroups.length > 0 && "border-t border-border"
             )}
           >
-            <p className="px-2 pt-1 pb-1 text-2xs font-medium text-muted-foreground">
+            <p className="px-2 py-1 text-xs font-medium text-muted-foreground">
               Keyframe a property
             </p>
             {tracks.map((track) => (

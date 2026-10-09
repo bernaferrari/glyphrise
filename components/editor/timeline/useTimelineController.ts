@@ -138,6 +138,11 @@ export function useTimelineController({
     onScrubStart,
     onTimeChange,
   })
+  // A right-click shows its menu alone, not the keyframe panel behind it.
+  const openTimelineContextMenu: typeof openContextMenu = (...args) => {
+    setDismissedKeyframe(selectedKeyframeKey)
+    openContextMenu(...args)
+  }
 
   const {
     sortedShapes,
@@ -426,7 +431,7 @@ export function useTimelineController({
       onDurationEditorChange: setDurationEditor,
       onLeftRailScroll: handleLeftRailScroll,
       onLoopChange,
-      onOpenContextMenu: openContextMenu,
+      onOpenContextMenu: openTimelineContextMenu,
       onOpenDurationEditor: openDurationEditor,
       onAddProperty: addProperty,
       onSelectTrack: selectTrack,
@@ -580,7 +585,7 @@ export function useTimelineController({
         onKeyframeDrag: handleKeyframeDrag,
       },
       menu: {
-        onOpenContextMenu: openContextMenu,
+        onOpenContextMenu: openTimelineContextMenu,
         createGoToMenuItem: goToMenuItem,
       },
     },

@@ -3,7 +3,7 @@ import { test } from "./fixtures"
 
 const openProjects = async (page: Page) => {
   await page.getByRole("button", { name: "Open file menu" }).click()
-  await page.getByRole("button", { name: "All files" }).click()
+  await page.getByRole("menuitem", { name: "All files" }).click()
 }
 
 test.beforeEach(async ({ page }) => {
@@ -27,7 +27,6 @@ test("creates a named blank project without example animation", async ({
   page,
 }) => {
   await openProjects(page)
-  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Launch mark")
   await page.getByRole("button", { name: "Start blank" }).click()
 
@@ -49,7 +48,6 @@ test("restores the saved file before creating its 3D scene", async ({
   page,
 }) => {
   await openProjects(page)
-  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Restored file")
   await page.getByRole("button", { name: "Start blank" }).click()
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -141,7 +139,6 @@ test("duplicates projects and recovers after deleting the current project", asyn
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
-    await page.getByText("Create a new file", { exact: true }).click()
     await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
     await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -182,7 +179,6 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
 }) => {
   const createBlankProject = async (name: string) => {
     await openProjects(page)
-    await page.getByText("Create a new file", { exact: true }).click()
     await page.getByLabel("New file name").fill(name)
     await page.getByRole("button", { name: "Start blank" }).click()
     await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
@@ -232,11 +228,10 @@ test("can reopen, duplicate, and delete a project beyond the first eight", async
   )
 })
 
-test("starts style templates with a clean undo baseline", async ({ page }) => {
+test("starts starters with a clean undo baseline", async ({ page }) => {
   await openProjects(page)
-  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Styled project")
-  await page.getByRole("button", { name: "Spectrum Chrome" }).click()
+  await page.getByRole("button", { name: "Heart", exact: true }).click()
 
   await expect(page.getByLabel("File name", { exact: true })).toHaveValue(
     "Styled project"
@@ -272,12 +267,12 @@ test("keeps essential workspace actions reachable at compact widths", async ({
   // One app menu, anchored to the file name (as in ShapeShifter).
   await page.getByRole("button", { name: "Open file menu" }).click()
 
-  await expect(page.getByRole("button", { name: "All files" })).toBeVisible()
+  await expect(page.getByRole("menuitem", { name: "All files" })).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Open from computer" })
+    page.getByRole("menuitem", { name: "Open from computer" })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Download a copy" })
+    page.getByRole("menuitem", { name: "Download a copy" })
   ).toBeVisible()
   // Animate lives on the preview, so the menu never repeats it.
   await page.keyboard.press("Escape")
@@ -376,7 +371,6 @@ test("resets artwork rotation, position, and scale together with undo", async ({
   page,
 }) => {
   await openProjects(page)
-  await page.getByText("Create a new file", { exact: true }).click()
   await page.getByLabel("New file name").fill("Reset transforms")
   await page.getByRole("button", { name: "Start blank" }).click()
   const rotation = page.getByLabel("Rotation Y", { exact: true })

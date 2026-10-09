@@ -54,10 +54,8 @@ for (const width of [390, 1024]) {
         .toBeUndefined()
       const targets = [
         page.getByRole("button", { name: "Timeline options", exact: true }),
-        page.getByRole("button", {
-          name: "Remove Rotation keyframe at 0.00s",
-          exact: true,
-        }),
+        // The timeline rail's toggle; the inspector has its own at 1024px.
+        page.locator('[data-rail-keyframe="rotation"]'),
       ]
       for (const [index, target] of targets.entries()) {
         await target.scrollIntoViewIfNeeded()
@@ -85,8 +83,9 @@ for (const width of [390, 1024]) {
         .getByRole("button", { name: "Timeline options", exact: true })
         .click()
       for (const toggle of [
-        page.getByRole("button", { name: /timeline snapping/ }),
-        page.getByRole("button", { name: /loop playback/ }),
+        // The whole labelled row is the touch target, not the small switch.
+        page.getByRole("switch", { name: "Snap to keyframes" }).locator(".."),
+        page.getByRole("switch", { name: "Loop playback" }).locator(".."),
       ]) {
         // Measure after the popup's scale transition settles.
         await expect

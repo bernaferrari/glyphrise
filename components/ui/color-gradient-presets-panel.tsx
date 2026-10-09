@@ -21,10 +21,6 @@ interface ColorGradientPresetsPanelProps {
 const headerButtonClass =
   "grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:ring-2 focus:ring-ring/35 focus:outline-none"
 
-const HUE_WHEEL = `conic-gradient(${[0, 60, 120, 180, 240, 300, 360]
-  .map((hue) => `hsl(${hue} 90% 60%)`)
-  .join(", ")})`
-
 const DOT_RADIUS = 7.5
 
 /**
@@ -67,25 +63,25 @@ function HueDial({
       data-scrubbing={scrubbing || undefined}
       className="relative size-5 rounded-full transition-[scale] duration-150 ease-out group-hover/hue:scale-110 data-scrubbing:scale-125"
     >
-      <span
-        className="absolute inset-0 rounded-full opacity-45 [mask:radial-gradient(circle,transparent_8px,black_8.5px)]"
-        style={{ background: HUE_WHEEL }}
-      />
+      <span className="absolute inset-0 rounded-full bg-hue-ring opacity-45" />
       <span
         data-scrubbing={scrubbing || undefined}
-        className="absolute inset-0 transition-[rotate] duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] data-scrubbing:duration-0"
-        style={{ rotate: `${angle}deg` }}
+        className="absolute inset-0 rotate-(--dial-angle) transition-[rotate] duration-500 ease-overshoot data-scrubbing:duration-0"
+        style={{ "--dial-angle": `${angle}deg` } as React.CSSProperties}
       >
         {dots.map(({ color, hue }) => {
           const theta = ((hue - anchor) * Math.PI) / 180
           return (
             <span
               key={color}
-              className="absolute top-1/2 left-1/2 size-[5px] rounded-full shadow-[0_0_0_1px_rgb(0_0_0/0.45)]"
-              style={{
-                backgroundColor: color,
-                translate: `calc(-50% + ${Math.sin(theta) * DOT_RADIUS}px) calc(-50% - ${Math.cos(theta) * DOT_RADIUS}px)`,
-              }}
+              className="absolute top-1/2 left-1/2 size-1.25 translate-x-(--dot-x) translate-y-(--dot-y) rounded-full bg-(--dot-color) shadow-hue-dot"
+              style={
+                {
+                  "--dot-color": color,
+                  "--dot-x": `calc(-50% + ${Math.sin(theta) * DOT_RADIUS}px)`,
+                  "--dot-y": `calc(-50% - ${Math.cos(theta) * DOT_RADIUS}px)`,
+                } as React.CSSProperties
+              }
             />
           )
         })}
@@ -109,9 +105,7 @@ export function ColorGradientPresetsPanel({
   return (
     <div className="space-y-1.5">
       <div className="flex h-6 items-center justify-between">
-        <div className="text-2xs font-medium tracking-widest text-muted-foreground uppercase">
-          Presets
-        </div>
+        <div className="text-sm font-semibold text-foreground">Presets</div>
         <div className="flex items-center gap-1">
           <button
             type="button"

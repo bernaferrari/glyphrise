@@ -43,9 +43,10 @@ export function useTimelineContextMenu({
     title: string,
     items: TimelineMenuItem[]
   ) => {
-    // Rows stop propagation so the innermost target owns the menu; prevent
-    // the browser menu here so every caller gets the same behaviour.
+    // The innermost target owns the menu: stop here so an enclosing lane
+    // can't replace a clip's menu, and suppress the browser menu.
     event.preventDefault()
+    event.stopPropagation()
     setGoToEditor(null)
     setContextMenu({
       x: event.clientX,
@@ -76,7 +77,7 @@ export function useTimelineContextMenu({
     const y = event.clientY
     const t = Math.max(0, Math.min(duration, time))
     return {
-      label: "Go to...",
+      label: "Go to time…",
       shortcut: `${t.toFixed(2)}s`,
       onSelect: () => {
         onBeforeOpen?.()

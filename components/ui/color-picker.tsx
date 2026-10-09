@@ -19,6 +19,7 @@ import {
   ColorGradientModeToggle,
   SHOW_EXPERIMENTAL_GRADIENT_TYPES,
   type GradientType,
+  GRADIENT_TYPES,
 } from "./color-gradient-mode-toggle"
 import type { EditableColorStop } from "./color-stop-model"
 import { ColorGradientStopRows, PercentField } from "./color-gradient-stop-rows"
@@ -305,8 +306,10 @@ export function ColorPicker({
               }
             />
           )}
-          <span className="min-w-0 flex-1 truncate text-base text-foreground tabular-nums md:text-xs">
-            {isGradient ? "Gradient" : primaryHex.toUpperCase()}
+          <span className="min-w-0 flex-1 truncate text-xs text-foreground tabular-nums">
+            {isGradient
+              ? `${GRADIENT_TYPES.find((type) => type.id === gradientType)?.label ?? "Linear"} gradient`
+              : primaryHex.toUpperCase()}
           </span>
         </PopoverTrigger>
       )}
@@ -450,16 +453,18 @@ export function ColorPicker({
                     onCaptureStopOutsidePointer={captureStopOutsidePointer}
                   />
 
-                  <div className="grid h-6 grid-cols-[1fr_28px] items-center gap-1">
+                  <div className="flex h-7 items-center justify-between gap-1">
                     <span className="text-sm font-semibold text-foreground">
                       Stops
                     </span>
                     <button
                       type="button"
-                      className="ml-1 flex size-6 items-center justify-center rounded-md text-xl leading-none font-light text-foreground hover:bg-muted"
+                      aria-label="Add a color stop"
+                      title="Add a color stop"
+                      className="-mr-1 grid size-7 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/35 focus-visible:outline-none"
                       onClick={addStopAtMiddle}
                     >
-                      +
+                      <Plus aria-hidden="true" className="size-4" />
                     </button>
                   </div>
                   <ColorGradientStopRows

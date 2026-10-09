@@ -4,7 +4,7 @@ import { test } from "./fixtures"
 async function backup(page: Page) {
   await page.getByRole("button", { name: "Open file menu" }).click()
   const downloaded = page.waitForEvent("download")
-  await page.getByRole("button", { name: "Download a copy" }).click()
+  await page.getByRole("menuitem", { name: "Download a copy" }).click()
   const stream = await (await downloaded).createReadStream()
   const chunks: Buffer[] = []
   for await (const chunk of stream!) chunks.push(Buffer.from(chunk))
@@ -191,9 +191,7 @@ test.describe("phone style keyframe recovery", () => {
     await page
       .getByRole("button", { name: "Timeline options", exact: true })
       .click()
-    await page
-      .getByRole("button", { name: "Create keyframes when editing" })
-      .click()
+    await page.getByRole("switch", { name: "Auto-key", exact: true }).click()
     await page.keyboard.press("Escape")
     await page.getByRole("button", { name: "Properties", exact: true }).click()
     await expect(

@@ -10,8 +10,7 @@ test("the Rotation label diamond toggles only its keyframe and supports undo", a
     "false"
   )
   await page.getByRole("button", { name: "Open file menu" }).click()
-  await page.getByRole("button", { name: "All files" }).click()
-  await page.getByText("Create a new file", { exact: true }).click()
+  await page.getByRole("menuitem", { name: "All files" }).click()
   await page.getByLabel("New file name").fill("Inspector diamond")
   await page.getByRole("button", { name: "Start blank" }).click()
 

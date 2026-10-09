@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import {
   ChevronLeft,
   ChevronRight,
@@ -184,52 +185,34 @@ function MenuSwitch({
   label,
   description,
   checked,
-  ariaLabel,
   danger,
   onChange,
 }: {
   label: string
   description?: string
   checked: boolean
-  ariaLabel: string
   danger?: boolean
   onChange: () => void
 }) {
   return (
-    <button
-      type="button"
-      aria-label={ariaLabel}
-      aria-pressed={checked}
-      onClick={onChange}
-      className="flex min-h-10 w-full items-center gap-3 rounded-md px-2.5 py-1.5 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none"
-    >
+    <label className="flex min-h-9 w-full cursor-default items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted max-md:min-h-11 pointer-coarse:min-h-11">
       <span className="min-w-0 flex-1">
         <span className="block">{label}</span>
         {description && (
-          <span className="block text-2xs leading-4 text-muted-foreground">
+          <span
+            aria-hidden="true"
+            className="block text-xs leading-4 text-muted-foreground"
+          >
             {description}
           </span>
         )}
       </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "h-4 w-7 shrink-0 rounded-full p-0.5 transition-colors",
-          checked
-            ? danger
-              ? "bg-recording"
-              : "bg-foreground"
-            : "bg-muted-foreground/30"
-        )}
-      >
-        <span
-          className={cn(
-            "block size-3 rounded-full bg-background shadow-sm transition-transform duration-150",
-            checked && "translate-x-3"
-          )}
-        />
-      </span>
-    </button>
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
+        tone={danger ? "recording" : "default"}
+      />
+    </label>
   )
 }
 
@@ -275,8 +258,8 @@ function OptionsMenu({
         side="bottom"
         className="w-64"
       >
-        <div className="flex items-center gap-1 px-1 pb-1">
-          <span className="flex-1 px-1.5 text-sm">Zoom</span>
+        <div className="flex items-center gap-1 pb-1">
+          <span className="flex-1 px-2 text-sm">Zoom</span>
           <button
             type="button"
             aria-label="Zoom timeline out"
@@ -306,8 +289,8 @@ function OptionsMenu({
           </button>
         </div>
         {compactMode && (
-          <div className="flex items-center gap-1 px-1 pb-1">
-            <span className="flex-1 px-1.5 text-sm">Length</span>
+          <div className="flex items-center gap-1 pb-1">
+            <span className="flex-1 px-2 text-sm">Length</span>
             {[3, 5, 10].map((value) => (
               <button
                 key={value}
@@ -324,17 +307,11 @@ function OptionsMenu({
         <div className="mx-1 my-0.5 h-px bg-border" />
         <MenuSwitch
           label="Loop playback"
-          ariaLabel={loop ? "Disable loop playback" : "Enable loop playback"}
           checked={loop}
           onChange={() => onLoopChange(!loop)}
         />
         <MenuSwitch
           label="Snap to keyframes"
-          ariaLabel={
-            snapEnabled
-              ? "Disable timeline snapping"
-              : "Enable timeline snapping"
-          }
           checked={snapEnabled}
           onChange={() => onSnapEnabledChange(!snapEnabled)}
         />
@@ -344,7 +321,6 @@ function OptionsMenu({
             <MenuSwitch
               label="Auto-key"
               description="Every change adds a keyframe at the playhead"
-              ariaLabel="Create keyframes when editing"
               checked={autoKeyEnabled}
               danger
               onChange={() => onAutoKeyChange(!autoKeyEnabled)}

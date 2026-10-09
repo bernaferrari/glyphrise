@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { MotionPresetPreview } from "./MotionPresetPreview"
 import {
@@ -243,14 +244,14 @@ function AnimationChoices({
       </div>
 
       <div className="grid gap-2.5">
-        <button
-          type="button"
+        <Button
+          shape="rounded"
           disabled={!valid}
           onClick={() => onApply(selected, length, motionAmount)}
-          className="min-h-11 rounded-xl bg-foreground text-sm font-medium text-background transition-[opacity,transform] hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-99 disabled:opacity-40"
+          className="h-11"
         >
           Apply {preset.name}
-        </button>
+        </Button>
         <p className="text-center text-2xs text-muted-foreground">
           {existing > 0
             ? `Replaces your ${existing} ${preset.property.toLowerCase()} keyframe${existing === 1 ? "" : "s"}`

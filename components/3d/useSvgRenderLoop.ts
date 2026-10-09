@@ -253,10 +253,9 @@ export function useSvgRenderLoop({
         camera,
         iconA: iconAGroupRef.current,
         iconB: iconBGroupRef.current,
-        marker: exportRenderOptions ? null : centerMarkerRef.current,
-        transformGizmo: exportRenderOptions
-          ? null
-          : transformGizmoGroupRef.current,
+        marker: centerMarkerRef.current,
+        transformGizmo: transformGizmoGroupRef.current,
+        showOverlays: !exportRenderOptions,
       })
       // Copy pixels before the browser clears the WebGL drawing buffer.
       const capture = exportCaptureRef.current

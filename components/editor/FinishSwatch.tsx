@@ -156,7 +156,7 @@ export function FinishSwatch({
           src={thumbnail}
           alt=""
           draggable={false}
-          className="absolute inset-0 size-full select-none"
+          className="absolute inset-0 size-full animate-in duration-200 fade-in-0 select-none"
         />
       ) : thumbnail === null ? (
         <span
@@ -168,7 +168,8 @@ export function FinishSwatch({
           }
         />
       ) : (
-        <span className="absolute inset-0 rounded-full bg-muted ring-1 ring-border ring-inset" />
+        // Still rendering: a quiet pulse, so empty circles don't read as broken.
+        <span className="absolute inset-0 animate-pulse rounded-full bg-muted ring-1 ring-border ring-inset motion-reduce:animate-none" />
       )}
     </span>
   )

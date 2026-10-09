@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
   Box,
@@ -23,10 +21,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { ProjectNameField } from "./ProjectNameField"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface AppTopBarProps {
   zenMode: boolean
@@ -68,11 +68,6 @@ function ProjectMenu({
   | "projectStatus"
   | "projectStatusMessage"
 >) {
-  const [open, setOpen] = useState(false)
-  const action = (callback: () => void) => () => {
-    setOpen(false)
-    callback()
-  }
   const statusText =
     projectStatus === "restoring"
       ? "Restoring…"
@@ -83,14 +78,14 @@ function ProjectMenu({
           : "Saved"
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label="Open file menu"
+        title="Files"
         render={
           <button
             type="button"
-            aria-label="Open file menu"
-            title="Glyphrise · Files"
-            className="flex h-8 shrink-0 items-center gap-1 rounded-md pr-1.5 pl-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring data-[popup-open]:bg-muted data-[popup-open]:text-foreground"
+            className="flex h-8 shrink-0 items-center gap-1 rounded-md pr-1.5 pl-1 text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-muted data-popup-open:text-foreground"
           />
         }
       >
@@ -101,10 +96,10 @@ function ProjectMenu({
           <Box className="size-3.5" />
         </span>
         <ChevronDown aria-hidden="true" className="size-3" />
-      </PopoverTrigger>
-      <PopoverContent density="compact" align="start" className="w-64">
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64">
         {/* What a project is, in one breath, with the save state inline. */}
-        <div className="px-2.5 pt-2 pb-2.5">
+        <div className="px-2 pt-1.5 pb-2">
           <div className="flex items-center gap-1.5 text-xs font-medium text-foreground">
             {projectStatus === "error" ? (
               <AlertTriangle className="size-3.5 text-destructive" />
@@ -115,40 +110,29 @@ function ProjectMenu({
             )}
             {statusText}
           </div>
-          <p className="mt-1 text-2xs leading-4 text-muted-foreground">
+          <p className="mt-1 text-xs leading-4 text-muted-foreground">
             {projectStatus === "error"
               ? projectStatusMessage
-              : "Files save automatically in this browser. Download a copy to back one up or move it to another device."}
+              : "Saved in this browser. Download a copy to back it up or move it to another device."}
           </p>
         </div>
-        <div className="-mx-1 border-t border-border" />
-        <div className="grid gap-0.5 pt-1">
-          <MenuRow
-            label="All files…"
-            accessibleLabel="All files"
-            Icon={FolderClock}
-            onClick={action(onProjectNew)}
-          />
-          <MenuRow
-            label="Download a copy"
-            accessibleLabel="Download a copy"
-            Icon={FileDown}
-            onClick={action(onProjectSave)}
-          />
-          <MenuRow
-            label="Open from computer…"
-            accessibleLabel="Open from computer"
-            Icon={FolderOpen}
-            onClick={action(onProjectOpen)}
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onProjectNew}>
+          <FolderClock className="text-muted-foreground" />
+          All files…
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onProjectSave}>
+          <FileDown className="text-muted-foreground" />
+          Download a copy
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onProjectOpen}>
+          <FolderOpen className="text-muted-foreground" />
+          Open from computer…
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
-
-const MENU_ROW_CLASS =
-  "flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-xs text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring"
 
 function WorkspaceMenu({
   zenMode,
@@ -168,97 +152,58 @@ function WorkspaceMenu({
   | "themeToggleLabel"
   | "onThemeChange"
 >) {
-  const [open, setOpen] = useState(false)
-  const action = (callback: () => void) => () => {
-    setOpen(false)
-    callback()
-  }
+  const ThemeIcon = isLightTheme ? Moon : Sun
+  const PanelsIcon = zenMode ? PanelLeftOpen : PanelLeftClose
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <DropdownMenu>
+      <DropdownMenuTrigger
         aria-label="More options"
         title="More options"
         render={<Button size="icon" variant="muted-ghost" />}
       >
         <MoreHorizontal aria-hidden="true" className="size-4" />
-      </PopoverTrigger>
-      <PopoverContent density="compact" align="end" className="w-52">
-        <MenuRow
-          label={themeToggleLabel}
-          accessibleLabel={themeToggleLabel}
-          Icon={isLightTheme ? Moon : Sun}
-          onClick={action(() => {
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem
+          onClick={() => {
             if (themeMounted) onThemeChange(isLightTheme ? "dark" : "light")
-          })}
-        />
-        <MenuRow
-          label="Getting started"
-          accessibleLabel="Getting started"
-          Icon={CircleHelp}
-          onClick={action(onGettingStarted)}
-        />
-        <a
-          aria-label="GitHub repository"
-          title="GitHub"
-          href="https://github.com/bernaferrari/glyphrise"
-          target="_blank"
-          rel="noopener noreferrer"
-          className={MENU_ROW_CLASS}
-          onClick={() => setOpen(false)}
+          }}
+        >
+          <ThemeIcon className="text-muted-foreground" />
+          {themeToggleLabel}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onGettingStarted}>
+          <CircleHelp className="text-muted-foreground" />
+          Getting started
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          render={
+            <a
+              href="https://github.com/bernaferrari/glyphrise"
+              target="_blank"
+              rel="noopener noreferrer"
+            />
+          }
         >
           {/* GitHub mark from Primer Octicons (MIT). */}
           <svg
             aria-hidden="true"
             viewBox="0 0 16 16"
-            className="size-4 fill-current"
+            className="fill-current text-muted-foreground"
           >
             <path d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656 0-.781.281-1.625.75-2.188-.203-.515-.172-1.609.063-2.062.625-.078 1.468.25 1.968.703.594-.187 1.219-.281 1.985-.281.765 0 1.39.094 1.953.265.484-.437 1.344-.765 1.969-.687.218.422.25 1.515.046 2.047.5.593.766 1.39.766 2.203 0 1.922-1.453 3.375-3.547 3.64.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03 16 3.61 12.406 0 7.984 0 3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156-1.031 0-1.64-.562-2.078-1.609-.172-.422-.36-.672-.719-.719-.187-.015-.25-.093-.25-.187 0-.188.313-.328.625-.328.453 0 .844.281 1.25.86.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656" />
           </svg>
-          <span>GitHub</span>
-        </a>
+          GitHub
+        </DropdownMenuItem>
         <div className="hidden min-[720px]:block">
-          <div className="-mx-1 my-1 border-t border-border" />
-          <MenuRow
-            label={zenMode ? "Show panels" : "Hide panels"}
-            accessibleLabel={zenMode ? "Show panels" : "Hide panels"}
-            Icon={zenMode ? PanelLeftOpen : PanelLeftClose}
-            onClick={action(() => onZenModeChange(!zenMode))}
-          />
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onZenModeChange(!zenMode)}>
+            <PanelsIcon className="text-muted-foreground" />
+            {zenMode ? "Show panels" : "Hide panels"}
+          </DropdownMenuItem>
         </div>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-function MenuRow({
-  label,
-  accessibleLabel,
-  hint,
-  Icon,
-  onClick,
-}: {
-  label: string
-  accessibleLabel: string
-  hint?: string
-  Icon: LucideIcon
-  onClick: () => void
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={accessibleLabel}
-      onClick={onClick}
-      className={MENU_ROW_CLASS}
-    >
-      <Icon
-        aria-hidden="true"
-        className="size-3.5 shrink-0 text-muted-foreground"
-      />
-      <span className="flex-1">{label}</span>
-      {hint && (
-        <span className="font-mono text-3xs text-muted-foreground">{hint}</span>
-      )}
-    </button>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
