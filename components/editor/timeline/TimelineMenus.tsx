@@ -66,7 +66,7 @@ export const TimelineContextMenu = ({
                 {item.items.map((child, childIndex) => (
                   <ContextMenuItem
                     key={`${child.label}-${childIndex}`}
-                    onSelect={() => {
+                    onClick={() => {
                       child.onSelect()
                       onClose()
                     }}
@@ -112,7 +112,7 @@ export const TimelineContextMenu = ({
             key={`${item.label}-${index}`}
             disabled={item.disabled}
             variant={item.danger ? "destructive" : "default"}
-            onSelect={() => {
+            onClick={() => {
               if (item.disabled) return
               item.onSelect()
               onClose()

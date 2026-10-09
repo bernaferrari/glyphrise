@@ -5,6 +5,7 @@ import {
   SVG_PATH_LAYER_GAP_MIN,
   SVG_PATH_LAYER_GAP_RATIO,
   GLYPHRISE_SLASH_DEPTH_RATIO,
+  GLYPHRISE_SLASH_FORWARD_RATIO,
   applySvgModelScale,
 } from "./SvgSceneUtils"
 import { applyIconGradientUvs, iconGradientTexture } from "./SvgGradientTexture"
@@ -350,7 +351,12 @@ export const buildSvgIconGroup = ({
       })
       mesh.userData.pathLayerId = layerId
       mesh.userData.iconColorRole = isIconA ? "a" : "b"
-      mesh.position.z = isSlashOverlay ? 0 : pathIndex * pathLayerGap
+      mesh.position.z = isSlashOverlay
+        ? baseExtrude.depth / 2 +
+          extrude.shapeDepth / 2 +
+          pathLayerGap +
+          baseExtrude.depth * GLYPHRISE_SLASH_FORWARD_RATIO
+        : pathIndex * pathLayerGap
       mesh.renderOrder = isSlashOverlay ? 100 + layerOrder : layerOrder
       mesh.castShadow = true
       mesh.receiveShadow = true

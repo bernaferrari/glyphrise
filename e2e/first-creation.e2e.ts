@@ -38,9 +38,9 @@ for (const width of [390, 1280]) {
       const welcome = page.getByRole("dialog", { name: "Make something move." })
       await expect(welcome).toBeVisible()
       // Calendar is the default first starter.
-      const calendar = welcome.getByRole("button", { name: /^Calendar/ })
-      await expect(calendar).toHaveAttribute("aria-pressed", "true")
-      await welcome.getByRole("button", { name: /^Heart/ }).click()
+      const calendar = welcome.getByRole("radio", { name: /^Calendar/ })
+      await expect(calendar).toBeChecked()
+      await welcome.getByRole("radio", { name: /^Heart/ }).click()
       await calendar.click()
       await welcome
         .getByRole("button", { name: "Start with Calendar", exact: true })
@@ -62,12 +62,20 @@ for (const width of [390, 1280]) {
       await guide.getByRole("button", { name: "Play", exact: true }).click()
       await expect(guide).toContainText("2 of 3")
       await guide.getByRole("button", { name: "Style it" }).click()
+      // Choosing to style completes the step, even before any change and
+      // after leaving the canvas on a phone.
+      if (width < 720)
+        await page.getByRole("button", { name: "Canvas", exact: true }).click()
+      await expect(guide).toContainText("3 of 3")
+      if (width < 720)
+        await page
+          .getByRole("button", { name: "Properties", exact: true })
+          .click()
       await page
         .getByRole("button", { name: "Use Chrome finish", exact: true })
         .click()
       if (width < 720)
         await page.getByRole("button", { name: "Canvas", exact: true }).click()
-      await expect(guide).toContainText("3 of 3")
       await guide.getByRole("button", { name: "Export", exact: true }).click()
       const exporter = page.getByRole("dialog", { name: "Export" })
       await exporter.getByLabel("Width", { exact: true }).fill("128")

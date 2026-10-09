@@ -62,23 +62,30 @@ export const useEditorShortcuts = ({
 }
 
 /**
- * Stepping matches ShapeShifter: `,` and `.` jump between keyframes (the ‹ ›
- * transport buttons), `<` and `>` (Shift) move one frame. On timeline
- * surfaces, arrows step one frame and Shift+arrows step ten.
+ * Stepping matches ShapeShifter and After Effects: `,` `.` or J K jump between
+ * keyframes (the ‹ › transport buttons), `<` and `>` (Shift) move one frame,
+ * Home and End go to the start and end. On timeline surfaces, arrows step
+ * one frame and Shift+arrows step ten.
  */
 export const useTimelineStepShortcuts = ({
   onPreviousKeyframe,
   onNextKeyframe,
   onStepFrames,
+  onGoToStart,
+  onGoToEnd,
 }: {
   onPreviousKeyframe: () => void
   onNextKeyframe: () => void
   onStepFrames: (frames: number) => void
+  onGoToStart: () => void
+  onGoToEnd: () => void
 }) => {
   const callbacksRef = useLatestRef({
     onPreviousKeyframe,
     onNextKeyframe,
     onStepFrames,
+    onGoToStart,
+    onGoToEnd,
   })
 
   useEffect(() => {
@@ -109,12 +116,18 @@ export const useTimelineStepShortcuts = ({
       } else if (event.key === "<" || event.key === ">") {
         event.preventDefault()
         callbacks.onStepFrames(event.key === "<" ? -1 : 1)
-      } else if (event.key === ",") {
+      } else if (event.key === "," || event.key.toLowerCase() === "j") {
         event.preventDefault()
         callbacks.onPreviousKeyframe()
-      } else if (event.key === ".") {
+      } else if (event.key === "." || event.key.toLowerCase() === "k") {
         event.preventDefault()
         callbacks.onNextKeyframe()
+      } else if (event.key === "Home") {
+        event.preventDefault()
+        callbacks.onGoToStart()
+      } else if (event.key === "End") {
+        event.preventDefault()
+        callbacks.onGoToEnd()
       }
     }
     window.addEventListener("keydown", handleStep)

@@ -1,16 +1,21 @@
 "use client"
 
 import { createContext, useContext, type ReactNode } from "react"
-import type { EditScopePanelProps } from "./EditScopePanel"
 import { propertyEditScope } from "./EditScopeModel"
 
-const EditScopeContext = createContext<EditScopePanelProps | null>(null)
+/** Which properties are animated, and when, for the inspector's edit hints. */
+export type EditScopeContextValue = {
+  currentTime: number
+  properties: Array<{ name: string; times: number[]; onToggle?: () => void }>
+}
+
+const EditScopeContext = createContext<EditScopeContextValue | null>(null)
 
 export function PropertyEditScopeProvider({
   value,
   children,
 }: {
-  value: EditScopePanelProps
+  value: EditScopeContextValue
   children: ReactNode
 }) {
   return (
@@ -28,7 +33,6 @@ export function usePropertyEditScope(property?: string) {
     ...propertyEditScope(
       definition?.times ?? [],
       context.currentTime,
-      context.autoKeyEnabled,
       Boolean(definition)
     ),
     time: context.currentTime.toFixed(2),

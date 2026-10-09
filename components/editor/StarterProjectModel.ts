@@ -101,7 +101,7 @@ export const STARTERS: Starter[] = [
     label: "Wi‑Fi off",
     hint: "Switches off",
     motion: "slash-turn",
-    duration: 4,
+    duration: 3.8,
     icon: icon("wifi"),
     finish: "satin",
     fill: mesh("sky", [
@@ -206,38 +206,32 @@ export function createStarterEditorSnapshot(
   }
 
   if (starter.motion === "slash-turn") {
-    // One turn, then the switch happens facing front: within a single turn
-    // the middle is the icon's back, where a slash reads mirrored.
+    // Like the default Account Circle: it spins as Wi-Fi, switches off
+    // halfway through the turn, and switches back just before the loop.
     return {
       ...still,
       shapes: [
         {
-          ...createShapeStop(starter.icon, duration * 0.36),
+          ...createShapeStop(starter.icon, 0),
           ...shapeLook,
           transitionType: "wipe" as const,
           wipeDirection: { x: 0.707, y: -0.707 },
           easing: "ease-in-out" as const,
+          transitionStart: 0.7,
+          transitionEnd: 0.95,
         },
         {
-          ...createShapeStop(slashedIcon(starter.icon), duration * 0.52),
+          ...createShapeStop(slashedIcon(starter.icon), duration * 0.6),
           ...shapeLook,
           transitionType: "wipe" as const,
           wipeDirection: { x: -0.707, y: 0.707 },
           easing: "ease-in-out" as const,
-          // Hold "off" for a beat before wiping back.
-          transitionStart: 0.6,
-          transitionEnd: 0.85,
+          transitionStart: 0.74,
+          transitionEnd: 0.97,
         },
         { ...createShapeStop(starter.icon, duration * 0.98), ...shapeLook },
       ],
-      rotationAxisKeyframes: rotationKeys(
-        [
-          [0, { y: 0 }],
-          [duration * 0.4, { y: 360 }],
-          [duration, { y: 360 }],
-        ],
-        "ease-in-out"
-      ),
+      rotationAxisKeyframes: flowingTurn(duration),
     }
   }
 

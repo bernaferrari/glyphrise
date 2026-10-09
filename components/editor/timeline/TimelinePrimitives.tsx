@@ -27,36 +27,96 @@ export const formatValueLabel = (track: TimelineTrack, value: number) => {
 export const describeStarterMotion = (track: TimelineTrack, peak: number) =>
   `${formatValueLabel(track, track.defaultValue)} → ${formatValueLabel(track, peak)} → back`
 
+/** The easing of the segment that leaves a keyframe; none after the last. */
+export const outgoingEasing = (
+  keyframes: ReadonlyArray<{ id: string; time: number; easing?: EasingType }>,
+  id: string
+) => {
+  const sorted = [...keyframes].sort((a, b) => a.time - b.time)
+  const index = sorted.findIndex((keyframe) => keyframe.id === id)
+  return index >= 0 && index < sorted.length - 1
+    ? sorted[index].easing
+    : undefined
+}
+
+/** The easing of the segment that arrives at a keyframe, if any. */
+export const incomingEasing = (
+  keyframes: ReadonlyArray<{ id: string; time: number; easing?: EasingType }>,
+  id: string
+) => {
+  const sorted = [...keyframes].sort((a, b) => a.time - b.time)
+  const index = sorted.findIndex((keyframe) => keyframe.id === id)
+  return index > 0 ? sorted[index - 1].easing : undefined
+}
+
+type KeyframeGlyph = "linear" | "eased" | "overshoot" | "hold"
+
+/** After Effects' keyframe shapes: the curve's character, at a glance. */
+const keyframeGlyph = (easing?: EasingType): KeyframeGlyph =>
+  !easing || easing === "linear"
+    ? "linear"
+    : easing === "hold"
+      ? "hold"
+      : easing === "spring" || easing === "bounce"
+        ? "overshoot"
+        : "eased"
+
+// Each half runs between the glyph's top (8, 3.5) and bottom (8, 12.5).
+const RIGHT_HALF: Record<KeyframeGlyph, string> = {
+  linear: "L 12.5 8 L 8 12.5",
+  eased: "L 12 3.5 L 9.6 8 L 12 12.5 L 8 12.5",
+  overshoot: "A 4.5 4.5 0 0 1 8 12.5",
+  hold: "L 12 3.5 L 12 12.5 L 8 12.5",
+}
+const LEFT_HALF: Record<KeyframeGlyph, string> = {
+  linear: "L 3.5 8 L 8 3.5",
+  eased: "L 4 12.5 L 6.4 8 L 4 3.5 L 8 3.5",
+  overshoot: "A 4.5 4.5 0 0 1 8 3.5",
+  hold: "L 4 12.5 L 4 3.5 L 8 3.5",
+}
+
+/**
+ * A keyframe drawn the After Effects way: the left half shows how motion
+ * arrives (the previous segment's easing), the right half how it leaves —
+ * diamond for linear, hourglass for eased, round for overshoot, square for
+ * hold.
+ */
 export const TimelineDiamond = ({
   selected = false,
+  inEasing,
+  outEasing,
   className = "",
 }: {
   color?: string
   borderColor?: string
   selected?: boolean
+  /** Easing of the segment arriving here; defaults to `outEasing`. */
+  inEasing?: EasingType
+  /** Easing of the segment leaving here; defaults to `inEasing`. */
+  outEasing?: EasingType
   className?: string
-}) => (
-  <svg
-    viewBox="0 0 16 16"
-    className={`size-4 overflow-visible ${className}`}
-    aria-hidden="true"
-  >
-    <rect
-      x="4"
-      y="4"
-      width="8"
-      height="8"
-      rx="1.2"
-      className={
-        selected
-          ? "fill-(--timeline-accent) stroke-(--timeline-accent)"
-          : "fill-(--timeline-lane) stroke-(--timeline-accent)"
-      }
-      strokeWidth={1.5}
-      transform="rotate(45 8 8)"
-    />
-  </svg>
-)
+}) => {
+  const right = keyframeGlyph(outEasing ?? inEasing)
+  const left = keyframeGlyph(inEasing ?? outEasing)
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={`size-4 overflow-visible ${className}`}
+      aria-hidden="true"
+    >
+      <path
+        d={`M 8 3.5 ${RIGHT_HALF[right]} ${LEFT_HALF[left]} Z`}
+        className={
+          selected
+            ? "fill-(--timeline-accent) stroke-(--timeline-accent)"
+            : "fill-(--timeline-lane) stroke-(--timeline-accent)"
+        }
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
 /**
  * One segment per pair of neighbouring keyframes. Click a segment to choose

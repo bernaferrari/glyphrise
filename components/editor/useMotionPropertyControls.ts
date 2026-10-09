@@ -12,7 +12,6 @@ export function useMotionPropertyControls({
   currentTime,
   isPlaying,
   duration,
-  autoKeyEnabled,
   tracks,
   setTracks,
   setSelectedMotionTrackId,
@@ -56,7 +55,6 @@ export function useMotionPropertyControls({
     setObjectScaleAxes,
     setIsScaleLocked,
     setKeyLightIntensity,
-    autoKeyEnabled,
     markCustom,
   })
 
@@ -72,7 +70,6 @@ export function useMotionPropertyControls({
     activeRotationOffset,
     setRotationAxisKeyframes,
     setPreviewRotationOffset,
-    autoKeyEnabled,
     markCustom,
   })
 
@@ -83,14 +80,12 @@ export function useMotionPropertyControls({
     activeMoveOffset,
     setMoveOffset,
     setMoveKeyframes,
-    autoKeyEnabled,
     markCustom,
   })
 
   const { updateQuality } = useQualityMotionControls({
     currentTime,
     duration,
-    autoKeyEnabled,
     setGeometryQuality,
     setQualityKeyframes,
     markCustom,

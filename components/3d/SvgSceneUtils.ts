@@ -10,9 +10,8 @@ export const MAX_BEVEL_SEGMENTS = 24
 export const GIZMO_SNAP_DEGREES = 45
 export const SVG_PATH_LAYER_GAP_RATIO = 0.018
 export const SVG_PATH_LAYER_GAP_MIN = 0.035
-// The slash of an "off" icon is a solid part of the icon, centred like every
-// other shape and a touch deeper, so it reads on top from front and back.
-export const GLYPHRISE_SLASH_DEPTH_RATIO = 1.08
+export const GLYPHRISE_SLASH_DEPTH_RATIO = 0.16
+export const GLYPHRISE_SLASH_FORWARD_RATIO = 0.035
 export const WIPE_SEAM_OVERLAP_WORLD = 0.8 * MODEL_SCALE
 
 export const pathRebuildSignature = (

@@ -28,6 +28,11 @@ type UseTimelinePropsArgs = {
   onClearPropertyRow: (rowId: string) => void
   openLoops: string[]
   onCloseLoops: (id?: string) => void
+  onDuplicatePropertyKeyframe: (
+    rowId: string,
+    keyframeId: string,
+    time: number
+  ) => void
   onTogglePropertyKeyframe: (rowId: string, keyframeId?: string | null) => void
   onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onRemovePropertyKeyframe: (rowId: string, keyframeId: string) => void
@@ -76,6 +81,7 @@ export function useTimelineProps({
   onClearPropertyRow,
   openLoops,
   onCloseLoops,
+  onDuplicatePropertyKeyframe,
   onTogglePropertyKeyframe,
   onAddPropertyKeyframeAtTime,
   onRemovePropertyKeyframe,
@@ -136,6 +142,7 @@ export function useTimelineProps({
       onClearPropertyRow,
       openLoops,
       onCloseLoops,
+      onDuplicatePropertyKeyframe,
       onTogglePropertyKeyframe,
       onAddPropertyKeyframeAtTime,
       onRemovePropertyKeyframe,
@@ -177,6 +184,7 @@ export function useTimelineProps({
       onClearPropertyRow,
       openLoops,
       onCloseLoops,
+      onDuplicatePropertyKeyframe,
       onTogglePropertyKeyframe,
       onRemovePropertyKeyframe,
       onMovePropertyKeyframe,

@@ -7,6 +7,7 @@ import {
 import { invalidateGroupGeometryAnalysis } from "./SvgGeometryAnalysis"
 import {
   GLYPHRISE_SLASH_DEPTH_RATIO,
+  GLYPHRISE_SLASH_FORWARD_RATIO,
   SVG_PATH_LAYER_GAP_MIN,
   SVG_PATH_LAYER_GAP_RATIO,
 } from "./SvgSceneUtils"
@@ -74,7 +75,12 @@ export const planSvgGroupDepthUpdate = (
       extrude.bevelSegments !== layer.extrude.bevelSegments
     )
       return null
-    const offset = layer.isSlashOverlay ? 0 : layer.pathIndex * gap
+    const offset = layer.isSlashOverlay
+      ? base.depth / 2 +
+        extrude.shapeDepth / 2 +
+        gap +
+        base.depth * GLYPHRISE_SLASH_FORWARD_RATIO
+      : layer.pathIndex * gap
     plans.push({ layer, extrude, offset })
   }
   return () => {

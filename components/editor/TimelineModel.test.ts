@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest"
 import {
+  interpolateKeyframes,
   interpolatePreparedFillKeyframes,
+  isEasingType,
   prepareFillKeyframes,
   type FillKeyframe,
 } from "./TimelineModel"
@@ -69,5 +71,26 @@ describe("prepared fill keyframes", () => {
     expect(result.color).toBe("#123456")
     expect(result.colorSecondary).toBe("#abcdef")
     expect(result.gradientType).toBe("mesh")
+  })
+})
+
+describe("hold keyframes", () => {
+  it("keep their value until the next keyframe, then jump", () => {
+    const track = {
+      id: "scale",
+      name: "Scale",
+      color: "#fff",
+      min: 0,
+      max: 4,
+      defaultValue: 1,
+      keyframes: [
+        { id: "a", time: 0, value: 1, easing: "hold" as const },
+        { id: "b", time: 2, value: 3, easing: "linear" as const },
+      ],
+    }
+    expect(interpolateKeyframes(0.5, track)).toBe(1)
+    expect(interpolateKeyframes(1.99, track)).toBe(1)
+    expect(interpolateKeyframes(2, track)).toBe(3)
+    expect(isEasingType("hold")).toBe(true)
   })
 })

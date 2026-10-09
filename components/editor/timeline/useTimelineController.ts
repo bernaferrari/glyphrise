@@ -7,6 +7,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import type { SelectedTimelineKeyframe, TimelineProps } from "./TimelineTypes"
 import { useShapePickerCatalog } from "./useShapePickerCatalog"
 import { useTimelineContextMenu } from "./useTimelineContextMenu"
+import { useTimelineKeyframeShortcuts } from "./useTimelineKeyframeShortcuts"
 import { useTimelineDeletion } from "./useTimelineDeletion"
 import { useTimelineDerivedState } from "./useTimelineDerivedState"
 import { useTimelinePlayheadFollow } from "./useTimelinePlayheadFollow"
@@ -31,8 +32,6 @@ export function useTimelineController({
   onLoopChange,
   compactMode = false,
   playback,
-  autoKeyEnabled,
-  onAutoKeyChange,
   onApplyMotionPreset,
   presetArtwork,
   tracks,
@@ -47,6 +46,7 @@ export function useTimelineController({
   onRemovePropertyKeyframe,
   onMovePropertyKeyframe,
   onSetPropertyEasing,
+  onDuplicatePropertyKeyframe,
   onActivePropertyRowChange,
   activeTrackId,
   onActiveTrackChange,
@@ -223,6 +223,18 @@ export function useTimelineController({
     onActiveTrackChange,
   })
 
+  useTimelineKeyframeShortcuts({
+    selectedKeyframe,
+    currentTime,
+    duration,
+    tracks,
+    propertyRows,
+    onTracksChange,
+    onSetSingleKeyframeEasing: setSingleKeyframeEasing,
+    onSetPropertyEasing,
+    onDuplicatePropertyKeyframe,
+  })
+
   useTimelineSelectionGuards({
     selectedKeyframe,
     setSelectedKeyframe,
@@ -373,8 +385,6 @@ export function useTimelineController({
       loop,
       zoom: timelineZoom,
       playback,
-      autoKeyEnabled,
-      onAutoKeyChange,
       openLoopCount: openLoops.length,
       onCloseLoops: onCloseLoops ? () => onCloseLoops() : undefined,
       onDurationEditorChange: setDurationEditor,

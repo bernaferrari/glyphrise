@@ -78,7 +78,6 @@
   --color-destructive: var(--destructive);
   --color-warning: var(--warning);
   --color-success: var(--success);
-  --color-recording: var(--recording);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -124,7 +123,6 @@
   --destructive: oklch(0.577 0.245 27.325);
   --warning: oklch(0.555 0.163 48.998);
   --success: oklch(0.527 0.154 150.069);
-  --recording: oklch(0.637 0.237 25.331);
   --border: oklch(0.91 0.004 260);
   --input: oklch(0.91 0.004 260);
   --ring: oklch(0.708 0 0);

@@ -354,6 +354,68 @@ export const movePropertyRowKeyframe = (
   }
 }
 
+/**
+ * Copies one keyframe to `time` (After Effects' copy and paste at the
+ * playhead), replacing whatever was keyed there on the same property.
+ */
+export const duplicateKeyframeToTime = <T extends { id: string; time: number }>(
+  keyframes: T[],
+  matches: (keyframe: T) => boolean,
+  time: number,
+  idPrefix: string
+): T[] => {
+  const sources = keyframes.filter(matches)
+  if (sources.length === 0) return keyframes
+  return [
+    ...keyframes.filter(
+      (keyframe) => !keyframeTimeMatches(keyframe.time, time)
+    ),
+    ...sources.map((source) => ({
+      ...structuredClone(source),
+      id: createEditorId(idPrefix),
+      time,
+    })),
+  ].sort((a, b) => a.time - b.time)
+}
+
+export const duplicatePropertyRowKeyframe = (
+  rowId: string,
+  keyframeId: string,
+  time: number,
+  setters: TimelinePropertyKeyframeSetters
+) => {
+  const byId = <T extends { id: string }>(keyframe: T) =>
+    keyframe.id === keyframeId
+  const atStyleTime = <T extends { time: number }>(keyframe: T) =>
+    matchesStyleKeyframeId(keyframe.time, keyframeId)
+  switch (rowId) {
+    case "style":
+      // A Style keyframe is the fill and finish keyed at the same moment.
+      setters.setFillKeyframes((prev) =>
+        duplicateKeyframeToTime(prev, atStyleTime, time, "fill")
+      )
+      setters.setMaterialKeyframes((prev) =>
+        duplicateKeyframeToTime(prev, atStyleTime, time, "material")
+      )
+      break
+    case "light-position":
+      setters.setKeyLightPositionKeyframes((prev) =>
+        duplicateKeyframeToTime(prev, byId, time, "light")
+      )
+      break
+    case "rotation":
+      setters.setRotationAxisKeyframes((prev) =>
+        duplicateKeyframeToTime(prev, byId, time, "rotation")
+      )
+      break
+    case "move":
+      setters.setMoveKeyframes((prev) =>
+        duplicateKeyframeToTime(prev, byId, time, "move")
+      )
+      break
+  }
+}
+
 export const setPropertyRowKeyframeEasing = (
   rowId: string,
   keyframeId: string | null,

@@ -1,29 +1,65 @@
 import type { ExportRenderOptions, SvgCanvasProps } from "../3d/SvgTypes"
 
-/** Frames per side of the sheet; 1 is a single still. */
-export type FrameSheetGrid = 1 | 2 | 3 | 4
+/** How frames are arranged: best fit, one filmstrip row, or one column. */
+export type FrameSheetArrangement = "auto" | "row" | "column"
 
-export const FRAME_SHEET_GRIDS: FrameSheetGrid[] = [1, 2, 3, 4]
+export type FrameSheetSettings = {
+  /** Frames in the image; 1 is a single still. */
+  frames: number
+  frameArrangement: FrameSheetArrangement
+}
+
+export const FRAME_COUNT_PRESETS = [4, 8, 12, 16, 24] as const
+export const MAX_SHEET_FRAMES = 64
 
 const MIN_CELL = 64
 
 /**
+ * Columns for "auto": the grid whose cells are closest to square (icons are
+ * square) in the chosen image size, preferring fewer empty cells.
+ */
+const autoColumns = (count: number, width: number, height: number) => {
+  let best = 1
+  let bestScore = Infinity
+  for (let columns = 1; columns <= count; columns++) {
+    const rows = Math.ceil(count / columns)
+    const cellAspect = width / columns / (height / rows)
+    const empty = columns * rows - count
+    const score = Math.abs(Math.log(cellAspect)) + (empty / count) * 0.5
+    if (score < bestScore - 1e-9) {
+      best = columns
+      bestScore = score
+    }
+  }
+  return best
+}
+
+/**
  * The image keeps the chosen size and each frame gets an equal cell, so a
- * 16:9 sheet stays 16:9 whatever the grid.
+ * 16:9 sheet stays 16:9 whatever the arrangement.
  */
 export const frameSheetLayout = (
-  grid: FrameSheetGrid,
+  { frames, frameArrangement }: FrameSheetSettings,
   size: { width: number; height: number }
 ) => {
-  const cellWidth = Math.max(MIN_CELL, Math.floor(size.width / grid))
-  const cellHeight = Math.max(MIN_CELL, Math.floor(size.height / grid))
+  const count = Math.max(1, Math.min(MAX_SHEET_FRAMES, Math.round(frames)))
+  const columns =
+    frameArrangement === "row"
+      ? count
+      : frameArrangement === "column"
+        ? 1
+        : autoColumns(count, size.width, size.height)
+  const rows = Math.ceil(count / columns)
+  const cellWidth = Math.max(MIN_CELL, Math.floor(size.width / columns))
+  const cellHeight = Math.max(MIN_CELL, Math.floor(size.height / rows))
   return {
-    grid,
-    count: grid * grid,
+    count,
+    columns,
+    rows,
     cellWidth,
     cellHeight,
-    width: cellWidth * grid,
-    height: cellHeight * grid,
+    width: cellWidth * columns,
+    height: cellHeight * rows,
   }
 }
 
@@ -44,23 +80,28 @@ type FrameRenderer = {
 /** Renders every frame through the export path and tiles them row by row. */
 export const renderFrameSheet = async ({
   canvas,
-  grid,
+  sheet: sheetSettings,
   options,
   duration,
   evaluateFrame,
 }: {
   canvas: FrameRenderer
-  grid: FrameSheetGrid
+  sheet: FrameSheetSettings
   options: ExportRenderOptions
   duration: number
   evaluateFrame: (time: number) => SvgCanvasProps
 }): Promise<Blob> => {
-  const layout = frameSheetLayout(grid, options)
+  const layout = frameSheetLayout(sheetSettings, options)
   const sheet = document.createElement("canvas")
   sheet.width = layout.width
   sheet.height = layout.height
   const context = sheet.getContext("2d")
   if (!context) throw new Error("The browser could not create the image.")
+  // Cells left over in the last row share the sheet's background.
+  if (options.backgroundColor) {
+    context.fillStyle = options.backgroundColor
+    context.fillRect(0, 0, sheet.width, sheet.height)
+  }
 
   canvas.prepareExportRender({
     width: layout.cellWidth,
@@ -74,8 +115,8 @@ export const renderFrameSheet = async ({
       const frame = await canvas.renderExportFrame(evaluateFrame(time))
       context.drawImage(
         frame,
-        (index % grid) * layout.cellWidth,
-        Math.floor(index / grid) * layout.cellHeight,
+        (index % layout.columns) * layout.cellWidth,
+        Math.floor(index / layout.columns) * layout.cellHeight,
         layout.cellWidth,
         layout.cellHeight
       )

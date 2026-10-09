@@ -20,12 +20,10 @@ import {
 export function useMaterialEditor({
   currentTime,
   duration,
-  autoKeyEnabled,
   onEdit,
 }: {
   currentTime: number
   duration: number
-  autoKeyEnabled: boolean
   onEdit: () => void
 }) {
   const [materialPreset, setMaterialPreset] =
@@ -68,19 +66,18 @@ export function useMaterialEditor({
       onEdit()
       setMaterialBaseSetting(key, clamped)
       setMaterialKeyframes((prev) => {
-        if (prev.length === 0 && !autoKeyEnabled) return prev
+        if (prev.length === 0) return prev
         const nextValue = { ...activeMaterialSettings, [key]: clamped }
         return upsertMaterialKeyframe({
           keyframes: prev,
           time: playheadTime,
           value: nextValue,
-          createIfMissing: autoKeyEnabled,
+          createIfMissing: false,
         })
       })
     },
     [
       activeMaterialSettings,
-      autoKeyEnabled,
       currentTime,
       duration,
       onEdit,
@@ -95,17 +92,17 @@ export function useMaterialEditor({
       onEdit()
       setMaterialBaseSettings(settings)
       setMaterialKeyframes((prev) => {
-        if (prev.length === 0 && !autoKeyEnabled) return prev
+        if (prev.length === 0) return prev
 
         return upsertMaterialKeyframe({
           keyframes: prev,
           time: materialPlayheadTime(currentTime, duration),
           value: settings,
-          createIfMissing: autoKeyEnabled,
+          createIfMissing: false,
         })
       })
     },
-    [autoKeyEnabled, currentTime, duration, onEdit, setMaterialBaseSettings]
+    [currentTime, duration, onEdit, setMaterialBaseSettings]
   )
 
   const materialKeyframeAtPlayhead = useCallback(() => {

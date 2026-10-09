@@ -1,5 +1,5 @@
 import type { ExportRenderOptions, VideoContainer } from "../3d/SvgTypes"
-import type { FrameSheetGrid } from "./ExportFrameSheet"
+import type { FrameSheetArrangement } from "./ExportFrameSheet"
 
 export type ExportBackgroundMode = "transparent" | "color"
 
@@ -11,8 +11,9 @@ export type ExportSettings = {
   videoBitsPerSecond: number
   backgroundMode: ExportBackgroundMode
   backgroundColor: string
-  /** Images only: frames per side of a frame sheet; 1 is a single still. */
-  frameGrid: FrameSheetGrid
+  /** Images only: frames in a frame sheet; 1 is a single still. */
+  frames: number
+  frameArrangement: FrameSheetArrangement
 }
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
@@ -23,7 +24,8 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   videoBitsPerSecond: 8_000_000,
   backgroundMode: "transparent",
   backgroundColor: "#17151f",
-  frameGrid: 1,
+  frames: 1,
+  frameArrangement: "auto",
 }
 
 export const EXPORT_SIZE_PRESETS = [
@@ -73,3 +75,81 @@ export const exportRenderOptions = (
 
 export const extensionForVideoBlob = (blob: Blob, fallback: VideoContainer) =>
   blob.type.toLowerCase().includes("mp4") ? "mp4" : fallback
+
+const hexRgb = (hex: string) => {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!match) return null
+  const value = Number.parseInt(match[1], 16)
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255] as const
+}
+
+const hue = ([r, g, b]: readonly [number, number, number]) => {
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  if (max === min) return -1 // greys sort first
+  const d = max - min
+  const h =
+    max === r
+      ? (g - b) / d + (g < b ? 6 : 0)
+      : max === g
+        ? (b - r) / d + 2
+        : (r - g) / d + 4
+  return h * 60
+}
+
+/**
+ * Background ideas from the artwork itself: every color the icon uses (clip
+ * fills, mesh points and fill keyframes), near-duplicates merged and sorted
+ * by hue, so a backdrop can match the icon.
+ */
+export const projectPalette = (
+  scene: {
+    colorA: string
+    colorB: string
+    shapes: Array<{
+      color: string
+      colorSecondary: string
+      fillStops?: Array<{ color: string }>
+      fillKeyframes?: Array<{ stops: Array<{ color: string }> }>
+    }>
+    fillKeyframes: Array<{ stops: Array<{ color: string }> }>
+  },
+  limit = 6
+) => {
+  const candidates = [
+    scene.colorA,
+    scene.colorB,
+    ...scene.shapes.flatMap((shape) => [
+      ...(shape.fillStops?.map((stop) => stop.color) ?? [
+        shape.color,
+        shape.colorSecondary,
+      ]),
+      ...(shape.fillKeyframes ?? []).flatMap((keyframe) =>
+        keyframe.stops.map((stop) => stop.color)
+      ),
+    ]),
+    ...scene.fillKeyframes.flatMap((keyframe) =>
+      keyframe.stops.map((stop) => stop.color)
+    ),
+  ]
+  const picked: Array<{ hex: string; rgb: readonly [number, number, number] }> =
+    []
+  for (const candidate of candidates) {
+    const rgb = hexRgb(candidate)
+    if (!rgb) continue
+    // Mesh gradients repeat near-identical tones; keep the distinct ones.
+    const close = picked.some(
+      ({ rgb: other }) =>
+        Math.hypot(rgb[0] - other[0], rgb[1] - other[1], rgb[2] - other[2]) < 40
+    )
+    if (!close)
+      picked.push({
+        hex: `#${candidate.trim().replace(/^#/, "").toLowerCase()}`,
+        rgb,
+      })
+    if (picked.length >= limit) break
+  }
+  return picked
+    .sort((a, b) => hue(a.rgb) - hue(b.rgb))
+    .map((color) => color.hex)
+}

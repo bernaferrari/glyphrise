@@ -23,12 +23,10 @@ export const STATIC_STUDIO_LIGHTING = {
 export function useLightEditor({
   currentTime,
   duration,
-  autoKeyEnabled,
   onEdit,
 }: {
   currentTime: number
   duration: number
-  autoKeyEnabled: boolean
   onEdit: () => void
 }) {
   const [baseLightSettings, setLightBaseSettings, setLightSetting] =
@@ -128,7 +126,7 @@ export function useLightEditor({
           )
         }
 
-        if (!autoKeyEnabled && prev.length === 0) return prev
+        if (prev.length === 0) return prev
 
         return [
           ...prev,
@@ -141,14 +139,7 @@ export function useLightEditor({
         ].sort((a, b) => a.time - b.time)
       })
     },
-    [
-      activeKeyLightPosition,
-      autoKeyEnabled,
-      currentTime,
-      duration,
-      onEdit,
-      setKeyLightPosition,
-    ]
+    [activeKeyLightPosition, currentTime, duration, onEdit, setKeyLightPosition]
   )
 
   return {

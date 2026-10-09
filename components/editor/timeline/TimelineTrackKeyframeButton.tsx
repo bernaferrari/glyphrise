@@ -15,7 +15,12 @@ import { easingMenuItems } from "./TimelineEasingControls"
 import { xForFrac } from "./TimelineGeometry"
 import { TIMELINE_LAYER } from "./TimelineLayering"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
-import { formatValueLabel, TimelineDiamond } from "./TimelinePrimitives"
+import {
+  formatValueLabel,
+  incomingEasing,
+  outgoingEasing,
+  TimelineDiamond,
+} from "./TimelinePrimitives"
 
 type TimelineTrackKeyframeButtonProps = {
   track: TimelineTrack
@@ -186,6 +191,8 @@ export function TimelineTrackKeyframeButton({
         <TimelineDiamond
           color={track.color}
           selected={selected}
+          inEasing={incomingEasing(track.keyframes, keyframe.id)}
+          outEasing={outgoingEasing(track.keyframes, keyframe.id)}
           className="size-4"
         />
       </PopoverTrigger>

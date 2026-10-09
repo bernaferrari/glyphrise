@@ -9,7 +9,6 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
     currentTime: 1.5,
     duration: 3,
     isPlaying: false,
-    autoKeyEnabled: false,
     tracks: [
       {
         id: "scale",
@@ -70,29 +69,25 @@ function setup(overrides: Partial<MotionPropertyControlsOptions> = {}) {
 }
 
 describe("Reset view scale", () => {
-  it.each([false, true])(
-    "does not author transforms during playback with auto-key %s",
-    (autoKeyEnabled) => {
-      const { options, controls } = setup({
-        isPlaying: true,
-        autoKeyEnabled,
-        activeRotationOffset: { x: 0, y: 90, z: 0 },
-        activeMoveOffset: { x: 12, y: 0, z: 0 },
-        activeObjectScale: 2,
-        objectScaleAxes: { x: 2, y: 1, z: 0.5 },
-      })
-      controls.resetView()
-      expect(options.canvas3DRef.current?.resetRotation).toHaveBeenCalledOnce()
-      expect(options.setRotationAxisKeyframes).not.toHaveBeenCalled()
-      expect(options.setMoveKeyframes).not.toHaveBeenCalled()
-      expect(options.setTracks).not.toHaveBeenCalled()
-      expect(options.setRotationOffset).not.toHaveBeenCalled()
-      expect(options.setMoveOffset).not.toHaveBeenCalled()
-      expect(options.setObjectScale).not.toHaveBeenCalled()
-      expect(options.setObjectScaleAxes).not.toHaveBeenCalled()
-      expect(options.setActiveRecipeId).not.toHaveBeenCalled()
-    }
-  )
+  it("does not author transforms during playback", () => {
+    const { options, controls } = setup({
+      isPlaying: true,
+      activeRotationOffset: { x: 0, y: 90, z: 0 },
+      activeMoveOffset: { x: 12, y: 0, z: 0 },
+      activeObjectScale: 2,
+      objectScaleAxes: { x: 2, y: 1, z: 0.5 },
+    })
+    controls.resetView()
+    expect(options.canvas3DRef.current?.resetRotation).toHaveBeenCalledOnce()
+    expect(options.setRotationAxisKeyframes).not.toHaveBeenCalled()
+    expect(options.setMoveKeyframes).not.toHaveBeenCalled()
+    expect(options.setTracks).not.toHaveBeenCalled()
+    expect(options.setRotationOffset).not.toHaveBeenCalled()
+    expect(options.setMoveOffset).not.toHaveBeenCalled()
+    expect(options.setObjectScale).not.toHaveBeenCalled()
+    expect(options.setObjectScaleAxes).not.toHaveBeenCalled()
+    expect(options.setActiveRecipeId).not.toHaveBeenCalled()
+  })
 
   it("restores uniform scale without adding animation to a static object", () => {
     const { options, controls } = setup({ activeObjectScale: 2 })
@@ -159,7 +154,7 @@ describe("Reset view scale", () => {
 
 describe("Canvas rotation preview", () => {
   it("keeps drag and momentum frames out of document history until the final commit", () => {
-    const { controls, options } = setup({ autoKeyEnabled: true })
+    const { controls, options } = setup()
     for (let frame = 1; frame <= 60; frame++) {
       controls.handleViewRotationSet(
         { x: 10, y: frame, z: 5 },

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { ArrowRight, Check, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -14,7 +13,7 @@ type GuideStep = {
 
 /**
  * Three steps to a first download: watch it move, make it yours, share it.
- * Each step names one thing to do; styling can be skipped, never a gate.
+ * Each step names one thing to do and advances on doing it.
  */
 export function CreationGuide({
   hasStyle,
@@ -37,10 +36,8 @@ export function CreationGuide({
   onExport: () => void
   onDismiss: () => void
 }) {
-  const [styleSkipped, setStyleSkipped] = useState(false)
   const watched = hasMotion && hasPreviewed
-  const styled = hasStyle || styleSkipped
-  const index = completed ? 3 : !watched ? 0 : !styled ? 1 : 2
+  const index = completed ? 3 : !watched ? 0 : !hasStyle ? 1 : 2
 
   const steps: GuideStep[] = [
     hasMotion
@@ -63,8 +60,8 @@ export function CreationGuide({
       title: "Make it yours",
       copy: "Try another finish, colors or depth. It keeps moving while you edit.",
       action: "Style it",
+      // Opening styling completes the step; the guide moves on to sharing.
       onAction: onStyle,
-      secondary: { label: "Skip", onClick: () => setStyleSkipped(true) },
     },
     {
       title: "Share it",

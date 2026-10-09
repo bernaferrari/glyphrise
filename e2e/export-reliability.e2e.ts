@@ -327,17 +327,23 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   ).toBeNull()
 })
 
-test("downloads a frame sheet at the chosen image size", async ({ page }) => {
+test("downloads an auto-fitted frame sheet at the chosen image size", async ({
+  page,
+}) => {
   await page.addInitScript(() =>
     window.localStorage.setItem("glyphrise:quick-start:v1", "dismissed")
   )
   await page.goto("/")
   await page.getByRole("button", { name: "Export", exact: true }).click()
   const exporter = page.getByRole("dialog", { name: "Export" })
-  await exporter.getByRole("radio", { name: "2 × 2" }).click()
+  await exporter.getByRole("radio", { name: "Sheet", exact: true }).click()
+  await exporter.getByRole("radio", { name: "4", exact: true }).click()
   await exporter.getByLabel("Width", { exact: true }).fill("256")
   await exporter.getByLabel("Height", { exact: true }).fill("256")
-  await expect(exporter.getByText("4 frames · 128 × 128 px each")).toBeVisible()
+  // Auto fits four frames to a square image as 2 × 2.
+  await expect(
+    exporter.getByText(/2 × 2 grid · 128 × 128 px per frame/)
+  ).toBeVisible()
   const downloading = page.waitForEvent("download")
   await exporter
     .getByRole("button", { name: "Download image", exact: true })

@@ -23,7 +23,6 @@ type RotationMotionControlsOptions = Pick<
   | "activeRotationOffset"
   | "setRotationAxisKeyframes"
   | "setPreviewRotationOffset"
-  | "autoKeyEnabled"
 > & {
   markCustom: MarkCustom
 }
@@ -53,7 +52,6 @@ export function useRotationMotionControls({
   activeRotationOffset,
   setRotationAxisKeyframes,
   setPreviewRotationOffset,
-  autoKeyEnabled,
   markCustom,
 }: RotationMotionControlsOptions) {
   const playheadTime = useCallback(
@@ -70,13 +68,13 @@ export function useRotationMotionControls({
           value: nextRotation,
           time,
           duration,
-          // Without auto-key, an animated track still keys the playhead;
-          // a static one keeps a single value.
-          createIfMissing: autoKeyEnabled,
+          // As in After Effects: an animated property keys the playhead; a
+          // static one keeps a single value until its stopwatch (◇) is on.
+          createIfMissing: false,
         })
       )
     },
-    [autoKeyEnabled, duration, setRotationAxisKeyframes]
+    [duration, setRotationAxisKeyframes]
   )
 
   const applyRotation = useCallback(

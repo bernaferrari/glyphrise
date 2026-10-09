@@ -21,6 +21,8 @@ type Props = {
   videoExportCanceled: boolean
   settings: ExportSettings
   supportedVideoContainers: VideoContainer[]
+  /** Colors the icon uses, offered as backgrounds. */
+  palette: string[]
   onCapturePreview: (settings: ExportSettings) => Promise<Blob>
   onSettingsChange: (patch: Partial<ExportSettings>) => void
   onExportGltf: () => void
@@ -62,17 +64,18 @@ function OutputPreview({
           width: 1080,
           height: 1080,
           backgroundMode: "transparent",
-          frameGrid: 1,
+          frames: 1,
         }
       : format === "video"
-        ? { ...settings, frameGrid: 1 }
+        ? { ...settings, frames: 1 }
         : settings
   const key = JSON.stringify([
     shown.width,
     shown.height,
     shown.backgroundMode,
     shown.backgroundColor,
-    shown.frameGrid,
+    shown.frames,
+    shown.frameArrangement,
   ])
   useEffect(() => {
     if (
@@ -132,7 +135,7 @@ function OutputPreview({
             <img
               src={preview.url}
               alt={
-                shown.frameGrid === 1
+                shown.frames <= 1
                   ? "Rendered export frame"
                   : "Rendered frame sheet"
               }
@@ -228,6 +231,7 @@ export function ExportAssetOptions(props: Props) {
               video={format === "video"}
               disabled={busy}
               invalidSize={invalidSize}
+              palette={props.palette}
               onChange={props.onSettingsChange}
             />
           )}

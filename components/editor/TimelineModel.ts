@@ -7,6 +7,8 @@ export type NamedEasing =
   | "flow"
   | "spring"
   | "bounce"
+  /** After Effects' hold: keep the value, then jump at the next keyframe. */
+  | "hold"
 /** A custom curve, written like CSS: `cubic-bezier(x1, y1, x2, y2)`. */
 export type CubicBezierEasing = `cubic-bezier(${string})`
 export type EasingType = NamedEasing | CubicBezierEasing
@@ -18,6 +20,7 @@ const NAMED_EASINGS: readonly NamedEasing[] = [
   "flow",
   "spring",
   "bounce",
+  "hold",
 ]
 
 /** Named easings that are cubic béziers, so their handles can be edited. */
@@ -170,6 +173,7 @@ export const applyEasing = (easing: EasingType, t: number): number => {
     return t - (0.35 * Math.sin(t * Math.PI * 2)) / (Math.PI * 2)
   if (easing === "spring") return springEase(t)
   if (easing === "bounce") return bounceEase(t)
+  if (easing === "hold") return t >= 1 ? 1 : 0
   const points = parseCubicBezier(easing)
   return points ? sampleCubicBezier(points, t) : t
 }

@@ -19,8 +19,8 @@ const temporary = await mkdtemp(join(tmpdir(), "glyphrise-starters-"))
 const output = resolve(root, "public/starter-previews")
 const only = new Set(process.argv.slice(2))
 // The poster (and the loop's first frame) should explain the starter at a
-// glance: Wi-Fi starts on its slashed "off" icon, facing front.
-const START_TIMES = { wifi: 2.6 }
+// glance: Wi-Fi starts switched off, coming back around to face front.
+const START_TIMES = { wifi: 3.2 }
 let browser
 let server
 const encode = (args) => {

@@ -93,8 +93,9 @@ export function ViewOptionsPopover({
           className="max-h-(--available-height) w-72 max-w-(--spacing-toast) overflow-y-auto overscroll-contain"
         >
           <p className="px-2 pt-1 pb-2 text-xs leading-5 text-muted-foreground">
-            Drag to rotate the artwork, using the same Rotation values as
-            Properties. Pinch or scroll to zoom the preview.
+            Drag to rotate the artwork. Playback pauses so the change lands on
+            the frame you see, keyed if Rotation is animated. Pinch or scroll to
+            zoom.
           </p>
           <ViewportToggleGroup label="Feel">
             <ViewportToggleRow

@@ -187,12 +187,6 @@ test.describe("phone style keyframe recovery", () => {
     page,
   }) => {
     await page.goto("/")
-    await page.getByRole("button", { name: "Motion", exact: true }).click()
-    await page
-      .getByRole("button", { name: "Timeline options", exact: true })
-      .click()
-    await page.getByRole("switch", { name: "Auto-key", exact: true }).click()
-    await page.keyboard.press("Escape")
     await page.getByRole("button", { name: "Properties", exact: true }).click()
     await expect(
       page.getByRole("button", { name: /style keyframe at/ })

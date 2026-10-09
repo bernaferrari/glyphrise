@@ -39,8 +39,6 @@ export type TimelineToolbarProps = {
   loop: boolean
   zoom: number
   playback?: PlaybackControlsProps
-  autoKeyEnabled?: boolean
-  onAutoKeyChange?: (enabled: boolean) => void
   /** Rows and tracks that don't end where they start. */
   openLoopCount?: number
   onCloseLoops?: () => void
@@ -80,8 +78,6 @@ export function TimelineToolbar({
   loop,
   zoom,
   playback,
-  autoKeyEnabled = false,
-  onAutoKeyChange,
   openLoopCount = 0,
   onCloseLoops,
   onDurationEditorChange,
@@ -173,8 +169,6 @@ export function TimelineToolbar({
         <OptionsMenu
           compactMode={compactMode}
           duration={duration}
-          autoKeyEnabled={autoKeyEnabled}
-          onAutoKeyChange={onAutoKeyChange}
           openLoopCount={openLoopCount}
           onCloseLoops={onCloseLoops}
           zoom={zoom}
@@ -195,13 +189,11 @@ function MenuSwitch({
   label,
   description,
   checked,
-  danger,
   onChange,
 }: {
   label: string
   description?: string
   checked: boolean
-  danger?: boolean
   onChange: () => void
 }) {
   return (
@@ -217,11 +209,7 @@ function MenuSwitch({
           </span>
         )}
       </span>
-      <Switch
-        checked={checked}
-        onCheckedChange={onChange}
-        tone={danger ? "recording" : "default"}
-      />
+      <Switch checked={checked} onCheckedChange={onChange} />
     </label>
   )
 }
@@ -270,8 +258,6 @@ function LoopClosureRow({
 function OptionsMenu({
   compactMode,
   duration,
-  autoKeyEnabled,
-  onAutoKeyChange,
   openLoopCount,
   onCloseLoops,
   zoom,
@@ -285,8 +271,6 @@ function OptionsMenu({
 }: {
   compactMode: boolean
   duration: number
-  autoKeyEnabled: boolean
-  onAutoKeyChange?: (enabled: boolean) => void
   openLoopCount: number
   onCloseLoops?: () => void
   zoom: number
@@ -303,7 +287,7 @@ function OptionsMenu({
       <PopoverTrigger
         aria-label="Timeline options"
         title="Timeline options"
-        className={cn(iconButton, autoKeyEnabled && "text-recording")}
+        className={iconButton}
       >
         <MoreHorizontal className="size-4" />
       </PopoverTrigger>
@@ -373,18 +357,6 @@ function OptionsMenu({
           checked={snapEnabled}
           onChange={() => onSnapEnabledChange(!snapEnabled)}
         />
-        {onAutoKeyChange && (
-          <>
-            <div className="mx-1 my-0.5 h-px bg-border" />
-            <MenuSwitch
-              label="Auto-key"
-              description="Every change adds a keyframe at the playhead"
-              checked={autoKeyEnabled}
-              danger
-              onChange={() => onAutoKeyChange(!autoKeyEnabled)}
-            />
-          </>
-        )}
       </PopoverContent>
     </Popover>
   )

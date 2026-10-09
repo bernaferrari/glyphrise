@@ -43,9 +43,6 @@ export type TimelinePlaybackProps = {
   onLoopChange: (loop: boolean) => void
   /** Transport shown in the timeline toolbar. */
   playback?: PlaybackControlsProps
-  /** Record (auto-key): inspector edits create keyframes at the playhead. */
-  autoKeyEnabled?: boolean
-  onAutoKeyChange?: (enabled: boolean) => void
   /** Applies a motion preset across the whole timeline. */
   onApplyMotionPreset?: (id: AnimationPresetId) => void
   /** Artwork shown in preset previews. */
@@ -62,6 +59,12 @@ export type TimelineTrackProps = {
   openLoops?: string[]
   /** Ends one row or track where it starts, or every one without an id. */
   onCloseLoops?: (id?: string) => void
+  /** Pastes a copy of a property keyframe at `time` (Cmd/Ctrl+V). */
+  onDuplicatePropertyKeyframe?: (
+    rowId: string,
+    keyframeId: string,
+    time: number
+  ) => void
   onTogglePropertyKeyframe?: (rowId: string, keyframeId?: string | null) => void
   onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void

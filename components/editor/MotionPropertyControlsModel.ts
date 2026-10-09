@@ -12,7 +12,6 @@ export type MotionPropertyControlsOptions = {
   currentTime: number
   isPlaying: boolean
   duration: number
-  autoKeyEnabled: boolean
   tracks: TimelineTrack[]
   setTracks: Dispatch<SetStateAction<TimelineTrack[]>>
   setSelectedMotionTrackId: Dispatch<SetStateAction<MotionTrackId>>

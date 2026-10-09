@@ -631,3 +631,89 @@ test("closes an open loop on the nearest full turn, undoable in one step", async
     page.getByRole("button", { name: "End Rotation where it starts" })
   ).toBeVisible()
 })
+
+test("grabbing the canvas mid-playback pauses and keys rotation on that frame", async ({
+  page,
+}) => {
+  await page.goto("/")
+  await page.getByRole("button", { name: "Play timeline", exact: true }).click()
+  await page.waitForTimeout(1000)
+  const canvas = page
+    .getByRole("region", { name: "3D preview" })
+    .locator("canvas")
+  const box = (await canvas.boundingBox())!
+  await page.mouse.move(box.x + box.width * 0.4, box.y + box.height * 0.5)
+  await page.mouse.down()
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5, {
+    steps: 8,
+  })
+  await page.mouse.up()
+  await expect(
+    page.getByRole("button", { name: "Play timeline", exact: true })
+  ).toBeVisible()
+  const time = Number(
+    (await page.getByLabel("Playhead time in seconds").inputValue()).split(
+      ":"
+    )[1]
+  )
+  expect(time).toBeGreaterThan(0)
+  await expect(
+    page.getByRole("button", {
+      name: new RegExp(
+        `Select Rotation keyframe, .* at ${time.toFixed(2)} seconds`
+      ),
+    })
+  ).toBeVisible()
+})
+
+test("After Effects keys: copy, paste at the playhead, and F9 easy ease", async ({
+  page,
+}) => {
+  await page.goto("/")
+  const lastRotation = page.getByRole("button", {
+    name: "Select Rotation keyframe, X 0 Y 360 Z 0 at 5.00 seconds",
+  })
+  await lastRotation.click()
+  await page.keyboard.press("ControlOrMeta+c")
+  const playhead = page.getByLabel("Playhead time in seconds")
+  await playhead.fill("2.5")
+  await playhead.press("Enter")
+  await page.keyboard.press("ControlOrMeta+v")
+  const pasted = page.getByRole("button", {
+    name: "Select Rotation keyframe, X 0 Y 360 Z 0 at 2.50 seconds",
+  })
+  await expect(pasted).toBeVisible()
+
+  await page
+    .getByRole("button", {
+      name: "Select Rotation keyframe, X 0 Y 0 Z 0 at 0.00 seconds",
+    })
+    .click({ button: "right" })
+  await page.getByRole("menuitem", { name: /^Ease/ }).hover()
+  await page.getByRole("menuitem", { name: "Linear" }).click()
+  await expect(
+    page.getByRole("button", {
+      name: "Rotation ease from 0.00s to 2.50s: Linear",
+    })
+  ).toBeVisible()
+  await pasted.click()
+  await page.keyboard.press("F9")
+  await expect(
+    page.getByRole("button", {
+      name: "Rotation ease from 0.00s to 2.50s: Smooth",
+    })
+  ).toBeVisible()
+})
+
+test("timeline context menu actions run", async ({ page }) => {
+  await page.goto("/")
+  await page
+    .getByRole("button", { name: "Account Circle icon clip", exact: true })
+    .click({ button: "right" })
+  await page.getByRole("menuitem", { name: "Move later" }).click()
+  await expect(page.getByRole("button", { name: /icon clip$/ })).toHaveText([
+    "",
+    /Account Circle Off/,
+    /Account Circle$/,
+  ])
+})

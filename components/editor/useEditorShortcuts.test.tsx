@@ -9,11 +9,15 @@ it("steps with arrows on transport surfaces while preserving inputs and controls
   const onStepFrames = vi.fn()
   const onPreviousKeyframe = vi.fn()
   const onNextKeyframe = vi.fn()
+  const onGoToStart = vi.fn()
+  const onGoToEnd = vi.fn()
   function Harness() {
     useTimelineStepShortcuts({
       onStepFrames,
       onPreviousKeyframe,
       onNextKeyframe,
+      onGoToStart,
+      onGoToEnd,
     })
     return (
       <div data-timeline-step-surface>
@@ -61,8 +65,18 @@ it("steps with arrows on transport surfaces while preserving inputs and controls
     dialog.remove()
     send(play, ",")
     send(play, ".")
-    expect(onPreviousKeyframe).toHaveBeenCalledOnce()
-    expect(onNextKeyframe).toHaveBeenCalledOnce()
+    // After Effects keys too.
+    send(play, "j")
+    send(play, "k")
+    expect(onPreviousKeyframe).toHaveBeenCalledTimes(2)
+    expect(onNextKeyframe).toHaveBeenCalledTimes(2)
+    send(play, "Home")
+    send(play, "End")
+    expect(onGoToStart).toHaveBeenCalledOnce()
+    expect(onGoToEnd).toHaveBeenCalledOnce()
+    // Typing a name never jumps the playhead.
+    send(container.querySelector("input")!, "k")
+    expect(onNextKeyframe).toHaveBeenCalledTimes(2)
   } finally {
     act(() => root.unmount())
     container.remove()

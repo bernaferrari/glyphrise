@@ -56,7 +56,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
   } = useEditorDocumentLifecycle(editor)
 
   const {
-    autoKey: { autoKeyEnabled, setAutoKeyEnabled },
     theme: { themeMounted, isLightTheme, themeToggleLabel, setTheme },
     playback: {
       canvas3DRef,
@@ -461,8 +460,12 @@ export function useAppLayoutController(): AppLayoutViewProps {
     setQualityKeyframes,
     geometryQuality,
     canvas3DRef,
-    autoKeyEnabled,
   })
+
+  const holdFrameForCanvasEdit = () => {
+    cancelAnimatedSeek()
+    if (isPlaying) stopPlayback()
+  }
 
   // Videos and frame sheets render the document as it was when they start.
   const frameEvaluatorRef = useLatestRef(() => {
@@ -654,6 +657,16 @@ export function useAppLayoutController(): AppLayoutViewProps {
         )
       )
     },
+    onGoToStart: () => {
+      cancelAnimatedSeek()
+      stopPlayback()
+      setCurrentTime(0)
+    },
+    onGoToEnd: () => {
+      cancelAnimatedSeek()
+      stopPlayback()
+      setCurrentTime(duration)
+    },
   })
 
   const { canvasProps, viewOptionsProps, playbackProps } =
@@ -727,8 +740,17 @@ export function useAppLayoutController(): AppLayoutViewProps {
       zenMode,
       animatedSeekEnabled,
       setZoom,
-      handleViewRotationCommit,
-      handleViewRotationSet,
+      // Grabbing the icon stops it on the frame you see, so the drag edits
+      // Rotation there (keying it, when Rotation is animated) instead of
+      // fighting playback and keying wherever the playhead happens to be.
+      handleViewRotationCommit: (delta) => {
+        holdFrameForCanvasEdit()
+        handleViewRotationCommit(delta)
+      },
+      handleViewRotationSet: (target, options) => {
+        holdFrameForCanvasEdit()
+        handleViewRotationSet(target, options)
+      },
       handleScaleChange,
       handleScaleAxisChange,
       updateMoveAxis,
@@ -857,7 +879,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
   return {
     onCreateStarter: (starterId, name, svgContent) => {
       if (!createNewProject("blank", name, starterId, svgContent)) return false
-      setAutoKeyEnabled(false)
       return true
     },
     animationProps: {
@@ -930,8 +951,6 @@ export function useAppLayoutController(): AppLayoutViewProps {
       onTabChange: setInspectorTab,
       editScopeProps: {
         currentTime,
-        autoKeyEnabled,
-        onAutoKeyChange: setAutoKeyEnabled,
         properties: [
           {
             name: "Rotation",

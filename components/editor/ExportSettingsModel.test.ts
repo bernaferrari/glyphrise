@@ -3,6 +3,7 @@ import {
   DEFAULT_EXPORT_SETTINGS,
   availableVideoContainers,
   exportRenderOptions,
+  projectPalette,
   resolveVideoMimeType,
 } from "./ExportSettingsModel"
 
@@ -26,5 +27,23 @@ describe("ExportSettingsModel", () => {
         height: 9000,
       })
     ).toEqual({ width: 64, height: 4096, backgroundColor: null })
+  })
+})
+
+describe("projectPalette", () => {
+  it("offers the icon's distinct colors, sorted by hue", () => {
+    const palette = projectPalette({
+      colorA: "#ff0000",
+      colorB: "#FF0505",
+      shapes: [
+        {
+          color: "#00ff00",
+          colorSecondary: "#0000ff",
+          fillStops: [{ color: "#00ff00" }, { color: "#0000ff" }],
+        },
+      ],
+      fillKeyframes: [{ stops: [{ color: "#ffff00" }] }],
+    })
+    expect(palette).toEqual(["#ff0000", "#ffff00", "#00ff00", "#0000ff"])
   })
 })

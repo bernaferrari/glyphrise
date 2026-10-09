@@ -127,7 +127,7 @@ import { Center } from '@react-three/drei';
 import * as THREE from 'three';
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
-type EasingType = 'linear' | 'ease-in-out' | 'flow' | 'spring' | 'bounce' | \`cubic-bezier(\${string})\`;
+type EasingType = 'linear' | 'ease-in-out' | 'flow' | 'spring' | 'bounce' | 'hold' | \`cubic-bezier(\${string})\`;
 type Vec3 = { x: number; y: number; z: number };
 type ScalarKeyframe = { id: string; time: number; value: number; easing: EasingType };
 type VectorKeyframe = { id: string; time: number; value: Vec3; easing: EasingType };
@@ -262,6 +262,7 @@ const applyEasing = (easing: EasingType, t: number) => {
     const c4 = (2 * Math.PI) / 3;
     return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
   }
+  if (easing === 'hold') return t >= 1 ? 1 : 0;
   if (easing === 'bounce') {
     const n1 = 7.5625;
     const d1 = 2.75;

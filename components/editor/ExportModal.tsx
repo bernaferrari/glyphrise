@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   AlertTriangle,
   Box,
@@ -20,7 +20,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ExportAssetOptions, type AssetFormat } from "./ExportAssetOptions"
 import { ExportCodeView, type CodeTarget } from "./ExportCodeTabs"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
-import type { ExportSettings } from "./ExportSettingsModel"
+import { projectPalette, type ExportSettings } from "./ExportSettingsModel"
 import { useExportModalController } from "./useExportModalController"
 
 interface ExportModalProps {
@@ -111,6 +111,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   }, [codeTarget, format, handleTabChange])
 
   const busy = isRecording || isGltfExporting || isPngExporting
+  const palette = useMemo(() => projectPalette(scene), [scene])
 
   return (
     <Dialog
@@ -200,6 +201,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             videoExportCanceled={videoExportCanceled}
             settings={settings}
             supportedVideoContainers={supportedVideoContainers}
+            palette={palette}
             onCapturePreview={onCapturePreview}
             onSettingsChange={updateSettings}
           />

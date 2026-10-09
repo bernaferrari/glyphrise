@@ -107,7 +107,8 @@ export function useEditorExportSurface({
         settings.height,
         settings.backgroundMode,
         settings.backgroundColor,
-        settings.frameGrid,
+        settings.frames,
+        settings.frameArrangement,
       ])
       if (
         captureRef.current?.key === key &&
@@ -131,11 +132,11 @@ export function useEditorExportSurface({
                 ? null
                 : settings.backgroundColor,
           }
-          if (settings.frameGrid === 1) return canvas.exportPng(options)
+          if (settings.frames <= 1) return canvas.exportPng(options)
           canvas.commitRotationEdit()
           return renderFrameSheet({
             canvas,
-            grid: settings.frameGrid,
+            sheet: settings,
             options,
             duration: sceneArgs.duration,
             evaluateFrame: createFrameEvaluator(),
@@ -163,7 +164,7 @@ export function useEditorExportSurface({
     const link = document.createElement("a")
     link.href = url
     link.download =
-      settings.frameGrid === 1 ? "glyphrise-still.png" : "glyphrise-frames.png"
+      settings.frames <= 1 ? "glyphrise-still.png" : "glyphrise-frames.png"
     document.body.appendChild(link)
     link.click()
     link.remove()

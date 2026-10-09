@@ -134,30 +134,39 @@ describe("createProjectFromTemplateAction", () => {
     expect(rotationAt("bell", 0)).toEqual(rotationAt("bell", 3))
   })
 
-  it("switches Wi-Fi off while it faces front, after one turn", () => {
+  it("switches Wi-Fi off halfway through the spin and loops on the plain icon", () => {
     const snapshot = createStarterEditorSnapshot(
       validSnapshot("#abcdef"),
       "wifi"
     )
-    const duration = snapshot.duration
-    for (const fraction of [0.5, 0.6, 0.7, 0.78]) {
-      const time = duration * fraction
-      const state = evaluateMorphRenderState({ ...snapshot, currentTime: time })
-      // Fully on one icon (no wipe in progress), and that icon is the slashed one.
-      expect([0, 1]).toContain(state.morph.progress)
-      const shown =
-        state.morph.progress === 1 ? state.morph.to : state.morph.from
-      expect(shown.svgContent).toContain("data-glyphrise-slash")
-      const y = interpolateLightPositionKeyframes(
-        time,
-        snapshot.rotationOffset,
-        snapshot.rotationAxisKeyframes
-      ).y
-      expect(y % 360).toBeCloseTo(0)
+    const shownAt = (fraction: number) => {
+      const { morph } = evaluateMorphRenderState({
+        ...snapshot,
+        currentTime: snapshot.duration * fraction,
+      })
+      if (morph.progress === 0) return morph.from.svgContent
+      if (morph.progress === 1) return morph.to.svgContent
+      return null
     }
+    // Plain while the turn starts, slashed from the middle of the spin on.
+    for (const fraction of [0, 0.2, 0.35])
+      expect(shownAt(fraction)).not.toContain("data-glyphrise-slash")
+    for (const fraction of [0.6, 0.7, 0.8])
+      expect(shownAt(fraction)).toContain("data-glyphrise-slash")
+    expect(shownAt(1)).toBe(shownAt(0))
+    // The loop seam lands on the same icon, colors and rotation it opened with.
+    const end = evaluateMorphRenderState({
+      ...snapshot,
+      currentTime: snapshot.duration,
+    })
+    expect(end.morph.to.fillStops).toEqual(snapshot.shapes[0].fillStops)
+    expect(snapshot.shapes.at(-1)!.time).toBeLessThan(snapshot.duration)
+    expect(snapshot.rotationAxisKeyframes.at(-1)!.value.y % 360).toBe(
+      snapshot.rotationAxisKeyframes[0].value.y
+    )
   })
 
-  it.each(["calendar"])(
+  it.each(["calendar", "wifi"])(
     "gives %s a slower flowing turn without stopping or changing speed at the seam",
     (id) => {
       const snapshot = createStarterEditorSnapshot(validSnapshot("#abcdef"), id)
@@ -192,30 +201,6 @@ describe("createProjectFromTemplateAction", () => {
       }
     }
   )
-
-  it("returns the Wi-Fi starter to its unslashed opening shape before looping", () => {
-    const snapshot = createStarterEditorSnapshot(
-      validSnapshot("#abcdef"),
-      "wifi"
-    )
-    const at = (currentTime: number) =>
-      evaluateMorphRenderState({ ...snapshot, currentTime })
-    const start = at(0)
-    const off = at(snapshot.duration / 2)
-    const end = at(snapshot.duration)
-
-    expect(start.morph.progress).toBe(0)
-    expect(off.morph.progress).toBe(1)
-    expect(off.morph.to.svgContent).toContain("data-glyphrise-slash")
-    expect(end.morph.progress).toBe(1)
-    expect(end.transitionType).toBe("wipe")
-    expect(end.morph.to.svgContent).toBe(start.morph.from.svgContent)
-    expect(end.morph.to.fillStops).toEqual(start.morph.from.fillStops)
-    expect(snapshot.shapes.at(-1)!.time).toBeLessThan(snapshot.duration)
-    expect(snapshot.rotationAxisKeyframes.at(-1)!.value.y % 360).toBe(
-      snapshot.rotationAxisKeyframes[0].value.y
-    )
-  })
 
   const recipe = MOTION_RECIPES[0]
 

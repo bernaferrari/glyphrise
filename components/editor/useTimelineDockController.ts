@@ -16,6 +16,7 @@ import { clearTrackKeyframes } from "./TimelineDockKeyframeModel"
 import {
   addPropertyRowKeyframe,
   clearPropertyRowKeyframes,
+  duplicatePropertyRowKeyframe,
   movePropertyRowKeyframe,
   removePropertyRowKeyframe,
   setPropertyRowKeyframeEasing,
@@ -327,6 +328,20 @@ export function useTimelineDockController({
     markCustom()
   }
 
+  const duplicateTimelinePropertyKeyframe = (
+    rowId: string,
+    keyframeId: string,
+    time: number
+  ) => {
+    duplicatePropertyRowKeyframe(
+      rowId,
+      keyframeId,
+      quantizeTimeToFrame(clampNumber(time, 0, duration)),
+      propertyKeyframeSetters
+    )
+    markCustom()
+  }
+
   const setTimelinePropertyEasing = (
     rowId: string,
     keyframeId: string | null,
@@ -380,6 +395,7 @@ export function useTimelineDockController({
     addTimelinePropertyKeyframeAtTime: addTimelinePropertyKeyframe,
     moveTimelinePropertyKeyframe,
     setTimelinePropertyEasing,
+    duplicateTimelinePropertyKeyframe,
     setShapeBlend,
     openLoops,
     closeLoops,

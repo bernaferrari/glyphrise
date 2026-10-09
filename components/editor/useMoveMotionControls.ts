@@ -16,7 +16,6 @@ type MoveMotionControlsOptions = Pick<
   | "activeMoveOffset"
   | "setMoveOffset"
   | "setMoveKeyframes"
-  | "autoKeyEnabled"
 > & {
   markCustom: MarkCustom
 }
@@ -28,7 +27,6 @@ export function useMoveMotionControls({
   activeMoveOffset,
   setMoveOffset,
   setMoveKeyframes,
-  autoKeyEnabled,
   markCustom,
 }: MoveMotionControlsOptions) {
   const applyMove = useCallback(
@@ -41,11 +39,11 @@ export function useMoveMotionControls({
           value: nextMove,
           time: currentTime,
           duration,
-          createIfMissing: autoKeyEnabled,
+          createIfMissing: false,
         })
       )
     },
-    [autoKeyEnabled, currentTime, duration, setMoveKeyframes, setMoveOffset]
+    [currentTime, duration, setMoveKeyframes, setMoveOffset]
   )
 
   const updateMoveAxis = useCallback(

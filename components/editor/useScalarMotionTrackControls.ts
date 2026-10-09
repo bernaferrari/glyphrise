@@ -21,7 +21,6 @@ type ScalarMotionTrackControlsOptions = Pick<
   | "setObjectScaleAxes"
   | "setIsScaleLocked"
   | "setKeyLightIntensity"
-  | "autoKeyEnabled"
 > & {
   markCustom: MarkCustom
 }
@@ -37,7 +36,6 @@ export function useScalarMotionTrackControls({
   setObjectScaleAxes,
   setIsScaleLocked,
   setKeyLightIntensity,
-  autoKeyEnabled,
   markCustom,
 }: ScalarMotionTrackControlsOptions) {
   const setTrackValue = useCallback(
@@ -45,7 +43,7 @@ export function useScalarMotionTrackControls({
       trackId: MotionTrackId,
       nextValue: number,
       syncStaticValue?: (value: number) => void,
-      createIfMissing = autoKeyEnabled
+      createIfMissing = false
     ) => {
       setSelectedMotionTrackId(trackId)
       markCustom()
@@ -63,7 +61,6 @@ export function useScalarMotionTrackControls({
     [
       currentTime,
       duration,
-      autoKeyEnabled,
       markCustom,
       setSelectedMotionTrackId,
       setTracks,

@@ -10,11 +10,7 @@ import type {
 
 type QualityMotionControlsOptions = Pick<
   MotionPropertyControlsOptions,
-  | "currentTime"
-  | "duration"
-  | "autoKeyEnabled"
-  | "setGeometryQuality"
-  | "setQualityKeyframes"
+  "currentTime" | "duration" | "setGeometryQuality" | "setQualityKeyframes"
 > & {
   markCustom: MarkCustom
 }
@@ -22,7 +18,6 @@ type QualityMotionControlsOptions = Pick<
 export function useQualityMotionControls({
   currentTime,
   duration,
-  autoKeyEnabled,
   setGeometryQuality,
   setQualityKeyframes,
   markCustom,
@@ -43,7 +38,7 @@ export function useQualityMotionControls({
           return prev.map((kf) =>
             kf.id === existing.id ? { ...kf, value: clamped } : kf
           )
-        if (autoKeyEnabled || prev.length > 0) {
+        if (prev.length > 0) {
           return [
             ...prev,
             {
@@ -57,14 +52,7 @@ export function useQualityMotionControls({
         return prev
       })
     },
-    [
-      autoKeyEnabled,
-      currentTime,
-      duration,
-      markCustom,
-      setGeometryQuality,
-      setQualityKeyframes,
-    ]
+    [currentTime, duration, markCustom, setGeometryQuality, setQualityKeyframes]
   )
 
   return { updateQuality }

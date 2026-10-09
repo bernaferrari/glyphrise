@@ -30,12 +30,10 @@ type FillEditorSnapshot = {
 export const useFillEditor = ({
   currentTime,
   duration,
-  autoKeyEnabled,
   onEdit,
 }: {
   currentTime: number
   duration: number
-  autoKeyEnabled: boolean
   onEdit: () => void
 }) => {
   const [enableGradient, setEnableGradient] = useState<boolean>(true)
@@ -119,7 +117,7 @@ export const useFillEditor = ({
 
       setFillColor(nextColor)
       setFillColorSecondary(nextStops[1].color)
-      if (keyframes.length === 0 && !autoKeyEnabled) {
+      if (keyframes.length === 0) {
         setFillStops(fillMode === "gradient" ? nextStops : undefined)
         return keyframes
       }
@@ -128,7 +126,7 @@ export const useFillEditor = ({
         keyframes,
         time,
         patch: { stops: nextStops, gradientType: fillGradientType },
-        createIfMissing: autoKeyEnabled,
+        createIfMissing: false,
       })
     })
   }
@@ -154,13 +152,13 @@ export const useFillEditor = ({
       setFillColorSecondary(nextColorSecondary)
       setFillGradientType(gradientType)
       setFillStops(nextStops)
-      if (keyframes.length === 0 && !autoKeyEnabled) return keyframes
+      if (keyframes.length === 0) return keyframes
 
       return upsertFillKeyframe({
         keyframes,
         time,
         patch: { stops: nextStops, gradientType },
-        createIfMissing: autoKeyEnabled,
+        createIfMissing: false,
       })
     })
   }
@@ -178,13 +176,13 @@ export const useFillEditor = ({
         nextStops[1]?.color ?? nextStops[0]?.color ?? fillColorSecondary
       )
       setFillStops(nextStops)
-      if (keyframes.length === 0 && !autoKeyEnabled) return keyframes
+      if (keyframes.length === 0) return keyframes
 
       return upsertFillKeyframe({
         keyframes,
         time,
         patch: { stops: nextStops, gradientType: fillGradientType },
-        createIfMissing: autoKeyEnabled,
+        createIfMissing: false,
       })
     })
   }

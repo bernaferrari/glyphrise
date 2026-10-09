@@ -3,7 +3,7 @@
 import { memo, useEffect, useRef } from "react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { EditScopePanelProps } from "./EditScopePanel"
+import type { EditScopeContextValue } from "./PropertyEditScope"
 import { PropertyEditScopeProvider } from "./PropertyEditScope"
 import { InspectorContextHeader } from "./InspectorContextHeader"
 import type { InspectorTab } from "./InspectorNavigationModel"
@@ -36,7 +36,7 @@ export type SidebarLightProps = LightInspectorSectionProps
 export type InspectorSidebarProps = {
   activeTab: InspectorTab
   onTabChange: (tab: InspectorTab) => void
-  editScopeProps: EditScopePanelProps
+  editScopeProps: EditScopeContextValue
   zenMode: boolean
   compactOpen?: boolean
   styleProps: SidebarStyleProps

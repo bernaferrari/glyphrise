@@ -102,6 +102,9 @@ export function AppLayoutView({
     return () => window.clearTimeout(timer)
   }, [returnTo])
   const [journeyProjectId, setJourneyProjectId] = useState<string | null>(null)
+  // Choosing "Style it" completes the guide's style step. Kept here: on phones
+  // styling opens another pane, which unmounts the guide.
+  const [styleOpenedFor, setStyleOpenedFor] = useState<string | null>(null)
   const [startJourney, setStartJourney] = useState(false)
   const creationJourney = viewportProps.creationJourney
   useEffect(() => {
@@ -255,28 +258,20 @@ export function AppLayoutView({
                     : "workspace"
                 }
               />
-              {inspectorProps.editScopeProps.autoKeyEnabled &&
-                !topBarProps.zenMode && (
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-3 z-20 rounded-2xl ring-2 ring-recording/70 ring-inset max-[720px]:inset-0 max-[720px]:rounded-none"
-                  >
-                    <span className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-recording px-2 py-0.5 text-2xs font-medium text-white">
-                      <span className="size-1.5 rounded-full bg-white" />
-                      Auto-key
-                    </span>
-                  </div>
-                )}
               {journeyProjectId &&
                 !topBarProps.zenMode &&
                 (!isCompactLayout || compactPane === "preview") && (
                   <CreationGuide
                     key={journeyProjectId}
-                    hasStyle={creationJourney.hasStyle}
+                    hasStyle={
+                      creationJourney.hasStyle ||
+                      styleOpenedFor === journeyProjectId
+                    }
                     hasMotion={creationJourney.hasMotion}
                     hasPreviewed={creationJourney.hasPreviewed}
                     completed={creationJourney.exportCompleted}
                     onStyle={() => {
+                      setStyleOpenedFor(journeyProjectId)
                       inspectorProps.onTabChange("design")
                       showCompactPane("properties")
                     }}
@@ -334,8 +329,6 @@ export function AppLayoutView({
                     timelineProps.timelineProps.duration,
                     1
                   ),
-                autoKeyEnabled: inspectorProps.editScopeProps.autoKeyEnabled,
-                onAutoKeyChange: inspectorProps.editScopeProps.onAutoKeyChange,
                 onEditKeyframeValue: (selection) => {
                   showCompactPane("properties")
                   if (selection.type === "property")
@@ -457,9 +450,6 @@ export function AppLayoutView({
           (manualWelcomeOpen || creationJourney.welcomeOpen)
         }
         onDismiss={dismissWelcome}
-        currentProjectName={
-          manualWelcomeOpen ? topBarProps.projectName : undefined
-        }
         onCreate={(starterId, name, svgContent) => {
           const previous =
             manualWelcomeOpen && newProjectDialogProps.currentProjectId

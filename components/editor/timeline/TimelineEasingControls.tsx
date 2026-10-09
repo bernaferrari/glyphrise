@@ -24,6 +24,7 @@ export const EASING_OPTIONS: Array<{ value: EasingType; label: string }> = [
   { value: "flow", label: "Flow" },
   { value: "spring", label: "Spring" },
   { value: "bounce", label: "Bounce" },
+  { value: "hold", label: "Hold" },
 ]
 
 export const getEasingLabel = (easing: EasingType) =>

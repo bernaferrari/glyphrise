@@ -74,7 +74,11 @@ function PropertyKeyframeIndicator({
           {
             "--shape-fill":
               scope.kind === "keyframe" ? "var(--timeline-accent)" : "none",
-            "--shape-stroke": "var(--timeline-accent)",
+            // Not animated yet: a quiet stopwatch, as in After Effects.
+            "--shape-stroke":
+              scope.kind === "whole"
+                ? "var(--muted-foreground)"
+                : "var(--timeline-accent)",
           } as React.CSSProperties
         }
       />
@@ -151,8 +155,9 @@ export function InspectorRow({
         )}
       >
         <span className="min-w-0 text-pretty">{label}</span>
-        {scope && scope.kind !== "whole" ? (
-          // Animated: a diamond, filled when the playhead sits on a keyframe.
+        {scope && (scope.kind !== "whole" || scope.onToggle) ? (
+          // The property's stopwatch: hollow and quiet until animated, then
+          // accented, and filled when the playhead sits on a keyframe.
           <PropertyKeyframeIndicator scope={scope} property={editProperty} />
         ) : dot ? (
           <span className="size-1 shrink-0 rounded-full bg-(--timeline-accent)" />

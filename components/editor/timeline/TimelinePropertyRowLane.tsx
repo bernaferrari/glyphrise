@@ -16,6 +16,8 @@ import { TIMELINE_LAYER } from "./TimelineLayering"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import {
   TimelineDiamond,
+  incomingEasing,
+  outgoingEasing,
   TimelineLaneGhost,
   TimelineLoopClosure,
   TimelineMotionSegments,
@@ -338,6 +340,8 @@ export function TimelinePropertyRowLane({
             <TimelineDiamond
               color={row.color}
               selected={selected}
+              inEasing={incomingEasing(row.keyframes, keyframe.id)}
+              outEasing={outgoingEasing(row.keyframes, keyframe.id)}
               className="size-4"
             />
           </button>

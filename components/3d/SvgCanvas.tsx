@@ -347,8 +347,8 @@ export const SvgCanvas = forwardRef<SvgCanvasRef, SvgCanvasProps>(
         className="relative h-full min-h-0 w-full overflow-hidden bg-preview-background"
       >
         <span id="glyphrise-preview-instructions" className="sr-only">
-          Drag to rotate the artwork. Pinch or scroll to zoom. Rotation is
-          shared with Transform properties and the timeline.
+          Drag to rotate the artwork. Dragging pauses playback and edits
+          Rotation on the current frame. Pinch or scroll to zoom.
         </span>
         <canvas
           ref={canvasRef}
