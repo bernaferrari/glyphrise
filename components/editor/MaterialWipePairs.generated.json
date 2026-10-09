@@ -2,845 +2,673 @@
   "ready": [
     {
       "label": "Account Circle",
-      "enabled": "account_circle",
-      "disabled": "account_circle_off"
+      "enabled": "account_circle"
     },
     {
       "label": "Ad",
-      "enabled": "ad",
-      "disabled": "ad_off"
+      "enabled": "ad"
     },
     {
       "label": "Ad Group",
-      "enabled": "ad_group",
-      "disabled": "ad_group_off"
+      "enabled": "ad_group"
     },
     {
       "label": "Adaptive Audio Mic",
-      "enabled": "adaptive_audio_mic",
-      "disabled": "adaptive_audio_mic_off"
+      "enabled": "adaptive_audio_mic"
     },
     {
       "label": "Alarm",
-      "enabled": "alarm",
-      "disabled": "alarm_off"
+      "enabled": "alarm"
     },
     {
       "label": "Android Cell 4 Bar",
-      "enabled": "android_cell_4_bar",
-      "disabled": "android_cell_4_bar_off"
+      "enabled": "android_cell_4_bar"
     },
     {
       "label": "Android Cell 5 Bar",
-      "enabled": "android_cell_5_bar",
-      "disabled": "android_cell_5_bar_off"
-    },
-    {
-      "label": "Android Wifi 3 Bar",
-      "enabled": "android_wifi_3_bar",
-      "disabled": "android_wifi_3_bar_off"
+      "enabled": "android_cell_5_bar"
     },
     {
       "label": "Android Wifi 4 Bar",
-      "enabled": "android_wifi_4_bar",
-      "disabled": "android_wifi_4_bar_off"
+      "enabled": "android_wifi_4_bar"
     },
     {
       "label": "Attach File",
-      "enabled": "attach_file",
-      "disabled": "attach_file_off"
+      "enabled": "attach_file"
     },
     {
       "label": "Auto Stories",
-      "enabled": "auto_stories",
-      "disabled": "auto_stories_off"
+      "enabled": "auto_stories"
     },
     {
       "label": "Backlight High",
-      "enabled": "backlight_high",
-      "disabled": "backlight_high_off"
+      "enabled": "backlight_high"
     },
     {
       "label": "Bar Chart",
-      "enabled": "bar_chart",
-      "disabled": "bar_chart_off"
+      "enabled": "bar_chart"
+    },
+    {
+      "label": "Bedtime",
+      "enabled": "bedtime"
     },
     {
       "label": "Bid Landscape",
-      "enabled": "bid_landscape",
-      "disabled": "bid_landscape_disabled"
+      "enabled": "bid_landscape"
     },
     {
       "label": "Bluetooth",
-      "enabled": "bluetooth",
-      "disabled": "bluetooth_disabled"
+      "enabled": "bluetooth"
     },
     {
       "label": "Blur",
-      "enabled": "blur_on",
-      "disabled": "blur_off"
+      "enabled": "blur_on"
     },
     {
       "label": "Chat Bubble",
-      "enabled": "chat_bubble",
-      "disabled": "chat_bubble_off"
-    },
-    {
-      "label": "Comment",
-      "enabled": "comment",
-      "disabled": "comments_disabled"
+      "enabled": "chat_bubble"
     },
     {
       "label": "Closed Caption",
-      "enabled": "closed_caption",
-      "disabled": "closed_caption_disabled"
+      "enabled": "closed_caption"
     },
     {
       "label": "Cloud",
-      "enabled": "cloud",
-      "disabled": "cloud_off"
+      "enabled": "cloud"
     },
     {
       "label": "Code",
-      "enabled": "code",
-      "disabled": "code_off"
+      "enabled": "code"
+    },
+    {
+      "label": "Comment",
+      "enabled": "comment"
     },
     {
       "label": "Contactless",
-      "enabled": "contactless",
-      "disabled": "contactless_off"
+      "enabled": "contactless"
     },
     {
       "label": "Content Paste",
-      "enabled": "content_paste",
-      "disabled": "content_paste_off"
+      "enabled": "content_paste"
     },
     {
       "label": "Conversion Path",
-      "enabled": "conversion_path",
-      "disabled": "conversion_path_off"
+      "enabled": "conversion_path"
     },
     {
       "label": "Cookie",
-      "enabled": "cookie",
-      "disabled": "cookie_off"
+      "enabled": "cookie"
     },
     {
       "label": "Credit Card",
-      "enabled": "credit_card",
-      "disabled": "credit_card_off"
+      "enabled": "credit_card"
     },
     {
       "label": "Database",
-      "enabled": "database",
-      "disabled": "database_off"
+      "enabled": "database"
     },
     {
       "label": "Detection And Zone",
-      "enabled": "detection_and_zone",
-      "disabled": "detection_and_zone_off"
+      "enabled": "detection_and_zone"
     },
     {
       "label": "Developer Board",
-      "enabled": "developer_board",
-      "disabled": "developer_board_off"
+      "enabled": "developer_board"
     },
     {
       "label": "Devices",
-      "enabled": "devices",
-      "disabled": "devices_off"
+      "enabled": "devices"
     },
     {
       "label": "Directions",
-      "enabled": "directions",
-      "disabled": "directions_off"
+      "enabled": "directions"
     },
     {
       "label": "Directions Alt",
-      "enabled": "directions_alt",
-      "disabled": "directions_alt_off"
+      "enabled": "directions_alt"
     },
     {
       "label": "Do Not Disturb",
-      "enabled": "do_not_disturb_on",
-      "disabled": "do_not_disturb_off"
+      "enabled": "do_not_disturb_on"
     },
     {
       "label": "Domain",
-      "enabled": "domain",
-      "disabled": "domain_disabled"
+      "enabled": "domain"
     },
     {
       "label": "Domain Verification",
-      "enabled": "domain_verification",
-      "disabled": "domain_verification_off"
+      "enabled": "domain_verification"
     },
     {
       "label": "Edit",
-      "enabled": "edit",
-      "disabled": "edit_off"
+      "enabled": "edit"
     },
     {
       "label": "Emergency Share",
-      "enabled": "emergency_share",
-      "disabled": "emergency_share_off"
+      "enabled": "emergency_share"
     },
     {
       "label": "Encrypted",
-      "enabled": "encrypted",
-      "disabled": "encrypted_off"
+      "enabled": "encrypted"
     },
     {
       "label": "Enterprise",
-      "enabled": "enterprise",
-      "disabled": "enterprise_off"
+      "enabled": "enterprise"
     },
     {
       "label": "Explore",
-      "enabled": "explore",
-      "disabled": "explore_off"
+      "enabled": "explore"
     },
     {
       "label": "Extension",
-      "enabled": "extension",
-      "disabled": "extension_off"
+      "enabled": "extension"
     },
     {
       "label": "File Copy",
-      "enabled": "file_copy",
-      "disabled": "file_copy_off"
+      "enabled": "file_copy"
     },
     {
       "label": "File Download",
-      "enabled": "file_download",
-      "disabled": "file_download_off"
+      "enabled": "file_download"
     },
     {
       "label": "File Save",
-      "enabled": "file_save",
-      "disabled": "file_save_off"
+      "enabled": "file_save"
     },
     {
       "label": "File Upload",
-      "enabled": "file_upload",
-      "disabled": "file_upload_off"
+      "enabled": "file_upload"
     },
     {
       "label": "Filter Alt",
-      "enabled": "filter_alt",
-      "disabled": "filter_alt_off"
+      "enabled": "filter_alt"
     },
     {
       "label": "Filter List",
-      "enabled": "filter_list",
-      "disabled": "filter_list_off"
+      "enabled": "filter_list"
     },
     {
       "label": "Fingerprint",
-      "enabled": "fingerprint",
-      "disabled": "fingerprint_off"
+      "enabled": "fingerprint"
     },
     {
       "label": "Flash",
-      "enabled": "flash_on",
-      "disabled": "flash_off"
+      "enabled": "flash_on"
     },
     {
       "label": "Flashlight",
-      "enabled": "flashlight_on",
-      "disabled": "flashlight_off"
+      "enabled": "flashlight_on"
     },
     {
       "label": "Folder",
-      "enabled": "folder",
-      "disabled": "folder_off"
+      "enabled": "folder"
     },
     {
       "label": "Font Download",
-      "enabled": "font_download",
-      "disabled": "font_download_off"
+      "enabled": "font_download"
     },
     {
       "label": "Format Paint",
-      "enabled": "format_paint",
-      "disabled": "format_paint_off"
+      "enabled": "format_paint"
     },
     {
       "label": "Format Quote",
-      "enabled": "format_quote",
-      "disabled": "format_quote_off"
+      "enabled": "format_quote"
     },
     {
       "label": "Frame Person",
-      "enabled": "frame_person",
-      "disabled": "frame_person_off"
+      "enabled": "frame_person"
     },
     {
       "label": "Graphic Eq",
-      "enabled": "graphic_eq",
-      "disabled": "graphic_eq_off"
+      "enabled": "graphic_eq"
     },
     {
       "label": "Grid",
-      "enabled": "grid_on",
-      "disabled": "grid_off"
+      "enabled": "grid_on"
     },
     {
       "label": "Grid 3x3",
-      "enabled": "grid_3x3",
-      "disabled": "grid_3x3_off"
+      "enabled": "grid_3x3"
     },
     {
       "label": "Group",
-      "enabled": "group",
-      "disabled": "group_off"
+      "enabled": "group"
     },
     {
       "label": "Hangout Video",
-      "enabled": "hangout_video",
-      "disabled": "hangout_video_off"
+      "enabled": "hangout_video"
     },
     {
       "label": "Hdr",
-      "enabled": "hdr_on",
-      "disabled": "hdr_off"
+      "enabled": "hdr_on"
     },
     {
       "label": "Hdr Plus",
-      "enabled": "hdr_plus",
-      "disabled": "hdr_plus_off"
+      "enabled": "hdr_plus"
     },
     {
       "label": "Headset",
-      "enabled": "headset_mic",
-      "disabled": "headset_off"
+      "enabled": "headset_mic"
     },
     {
-      "label": "Hearing Aid Left",
-      "enabled": "hearing_aid",
-      "disabled": "hearing_aid_disabled_left"
+      "label": "Hearing",
+      "enabled": "hearing"
+    },
+    {
+      "label": "Hearing Aid",
+      "enabled": "hearing_aid"
     },
     {
       "label": "Hls",
-      "enabled": "hls",
-      "disabled": "hls_off"
+      "enabled": "hls"
     },
     {
       "label": "Hourglass",
-      "enabled": "hourglass",
-      "disabled": "hourglass_disabled"
+      "enabled": "hourglass"
     },
     {
       "label": "Invert Colors",
-      "enabled": "invert_colors",
-      "disabled": "invert_colors_off"
+      "enabled": "invert_colors"
     },
     {
       "label": "Key",
-      "enabled": "key",
-      "disabled": "key_off"
+      "enabled": "key"
     },
     {
       "label": "Label",
-      "enabled": "label",
-      "disabled": "label_off"
-    },
-    {
-      "label": "Link",
-      "enabled": "link",
-      "disabled": "link_off"
+      "enabled": "label"
     },
     {
       "label": "Lightbulb",
-      "enabled": "lightbulb",
-      "disabled": "light_off"
+      "enabled": "lightbulb"
+    },
+    {
+      "label": "Link",
+      "enabled": "link"
     },
     {
       "label": "Location",
-      "enabled": "location_on",
-      "disabled": "location_off"
+      "enabled": "location_on"
     },
     {
       "label": "Location Searching",
-      "enabled": "location_searching",
-      "disabled": "location_disabled"
+      "enabled": "location_searching"
     },
     {
       "label": "Mail",
-      "enabled": "mail",
-      "disabled": "mail_off"
+      "enabled": "mail"
     },
     {
       "label": "Match Case",
-      "enabled": "match_case",
-      "disabled": "match_case_off"
+      "enabled": "match_case"
+    },
+    {
+      "label": "Media Bluetooth",
+      "enabled": "media_bluetooth_on"
     },
     {
       "label": "Media Output",
-      "enabled": "media_output",
-      "disabled": "media_output_off"
-    },
-    {
-      "label": "Mic",
-      "enabled": "mic",
-      "disabled": "mic_off"
+      "enabled": "media_output"
     },
     {
       "label": "Mic External",
-      "enabled": "mic_external_on",
-      "disabled": "mic_external_off"
-    },
-    {
-      "label": "Music",
-      "enabled": "music_note",
-      "disabled": "music_off"
+      "enabled": "mic_external_on"
     },
     {
       "label": "Mobile",
-      "enabled": "mobile",
-      "disabled": "mobile_off"
+      "enabled": "mobile"
     },
     {
       "label": "Mobile Data Arrows",
-      "enabled": "mobiledata_arrows",
-      "disabled": "mobiledata_off"
+      "enabled": "1x_mobiledata"
     },
     {
       "label": "Mobile Hand",
-      "enabled": "mobile_hand",
-      "disabled": "mobile_hand_off"
+      "enabled": "mobile_hand"
     },
     {
       "label": "Mobile Hand Left",
-      "enabled": "mobile_hand_left",
-      "disabled": "mobile_hand_left_off"
+      "enabled": "mobile_hand_left"
     },
     {
       "label": "Mobile Sound",
-      "enabled": "mobile_sound",
-      "disabled": "mobile_sound_off"
+      "enabled": "mobile_sound"
     },
     {
       "label": "Mode Cool",
-      "enabled": "mode_cool",
-      "disabled": "mode_cool_off"
+      "enabled": "mode_cool"
     },
     {
       "label": "Mode Fan",
-      "enabled": "mode_fan",
-      "disabled": "mode_fan_off"
-    },
-    {
-      "label": "Noise Control",
-      "enabled": "noise_control_on",
-      "disabled": "noise_control_off"
+      "enabled": "mode_fan"
     },
     {
       "label": "Mouse Lock",
-      "enabled": "mouse_lock",
-      "disabled": "mouse_lock_off"
+      "enabled": "mouse_lock"
     },
     {
       "label": "Movie",
-      "enabled": "movie",
-      "disabled": "movie_off"
+      "enabled": "movie"
+    },
+    {
+      "label": "Music",
+      "enabled": "music_note"
     },
     {
       "label": "Near Me",
-      "enabled": "near_me",
-      "disabled": "near_me_disabled"
+      "enabled": "near_me"
     },
     {
       "label": "Nearby",
-      "enabled": "nearby",
-      "disabled": "nearby_off"
+      "enabled": "nearby"
     },
     {
       "label": "Nfc",
-      "enabled": "nfc",
-      "disabled": "nfc_off"
+      "enabled": "nfc"
     },
     {
       "label": "Night Sight Auto",
-      "enabled": "night_sight_auto",
-      "disabled": "night_sight_auto_off"
-    },
-    {
-      "label": "No Food",
-      "enabled": "fastfood",
-      "disabled": "no_food"
+      "enabled": "night_sight_auto"
     },
     {
       "label": "No Accounts",
-      "enabled": "account_circle",
-      "disabled": "no_accounts"
+      "enabled": "account_circle"
     },
     {
       "label": "No Encryption",
-      "enabled": "lock",
-      "disabled": "no_encryption"
+      "enabled": "lock"
+    },
+    {
+      "label": "No Food",
+      "enabled": "fastfood"
     },
     {
       "label": "No Luggage",
-      "enabled": "luggage",
-      "disabled": "no_luggage"
+      "enabled": "luggage"
     },
     {
       "label": "No Meals",
-      "enabled": "restaurant",
-      "disabled": "no_meals"
+      "enabled": "restaurant"
     },
     {
       "label": "No Meeting Room",
-      "enabled": "meeting_room",
-      "disabled": "no_meeting_room"
+      "enabled": "meeting_room"
     },
     {
       "label": "No Photography",
-      "enabled": "photo_camera",
-      "disabled": "no_photography"
+      "enabled": "photo_camera"
     },
     {
       "label": "No Stroller",
-      "enabled": "stroller",
-      "disabled": "no_stroller"
+      "enabled": "stroller"
     },
     {
       "label": "No Transfer",
-      "enabled": "directions_bus",
-      "disabled": "no_transfer"
+      "enabled": "directions_bus"
+    },
+    {
+      "label": "Noise Control",
+      "enabled": "noise_control_on"
     },
     {
       "label": "Notification Audio",
-      "enabled": "notification_audio",
-      "disabled": "notification_audio_off"
+      "enabled": "notification_audio"
     },
     {
       "label": "Notifications",
-      "enabled": "notifications",
-      "disabled": "notifications_off"
+      "enabled": "notifications"
     },
     {
       "label": "Offline Pin",
-      "enabled": "offline_pin",
-      "disabled": "offline_pin_off"
+      "enabled": "offline_pin"
     },
     {
       "label": "Open In New",
-      "enabled": "open_in_new",
-      "disabled": "open_in_new_off"
+      "enabled": "open_in_new"
     },
     {
       "label": "Person",
-      "enabled": "person",
-      "disabled": "person_off"
+      "enabled": "person"
     },
     {
       "label": "Person Add",
-      "enabled": "person_add",
-      "disabled": "person_add_disabled"
+      "enabled": "person_add"
     },
     {
       "label": "Personal Bag",
-      "enabled": "personal_bag",
-      "disabled": "personal_bag_off"
+      "enabled": "personal_bag"
     },
     {
       "label": "Phone",
-      "enabled": "phone_enabled",
-      "disabled": "phone_disabled"
+      "enabled": "phone_enabled"
     },
     {
       "label": "Piano",
-      "enabled": "piano",
-      "disabled": "piano_off"
+      "enabled": "piano"
     },
     {
       "label": "Picture In Picture",
-      "enabled": "picture_in_picture",
-      "disabled": "picture_in_picture_off"
+      "enabled": "picture_in_picture"
     },
     {
       "label": "Pill",
-      "enabled": "pill",
-      "disabled": "pill_off"
+      "enabled": "pill"
     },
     {
       "label": "Play",
-      "enabled": "play_arrow",
-      "disabled": "play_disabled"
+      "enabled": "play_arrow"
     },
     {
       "label": "Power",
-      "enabled": "power",
-      "disabled": "power_off"
+      "enabled": "power"
     },
     {
       "label": "Preview",
-      "enabled": "preview",
-      "disabled": "preview_off"
+      "enabled": "preview"
     },
     {
       "label": "Print",
-      "enabled": "print",
-      "disabled": "print_disabled"
+      "enabled": "print"
     },
     {
       "label": "Public",
-      "enabled": "public",
-      "disabled": "public_off"
-    },
-    {
-      "label": "Receipt Long",
-      "enabled": "receipt_long",
-      "disabled": "receipt_long_off"
-    },
-    {
-      "label": "Report",
-      "enabled": "report",
-      "disabled": "report_off"
+      "enabled": "public"
     },
     {
       "label": "Raw",
-      "enabled": "raw_on",
-      "disabled": "raw_off"
+      "enabled": "raw_on"
+    },
+    {
+      "label": "Receipt Long",
+      "enabled": "receipt_long"
+    },
+    {
+      "label": "Report",
+      "enabled": "report"
     },
     {
       "label": "Router",
-      "enabled": "router",
-      "disabled": "router_off"
+      "enabled": "router"
     },
     {
       "label": "Safety Check",
-      "enabled": "safety_check",
-      "disabled": "safety_check_off"
+      "enabled": "safety_check"
     },
     {
       "label": "Science",
-      "enabled": "science",
-      "disabled": "science_off"
+      "enabled": "science"
     },
     {
       "label": "Select Window",
-      "enabled": "select_window",
-      "disabled": "select_window_off"
+      "enabled": "select_window"
     },
     {
       "label": "Sensors",
-      "enabled": "sensors",
-      "disabled": "sensors_off"
+      "enabled": "sensors"
     },
     {
       "label": "Sensors Krx",
-      "enabled": "sensors_krx",
-      "disabled": "sensors_krx_off"
+      "enabled": "sensors_krx"
     },
     {
       "label": "Shift Lock",
-      "enabled": "shift_lock",
-      "disabled": "shift_lock_off"
+      "enabled": "shift_lock"
     },
     {
       "label": "Shopping Cart",
-      "enabled": "shopping_cart",
-      "disabled": "shopping_cart_off"
+      "enabled": "shopping_cart"
     },
     {
       "label": "Speaker Notes",
-      "enabled": "speaker_notes",
-      "disabled": "speaker_notes_off"
+      "enabled": "speaker_notes"
     },
     {
       "label": "Stack",
-      "enabled": "stack",
-      "disabled": "stack_off"
+      "enabled": "stack"
     },
     {
       "label": "Subtitles",
-      "enabled": "subtitles",
-      "disabled": "subtitles_off"
+      "enabled": "subtitles"
     },
     {
       "label": "Supervised User Circle",
-      "enabled": "supervised_user_circle",
-      "disabled": "supervised_user_circle_off"
+      "enabled": "supervised_user_circle"
     },
     {
       "label": "Sync",
-      "enabled": "sync",
-      "disabled": "sync_disabled"
+      "enabled": "sync"
     },
     {
       "label": "Sync Saved Locally",
-      "enabled": "sync_saved_locally",
-      "disabled": "sync_saved_locally_off"
-    },
-    {
-      "label": "Text Ad",
-      "enabled": "text_ad",
-      "disabled": "text_ad_off"
+      "enabled": "sync_saved_locally"
     },
     {
       "label": "Timer",
-      "enabled": "timer",
-      "disabled": "timer_off"
+      "enabled": "timer"
     },
     {
       "label": "Touchpad Mouse",
-      "enabled": "touchpad_mouse",
-      "disabled": "touchpad_mouse_off"
+      "enabled": "touchpad_mouse"
     },
     {
       "label": "Tv",
-      "enabled": "tv",
-      "disabled": "tv_off"
+      "enabled": "tv"
     },
     {
       "label": "Update",
-      "enabled": "update",
-      "disabled": "update_disabled"
+      "enabled": "update"
     },
     {
       "label": "Usb",
-      "enabled": "usb",
-      "disabled": "usb_off"
+      "enabled": "usb"
     },
     {
       "label": "Verified",
-      "enabled": "verified",
-      "disabled": "verified_off"
+      "enabled": "verified"
     },
     {
       "label": "Video Camera Front",
-      "enabled": "video_camera_front",
-      "disabled": "video_camera_front_off"
+      "enabled": "video_camera_front"
     },
     {
       "label": "Videocam",
-      "enabled": "videocam",
-      "disabled": "videocam_off"
+      "enabled": "videocam"
     },
     {
       "label": "Videogame Asset",
-      "enabled": "videogame_asset",
-      "disabled": "videogame_asset_off"
+      "enabled": "videogame_asset"
     },
     {
       "label": "View In AR",
-      "enabled": "view_in_ar",
-      "disabled": "view_in_ar_off"
+      "enabled": "view_in_ar"
     },
     {
       "label": "Visibility",
-      "enabled": "visibility",
-      "disabled": "visibility_off"
+      "enabled": "visibility"
     },
     {
       "label": "Voice Chat",
-      "enabled": "voice_chat",
-      "disabled": "voice_chat_off"
+      "enabled": "voice_chat"
     },
     {
       "label": "Voice Selection",
-      "enabled": "voice_selection",
-      "disabled": "voice_selection_off"
+      "enabled": "voice_selection"
     },
     {
       "label": "Volume",
-      "enabled": "volume_up",
-      "disabled": "volume_off"
+      "enabled": "volume_up"
     },
     {
       "label": "Vpn Key",
-      "enabled": "vpn_key",
-      "disabled": "vpn_key_off"
+      "enabled": "vpn_key"
     },
     {
       "label": "VR180 Create 2d",
-      "enabled": "vr_180_create_2d",
-      "disabled": "vr_180_create_2d_off"
+      "enabled": "vr180_create2d"
     },
     {
       "label": "Warning",
-      "enabled": "warning",
-      "disabled": "warning_off"
+      "enabled": "warning"
     },
     {
       "label": "Watch",
-      "enabled": "watch",
-      "disabled": "watch_off"
+      "enabled": "watch"
     },
     {
       "label": "Web Asset",
-      "enabled": "web_asset",
-      "disabled": "web_asset_off"
+      "enabled": "web_asset"
     },
     {
       "label": "Wifi",
-      "enabled": "wifi",
-      "disabled": "wifi_off"
+      "enabled": "wifi"
     }
   ],
   "refinement": [
     {
-      "label": "Approval Delegation",
-      "enabled": "approval_delegation",
-      "disabled": "approval_delegation_off"
+      "label": "Android Wifi 3 Bar",
+      "enabled": "android_wifi_3_bar"
     },
     {
-      "label": "Bedtime",
-      "enabled": "bedtime",
-      "disabled": "bedtime_off"
+      "label": "Approval Delegation",
+      "enabled": "approval_delegation"
     },
     {
       "label": "Contrast",
-      "enabled": "contrast",
-      "disabled": "contrast_rtl_off"
+      "enabled": "contrast"
     },
     {
       "label": "Desktop Windows",
-      "enabled": "desktop_windows",
-      "disabled": "desktop_access_disabled"
+      "enabled": "desktop_windows"
     },
     {
-      "label": "Hearing",
-      "enabled": "hearing",
-      "disabled": "hearing_disabled"
+      "label": "Hearing Aid Left",
+      "enabled": "hearing_aid"
     },
     {
-      "label": "Hearing Aid",
-      "enabled": "hearing_aid",
-      "disabled": "hearing_aid_disabled"
-    },
-    {
-      "label": "Media Bluetooth",
-      "enabled": "media_bluetooth_on",
-      "disabled": "media_bluetooth_off"
+      "label": "Mic",
+      "enabled": "mic"
     },
     {
       "label": "Mode Heat",
-      "enabled": "mode_heat",
-      "disabled": "mode_heat_off"
+      "enabled": "mode_heat"
     },
     {
       "label": "Password 2",
-      "enabled": "password_2",
-      "disabled": "password_2_off"
+      "enabled": "password_2"
     },
     {
       "label": "Smart Card Reader",
-      "enabled": "smart_card_reader",
-      "disabled": "smart_card_reader_off"
+      "enabled": "smart_card_reader"
     },
     {
       "label": "Tamper Detection",
-      "enabled": "tamper_detection_on",
-      "disabled": "tamper_detection_off"
+      "enabled": "tamper_detection_on"
     },
     {
       "label": "Wifi Tethering",
-      "enabled": "wifi_tethering",
-      "disabled": "wifi_tethering_off"
+      "enabled": "wifi_tethering"
     }
   ]
 }

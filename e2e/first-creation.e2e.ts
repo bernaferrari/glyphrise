@@ -50,22 +50,25 @@ for (const width of [390, 1280]) {
       )
       const guide = page.getByRole("complementary", { name: "Your first icon" })
       await expect(guide).toBeVisible()
-      // Starters arrive already moving: play first, restyle or re-time freely.
+      // Starters arrive already moving: step 1 is watching it.
+      await expect(guide).toContainText("1 of 3")
       await expect(
-        guide.getByRole("button", { name: "Play your motion" })
+        guide.getByRole("button", { name: "Play", exact: true })
       ).toBeFocused()
-      await guide.getByRole("button", { name: "Style icon" }).click()
-      await page
-        .getByRole("button", { name: "Use Satin finish", exact: true })
-        .click()
-      if (width < 720)
-        await page.getByRole("button", { name: "Canvas", exact: true }).click()
       await guide.getByRole("button", { name: "Change motion" }).click()
       await page.getByRole("button", { name: "Tilt", exact: true }).click()
       await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
       await page.getByRole("button", { name: /^Apply Tilt/ }).click()
-      await guide.getByRole("button", { name: "Play your motion" }).click()
-      await guide.getByRole("button", { name: "Export" }).click()
+      await guide.getByRole("button", { name: "Play", exact: true }).click()
+      await expect(guide).toContainText("2 of 3")
+      await guide.getByRole("button", { name: "Style it" }).click()
+      await page
+        .getByRole("button", { name: "Use Chrome finish", exact: true })
+        .click()
+      if (width < 720)
+        await page.getByRole("button", { name: "Canvas", exact: true }).click()
+      await expect(guide).toContainText("3 of 3")
+      await guide.getByRole("button", { name: "Export", exact: true }).click()
       const exporter = page.getByRole("dialog", { name: "Export" })
       await exporter.getByLabel("Width", { exact: true }).fill("128")
       await exporter.getByLabel("Height", { exact: true }).fill("128")
@@ -86,7 +89,7 @@ for (const width of [390, 1280]) {
       ).toContainText("Image downloaded")
       await page.keyboard.press("Escape")
       await expect(
-        guide.getByRole("heading", { name: "Your icon is ready." })
+        guide.getByRole("heading", { name: "Downloaded" })
       ).toBeVisible()
       await page.reload()
       await expect(welcome).toHaveCount(0)
@@ -104,7 +107,7 @@ for (const width of [390, 1280]) {
         })
       ).toBeVisible()
       await expect(
-        page.getByRole("button", { name: "Use Satin finish", exact: true })
+        page.getByRole("button", { name: "Use Chrome finish", exact: true })
       ).toHaveAttribute("aria-pressed", "true")
       expect(
         await page.evaluate(() => document.documentElement.scrollWidth)
@@ -124,7 +127,7 @@ test("records and downloads a short video, then offers a separate model export",
   await page.getByLabel("Motion duration", { exact: true }).fill("0.5")
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await page.getByRole("tab", { name: "Video", exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
   const downloading = page.waitForEvent("download")
@@ -143,7 +146,7 @@ test("records and downloads a short video, then offers a separate model export",
       .getByRole("status")
       .filter({ hasText: "downloaded" })
   ).toContainText("Video downloaded")
-  await page.getByRole("button", { name: "3D model", exact: true }).click()
+  await page.getByRole("tab", { name: "3D model", exact: true }).click()
   await expect(
     page.getByRole("button", { name: "Download GLB", exact: true })
   ).toBeEnabled()
@@ -162,7 +165,7 @@ test("closing an active recording cancels it and reopening export restores the d
   await page.getByRole("button", { name: "Change motion", exact: true }).click()
   await page.getByRole("button", { name: /^Apply Spin/ }).click()
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await page.getByRole("tab", { name: "Video", exact: true }).click()
   await page.getByLabel("Width", { exact: true }).fill("128")
   await page.getByLabel("Height", { exact: true }).fill("128")
   await page
@@ -172,7 +175,7 @@ test("closing an active recording cancels it and reopening export restores the d
     page.getByRole("button", { name: /Recording .*Cancel/ })
   ).toBeVisible()
   await expect(
-    page.getByRole("button", { name: "Image", exact: true })
+    page.getByRole("tab", { name: "Image", exact: true })
   ).toBeDisabled()
   await page.getByRole("button", { name: "Close", exact: true }).click()
   await expect(page.getByRole("dialog")).toHaveCount(0)
@@ -183,12 +186,12 @@ test("closing an active recording cancels it and reopening export restores the d
   await expect(
     page.getByText("Video downloaded.", { exact: false })
   ).toHaveCount(0)
-  await page.getByRole("button", { name: "Code", exact: true }).click()
+  await page.getByRole("tab", { name: "Code", exact: true }).click()
   await page.keyboard.press("Escape")
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await expect(
-    page.getByRole("button", { name: "Image", exact: true })
-  ).toHaveAttribute("aria-pressed", "true")
+    page.getByRole("tab", { name: "Image", exact: true })
+  ).toHaveAttribute("aria-selected", "true")
   await expect(
     page.getByRole("button", { name: "Download image", exact: true })
   ).toBeEnabled()

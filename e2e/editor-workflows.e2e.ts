@@ -395,7 +395,7 @@ test("resets artwork rotation, position, and scale together with undo", async ({
 
 test("describes code exports as implementation starters", async ({ page }) => {
   await page.getByRole("button", { name: "Export", exact: true }).click()
-  await page.getByRole("button", { name: "Code", exact: true }).click()
+  await page.getByRole("tab", { name: "Code", exact: true }).click()
 
   await expect(page.getByText(/Keeps timing, transforms, wipes/)).toBeVisible()
   await page.getByRole("radio", { name: "Android" }).click()
@@ -426,7 +426,7 @@ test("offers production render controls and an honest fidelity matrix", async ({
   await expect(
     page.getByRole("button", { name: "Transparent background" })
   ).toHaveAttribute("aria-pressed", "false")
-  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await page.getByRole("tab", { name: "Video", exact: true }).click()
   await expect(page.getByLabel("Width")).toHaveValue("1080")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
   await page
@@ -441,7 +441,7 @@ test("offers production render controls and an honest fidelity matrix", async ({
   await expect(page.getByLabel("Width")).toHaveValue("1920")
   await expect(page.getByLabel("Height")).toHaveValue("1080")
 
-  await page.getByRole("button", { name: "3D model", exact: true }).click()
+  await page.getByRole("tab", { name: "3D model", exact: true }).click()
   await expect(
     page.getByText("Icon-to-icon transitions are left out")
   ).toBeVisible()
@@ -592,5 +592,42 @@ test("adding an icon commits only after selection and cancel leaves no edit", as
   await expect(clips).toHaveCount(before + 1)
   await expect(
     page.getByRole("button", { name: "Custom icon clip", exact: true })
+  ).toBeVisible()
+})
+
+test("closes an open loop on the nearest full turn, undoable in one step", async ({
+  page,
+}) => {
+  await page.goto("/")
+  // Leave the spin at 200° by 3s, so it no longer ends where it starts.
+  await page
+    .getByRole("button", { name: /Select Rotation keyframe, X 0 Y 360/ })
+    .dblclick()
+  const y = page.getByLabel("Keyframe rotation Y", { exact: true })
+  await y.fill("200")
+  await y.press("Enter")
+  const time = page.getByLabel("Rotation keyframe time in seconds", {
+    exact: true,
+  })
+  await time.fill("3")
+  await time.press("Enter")
+  await page.keyboard.press("Escape")
+
+  await page
+    .getByRole("button", { name: "End Rotation where it starts", exact: true })
+    .click()
+  // Finishes the turn at 360° rather than unwinding back to 0°.
+  await expect(
+    page.getByRole("button", {
+      name: "Select Rotation keyframe, X 0 Y 360 Z 0 at 5.00 seconds",
+    })
+  ).toBeVisible()
+  await expect(
+    page.getByRole("button", { name: "End Rotation where it starts" })
+  ).toHaveCount(0)
+
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await expect(
+    page.getByRole("button", { name: "End Rotation where it starts" })
   ).toBeVisible()
 })

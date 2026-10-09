@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo, useRef, type RefObject } from "react"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
+import type { SvgCanvasProps } from "../3d/SvgTypes"
+import { renderFrameSheet } from "./ExportFrameSheet"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
 import type { PresetIcon } from "./IconLibrary"
 import { useEditorFileSurface } from "./useEditorFileSurface"
@@ -21,6 +23,8 @@ type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
   onShapeIconChange: (shapeId: string, icon: PresetIcon) => void
   canvasRef: RefObject<SvgCanvasRef | null>
   exportTimelineVideo: (settings: ExportSettings) => Promise<void>
+  /** Freezes the document and returns a renderer for any timeline time. */
+  createFrameEvaluator: () => (time: number) => SvgCanvasProps
   stopVideoExportRecording: () => void
   cancelVideoExport: () => void
   isVideoExporting: boolean
@@ -33,6 +37,7 @@ export function useEditorExportSurface({
   onShapeIconChange,
   canvasRef,
   exportTimelineVideo,
+  createFrameEvaluator,
   stopVideoExportRecording: _stopVideoExportRecording,
   cancelVideoExport,
   isVideoExporting,
@@ -102,25 +107,38 @@ export function useEditorExportSurface({
         settings.height,
         settings.backgroundMode,
         settings.backgroundColor,
+        settings.frameGrid,
       ])
       if (
         captureRef.current?.key === key &&
         captureRef.current.previewKey === previewKey
       )
         return captureRef.current.promise
+      // The preview stays mounted through the dialog's exit animation; a
+      // capture then would flash an export-sized frame on the live canvas.
+      if (!isExportOpen) return Promise.reject(new Error("Export is closed."))
       const promise = capturesRef.current
         .catch(() => {})
         .then(async () => {
           const canvas = canvasRef.current
           if (!canvas)
             throw new Error("The 3D preview is not ready to export yet.")
-          return canvas.exportPng({
+          const options = {
             width: settings.width,
             height: settings.height,
             backgroundColor:
               settings.backgroundMode === "transparent"
                 ? null
                 : settings.backgroundColor,
+          }
+          if (settings.frameGrid === 1) return canvas.exportPng(options)
+          canvas.commitRotationEdit()
+          return renderFrameSheet({
+            canvas,
+            grid: settings.frameGrid,
+            options,
+            duration: sceneArgs.duration,
+            evaluateFrame: createFrameEvaluator(),
           })
         })
       capturesRef.current = promise
@@ -130,7 +148,13 @@ export function useEditorExportSurface({
       })
       return promise
     },
-    [canvasRef, previewKey]
+    [
+      canvasRef,
+      previewKey,
+      isExportOpen,
+      createFrameEvaluator,
+      sceneArgs.duration,
+    ]
   )
 
   const downloadPng = async (settings: ExportSettings) => {
@@ -138,7 +162,8 @@ export function useEditorExportSurface({
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "glyphrise-still.png"
+    link.download =
+      settings.frameGrid === 1 ? "glyphrise-still.png" : "glyphrise-frames.png"
     document.body.appendChild(link)
     link.click()
     link.remove()

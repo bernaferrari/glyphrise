@@ -17,6 +17,7 @@ import type { TimelineMenuItem } from "./TimelineMenuModel"
 import {
   TimelineDiamond,
   TimelineLaneGhost,
+  TimelineLoopClosure,
   TimelineMotionSegments,
   useLaneGhost,
 } from "./TimelinePrimitives"
@@ -58,6 +59,8 @@ export type TimelinePropertyRowLaneProps = {
     time: number,
     onBeforeOpen?: () => void
   ) => TimelineMenuItem
+  /** Set while looping if this row doesn't end where it starts. */
+  onCloseLoop?: () => void
 }
 
 export function TimelinePropertyRowLane({
@@ -77,6 +80,7 @@ export function TimelinePropertyRowLane({
   timeFromClientX,
   onOpenContextMenu,
   createGoToMenuItem,
+  onCloseLoop,
 }: TimelinePropertyRowLaneProps) {
   const keyframeDraggedRef = React.useRef(false)
   const wasSelectedOnPressRef = React.useRef(false)
@@ -144,6 +148,9 @@ export function TimelinePropertyRowLane({
                 (easing) => onSetPropertyEasing(row.id, null, easing)
               )
             : []),
+          ...(onCloseLoop
+            ? [{ label: "End where it starts", onSelect: onCloseLoop }]
+            : []),
         ])
       }}
     >
@@ -162,6 +169,14 @@ export function TimelinePropertyRowLane({
       />
       {onAddPropertyKeyframeAtTime && (
         <TimelineLaneGhost x={ghostX} color={row.color} />
+      )}
+      {onCloseLoop && (
+        <TimelineLoopClosure
+          name={row.name}
+          keyframes={row.keyframes}
+          duration={duration}
+          onClose={onCloseLoop}
+        />
       )}
 
       {row.keyframes.map((keyframe) => {

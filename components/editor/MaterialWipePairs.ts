@@ -2,8 +2,8 @@ import catalog from "./MaterialWipePairs.generated.json"
 
 export interface MaterialWipeIconPair {
   label: string
+  /** On icon. The off state is this icon with a drawn slash, not a second glyph. */
   enabled: string
-  disabled: string
 }
 
 type MaterialWipeCatalog = {
@@ -11,9 +11,13 @@ type MaterialWipeCatalog = {
   refinement: MaterialWipeIconPair[]
 }
 
-// Generated from https://github.com/bernaferrari/diagonal-wipe-icon/blob/main/composeApp/src/commonMain/kotlin/com/bernaferrari/diagonalwipeicon/demo/MaterialWipeIconCatalog.kt
-// Keep the large pair list in JSON so this module remains a typed adapter.
+// Generated from the Flutter demo catalog, with each side resolved through
+// material_symbol_assets.dart. Regenerate with `pnpm generate:wipe-pairs`.
 const materialWipeCatalog = catalog as MaterialWipeCatalog
 
 export const MATERIAL_WIPE_READY_PAIRS = materialWipeCatalog.ready
 export const MATERIAL_WIPE_REFINEMENT_PAIRS = materialWipeCatalog.refinement
+export const MATERIAL_WIPE_PAIRS = [
+  ...MATERIAL_WIPE_READY_PAIRS,
+  ...MATERIAL_WIPE_REFINEMENT_PAIRS,
+]

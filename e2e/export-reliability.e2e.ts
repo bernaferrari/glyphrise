@@ -24,7 +24,7 @@ test("refreshes image and video previews after rotating and exports that pose", 
   page,
 }) => {
   await createMotion(page)
-  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await page.getByRole("tab", { name: "Video", exact: true }).click()
   const image = page.getByRole("img", { name: "Rendered export frame" })
   await expect(image).toBeVisible()
   const readPreview = () =>
@@ -46,7 +46,7 @@ test("refreshes image and video previews after rotating and exports that pose", 
   await page.getByRole("button", { name: "Export", exact: true }).click()
   await expect(image).toBeVisible()
   expect(await readPreview()).not.toEqual(front)
-  await page.getByRole("button", { name: "Video", exact: true }).click()
+  await page.getByRole("tab", { name: "Video", exact: true }).click()
   await expect(image).toBeVisible()
   const angled = await readPreview()
   expect(angled).not.toEqual(front)
@@ -114,7 +114,7 @@ for (const [container, fps] of [
         })
     })
     await createMotion(page)
-    await page.getByRole("button", { name: "Video", exact: true }).click()
+    await page.getByRole("tab", { name: "Video", exact: true }).click()
     if (container === "mp4") {
       const mp4 = page.getByRole("radio", { name: "MP4", exact: true })
       await expect(
@@ -235,9 +235,7 @@ test("imports exported SVG markup directly at entry and finishes with a still im
     .click()
   expect((await bytes(await downloading)).readUInt32BE(16)).toBe(128)
   await page.keyboard.press("Escape")
-  await expect(
-    page.getByRole("heading", { name: "Your icon is ready." })
-  ).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Downloaded" })).toBeVisible()
 })
 
 test("immediately undoes the first edit through the button and keyboard", async ({
@@ -327,4 +325,27 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
       localStorage.getItem("glyphrise.pending-deletion")
     )
   ).toBeNull()
+})
+
+test("downloads a frame sheet at the chosen image size", async ({ page }) => {
+  await page.addInitScript(() =>
+    window.localStorage.setItem("glyphrise:quick-start:v1", "dismissed")
+  )
+  await page.goto("/")
+  await page.getByRole("button", { name: "Export", exact: true }).click()
+  const exporter = page.getByRole("dialog", { name: "Export" })
+  await exporter.getByRole("radio", { name: "2 × 2" }).click()
+  await exporter.getByLabel("Width", { exact: true }).fill("256")
+  await exporter.getByLabel("Height", { exact: true }).fill("256")
+  await expect(exporter.getByText("4 frames · 128 × 128 px each")).toBeVisible()
+  const downloading = page.waitForEvent("download")
+  await exporter
+    .getByRole("button", { name: "Download image", exact: true })
+    .click()
+  const download = await downloading
+  expect(download.suggestedFilename()).toBe("glyphrise-frames.png")
+  const png = await bytes(download)
+  expect(png.subarray(1, 4).toString()).toBe("PNG")
+  expect(png.readUInt32BE(16)).toBe(256)
+  expect(png.readUInt32BE(20)).toBe(256)
 })

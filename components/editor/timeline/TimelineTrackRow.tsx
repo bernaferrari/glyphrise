@@ -8,6 +8,7 @@ import { widthForSpan, xForFrac } from "./TimelineGeometry"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import {
   TimelineLaneGhost,
+  TimelineLoopClosure,
   TimelineMotionSegments,
   useLaneGhost,
 } from "./TimelinePrimitives"
@@ -61,6 +62,8 @@ export type TimelineTrackRowProps = {
     time: number,
     onBeforeOpen?: () => void
   ) => TimelineMenuItem
+  /** Set while looping if this row doesn't end where it starts. */
+  onCloseLoop?: () => void
 }
 
 export function TimelineTrackRow({
@@ -89,6 +92,7 @@ export function TimelineTrackRow({
   timeFromClientX,
   onOpenContextMenu,
   createGoToMenuItem,
+  onCloseLoop,
 }: TimelineTrackRowProps) {
   const animated = track.keyframes.length > 0
   const { ghostX, laneHandlers } = useLaneGhost()
@@ -140,6 +144,9 @@ export function TimelineTrackRow({
                   track.keyframes[0]?.easing ?? "ease-in-out",
                   (easing) => onSetTrackEasing(track.id, easing)
                 ),
+                ...(onCloseLoop
+                  ? [{ label: "End where it starts", onSelect: onCloseLoop }]
+                  : []),
                 { type: "separator" as const },
                 {
                   label: "Clear keyframes",
@@ -168,6 +175,14 @@ export function TimelineTrackRow({
       />
 
       <TimelineLaneGhost x={ghostX} color={track.color} />
+      {onCloseLoop && (
+        <TimelineLoopClosure
+          name={track.name}
+          keyframes={track.keyframes}
+          duration={duration}
+          onClose={onCloseLoop}
+        />
+      )}
 
       {track.keyframes.map((keyframe) => (
         <TimelineTrackKeyframeButton

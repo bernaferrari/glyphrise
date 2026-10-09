@@ -40,6 +40,8 @@ export function useTimelineController({
   propertyRows = [],
   onClearTrackKeyframes,
   onClearPropertyRow,
+  openLoops = [],
+  onCloseLoops,
   onTogglePropertyKeyframe,
   onAddPropertyKeyframeAtTime,
   onRemovePropertyKeyframe,
@@ -373,6 +375,8 @@ export function useTimelineController({
       playback,
       autoKeyEnabled,
       onAutoKeyChange,
+      openLoopCount: openLoops.length,
+      onCloseLoops: onCloseLoops ? () => onCloseLoops() : undefined,
       onDurationEditorChange: setDurationEditor,
       onOpenDurationEditor: openDurationEditor,
       onCommitDurationEditor: commitDurationEditor,
@@ -588,6 +592,11 @@ export function useTimelineController({
         onOpenContextMenu: openTimelineContextMenu,
         createGoToMenuItem: goToMenuItem,
       },
+      // A one-shot animation needn't return; only looping asks for it.
+      loop:
+        loop && onCloseLoops
+          ? { openIds: openLoops, onClose: (id: string) => onCloseLoops(id) }
+          : undefined,
     },
   }
 }

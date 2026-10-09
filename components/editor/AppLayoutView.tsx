@@ -271,6 +271,7 @@ export function AppLayoutView({
                 !topBarProps.zenMode &&
                 (!isCompactLayout || compactPane === "preview") && (
                   <CreationGuide
+                    key={journeyProjectId}
                     hasStyle={creationJourney.hasStyle}
                     hasMotion={creationJourney.hasMotion}
                     hasPreviewed={creationJourney.hasPreviewed}

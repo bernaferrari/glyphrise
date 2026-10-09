@@ -1,5 +1,6 @@
 /** Render real starter scenes once; welcome cards only decode small videos.
- * Run: node scripts/generate-starter-previews.mjs (requires ffmpeg).
+ * Run: node scripts/generate-starter-previews.mjs [starter-id…] (requires ffmpeg).
+ * With ids, only those starters are re-rendered.
  */
 import { createRequire } from "node:module"
 import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises"
@@ -16,6 +17,10 @@ const viteRequire = createRequire(require.resolve("vitest/package.json"))
 const { build } = await import(pathToFileURL(viteRequire.resolve("vite")).href)
 const temporary = await mkdtemp(join(tmpdir(), "glyphrise-starters-"))
 const output = resolve(root, "public/starter-previews")
+const only = new Set(process.argv.slice(2))
+// The poster (and the loop's first frame) should explain the starter at a
+// glance: Wi-Fi starts on its slashed "off" icon, facing front.
+const START_TIMES = { wifi: 2.6 }
 let browser
 let server
 const encode = (args) => {
@@ -63,7 +68,8 @@ try {
     }
   })
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve))
-  browser = await chromium.launch()
+  // Same browser as the e2e suite (playwright.config.ts).
+  browser = await chromium.launch({ channel: "chrome" })
   const page = await browser.newPage({ viewport: { width: 512, height: 512 } })
   page.on("pageerror", (error) => process.stderr.write(`${error.message}\n`))
   await page.goto(`http://127.0.0.1:${server.address().port}`)
@@ -71,11 +77,12 @@ try {
   const starters = await page.evaluate(() => window.starterPreview.starters)
   await mkdir(output, { recursive: true })
   for (const [starterIndex, { id, duration }] of starters.entries()) {
+    if (only.size && !only.has(id)) continue
     const frames = join(temporary, id)
     await mkdir(frames)
     // Continuous motion with no held endpoint or duplicated loop frame.
     // Offset the loops so the four motions don't all peak together.
-    const phase = starterIndex * 0.7
+    const phase = START_TIMES[id] ?? starterIndex * 0.7
     for (let index = 0; index < Math.round(duration * 30); index++) {
       const png = await page.evaluate(
         ({ id, time }) => window.starterPreview.render(id, time),

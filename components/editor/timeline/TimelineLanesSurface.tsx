@@ -15,6 +15,7 @@ export function TimelineLanesSurface({
   propertyLane,
   trackLane,
   menu,
+  loop,
 }: TimelineLanesSurfaceProps) {
   return (
     <div
@@ -113,6 +114,8 @@ export function TimelineLanesSurface({
               timeFromClientX={viewport.timeFromClientX}
               onOpenContextMenu={menu.onOpenContextMenu}
               createGoToMenuItem={menu.createGoToMenuItem}
+              openLoops={loop?.openIds}
+              onCloseLoop={loop?.onClose}
             />
 
             <TimelineTrackRows
@@ -141,6 +144,8 @@ export function TimelineLanesSurface({
               timeFromClientX={viewport.timeFromClientX}
               onOpenContextMenu={menu.onOpenContextMenu}
               createGoToMenuItem={menu.createGoToMenuItem}
+              openLoops={loop?.openIds}
+              onCloseLoop={loop?.onClose}
             />
             {/* Keep lane height in sync with the left-rail "Add property" row so
                 second-grid lines and the playhead are not cut short by empty bg. */}

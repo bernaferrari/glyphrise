@@ -4,11 +4,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import {
+  Check,
   ChevronLeft,
   ChevronRight,
   MoreHorizontal,
   Pause,
   Play,
+  Repeat,
   ZoomIn,
   ZoomOut,
 } from "lucide-react"
@@ -39,6 +41,9 @@ export type TimelineToolbarProps = {
   playback?: PlaybackControlsProps
   autoKeyEnabled?: boolean
   onAutoKeyChange?: (enabled: boolean) => void
+  /** Rows and tracks that don't end where they start. */
+  openLoopCount?: number
+  onCloseLoops?: () => void
   onDurationEditorChange: (value: string | null) => void
   onOpenDurationEditor: () => void
   onCommitDurationEditor: () => void
@@ -51,9 +56,10 @@ export type TimelineToolbarProps = {
   onFocusTimeline?: () => void
 }
 
-// Transport sits tight around Play, like a video editor's.
+// Transport sits tight around Play, like a video editor's. On the narrowest
+// phones the canvas transport above already steps between keyframes.
 const transportButton =
-  "grid h-6 w-5 shrink-0 place-items-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
+  "grid h-6 w-5 max-[380px]:hidden shrink-0 place-items-center rounded text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-30"
 
 const iconButton =
   "grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-100 hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring active:scale-94 disabled:pointer-events-none disabled:opacity-30"
@@ -76,6 +82,8 @@ export function TimelineToolbar({
   playback,
   autoKeyEnabled = false,
   onAutoKeyChange,
+  openLoopCount = 0,
+  onCloseLoops,
   onDurationEditorChange,
   onOpenDurationEditor,
   onCommitDurationEditor,
@@ -167,6 +175,8 @@ export function TimelineToolbar({
           duration={duration}
           autoKeyEnabled={autoKeyEnabled}
           onAutoKeyChange={onAutoKeyChange}
+          openLoopCount={openLoopCount}
+          onCloseLoops={onCloseLoops}
           zoom={zoom}
           onZoomChange={onZoomChange}
           onFitTimeline={onFitTimeline}
@@ -216,11 +226,54 @@ function MenuSwitch({
   )
 }
 
+/**
+ * Under Loop playback: either the one-click fix for rows that end somewhere
+ * else, or a quiet confirmation that the loop is already seamless.
+ */
+function LoopClosureRow({
+  count,
+  onClose,
+}: {
+  count: number
+  onClose: () => void
+}) {
+  if (count === 0) {
+    return (
+      <p className="flex min-h-8 items-center gap-3 px-2 text-xs text-muted-foreground">
+        <span className="flex-1">Every property ends where it starts</span>
+        <Check aria-hidden="true" className="mr-2 size-3.5" />
+      </p>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClose}
+      className="group flex min-h-9 w-full items-center gap-3 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted focus-visible:bg-muted focus-visible:outline-none pointer-coarse:min-h-11"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block">End where it starts</span>
+        <span className="block text-xs leading-4 text-muted-foreground">
+          {count === 1
+            ? "1 property ends somewhere else"
+            : `${count} properties end somewhere else`}
+        </span>
+      </span>
+      <Repeat
+        aria-hidden="true"
+        className="mr-2 size-3.5 text-muted-foreground group-hover:text-foreground"
+      />
+    </button>
+  )
+}
+
 function OptionsMenu({
   compactMode,
   duration,
   autoKeyEnabled,
   onAutoKeyChange,
+  openLoopCount,
+  onCloseLoops,
   zoom,
   onZoomChange,
   onFitTimeline,
@@ -234,6 +287,8 @@ function OptionsMenu({
   duration: number
   autoKeyEnabled: boolean
   onAutoKeyChange?: (enabled: boolean) => void
+  openLoopCount: number
+  onCloseLoops?: () => void
   zoom: number
   onZoomChange: (zoom: number) => void
   onFitTimeline: () => void
@@ -310,6 +365,9 @@ function OptionsMenu({
           checked={loop}
           onChange={() => onLoopChange(!loop)}
         />
+        {loop && onCloseLoops && (
+          <LoopClosureRow count={openLoopCount} onClose={onCloseLoops} />
+        )}
         <MenuSwitch
           label="Snap to keyframes"
           checked={snapEnabled}

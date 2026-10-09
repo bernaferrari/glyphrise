@@ -134,7 +134,30 @@ describe("createProjectFromTemplateAction", () => {
     expect(rotationAt("bell", 0)).toEqual(rotationAt("bell", 3))
   })
 
-  it.each(["calendar", "wifi"])(
+  it("switches Wi-Fi off while it faces front, after one turn", () => {
+    const snapshot = createStarterEditorSnapshot(
+      validSnapshot("#abcdef"),
+      "wifi"
+    )
+    const duration = snapshot.duration
+    for (const fraction of [0.5, 0.6, 0.7, 0.78]) {
+      const time = duration * fraction
+      const state = evaluateMorphRenderState({ ...snapshot, currentTime: time })
+      // Fully on one icon (no wipe in progress), and that icon is the slashed one.
+      expect([0, 1]).toContain(state.morph.progress)
+      const shown =
+        state.morph.progress === 1 ? state.morph.to : state.morph.from
+      expect(shown.svgContent).toContain("data-glyphrise-slash")
+      const y = interpolateLightPositionKeyframes(
+        time,
+        snapshot.rotationOffset,
+        snapshot.rotationAxisKeyframes
+      ).y
+      expect(y % 360).toBeCloseTo(0)
+    }
+  })
+
+  it.each(["calendar"])(
     "gives %s a slower flowing turn without stopping or changing speed at the seam",
     (id) => {
       const snapshot = createStarterEditorSnapshot(validSnapshot("#abcdef"), id)

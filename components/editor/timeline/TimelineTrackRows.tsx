@@ -53,6 +53,9 @@ type TimelineTrackRowsProps = {
     time: number,
     onBeforeOpen?: () => void
   ) => TimelineMenuItem
+  /** Row and track ids that don't end where they start (while looping). */
+  openLoops?: string[]
+  onCloseLoop?: (id: string) => void
 }
 
 export function TimelineTrackRows({
@@ -81,6 +84,8 @@ export function TimelineTrackRows({
   timeFromClientX,
   onOpenContextMenu,
   createGoToMenuItem,
+  openLoops,
+  onCloseLoop,
 }: TimelineTrackRowsProps) {
   return (
     <>
@@ -112,6 +117,11 @@ export function TimelineTrackRows({
           timeFromClientX={timeFromClientX}
           onOpenContextMenu={onOpenContextMenu}
           createGoToMenuItem={createGoToMenuItem}
+          onCloseLoop={
+            onCloseLoop && openLoops?.includes(track.id)
+              ? () => onCloseLoop(track.id)
+              : undefined
+          }
         />
       ))}
     </>

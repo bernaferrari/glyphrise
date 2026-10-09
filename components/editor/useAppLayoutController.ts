@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { useLatestRef } from "@/lib/use-latest-ref"
 
 import { useEditorBaseState } from "./useEditorBaseState"
 import { useEditorDocumentLifecycle } from "./useEditorDocumentLifecycle"
@@ -463,6 +464,18 @@ export function useAppLayoutController(): AppLayoutViewProps {
     autoKeyEnabled,
   })
 
+  // Videos and frame sheets render the document as it was when they start.
+  const frameEvaluatorRef = useLatestRef(() => {
+    canvas3DRef.current?.commitRotationEdit()
+    const frozenDocument = structuredClone(documentSnapshot)
+    const studio = { ...canvasProps }
+    return (time: number) => evaluateExportFrame(frozenDocument, time, studio)
+  })
+  const createFrameEvaluator = useCallback(
+    () => frameEvaluatorRef.current(),
+    [frameEvaluatorRef]
+  )
+
   const {
     openExport,
     uploadFileRef,
@@ -483,14 +496,10 @@ export function useAppLayoutController(): AppLayoutViewProps {
       rimLightColor,
     },
     canvasRef: canvas3DRef,
+    createFrameEvaluator,
     exportTimelineVideo: (settings) => {
-      canvas3DRef.current?.commitRotationEdit()
       cancelAnimatedSeek()
-      const frozenDocument = structuredClone(documentSnapshot)
-      const studio = { ...canvasProps }
-      return exportTimelineVideo(settings, (time) =>
-        evaluateExportFrame(frozenDocument, time, studio)
-      )
+      return exportTimelineVideo(settings, createFrameEvaluator())
     },
     stopVideoExportRecording,
     cancelVideoExport,
@@ -606,7 +615,9 @@ export function useAppLayoutController(): AppLayoutViewProps {
       setRotationAxisKeyframes,
       moveKeyframes,
       setMoveKeyframes,
+      qualityKeyframes,
       setQualityKeyframes,
+      innerScaleKeyframes,
       setInnerScaleKeyframes,
     },
     activeValues: {

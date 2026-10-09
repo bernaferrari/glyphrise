@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ExportAssetOptions, type AssetFormat } from "./ExportAssetOptions"
 import { ExportCodeView, type CodeTarget } from "./ExportCodeTabs"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
@@ -133,34 +134,23 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="shrink-0 px-5 pb-4">
-          <div
-            role="group"
-            aria-label="Export format"
-            className="grid grid-cols-4 gap-1 rounded-xl bg-muted/70 p-1"
-          >
+        <Tabs
+          value={format}
+          onValueChange={(next: Format) => {
+            if (next === "video") updateSettings({ backgroundMode: "color" })
+            setFormat(next)
+          }}
+          className="mx-5 mb-4 shrink-0"
+        >
+          <TabsList aria-label="Export format" className="h-10 w-full">
             {FORMATS.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={format === id}
-                disabled={busy && format !== id}
-                onClick={() => {
-                  if (id === "video")
-                    updateSettings({ backgroundMode: "color" })
-                  setFormat(id)
-                }}
-                className="flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-lg px-1 text-sm font-medium whitespace-nowrap text-muted-foreground transition-[background-color,color,box-shadow] hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-40 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
-              >
-                <Icon
-                  aria-hidden="true"
-                  className="size-4 shrink-0 max-[400px]:hidden"
-                />
+              <TabsTrigger key={id} value={id} disabled={busy && format !== id}>
+                <Icon aria-hidden="true" className="max-[400px]:hidden" />
                 {label}
-              </button>
+              </TabsTrigger>
             ))}
-          </div>
-        </div>
+          </TabsList>
+        </Tabs>
 
         {exportError ? (
           <div

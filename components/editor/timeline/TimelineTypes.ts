@@ -58,6 +58,10 @@ export type TimelineTrackProps = {
   propertyRows?: TimelinePropertyRow[]
   onClearTrackKeyframes?: (trackId: string) => void
   onClearPropertyRow?: (rowId: string) => void
+  /** Row and track ids that don't end where they start. */
+  openLoops?: string[]
+  /** Ends one row or track where it starts, or every one without an id. */
+  onCloseLoops?: (id?: string) => void
   onTogglePropertyKeyframe?: (rowId: string, keyframeId?: string | null) => void
   onAddPropertyKeyframeAtTime?: (rowId: string, time: number) => void
   onRemovePropertyKeyframe?: (rowId: string, keyframeId: string) => void

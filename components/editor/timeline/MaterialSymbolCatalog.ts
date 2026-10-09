@@ -1,6 +1,6 @@
 import { normalizeMaterialSymbolName } from "../IconLibrary"
 import {
-  MATERIAL_WIPE_READY_PAIRS,
+  MATERIAL_WIPE_PAIRS,
   type MaterialWipeIconPair,
 } from "../MaterialWipePairs"
 
@@ -125,14 +125,10 @@ const symbolSearchScore = (name: string, query: string) => {
   return query.split("_").every((word) => terms.includes(word)) ? 3 : Infinity
 }
 
-const MATERIAL_WIPE_READY_PAIR_INDEX = MATERIAL_WIPE_READY_PAIRS.map(
-  (pair) => ({
-    pair,
-    query: normalizeMaterialSymbolName(
-      `${pair.label} ${pair.enabled} ${pair.disabled}`
-    ),
-  })
-)
+const MATERIAL_WIPE_PAIR_INDEX = MATERIAL_WIPE_PAIRS.map((pair) => ({
+  pair,
+  query: normalizeMaterialSymbolName(`${pair.label} ${pair.enabled}`),
+}))
 
 export const visibleMaterialSymbols = (
   names: string[],
@@ -157,13 +153,13 @@ export const visibleMaterialSymbols = (
 
 export const visibleWipePairs = (
   query: string,
-  limit = 24
+  limit = Number.POSITIVE_INFINITY
 ): MaterialWipeIconPair[] => {
   const normalizedQuery = materialSymbolQuery(query)
   const filtered = normalizedQuery
-    ? MATERIAL_WIPE_READY_PAIR_INDEX.filter(({ query }) =>
-        query.includes(normalizedQuery)
+    ? MATERIAL_WIPE_PAIR_INDEX.filter(({ query: pairQuery }) =>
+        pairQuery.includes(normalizedQuery)
       ).map(({ pair }) => pair)
-    : MATERIAL_WIPE_READY_PAIRS
+    : MATERIAL_WIPE_PAIRS
   return filtered.slice(0, limit)
 }

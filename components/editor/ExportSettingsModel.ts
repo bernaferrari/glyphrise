@@ -1,4 +1,5 @@
 import type { ExportRenderOptions, VideoContainer } from "../3d/SvgTypes"
+import type { FrameSheetGrid } from "./ExportFrameSheet"
 
 export type ExportBackgroundMode = "transparent" | "color"
 
@@ -10,6 +11,8 @@ export type ExportSettings = {
   videoBitsPerSecond: number
   backgroundMode: ExportBackgroundMode
   backgroundColor: string
+  /** Images only: frames per side of a frame sheet; 1 is a single still. */
+  frameGrid: FrameSheetGrid
 }
 
 export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
@@ -20,6 +23,7 @@ export const DEFAULT_EXPORT_SETTINGS: ExportSettings = {
   videoBitsPerSecond: 8_000_000,
   backgroundMode: "transparent",
   backgroundColor: "#17151f",
+  frameGrid: 1,
 }
 
 export const EXPORT_SIZE_PRESETS = [

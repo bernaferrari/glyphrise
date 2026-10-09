@@ -54,6 +54,7 @@ function OutputPreview({
   )
   const [previewError, setPreviewError] = useState(false)
   // A model has no frame or background of its own: show the artwork cut out.
+  // Only images come as frame sheets; video and models preview a still.
   const shown: ExportSettings =
     format === "model"
       ? {
@@ -61,13 +62,17 @@ function OutputPreview({
           width: 1080,
           height: 1080,
           backgroundMode: "transparent",
+          frameGrid: 1,
         }
-      : settings
+      : format === "video"
+        ? { ...settings, frameGrid: 1 }
+        : settings
   const key = JSON.stringify([
     shown.width,
     shown.height,
     shown.backgroundMode,
     shown.backgroundColor,
+    shown.frameGrid,
   ])
   useEffect(() => {
     if (
@@ -126,7 +131,11 @@ function OutputPreview({
           {ready ? (
             <img
               src={preview.url}
-              alt="Rendered export frame"
+              alt={
+                shown.frameGrid === 1
+                  ? "Rendered export frame"
+                  : "Rendered frame sheet"
+              }
               className="size-full object-contain"
             />
           ) : (

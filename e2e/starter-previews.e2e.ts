@@ -19,7 +19,7 @@ test("plays all four sharp 3D starters and pauses cards out of view", async ({
             !video.paused &&
             video.currentTime > 0 &&
             video.videoWidth === 512 &&
-            Math.abs(video.duration - [3.6, 3, 3.8, 3][index]) < 0.01
+            Math.abs(video.duration - [3.6, 3, 4, 3][index]) < 0.01
           )
         })
       )

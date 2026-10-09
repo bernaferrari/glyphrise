@@ -55,7 +55,9 @@ type UseEditorTimelineSurfaceArgs = {
     setRotationAxisKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
     moveKeyframes: Vector3Keyframe[]
     setMoveKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
+    qualityKeyframes: ScalarKeyframe[]
     setQualityKeyframes: Dispatch<SetStateAction<ScalarKeyframe[]>>
+    innerScaleKeyframes: Vector3Keyframe[]
     setInnerScaleKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
   }
   activeValues: {
@@ -129,7 +131,9 @@ export function useEditorTimelineSurface({
     setRotationAxisKeyframes,
     moveKeyframes,
     setMoveKeyframes,
+    qualityKeyframes,
     setQualityKeyframes,
+    innerScaleKeyframes,
     setInnerScaleKeyframes,
   } = animatedProperties
   const {
@@ -168,6 +172,8 @@ export function useEditorTimelineSurface({
     moveTimelinePropertyKeyframe,
     setTimelinePropertyEasing,
     setShapeBlend,
+    openLoops,
+    closeLoops,
   } = useTimelineDockController({
     currentTime,
     duration,
@@ -187,7 +193,9 @@ export function useEditorTimelineSurface({
     setRotationAxisKeyframes,
     moveKeyframes,
     setMoveKeyframes,
+    qualityKeyframes,
     setQualityKeyframes,
+    innerScaleKeyframes,
     setInnerScaleKeyframes,
     selectedShapeFillStops,
     selectedShapeGradientType,
@@ -223,6 +231,8 @@ export function useEditorTimelineSurface({
     onRemovePropertyKeyframe: removeTimelinePropertyKeyframe,
     onMovePropertyKeyframe: moveTimelinePropertyKeyframe,
     onSetPropertyEasing: setTimelinePropertyEasing,
+    openLoops,
+    onCloseLoops: closeLoops,
     activeTrackId: selectedMotionTrackId as MotionTrackId | null,
     onActiveTrackChange: selectTimelineTrack,
     onActivePropertyRowChange: selectTimelinePropertyRow,

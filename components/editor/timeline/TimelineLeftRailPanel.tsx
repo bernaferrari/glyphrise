@@ -101,7 +101,7 @@ export function TimelineLeftRailPanel({
   createGoToMenuItem,
 }: TimelineLeftRailPanelProps) {
   return (
-    <div className="flex w-56 shrink-0 flex-col overflow-visible border-r border-border bg-(--timeline-surface) max-md:w-39">
+    <div className="flex w-56 shrink-0 flex-col overflow-visible border-r border-border bg-(--timeline-surface) max-[380px]:w-32 max-md:w-39">
       <div className="relative z-10 h-(--timeline-ruler-height) shrink-0 border-b border-border">
         {header}
       </div>

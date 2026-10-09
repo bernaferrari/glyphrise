@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { ColorPicker } from "@/components/ui/color-picker"
 import { EXPORT_SIZE_PRESETS, type ExportSettings } from "./ExportSettingsModel"
 import type { VideoContainer } from "../3d/SvgTypes"
+import { FRAME_SHEET_GRIDS, frameSheetLayout } from "./ExportFrameSheet"
 
 /** Backgrounds people actually pick, plus any color. */
 const BACKGROUND_SWATCHES = [
@@ -86,11 +87,36 @@ export function ExportRenderSettings({
   onChange: (patch: Partial<ExportSettings>) => void
 }) {
   const transparent = settings.backgroundMode === "transparent"
+  const sheet = frameSheetLayout(settings.frameGrid, settings)
   const swatchClass =
     "relative size-8 shrink-0 rounded-full inset-ring inset-ring-foreground/15 transition-[box-shadow,transform] outline-none hover:scale-105 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-popover aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:ring-offset-2 aria-pressed:ring-offset-popover"
 
   return (
     <fieldset disabled={disabled} className="grid gap-6 disabled:opacity-60">
+      {!video && (
+        <Choice
+          label="Frames"
+          detail={
+            settings.frameGrid === 1
+              ? undefined
+              : `${sheet.count} frames · ${sheet.cellWidth} × ${sheet.cellHeight} px each`
+          }
+          value={settings.frameGrid}
+          options={FRAME_SHEET_GRIDS.map((grid) => ({
+            value: grid,
+            label: grid === 1 ? "Still" : `${grid} × ${grid}`,
+          }))}
+          onChange={(frameGrid) => onChange({ frameGrid })}
+        >
+          {settings.frameGrid !== 1 && (
+            <p className="text-xs text-muted-foreground">
+              Evenly spaced through one loop. Use it as a poster, or as a sprite
+              sheet.
+            </p>
+          )}
+        </Choice>
+      )}
+
       <Section label="Size">
         <div
           role="group"
@@ -262,17 +288,21 @@ export function ExportRenderSettings({
 /** Small option sets read better as segmented choices than dropdowns. */
 function Choice<T extends string | number>({
   label,
+  detail,
   value,
   options,
   onChange,
+  children,
 }: {
   label: string
+  detail?: React.ReactNode
   value: T
   options: ReadonlyArray<{ value: T; label: string }>
   onChange: (value: T) => void
+  children?: React.ReactNode
 }) {
   return (
-    <Section label={label}>
+    <Section label={label} value={detail}>
       <div
         role="radiogroup"
         aria-label={label}
@@ -291,6 +321,7 @@ function Choice<T extends string | number>({
           </button>
         ))}
       </div>
+      {children}
     </Section>
   )
 }

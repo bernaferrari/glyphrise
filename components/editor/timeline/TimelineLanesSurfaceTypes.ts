@@ -162,4 +162,6 @@ export type TimelineLanesSurfaceProps = {
   propertyLane: TimelinePropertyLaneProps
   trackLane: TimelineTrackLaneProps
   menu: TimelineMenuActions
+  /** Set while loop playback is on: rows that don't end where they start. */
+  loop?: { openIds: string[]; onClose: (id: string) => void }
 }

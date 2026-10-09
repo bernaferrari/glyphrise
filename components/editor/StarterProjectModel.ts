@@ -101,20 +101,19 @@ export const STARTERS: Starter[] = [
     label: "Wi‑Fi off",
     hint: "Switches off",
     motion: "slash-turn",
-    duration: 3.8,
+    duration: 4,
     icon: icon("wifi"),
     finish: "satin",
-    brightness: 1.4,
     fill: mesh("sky", [
-      "#B8EBFF",
-      "#6FD3FF",
-      "#3DB5FF",
-      "#8AD8FF",
-      "#3D9BFF",
-      "#2F6BFF",
-      "#5EC0FF",
-      "#3557F5",
-      "#2A3FD9",
+      "#8BE9FF",
+      "#3CC8FF",
+      "#1E9BFF",
+      "#56D6FF",
+      "#1F7BFF",
+      "#3A4BFF",
+      "#22B8FF",
+      "#3157FF",
+      "#5B3DF5",
     ]),
   },
   {
@@ -207,27 +206,38 @@ export function createStarterEditorSnapshot(
   }
 
   if (starter.motion === "slash-turn") {
+    // One turn, then the switch happens facing front: within a single turn
+    // the middle is the icon's back, where a slash reads mirrored.
     return {
       ...still,
       shapes: [
         {
-          ...createShapeStop(starter.icon, duration * 0.2),
+          ...createShapeStop(starter.icon, duration * 0.36),
           ...shapeLook,
           transitionType: "wipe" as const,
           wipeDirection: { x: 0.707, y: -0.707 },
           easing: "ease-in-out" as const,
         },
         {
-          ...createShapeStop(slashedIcon(starter.icon), duration * 0.5),
+          ...createShapeStop(slashedIcon(starter.icon), duration * 0.52),
           ...shapeLook,
           transitionType: "wipe" as const,
           wipeDirection: { x: -0.707, y: 0.707 },
           easing: "ease-in-out" as const,
+          // Hold "off" for a beat before wiping back.
+          transitionStart: 0.6,
+          transitionEnd: 0.85,
         },
-        { ...createShapeStop(starter.icon, duration * 0.9), ...shapeLook },
+        { ...createShapeStop(starter.icon, duration * 0.98), ...shapeLook },
       ],
-      // Wipe on, then off during one full turn. The loop ends on its opening icon.
-      rotationAxisKeyframes: flowingTurn(duration),
+      rotationAxisKeyframes: rotationKeys(
+        [
+          [0, { y: 0 }],
+          [duration * 0.4, { y: 360 }],
+          [duration, { y: 360 }],
+        ],
+        "ease-in-out"
+      ),
     }
   }
 

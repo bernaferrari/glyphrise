@@ -7,13 +7,7 @@ export const WipePairPreview: React.FC<{
   pair: MaterialWipeIconPair
   className: string
   style: React.CSSProperties & { "--symbol-variation"?: string }
-  mode: "slash" | "real"
-}> = ({ pair, className, style, mode }) => {
-  const disabledUsesSlash = mode === "slash" && pair.disabled.endsWith("_off")
-  const disabledSymbol = disabledUsesSlash
-    ? pair.disabled.slice(0, -4)
-    : pair.disabled
-
+}> = ({ pair, className, style }) => {
   return (
     <span className="relative grid size-8 shrink-0 place-items-center overflow-hidden">
       <span className="wipe-pair-preview-layer wipe-pair-preview-base absolute inset-0 grid place-items-center">
@@ -37,14 +31,12 @@ export const WipePairPreview: React.FC<{
             } as React.CSSProperties
           }
         >
-          {disabledSymbol}
+          {pair.enabled}
         </span>
-        {disabledUsesSlash && (
-          <span
-            aria-hidden="true"
-            className="absolute top-1/2 left-1/2 h-6.25 w-0.5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-foreground ring-1 ring-background"
-          />
-        )}
+        <span
+          aria-hidden="true"
+          className="absolute top-1/2 left-1/2 h-6.25 w-0.5 -translate-x-1/2 -translate-y-1/2 -rotate-45 rounded-full bg-foreground ring-1 ring-background"
+        />
       </span>
     </span>
   )

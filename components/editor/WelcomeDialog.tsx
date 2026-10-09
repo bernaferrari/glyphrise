@@ -92,13 +92,12 @@ export function WelcomeDialog({
         className="max-h-(--spacing-dialog-height) overflow-y-auto sm:max-w-2xl"
       >
         <DialogHeader variant="welcome">
-          <span className="text-xs font-medium text-primary">
+          <span className="text-xs font-medium text-primary max-sm:hidden">
             Glyphrise · Icon motion
           </span>
           <DialogTitle variant="welcome">Make something move.</DialogTitle>
           <DialogDescription variant="welcome" className="sm:max-w-md">
-            Start from a look you like. Every color, layer and keyframe stays
-            editable.
+            Pick a starter. Every color, layer and keyframe stays editable.
           </DialogDescription>
         </DialogHeader>
         <div
@@ -141,10 +140,12 @@ export function WelcomeDialog({
             {importError || error}
           </p>
         )}
-        <div className="grid gap-2 max-sm:sticky max-sm:bottom-0 max-sm:-mx-5 max-sm:-mb-5 max-sm:bg-popover max-sm:px-5 max-sm:pt-3 max-sm:pb-5 sm:flex sm:flex-wrap">
+        {/* Phones: the main action on its own line, the two others below it.
+            Wider: one row, quiet dismiss on the left, actions on the right. */}
+        <div className="grid grid-cols-2 gap-2 max-sm:sticky max-sm:bottom-0 max-sm:-mx-5 max-sm:-mb-5 max-sm:bg-popover max-sm:px-5 max-sm:pt-3 max-sm:pb-5 sm:flex sm:items-center">
           <Button
             shape="rounded"
-            className="min-h-12 w-full sm:flex-1"
+            className="col-span-2 min-h-12 sm:order-3 sm:min-w-52"
             disabled={isImporting}
             onClick={() => onCreate(selected.id, selected.label)}
           >
@@ -185,7 +186,7 @@ export function WelcomeDialog({
             variant="outline"
             disabled={isImporting}
             size="lg"
-            className="min-h-12 w-full sm:w-auto sm:min-w-36"
+            className="min-h-11 sm:order-2 sm:min-h-12 sm:min-w-32"
             onClick={() => inputRef.current?.click()}
           >
             {isImporting ? "Reading your SVG…" : "Use my SVG"}
@@ -193,11 +194,20 @@ export function WelcomeDialog({
           <button
             type="button"
             onClick={onDismiss}
-            className="min-h-11 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring sm:w-full"
+            className="min-h-11 min-w-0 truncate rounded-lg px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring sm:order-1 sm:mr-auto sm:-ml-3"
           >
-            {currentProjectName
-              ? `Keep working on ${currentProjectName}`
-              : "Explore the editor"}
+            {currentProjectName ? (
+              <>
+                <span className="sm:hidden" aria-hidden="true">
+                  Keep editing
+                </span>
+                <span className="max-sm:sr-only">
+                  Keep working on {currentProjectName}
+                </span>
+              </>
+            ) : (
+              "Explore the editor"
+            )}
           </button>
         </div>
       </DialogContent>

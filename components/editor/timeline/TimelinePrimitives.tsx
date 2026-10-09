@@ -12,6 +12,7 @@ import {
   easingCurvePath,
   getEasingLabel,
 } from "./TimelineEasingControls"
+import { widthForSpan, xForFrac } from "./TimelineGeometry"
 import type { TimelineTrack } from "../TimelineModel"
 
 export const formatValueLabel = (track: TimelineTrack, value: number) => {
@@ -286,3 +287,67 @@ export const TimelineLaneGhost = ({
       </svg>
     </div>
   )
+
+/**
+ * Shown while looping when a row doesn't end where it starts: a dashed path
+ * from its last keyframe to the end, finished by a dashed diamond. Clicking
+ * the diamond adds the closing keyframe (see TimelineLoopModel).
+ */
+export const TimelineLoopClosure = ({
+  name,
+  keyframes,
+  duration,
+  onClose,
+}: {
+  name: string
+  keyframes: Array<{ time: number }>
+  duration: number
+  onClose: () => void
+}) => {
+  const lastTime = Math.max(...keyframes.map((keyframe) => keyframe.time))
+  // A keyframe already at the end is the user's; closing it from here would
+  // overwrite it, so that case is left to the row's context menu.
+  if (!(lastTime < duration - 1 / 120)) return null
+  return (
+    <>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-(--from) w-(--span) border-t border-dashed border-(--timeline-accent) opacity-35"
+        style={
+          {
+            "--from": xForFrac(lastTime / duration),
+            "--span": widthForSpan((duration - lastTime) / duration),
+          } as React.CSSProperties
+        }
+      />
+      <button
+        type="button"
+        data-keyframe-row
+        aria-label={`End ${name} where it starts`}
+        title="End where it starts, so the loop is seamless"
+        onPointerDown={(event) => event.stopPropagation()}
+        onDoubleClick={(event) => event.stopPropagation()}
+        onClick={(event) => {
+          event.stopPropagation()
+          onClose()
+        }}
+        className="absolute top-1/2 left-(--position-x) grid size-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-sm opacity-55 transition-[opacity,scale] duration-100 hover:scale-125 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-ring"
+        style={{ "--position-x": xForFrac(1) } as React.CSSProperties}
+      >
+        <svg viewBox="0 0 16 16" className="size-4 overflow-visible">
+          <rect
+            x="4.25"
+            y="4.25"
+            width="7.5"
+            height="7.5"
+            rx="1.1"
+            className="fill-(--timeline-lane) stroke-(--timeline-accent)"
+            strokeWidth="1.5"
+            strokeDasharray="2 1.5"
+            transform="rotate(45 8 8)"
+          />
+        </svg>
+      </button>
+    </>
+  )
+}

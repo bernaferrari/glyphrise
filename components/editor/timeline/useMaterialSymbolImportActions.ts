@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react"
 import {
+  appendMaterialSymbolSlash,
   fetchMaterialSymbolIcon,
   normalizeMaterialSymbolName,
   type MaterialSymbolStyle,
@@ -81,13 +82,16 @@ export const useMaterialSymbolImportActions = ({
       importInFlightRef.current = true
       setMaterialSymbolStatus({ state: "loading" })
       try {
-        const [enabled, disabled] = await Promise.all([
-          fetchMaterialSymbolIcon(pair.enabled, materialSymbolStyle),
-          fetchMaterialSymbolIcon(pair.disabled, materialSymbolStyle),
-        ])
-        onShapeWipePairChange(shapeId, enabled, disabled)
+        const enabled = await fetchMaterialSymbolIcon(
+          pair.enabled,
+          materialSymbolStyle
+        )
+        onShapeWipePairChange(
+          shapeId,
+          enabled,
+          appendMaterialSymbolSlash(enabled)
+        )
         onSymbolImported?.(pair.enabled)
-        onSymbolImported?.(pair.disabled)
         onSearchQueryChange("")
         setMaterialSymbolStatus({ state: "idle" })
         onOpenShapePicker(null)

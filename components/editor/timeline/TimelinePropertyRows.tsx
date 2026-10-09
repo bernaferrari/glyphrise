@@ -42,6 +42,9 @@ type TimelinePropertyRowsProps = {
     time: number,
     onBeforeOpen?: () => void
   ) => TimelineMenuItem
+  /** Row and track ids that don't end where they start (while looping). */
+  openLoops?: string[]
+  onCloseLoop?: (id: string) => void
 }
 
 export function TimelinePropertyRows({
@@ -61,6 +64,8 @@ export function TimelinePropertyRows({
   timeFromClientX,
   onOpenContextMenu,
   createGoToMenuItem,
+  openLoops,
+  onCloseLoop,
 }: TimelinePropertyRowsProps) {
   return (
     <>
@@ -83,6 +88,11 @@ export function TimelinePropertyRows({
           timeFromClientX={timeFromClientX}
           onOpenContextMenu={onOpenContextMenu}
           createGoToMenuItem={createGoToMenuItem}
+          onCloseLoop={
+            onCloseLoop && openLoops?.includes(row.id)
+              ? () => onCloseLoop(row.id)
+              : undefined
+          }
         />
       ))}
     </>

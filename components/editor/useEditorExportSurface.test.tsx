@@ -41,6 +41,10 @@ it("reuses captures without serializing the document and invalidates every previ
   const render = (next: Args) => act(() => root.render(<Harness args={next} />))
   try {
     render(args)
+    // A closed dialog (including its exit animation) never renders a capture.
+    await expect(capture(DEFAULT_EXPORT_SETTINGS)).rejects.toThrow("closed")
+    expect(exportPng).not.toHaveBeenCalled()
+    act(() => surface.openExport())
     const initialCapture = capture
     const first = capture(DEFAULT_EXPORT_SETTINGS)
     expect(capture(DEFAULT_EXPORT_SETTINGS)).toBe(first)
@@ -81,7 +85,6 @@ it("reuses captures without serializing the document and invalidates every previ
     })
     expect(serializeDocument).not.toHaveBeenCalled()
     // Reopening export refreshes canvas-only inputs such as zoom.
-    act(() => surface.openExport())
     const openedCapture = capture(DEFAULT_EXPORT_SETTINGS)
     await openedCapture
     act(() => surface.exportModalProps.onClose())

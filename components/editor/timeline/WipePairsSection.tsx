@@ -26,9 +26,9 @@ export function WipePairsSection({
     <div className={cn(PICKER_GRID_CLASS, "mb-3 pr-1", className)}>
       {filteredWipePairs.map((pair) => (
         <PickerTile
-          key={`wipe-pair-${stop.id}-${pair.enabled}-${pair.disabled}`}
+          key={`wipe-pair-${stop.id}-${pair.label}`}
           label={pair.label}
-          title={`${pair.label}: ${pair.enabled} → ${pair.disabled}`}
+          title={`${pair.label}: ${pair.enabled}`}
           className="wipe-pair-option"
           onClick={() => onChooseWipePair(stop.id, pair)}
         >
@@ -40,7 +40,6 @@ export function WipePairsSection({
                 "--symbol-variation": symbolStyle["--symbol-variation"],
               } as React.CSSProperties
             }
-            mode={pair.disabled.endsWith("_off") ? "slash" : "real"}
           />
         </PickerTile>
       ))}

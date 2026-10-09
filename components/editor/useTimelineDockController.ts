@@ -22,6 +22,11 @@ import {
 } from "./TimelinePropertyKeyframeModel"
 import type { TimelinePropertyKeyframeSetters } from "./TimelinePropertyKeyframeModel"
 import { createTimelinePropertyRows } from "./TimelinePropertyRowsModel"
+import {
+  closeTimelineLoops,
+  openLoopIds,
+  type TimelineLoopState,
+} from "./TimelineLoopModel"
 import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
 import {
   clampTimelineDuration,
@@ -56,7 +61,9 @@ export function useTimelineDockController({
   setRotationAxisKeyframes,
   moveKeyframes,
   setMoveKeyframes,
+  qualityKeyframes,
   setQualityKeyframes,
+  innerScaleKeyframes,
   setInnerScaleKeyframes,
   selectedShapeFillStops,
   selectedShapeGradientType,
@@ -88,7 +95,9 @@ export function useTimelineDockController({
   >
   moveKeyframes: Vector3Keyframe[]
   setMoveKeyframes: React.Dispatch<React.SetStateAction<Vector3Keyframe[]>>
+  qualityKeyframes: ScalarKeyframe[]
   setQualityKeyframes: React.Dispatch<React.SetStateAction<ScalarKeyframe[]>>
+  innerScaleKeyframes: Vector3Keyframe[]
   setInnerScaleKeyframes: React.Dispatch<
     React.SetStateAction<Vector3Keyframe[]>
   >
@@ -197,6 +206,59 @@ export function useTimelineDockController({
       scaleTimelineTime({ time: currentTime, ratio, duration: nextDuration }),
       { animated: false }
     )
+    markCustom()
+  }
+
+  const loopState: TimelineLoopState = {
+    tracks,
+    fillKeyframes,
+    materialKeyframes,
+    keyLightPositionKeyframes,
+    rotationAxisKeyframes,
+    moveKeyframes,
+    qualityKeyframes,
+    innerScaleKeyframes,
+  }
+  const openLoops = useMemo(
+    () =>
+      openLoopIds({
+        tracks,
+        fillKeyframes,
+        materialKeyframes,
+        keyLightPositionKeyframes,
+        rotationAxisKeyframes,
+        moveKeyframes,
+        qualityKeyframes,
+        innerScaleKeyframes,
+      }),
+    [
+      tracks,
+      fillKeyframes,
+      materialKeyframes,
+      keyLightPositionKeyframes,
+      rotationAxisKeyframes,
+      moveKeyframes,
+      qualityKeyframes,
+      innerScaleKeyframes,
+    ]
+  )
+
+  /** Ends one row or track (or everything) where it starts; see TimelineLoopModel. */
+  const closeLoops = (id?: string) => {
+    const changes = closeTimelineLoops(loopState, duration, id)
+    if (Object.keys(changes).length === 0) return
+    if (changes.tracks) setTracks(changes.tracks)
+    if (changes.fillKeyframes) setFillKeyframes(changes.fillKeyframes)
+    if (changes.materialKeyframes)
+      setMaterialKeyframes(changes.materialKeyframes)
+    if (changes.keyLightPositionKeyframes)
+      setKeyLightPositionKeyframes(changes.keyLightPositionKeyframes)
+    if (changes.rotationAxisKeyframes)
+      setRotationAxisKeyframes(changes.rotationAxisKeyframes)
+    if (changes.moveKeyframes) setMoveKeyframes(changes.moveKeyframes)
+    if (changes.qualityKeyframes) setQualityKeyframes(changes.qualityKeyframes)
+    if (changes.innerScaleKeyframes)
+      setInnerScaleKeyframes(changes.innerScaleKeyframes)
     markCustom()
   }
 
@@ -319,5 +381,7 @@ export function useTimelineDockController({
     moveTimelinePropertyKeyframe,
     setTimelinePropertyEasing,
     setShapeBlend,
+    openLoops,
+    closeLoops,
   }
 }
