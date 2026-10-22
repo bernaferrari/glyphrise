@@ -73,9 +73,6 @@ export const exportRenderOptions = (
     settings.backgroundMode === "transparent" ? null : settings.backgroundColor,
 })
 
-export const extensionForVideoBlob = (blob: Blob, fallback: VideoContainer) =>
-  blob.type.toLowerCase().includes("mp4") ? "mp4" : fallback
-
 const hexRgb = (hex: string) => {
   const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
   if (!match) return null

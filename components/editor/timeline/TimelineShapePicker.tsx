@@ -1,6 +1,6 @@
 "use client"
 
-import { isAddIconPickerTarget } from "../ShapePickerTarget"
+import { isAddIconPickerTarget } from "../ShapeSequenceModel"
 import { ShapePickerContent } from "./ShapePickerContent"
 import type { TimelineShapeLaneProps } from "./TimelineLanesSurfaceTypes"
 

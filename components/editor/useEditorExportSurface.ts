@@ -1,17 +1,17 @@
 "use client"
 
-import { useCallback, useMemo, useRef, type RefObject } from "react"
+import { useCallback, useMemo, useRef, useState, type RefObject } from "react"
 import type { SvgCanvasRef } from "../3d/SvgCanvas"
 import type { SvgCanvasProps } from "../3d/SvgTypes"
+import { createDocumentFrameEvaluator } from "./EditorFrameModel"
 import { renderFrameSheet } from "./ExportFrameSheet"
-import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
+import { createExportSceneSnapshot } from "./ExportSceneSnapshot"
 import type { PresetIcon } from "./IconLibrary"
-import { useEditorFileSurface } from "./useEditorFileSurface"
-import { useExportSceneSnapshot } from "./useExportSceneSnapshot"
+import { useSvgUpload } from "./useSvgUpload"
 import type { ExportSettings } from "./ExportSettingsModel"
 import type { EditorSnapshot } from "./EditorModel"
 
-type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
+type UseEditorExportSurfaceArgs = {
   previewState: {
     document: EditorSnapshot
     currentTime: number
@@ -19,13 +19,14 @@ type UseEditorExportSurfaceArgs = ExportSceneSnapshot & {
     ambientColor: string
     rimLightColor: string
   }
+  /** Studio light levels code exports reproduce. */
+  lighting: { ambientIntensity: number; rimLightIntensity: number }
   selectedShapeId: string | null
   onShapeIconChange: (shapeId: string, icon: PresetIcon) => void
   canvasRef: RefObject<SvgCanvasRef | null>
   exportTimelineVideo: (settings: ExportSettings) => Promise<void>
   /** Freezes the document and returns a renderer for any timeline time. */
   createFrameEvaluator: () => (time: number) => SvgCanvasProps
-  stopVideoExportRecording: () => void
   cancelVideoExport: () => void
   isVideoExporting: boolean
   videoExportProgress: number
@@ -38,28 +39,20 @@ export function useEditorExportSurface({
   canvasRef,
   exportTimelineVideo,
   createFrameEvaluator,
-  stopVideoExportRecording: _stopVideoExportRecording,
   cancelVideoExport,
   isVideoExporting,
   videoExportProgress,
-  ...sceneArgs
+  lighting: { ambientIntensity, rimLightIntensity },
 }: UseEditorExportSurfaceArgs) {
+  const [isExportOpen, setIsExportOpen] = useState(false)
   const {
-    isExportOpen,
-    openExport,
-    closeExport,
     uploadFileRef,
     handleUploadInputChange,
     handleDropSvg,
     triggerShapeUpload,
     svgImportError,
     clearSvgImportError,
-  } = useEditorFileSurface({
-    selectedShapeId,
-    onShapeIconChange,
-  })
-
-  const scene = useExportSceneSnapshot(sceneArgs)
+  } = useSvgUpload({ selectedShapeId, onShapeIconChange })
   // Document snapshots are immutable; compare their identity without serializing
   // SVGs and every keyframe on each playback tick.
   const {
@@ -69,6 +62,15 @@ export function useEditorExportSurface({
     ambientColor,
     rimLightColor,
   } = previewState
+  const scene = useMemo(
+    () =>
+      createExportSceneSnapshot(
+        snapshot,
+        createDocumentFrameEvaluator(snapshot)(currentTime),
+        { ambientIntensity, rimLightIntensity }
+      ),
+    [ambientIntensity, currentTime, rimLightIntensity, snapshot]
+  )
   const previewKey = useMemo(
     // Opening export starts a fresh capture, including the latest zoom.
     () => [
@@ -138,7 +140,7 @@ export function useEditorExportSurface({
             canvas,
             sheet: settings,
             options,
-            duration: sceneArgs.duration,
+            duration: snapshot.duration,
             evaluateFrame: createFrameEvaluator(),
           })
         })
@@ -154,7 +156,7 @@ export function useEditorExportSurface({
       previewKey,
       isExportOpen,
       createFrameEvaluator,
-      sceneArgs.duration,
+      snapshot.duration,
     ]
   )
 
@@ -174,7 +176,7 @@ export function useEditorExportSurface({
   return {
     openExport: () => {
       canvasRef.current?.commitRotationEdit()
-      openExport()
+      setIsExportOpen(true)
     },
     uploadFileRef,
     handleUploadInputChange,
@@ -186,7 +188,7 @@ export function useEditorExportSurface({
       isOpen: isExportOpen,
       onClose: () => {
         cancelExport()
-        closeExport()
+        setIsExportOpen(false)
       },
       onExportGltf: () =>
         canvasRef.current?.exportGltf() ??

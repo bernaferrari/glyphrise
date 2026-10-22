@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
+  getMaterialSymbolNames,
   normalizeMaterialSymbolName,
   type MaterialSymbolFontSettings,
   type MaterialSymbolStyle,
@@ -10,7 +11,6 @@ import {
   visibleMaterialSymbols,
   visibleWipePairs,
 } from "./MaterialSymbolCatalog"
-import { useMaterialSymbolCatalogLoader } from "./useMaterialSymbolCatalogLoader"
 import { useMaterialSymbolImportActions } from "./useMaterialSymbolImportActions"
 
 const RECENT_MATERIAL_SYMBOLS_KEY = "glyphrise.recent-material-symbols.v1"
@@ -38,13 +38,11 @@ const writeStoredSymbolList = (key: string, symbols: string[]) => {
 }
 
 export function useShapePickerCatalog({
-  openShapePicker,
   shapeOptions,
   onShapeIconChange,
   onShapeWipePairChange,
   onOpenShapePicker,
 }: {
-  openShapePicker: string | null
   shapeOptions: ShapeOption[]
   onShapeIconChange: (id: string, option: ShapeOption) => void
   onShapeWipePairChange: (
@@ -69,9 +67,7 @@ export function useShapePickerCatalog({
   const [recentMaterialSymbolNames, setRecentMaterialSymbolNames] = useState<
     string[]
   >([])
-  const { materialSymbolNames } = useMaterialSymbolCatalogLoader(
-    Boolean(openShapePicker)
-  )
+  const materialSymbolNames = getMaterialSymbolNames()
 
   useEffect(() => {
     setRecentMaterialSymbolNames(

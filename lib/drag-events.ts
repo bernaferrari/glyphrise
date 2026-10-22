@@ -3,11 +3,6 @@ import { beginDocumentEdit, endDocumentEdit } from "./editor-transactions"
 
 type EndEvent = MouseEvent | PointerEvent | TouchEvent | Event
 
-type MouseDragOptions = {
-  onMove: (event: MouseEvent) => void
-  onEnd?: (event?: EndEvent) => void
-}
-
 type PointerDragOptions = {
   documentEdit?: boolean
   onMove: (event: PointerEvent) => void
@@ -36,33 +31,6 @@ export const safelyReleasePointerCapture = (
   try {
     target.releasePointerCapture?.(pointerId)
   } catch {}
-}
-
-export const bindWindowMouseDrag = ({ onMove, onEnd }: MouseDragOptions) => {
-  let active = true
-
-  const cleanup = (event?: EndEvent) => {
-    if (!active) return
-    active = false
-    window.removeEventListener("mousemove", move)
-    window.removeEventListener("mouseup", cleanup)
-    window.removeEventListener("blur", cleanup)
-    onEnd?.(event)
-  }
-
-  const move = (event: MouseEvent) => {
-    if (isPrimaryButtonReleased(event)) {
-      cleanup(event)
-      return
-    }
-    onMove(event)
-  }
-
-  window.addEventListener("mousemove", move)
-  window.addEventListener("mouseup", cleanup)
-  window.addEventListener("blur", cleanup)
-
-  return cleanup
 }
 
 export const bindWindowPointerDrag = ({

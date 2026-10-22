@@ -7,7 +7,7 @@ import {
   DEFAULT_TRANSFORM_SETTINGS,
 } from "../editor/EditorModel"
 import { interpolateLightPositionKeyframes } from "../editor/KeyframeInterpolationModel"
-import { STATIC_STUDIO_LIGHTING } from "../editor/useLightEditor"
+import { STATIC_STUDIO_LIGHTING } from "../editor/LightEditActions"
 import { FINISH_SPECS } from "./MaterialPresets"
 import { exportFilamentGltf } from "./SvgExport"
 import type { SvgCanvasProps, SvgExportAnimation } from "./SvgTypes"

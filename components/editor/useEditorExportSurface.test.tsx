@@ -5,13 +5,17 @@ import { expect, it, vi } from "vitest"
 import { useEditorExportSurface } from "./useEditorExportSurface"
 import { DEFAULT_EXPORT_SETTINGS } from "./ExportSettingsModel"
 import type { EditorSnapshot } from "./EditorModel"
+import { createDefaultEditorSnapshot } from "./EditorProjectModel"
 
 type Args = Parameters<typeof useEditorExportSurface>[0]
 
 it("reuses captures without serializing the document and invalidates every preview input", async () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
   const serializeDocument = vi.fn(() => "document")
-  const document = { toJSON: serializeDocument } as unknown as EditorSnapshot
+  const document = {
+    ...createDefaultEditorSnapshot(),
+    toJSON: serializeDocument,
+  } as unknown as EditorSnapshot
   const exportPng = vi.fn(async () => new Blob(["png"]))
   const args = {
     previewState: {
@@ -21,6 +25,7 @@ it("reuses captures without serializing the document and invalidates every previ
       ambientColor: "#ffffff",
       rimLightColor: "#ffffff",
     },
+    lighting: { ambientIntensity: 0.6, rimLightIntensity: 0.8 },
     canvasRef: { current: { exportPng, commitRotationEdit: vi.fn() } },
     selectedShapeId: null,
     onShapeIconChange: vi.fn(),

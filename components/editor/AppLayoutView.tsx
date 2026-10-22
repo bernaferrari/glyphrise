@@ -10,6 +10,9 @@ import { useLayoutTransition, usePanelTransition } from "./usePanelTransition"
 import { AppTopBar } from "./AppTopBar"
 import type { ExportModal } from "./ExportModal"
 import { InspectorSidebar } from "./InspectorSidebar"
+import type { InspectorTimeProps } from "./EditorInspectorProps"
+import type { PlaybackClock } from "./PlaybackClock"
+import { usePlaybackClockTime } from "./useEditorPlaybackState"
 import { TimelineDock } from "./TimelineDock"
 import { ViewportStage } from "./ViewportStage"
 import { NewProjectDialog } from "./NewProjectDialog"
@@ -29,6 +32,26 @@ const LazyAnimateDialog = dynamic(
   { ssr: false }
 )
 
+type InspectorPlayhead = {
+  clock: PlaybackClock
+  isPlaying: boolean
+  /** The inspector's values and edits at a moment on the timeline. */
+  propsAt: (time: number) => InspectorTimeProps
+}
+
+/**
+ * The inspector follows the playhead during playback, so values move with the
+ * animation; only it re-renders each frame, not the timeline or the rest.
+ */
+function LiveInspectorSidebar({
+  playhead,
+  ...props
+}: ComponentProps<typeof InspectorSidebar> & { playhead: InspectorPlayhead }) {
+  const { clock, isPlaying, propsAt } = playhead
+  const time = usePlaybackClockTime(isPlaying ? clock : undefined)
+  return <InspectorSidebar {...props} {...(isPlaying ? propsAt(time) : null)} />
+}
+
 export type AppLayoutViewProps = {
   onCreateStarter: (
     starterId: string,
@@ -44,7 +67,9 @@ export type AppLayoutViewProps = {
   viewportProps: Omit<ComponentProps<typeof ViewportStage>, "ref"> & {
     creationJourney: CreationJourney
   }
-  inspectorProps: ComponentProps<typeof InspectorSidebar>
+  inspectorProps: ComponentProps<typeof InspectorSidebar> & {
+    playhead: InspectorPlayhead
+  }
   timelineProps: ComponentProps<typeof TimelineDock>
   exportModalProps: ComponentProps<typeof ExportModal>
   newProjectDialogProps: ComponentProps<typeof NewProjectDialog>
@@ -370,7 +395,7 @@ export function AppLayoutView({
               }}
             />
           </div>
-          <InspectorSidebar
+          <LiveInspectorSidebar
             {...inspectorProps}
             compact={isCompactLayout}
             onRemoveIcon={() => {

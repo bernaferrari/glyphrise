@@ -1,31 +1,8 @@
 "use client"
 
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import {
-  clampNumber,
-  DEFAULT_GEOMETRY_SETTINGS,
-  DEFAULT_LIGHT_SETTINGS,
-  DEFAULT_TRANSFORM_SETTINGS,
-  EditorSnapshot,
-  FillMode,
-  GeometrySettings,
-  LightSettings,
-  LightPosition,
-  MAX_UNDO_STEPS,
-  MaterialKeyframe,
-  MaterialSettings,
-  ScalarKeyframe,
-  TransformSettings,
-  Vector3Keyframe,
-} from "./EditorModel"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { EditorDocumentStore } from "./EditorDocumentStore"
+import { EditorSnapshot, MAX_UNDO_STEPS } from "./EditorModel"
 import {
   createProjectMetadata,
   downloadProjectSnapshot,
@@ -50,14 +27,6 @@ import {
   type ProjectActionError,
   type ProjectActivationKind,
 } from "./EditorProjectActivation"
-import type { MaterialPresetId } from "../3d/MaterialPresets"
-import type {
-  FillGradientType,
-  FillKeyframe,
-  FillStop,
-  ShapeStop,
-  TimelineTrack,
-} from "./TimelineModel"
 import { useEditorHistory } from "./useEditorHistory"
 import { createBlankEditorSnapshot } from "./EditorProjectModel"
 import {
@@ -65,159 +34,24 @@ import {
   createImportedEditorSnapshot,
 } from "./StarterProjectModel"
 
-interface EditorSnapshotHistoryOptions {
-  activeRecipeId: string | null
-  setActiveRecipeId: Dispatch<SetStateAction<string | null>>
-  shapes: ShapeStop[]
-  setShapes: Dispatch<SetStateAction<ShapeStop[]>>
-  setSelectedShapeId: Dispatch<SetStateAction<string | null>>
-  setOpenShapePicker: Dispatch<SetStateAction<string | null>>
-  duration: number
-  setDuration: Dispatch<SetStateAction<number>>
-  setCurrentTime: Dispatch<SetStateAction<number>>
-  materialPreset: MaterialPresetId
-  setMaterialPreset: Dispatch<SetStateAction<MaterialPresetId>>
-  materialSettings: MaterialSettings
-  materialKeyframes: MaterialKeyframe[]
-  setMaterialKeyframes: Dispatch<SetStateAction<MaterialKeyframe[]>>
-  setMaterialBaseSettings: (settings: MaterialSettings) => void
-  extrusionDepth: number
-  bevelEnabled: boolean
-  bevelThickness: number
-  bevelSize: number
-  bevelSegments: number
-  geometryQuality: number
-  qualityKeyframes: ScalarKeyframe[]
-  setQualityKeyframes: Dispatch<SetStateAction<ScalarKeyframe[]>>
-  layerSpacing: number
-  innerElementScale: LightPosition
-  setGeometryBaseSettings: Dispatch<SetStateAction<GeometrySettings>>
-  innerScaleKeyframes: Vector3Keyframe[]
-  setInnerScaleKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  objectScale: number
-  objectScaleAxes: LightPosition
-  moveOffset: LightPosition
-  setTransformBaseSettings: Dispatch<SetStateAction<TransformSettings>>
-  moveKeyframes: Vector3Keyframe[]
-  setMoveKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  enableGradient: boolean
-  fillMode: FillMode
-  fillColor: string
-  fillColorSecondary: string
-  fillGradientType: FillGradientType
-  fillStops?: FillStop[]
-  fillKeyframes: FillKeyframe[]
-  restoreFillState: (snapshot: EditorSnapshot) => void
-  rotationOffset: LightPosition
-  rotationAxisKeyframes: Vector3Keyframe[]
-  setRotationAxisKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  keyLightColor: string
-  keyLightIntensity: number
-  keyLightPosition: LightPosition
-  keyLightSoftness: number
-  setLightBaseSettings: Dispatch<SetStateAction<LightSettings>>
-  keyLightPositionKeyframes: Vector3Keyframe[]
-  setKeyLightPositionKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  tracks: TimelineTrack[]
-  setTracks: Dispatch<SetStateAction<TimelineTrack[]>>
-  setIsPlaying: Dispatch<SetStateAction<boolean>>
+type EditorProjectsOptions = {
+  store: EditorDocumentStore
+  document: EditorSnapshot
+  /** Editor state outside the document that a restored document resets. */
+  onRestore: (snapshot: EditorSnapshot) => void
   isInputDragActive: () => boolean
 }
 
-const geometrySettingsFromSnapshot = (
-  snapshot: EditorSnapshot
-): GeometrySettings => ({
-  ...DEFAULT_GEOMETRY_SETTINGS,
-  extrusionDepth: snapshot.extrusionDepth,
-  bevelEnabled: snapshot.bevelEnabled,
-  bevelThickness: snapshot.bevelThickness,
-  bevelSize: snapshot.bevelSize,
-  bevelSegments: snapshot.bevelSegments,
-  geometryQuality: snapshot.geometryQuality,
-  layerSpacing: snapshot.layerSpacing,
-  innerElementScale: snapshot.innerElementScale,
-})
-
-const transformSettingsFromSnapshot = (
-  snapshot: EditorSnapshot
-): TransformSettings => ({
-  ...DEFAULT_TRANSFORM_SETTINGS,
-  objectScale: snapshot.objectScale,
-  objectScaleAxes:
-    snapshot.objectScaleAxes ?? DEFAULT_TRANSFORM_SETTINGS.objectScaleAxes,
-  moveOffset: snapshot.moveOffset,
-  rotationOffset: snapshot.rotationOffset,
-  previewRotationOffset: null,
-})
-
-const lightSettingsFromSnapshot = (
-  snapshot: EditorSnapshot
-): LightSettings => ({
-  ...DEFAULT_LIGHT_SETTINGS,
-  keyLightColor: snapshot.keyLightColor,
-  keyLightIntensity: snapshot.keyLightIntensity,
-  keyLightPosition: snapshot.keyLightPosition,
-  keyLightSoftness: snapshot.keyLightSoftness,
-})
-
-export function useEditorSnapshotHistory({
-  activeRecipeId,
-  setActiveRecipeId,
-  shapes,
-  setShapes,
-  setSelectedShapeId,
-  setOpenShapePicker,
-  duration,
-  setDuration,
-  setCurrentTime,
-  materialPreset,
-  setMaterialPreset,
-  materialSettings,
-  materialKeyframes,
-  setMaterialKeyframes,
-  setMaterialBaseSettings,
-  extrusionDepth,
-  bevelEnabled,
-  bevelThickness,
-  bevelSize,
-  bevelSegments,
-  geometryQuality,
-  qualityKeyframes,
-  setQualityKeyframes,
-  layerSpacing,
-  innerElementScale,
-  setGeometryBaseSettings,
-  innerScaleKeyframes,
-  setInnerScaleKeyframes,
-  objectScale,
-  objectScaleAxes,
-  moveOffset,
-  setTransformBaseSettings,
-  moveKeyframes,
-  setMoveKeyframes,
-  enableGradient,
-  fillMode,
-  fillColor,
-  fillColorSecondary,
-  fillGradientType,
-  fillStops,
-  fillKeyframes,
-  restoreFillState,
-  rotationOffset,
-  rotationAxisKeyframes,
-  setRotationAxisKeyframes,
-  keyLightColor,
-  keyLightIntensity,
-  keyLightPosition,
-  keyLightSoftness,
-  setLightBaseSettings,
-  keyLightPositionKeyframes,
-  setKeyLightPositionKeyframes,
-  tracks,
-  setTracks,
-  setIsPlaying,
+/**
+ * The open project and its neighbours: undo history, local autosave, the
+ * recent-projects list, and project files on disk.
+ */
+export function useEditorProjects({
+  store,
+  document: snapshot,
+  onRestore,
   isInputDragActive,
-}: EditorSnapshotHistoryOptions) {
+}: EditorProjectsOptions) {
   const [projectStatus, setProjectStatus] = useState<
     "restoring" | "saving" | "saved" | "error"
   >("restoring")
@@ -236,82 +70,6 @@ export function useEditorSnapshotHistory({
   const projectRef = useRef(project)
   projectRef.current = project
   const blockedAutosaveIdsRef = useRef<string[]>([])
-  const snapshot = useMemo<EditorSnapshot>(
-    () => ({
-      activeRecipeId,
-      shapes,
-      duration,
-      materialPreset,
-      materialSettings,
-      materialKeyframes,
-      extrusionDepth,
-      bevelEnabled,
-      bevelThickness,
-      bevelSize,
-      bevelSegments,
-      geometryQuality,
-      qualityKeyframes,
-      layerSpacing,
-      innerElementScale,
-      innerScaleKeyframes,
-      objectScale,
-      objectScaleAxes,
-      moveOffset,
-      moveKeyframes,
-      enableGradient,
-      fillMode,
-      fillColor,
-      fillColorSecondary,
-      fillGradientType,
-      fillStops,
-      fillKeyframes,
-      rotationOffset,
-      rotationAxisKeyframes,
-      keyLightColor,
-      keyLightIntensity,
-      keyLightPosition,
-      keyLightSoftness,
-      keyLightPositionKeyframes,
-      tracks,
-    }),
-    [
-      activeRecipeId,
-      shapes,
-      duration,
-      materialPreset,
-      materialSettings,
-      materialKeyframes,
-      extrusionDepth,
-      bevelEnabled,
-      bevelThickness,
-      bevelSize,
-      bevelSegments,
-      geometryQuality,
-      qualityKeyframes,
-      layerSpacing,
-      innerElementScale,
-      innerScaleKeyframes,
-      objectScale,
-      objectScaleAxes,
-      moveOffset,
-      moveKeyframes,
-      enableGradient,
-      fillMode,
-      fillColor,
-      fillColorSecondary,
-      fillGradientType,
-      fillStops,
-      fillKeyframes,
-      rotationOffset,
-      rotationAxisKeyframes,
-      keyLightColor,
-      keyLightIntensity,
-      keyLightPosition,
-      keyLightSoftness,
-      keyLightPositionKeyframes,
-      tracks,
-    ]
-  )
   const initialSnapshotRef = useRef(snapshot)
   const snapshotRef = useRef(snapshot)
   snapshotRef.current = snapshot
@@ -377,35 +135,13 @@ export function useEditorSnapshotHistory({
   )
 
   const restoreSnapshot = (nextSnapshot: EditorSnapshot) => {
-    setActiveRecipeId(nextSnapshot.activeRecipeId)
-    setShapes(nextSnapshot.shapes)
-    setSelectedShapeId((currentId) =>
-      currentId && nextSnapshot.shapes.some((shape) => shape.id === currentId)
-        ? currentId
-        : (nextSnapshot.shapes[0]?.id ?? null)
-    )
-    setOpenShapePicker(null)
-    setDuration(nextSnapshot.duration)
-    setCurrentTime((time) => clampNumber(time, 0, nextSnapshot.duration))
-    setMaterialPreset(nextSnapshot.materialPreset)
-    setMaterialBaseSettings(nextSnapshot.materialSettings)
-    setMaterialKeyframes(nextSnapshot.materialKeyframes)
-    setGeometryBaseSettings(geometrySettingsFromSnapshot(nextSnapshot))
-    setQualityKeyframes(nextSnapshot.qualityKeyframes)
-    setInnerScaleKeyframes(nextSnapshot.innerScaleKeyframes)
-    setTransformBaseSettings(transformSettingsFromSnapshot(nextSnapshot))
-    setMoveKeyframes(nextSnapshot.moveKeyframes)
-    restoreFillState(nextSnapshot)
-    setRotationAxisKeyframes(nextSnapshot.rotationAxisKeyframes)
-    setLightBaseSettings(lightSettingsFromSnapshot(nextSnapshot))
-    setKeyLightPositionKeyframes(nextSnapshot.keyLightPositionKeyframes)
-    setTracks(nextSnapshot.tracks)
-    setIsPlaying(false)
+    onRestore(nextSnapshot)
+    store.replace(nextSnapshot)
   }
 
   const history = useEditorHistory({
     snapshot,
-    canRecord: shapes.length > 0,
+    canRecord: snapshot.shapes.length > 0,
     maxSize: MAX_UNDO_STEPS,
     isInputDragActive,
     onRestore: restoreSnapshot,
@@ -763,7 +499,7 @@ export function useEditorSnapshotHistory({
     })
   }
 
-  const canRecord = shapes.length > 0
+  const canRecord = snapshot.shapes.length > 0
 
   useEffect(() => {
     if (typeof window === "undefined") return

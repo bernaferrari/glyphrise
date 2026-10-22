@@ -1,6 +1,6 @@
 "use client"
 
-import React, { type DragEvent } from "react"
+import React, { useMemo, type DragEvent } from "react"
 import { AlertTriangle, Sparkles, Upload, X } from "lucide-react"
 import {
   SvgCanvas,
@@ -8,12 +8,62 @@ import {
   type SvgCanvasRef,
 } from "../3d/SvgCanvas"
 import { SvgCanvasLoading } from "../3d/SvgCanvasOverlays"
+import type { EditorSnapshot, Vec3 } from "./EditorModel"
+import {
+  createDocumentFrameEvaluator,
+  type DocumentFrame,
+} from "./EditorFrameModel"
+import type { PlaybackClock } from "./PlaybackClock"
+import { usePlaybackClockTime } from "./useEditorPlaybackState"
 import {
   PlaybackControls,
   type PlaybackControlsProps,
   ViewOptionsPopover,
   type ViewOptionsPopoverProps,
 } from "./ViewportControls"
+
+/** Canvas settings that don't come from the document: view, lights, handlers. */
+export type CanvasStudioProps = Omit<SvgCanvasProps, keyof DocumentFrame>
+
+export type CanvasSource = {
+  document: EditorSnapshot
+  clock: PlaybackClock
+  previewRotationOffset: Vec3 | null
+}
+
+/**
+ * The only part of the editor that re-renders every playback frame: it reads
+ * the moving playhead and evaluates the document there.
+ */
+const DocumentCanvas = React.memo(
+  React.forwardRef<
+    SvgCanvasRef,
+    {
+      studio: CanvasStudioProps
+      source: CanvasSource
+      showOrientationGizmo: boolean
+    }
+  >(({ studio, source, showOrientationGizmo }, ref) => {
+    const evaluate = useMemo(
+      () => createDocumentFrameEvaluator(source.document),
+      [source.document]
+    )
+    const time = usePlaybackClockTime(source.clock)
+    const frame = useMemo(
+      () => evaluate(time, source.previewRotationOffset),
+      [evaluate, time, source.previewRotationOffset]
+    )
+    return (
+      <SvgCanvas
+        ref={ref}
+        {...studio}
+        {...frame}
+        showOrientationGizmo={showOrientationGizmo}
+      />
+    )
+  })
+)
+DocumentCanvas.displayName = "DocumentCanvas"
 
 type ViewportStageProps = {
   canvasReady?: boolean
@@ -25,7 +75,8 @@ type ViewportStageProps = {
   presentation?: "workspace" | "motion-preview"
   workspaceActive?: boolean
   isDragging: boolean
-  canvasProps: SvgCanvasProps
+  canvasProps: CanvasStudioProps
+  canvasSource: CanvasSource
   viewOptionsProps: ViewOptionsPopoverProps
   playbackProps: PlaybackControlsProps
   svgImportError: string | null
@@ -45,6 +96,7 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
       presentation = "workspace",
       isDragging,
       canvasProps,
+      canvasSource,
       viewOptionsProps,
       playbackProps,
       svgImportError,
@@ -103,9 +155,10 @@ export const ViewportStage = React.forwardRef<SvgCanvasRef, ViewportStageProps>(
           }`}
         >
           {canvasReady ? (
-            <SvgCanvas
+            <DocumentCanvas
               ref={ref}
-              {...canvasProps}
+              studio={canvasProps}
+              source={canvasSource}
               showOrientationGizmo={presentation !== "motion-preview"}
             />
           ) : (

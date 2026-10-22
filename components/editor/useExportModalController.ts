@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import confetti from "canvas-confetti"
 import {
-  type ExportCodeTemplateParams,
   generateAndroidFilamentCode,
   generateAndroidGradleCode,
-  generateR3fCode,
-} from "./ExportCodeTemplates"
+} from "./ExportAndroidTemplates"
+import type { ExportCodeTemplateParams } from "./ExportCodeTemplateModel"
+import { generateR3fCode } from "./ExportR3fTemplate"
 import type { ExportSceneSnapshot } from "./ExportSceneSnapshot"
 import {
   DEFAULT_EXPORT_SETTINGS,

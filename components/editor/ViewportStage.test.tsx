@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client"
 import { expect, it, vi } from "vitest"
 import { ViewportStage } from "./ViewportStage"
 import { SvgCanvas } from "../3d/SvgCanvas"
+import { createDefaultEditorSnapshot } from "./EditorProjectModel"
+import { createPlaybackClock } from "./PlaybackClock"
 
 vi.mock("../3d/SvgCanvas", () => ({
   SvgCanvas: vi.fn(() => <canvas />),
@@ -16,12 +18,24 @@ vi.mock("./ViewportControls", () => ({
 it("waits for the restored document before preparing the 3D scene", () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
   const root = createRoot(document.createElement("div"))
+  const editorDocument = createDefaultEditorSnapshot()
+  const restored = {
+    ...editorDocument,
+    shapes: editorDocument.shapes.map((shape, index) =>
+      index === 0 ? { ...shape, svgContent: "restored" } : shape
+    ),
+  }
   const props = {
     zenMode: false,
     canvasReady: false,
     isDragging: false,
-    canvasProps: { iconAContent: "example" },
-  } as ComponentProps<typeof ViewportStage>
+    canvasProps: {},
+    canvasSource: {
+      document: editorDocument,
+      clock: createPlaybackClock(0),
+      previewRotationOffset: null,
+    },
+  } as unknown as ComponentProps<typeof ViewportStage>
   vi.mocked(SvgCanvas).mockClear()
   try {
     act(() => root.render(<ViewportStage {...props} />))
@@ -31,7 +45,7 @@ it("waits for the restored document before preparing the 3D scene", () => {
         <ViewportStage
           {...props}
           canvasReady
-          canvasProps={{ ...props.canvasProps, iconAContent: "restored" }}
+          canvasSource={{ ...props.canvasSource, document: restored }}
         />
       )
     )

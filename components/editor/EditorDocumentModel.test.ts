@@ -97,10 +97,10 @@ describe("EditorDocumentModel", () => {
     const snapshot = validSnapshot()
 
     expect(isPersistedEditorSnapshot(snapshot)).toBe(true)
-    expect(parseEditorDocumentSnapshot({ version: 1, snapshot })).toBeNull()
+    expect(parseEditorDocumentSnapshot({ version: 2, snapshot })).toBeNull()
   })
 
-  it("preserves named version-two project metadata", () => {
+  it("preserves named project metadata", () => {
     const project = createProjectMetadata(
       "Launch icon",
       "2026-08-09T12:00:00.000Z"
@@ -237,7 +237,7 @@ describe("EditorDocumentModel", () => {
 
   it("rejects unsupported file versions and incomplete snapshots", () => {
     expect(
-      parseEditorDocumentSnapshot({ version: 3, snapshot: validSnapshot() })
+      parseEditorDocumentSnapshot({ version: 0, snapshot: validSnapshot() })
     ).toBeNull()
     expect(
       parseEditorDocumentSnapshot({ ...validSnapshot(), materialSettings: {} })

@@ -24,6 +24,7 @@ export function useTimelineController({
   duration,
   onDurationChange,
   currentTime,
+  clock,
   onTimeChange,
   onScrubStart,
   isPlaying = false,
@@ -99,7 +100,6 @@ export function useTimelineController({
   }
   const [snapEnabled, setSnapEnabled] = useState(true)
   const shapePicker = useShapePickerCatalog({
-    openShapePicker,
     shapeOptions,
     onShapeIconChange,
     onShapeWipePairChange,
@@ -278,9 +278,10 @@ export function useTimelineController({
       timelineScrollRef,
     })
 
-  const { visibleCurrentTime, playheadX, timelineTicks, secondGridTicks } =
+  const { visibleCurrentTime, playhead, timelineTicks, secondGridTicks } =
     useTimelineViewportState({
       currentTime,
+      clock,
       duration,
       timelineZoom,
       frameSnapActive,
@@ -296,7 +297,7 @@ export function useTimelineController({
     duration,
     isPlaying,
     timelineZoom,
-    visibleCurrentTime,
+    clock,
     laneRef,
     timelineScrollRef,
   })
@@ -377,6 +378,7 @@ export function useTimelineController({
     toolbarProps: {
       compactMode,
       currentTime: visibleCurrentTime,
+      clock,
       duration,
       durationEditor,
       durationInvalid,
@@ -514,7 +516,7 @@ export function useTimelineController({
         currentTime: visibleCurrentTime,
         duration,
         timelineZoom,
-        playheadX,
+        playhead,
         timelineTicks,
         secondGridTicks,
         laneRef,

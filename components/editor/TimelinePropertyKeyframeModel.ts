@@ -1,357 +1,118 @@
-import type { Dispatch, SetStateAction } from "react"
 import type {
+  EditorSnapshot,
   LightPosition,
-  MaterialKeyframe,
   MaterialSettings,
-  ScalarKeyframe,
-  Vector3Keyframe,
 } from "./EditorModel"
 import { createEditorId } from "./EditorModel"
 import {
   addKeyframeAtTime,
   keyframeTimeMatches,
-  moveKeyframeById,
-  removeKeyframeById,
-  setKeyframeEasingById,
   upsertVectorKeyframeAtTime,
 } from "./EditorKeyframeModel"
-import type { FillKeyframe } from "./TimelineModel"
-import type { EasingType } from "./TimelineModel"
+import {
+  KEYFRAME_CHANNELS,
+  type KeyframeChannelField,
+  type KeyframeChannelId,
+  type KeyframeChannels,
+} from "./KeyframeChannelModel"
+import type { EasingType, FillKeyframe } from "./TimelineModel"
 
-const STYLE_ROW_PREFIX = "style-"
-
-type KeyframeArraySetter<T> = Dispatch<SetStateAction<T[]>>
-
-const updateKeyframes = <T>(
-  setter: KeyframeArraySetter<T>,
-  updater: (keyframes: T[]) => T[]
-) => {
-  setter((prev) => updater(prev))
+/**
+ * Timeline property rows edit one or more keyframe channels. Every operation
+ * here is pure: it takes the document's keyframe lists and returns a patch
+ * with only the lists it changed.
+ *
+ * A Style keyframe is the fill and the finish keyed at the same moment, so the
+ * Style row addresses its keyframes by time (`style-1.250`), not by id.
+ */
+const ROW_CHANNELS: Record<string, KeyframeChannelId[]> = {
+  style: ["fill", "material"],
+  fill: ["fill"],
+  material: ["material"],
+  "light-position": ["lightPosition"],
+  rotation: ["rotation"],
+  move: ["move"],
+  quality: ["quality"],
 }
 
-const removeKeyframe = <T extends { id: string }>(
-  setter: KeyframeArraySetter<T>,
-  keyframeId: string
-) => updateKeyframes(setter, (prev) => removeKeyframeById(prev, keyframeId))
+const STYLE_ROW_ID = "style"
+const STYLE_ROW_PREFIX = "style-"
 
-const moveKeyframe = <T extends { id: string; time: number }>(
-  setter: KeyframeArraySetter<T>,
-  keyframeId: string,
-  time: number
-) => updateKeyframes(setter, (prev) => moveKeyframeById(prev, keyframeId, time))
-
-const setKeyframeEasing = <T extends { id: string; easing: EasingType }>(
-  setter: KeyframeArraySetter<T>,
-  keyframeId: string | null,
-  easing: EasingType
-) =>
-  updateKeyframes(setter, (prev) =>
-    setKeyframeEasingById(prev, keyframeId, easing)
-  )
-
-const addVectorKeyframe = (
-  setter: KeyframeArraySetter<Vector3Keyframe>,
-  idPrefix: string,
-  value: LightPosition,
-  time: number,
-  duration: number
-) =>
-  updateKeyframes(setter, (prev) =>
-    upsertVectorKeyframeAtTime({
-      keyframes: prev,
-      idPrefix,
-      value,
-      time,
-      duration,
-      createIfMissing: true,
-    })
-  )
+type RowKeyframe = { id: string; time: number; easing: EasingType }
+type RowPatch = Partial<EditorSnapshot>
 
 export const styleKeyframeTimeFromId = (keyframeId: string) =>
   Number(keyframeId.replace(STYLE_ROW_PREFIX, ""))
 
-export const matchesStyleKeyframeId = (time: number, keyframeId: string) =>
-  keyframeTimeMatches(time, styleKeyframeTimeFromId(keyframeId))
-
-export const removeStyleKeyframesAtIdTime = <T extends { time: number }>(
-  keyframes: T[],
-  keyframeId: string
-) =>
-  keyframes.filter(
-    (keyframe) => !matchesStyleKeyframeId(keyframe.time, keyframeId)
-  )
-
-export const moveStyleKeyframesAtIdTime = <T extends { time: number }>(
-  keyframes: T[],
-  keyframeId: string,
-  time: number
-) =>
-  keyframes.map((keyframe) =>
-    matchesStyleKeyframeId(keyframe.time, keyframeId)
-      ? { ...keyframe, time }
-      : keyframe
-  )
-
-export const setStyleKeyframesEasingAtIdTime = <
-  T extends { time: number; easing: EasingType },
->(
-  keyframes: T[],
-  keyframeId: string | null,
-  easing: EasingType
-) =>
-  keyframes.map((keyframe) =>
-    keyframeId === null || matchesStyleKeyframeId(keyframe.time, keyframeId)
-      ? { ...keyframe, easing }
-      : keyframe
-  )
-
-export type TimelinePropertyKeyframeSetters = {
-  setFillKeyframes: Dispatch<SetStateAction<FillKeyframe[]>>
-  setMaterialKeyframes: Dispatch<SetStateAction<MaterialKeyframe[]>>
-  setKeyLightPositionKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setRotationAxisKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setMoveKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setQualityKeyframes: Dispatch<SetStateAction<ScalarKeyframe[]>>
+const keyframeMatcher = (rowId: string, keyframeId: string | null) => {
+  if (keyframeId === null) return () => true
+  if (rowId !== STYLE_ROW_ID)
+    return (keyframe: RowKeyframe) => keyframe.id === keyframeId
+  const time = styleKeyframeTimeFromId(keyframeId)
+  return (keyframe: RowKeyframe) => keyframeTimeMatches(keyframe.time, time)
 }
 
-export type TimelinePropertyKeyframeValues = {
-  duration: number
-  selectedShapeFillStops: FillKeyframe["stops"]
-  selectedShapeGradientType: FillKeyframe["gradientType"]
-  activeMaterialSettings: MaterialSettings
-  activeKeyLightPosition: LightPosition
-  activeRotationOffset: LightPosition
-  activeMoveOffset: LightPosition
+const editRow = (
+  document: KeyframeChannels,
+  rowId: string,
+  edit: (keyframes: RowKeyframe[], idPrefix: string) => RowKeyframe[]
+): RowPatch => {
+  const patch: RowPatch = {}
+  for (const channelId of ROW_CHANNELS[rowId] ?? []) {
+    const { field, idPrefix } = KEYFRAME_CHANNELS[channelId]
+    const keyframes = document[field] as RowKeyframe[]
+    const next = edit(keyframes, idPrefix)
+    if (next !== keyframes) Object.assign(patch, { [field]: next })
+  }
+  return patch
 }
+
+const byTime = <T extends { time: number }>(a: T, b: T) => a.time - b.time
 
 export const clearPropertyRowKeyframes = (
-  rowId: string,
-  setters: TimelinePropertyKeyframeSetters
-) => {
-  switch (rowId) {
-    case "style":
-      clearStyleKeyframes(setters)
-      break
-    case "fill":
-      setters.setFillKeyframes([])
-      break
-    case "light-position":
-      setters.setKeyLightPositionKeyframes([])
-      break
-    case "rotation":
-      setters.setRotationAxisKeyframes([])
-      break
-    case "move":
-      setters.setMoveKeyframes([])
-      break
-    case "material":
-      setters.setMaterialKeyframes([])
-      break
-    case "quality":
-      setters.setQualityKeyframes([])
-      break
-  }
-}
+  document: KeyframeChannels,
+  rowId: string
+) =>
+  editRow(document, rowId, (keyframes) => (keyframes.length ? [] : keyframes))
 
 export const removePropertyRowKeyframe = (
+  document: KeyframeChannels,
   rowId: string,
-  keyframeId: string,
-  setters: TimelinePropertyKeyframeSetters
-) => {
-  switch (rowId) {
-    case "style":
-      removeStyleKeyframe(setters, keyframeId)
-      break
-    case "fill":
-      removeKeyframe(setters.setFillKeyframes, keyframeId)
-      break
-    case "light-position":
-      removeKeyframe(setters.setKeyLightPositionKeyframes, keyframeId)
-      break
-    case "rotation":
-      removeKeyframe(setters.setRotationAxisKeyframes, keyframeId)
-      break
-    case "move":
-      removeKeyframe(setters.setMoveKeyframes, keyframeId)
-      break
-    case "material":
-      removeKeyframe(setters.setMaterialKeyframes, keyframeId)
-      break
-    case "quality":
-      removeKeyframe(setters.setQualityKeyframes, keyframeId)
-      break
-  }
-}
-
-export const addFillKeyframe = (
-  keyframes: FillKeyframe[],
-  time: number,
-  values: Pick<
-    TimelinePropertyKeyframeValues,
-    "selectedShapeFillStops" | "selectedShapeGradientType"
-  >
-) => {
-  return addKeyframeAtTime({
-    keyframes,
-    time,
-    create: (easing) => ({
-      id: createEditorId("fill"),
-      time,
-      stops: values.selectedShapeFillStops,
-      gradientType: values.selectedShapeGradientType,
-      easing,
-    }),
-  })
-}
-
-export const addMaterialKeyframe = (
-  keyframes: MaterialKeyframe[],
-  time: number,
-  values: Pick<TimelinePropertyKeyframeValues, "activeMaterialSettings">
-) => {
-  return addKeyframeAtTime({
-    keyframes,
-    time,
-    create: (easing) => ({
-      id: createEditorId("material"),
-      time,
-      value: values.activeMaterialSettings,
-      easing,
-    }),
-  })
-}
-
-const clearStyleKeyframes = (setters: TimelinePropertyKeyframeSetters) => {
-  setters.setFillKeyframes([])
-  setters.setMaterialKeyframes([])
-}
-
-const removeStyleKeyframe = (
-  setters: TimelinePropertyKeyframeSetters,
   keyframeId: string
 ) => {
-  setters.setFillKeyframes((prev) =>
-    removeStyleKeyframesAtIdTime(prev, keyframeId)
+  const matches = keyframeMatcher(rowId, keyframeId)
+  return editRow(document, rowId, (keyframes) =>
+    keyframes.filter((keyframe) => !matches(keyframe))
   )
-  setters.setMaterialKeyframes((prev) =>
-    removeStyleKeyframesAtIdTime(prev, keyframeId)
-  )
-}
-
-const addStyleKeyframe = (
-  setters: TimelinePropertyKeyframeSetters,
-  time: number,
-  values: TimelinePropertyKeyframeValues
-) => {
-  setters.setFillKeyframes((prev) => addFillKeyframe(prev, time, values))
-  setters.setMaterialKeyframes((prev) =>
-    addMaterialKeyframe(prev, time, values)
-  )
-}
-
-const moveStyleKeyframe = (
-  setters: TimelinePropertyKeyframeSetters,
-  keyframeId: string,
-  time: number
-) => {
-  setters.setFillKeyframes((prev) =>
-    moveStyleKeyframesAtIdTime(prev, keyframeId, time)
-  )
-  setters.setMaterialKeyframes((prev) =>
-    moveStyleKeyframesAtIdTime(prev, keyframeId, time)
-  )
-}
-
-const setStyleKeyframeEasing = (
-  setters: TimelinePropertyKeyframeSetters,
-  keyframeId: string | null,
-  easing: EasingType
-) => {
-  setters.setFillKeyframes((prev) =>
-    setStyleKeyframesEasingAtIdTime(prev, keyframeId, easing)
-  )
-  setters.setMaterialKeyframes((prev) =>
-    setStyleKeyframesEasingAtIdTime(prev, keyframeId, easing)
-  )
-}
-
-export const addPropertyRowKeyframe = (
-  rowId: string,
-  time: number,
-  values: TimelinePropertyKeyframeValues,
-  setters: TimelinePropertyKeyframeSetters
-) => {
-  switch (rowId) {
-    case "style":
-      addStyleKeyframe(setters, time, values)
-      break
-    case "fill":
-      setters.setFillKeyframes((prev) => addFillKeyframe(prev, time, values))
-      break
-    case "material":
-      setters.setMaterialKeyframes((prev) =>
-        addMaterialKeyframe(prev, time, values)
-      )
-      break
-    case "light-position":
-      addVectorKeyframe(
-        setters.setKeyLightPositionKeyframes,
-        "light-position",
-        values.activeKeyLightPosition,
-        time,
-        values.duration
-      )
-      break
-    case "rotation":
-      addVectorKeyframe(
-        setters.setRotationAxisKeyframes,
-        "rotation",
-        values.activeRotationOffset,
-        time,
-        values.duration
-      )
-      break
-    case "move":
-      addVectorKeyframe(
-        setters.setMoveKeyframes,
-        "move",
-        values.activeMoveOffset,
-        time,
-        values.duration
-      )
-      break
-  }
 }
 
 export const movePropertyRowKeyframe = (
+  document: KeyframeChannels,
   rowId: string,
   keyframeId: string,
-  time: number,
-  setters: TimelinePropertyKeyframeSetters
+  time: number
 ) => {
-  switch (rowId) {
-    case "style":
-      moveStyleKeyframe(setters, keyframeId, time)
-      break
-    case "fill":
-      moveKeyframe(setters.setFillKeyframes, keyframeId, time)
-      break
-    case "light-position":
-      moveKeyframe(setters.setKeyLightPositionKeyframes, keyframeId, time)
-      break
-    case "rotation":
-      moveKeyframe(setters.setRotationAxisKeyframes, keyframeId, time)
-      break
-    case "move":
-      moveKeyframe(setters.setMoveKeyframes, keyframeId, time)
-      break
-    case "material":
-      moveKeyframe(setters.setMaterialKeyframes, keyframeId, time)
-      break
-    case "quality":
-      moveKeyframe(setters.setQualityKeyframes, keyframeId, time)
-      break
-  }
+  const matches = keyframeMatcher(rowId, keyframeId)
+  return editRow(document, rowId, (keyframes) =>
+    keyframes
+      .map((keyframe) => (matches(keyframe) ? { ...keyframe, time } : keyframe))
+      .sort(byTime)
+  )
+}
+
+/** `keyframeId: null` eases every keyframe on the row. */
+export const setPropertyRowKeyframeEasing = (
+  document: KeyframeChannels,
+  rowId: string,
+  keyframeId: string | null,
+  easing: EasingType
+) => {
+  const matches = keyframeMatcher(rowId, keyframeId)
+  return editRow(document, rowId, (keyframes) =>
+    keyframes.map((keyframe) =>
+      matches(keyframe) ? { ...keyframe, easing } : keyframe
+    )
+  )
 }
 
 /**
@@ -375,78 +136,110 @@ export const duplicateKeyframeToTime = <T extends { id: string; time: number }>(
       id: createEditorId(idPrefix),
       time,
     })),
-  ].sort((a, b) => a.time - b.time)
+  ].sort(byTime)
 }
 
 export const duplicatePropertyRowKeyframe = (
+  document: KeyframeChannels,
   rowId: string,
   keyframeId: string,
-  time: number,
-  setters: TimelinePropertyKeyframeSetters
+  time: number
 ) => {
-  const byId = <T extends { id: string }>(keyframe: T) =>
-    keyframe.id === keyframeId
-  const atStyleTime = <T extends { time: number }>(keyframe: T) =>
-    matchesStyleKeyframeId(keyframe.time, keyframeId)
-  switch (rowId) {
-    case "style":
-      // A Style keyframe is the fill and finish keyed at the same moment.
-      setters.setFillKeyframes((prev) =>
-        duplicateKeyframeToTime(prev, atStyleTime, time, "fill")
+  const matches = keyframeMatcher(rowId, keyframeId)
+  return editRow(document, rowId, (keyframes, idPrefix) =>
+    duplicateKeyframeToTime(keyframes, matches, time, idPrefix)
+  )
+}
+
+export type TimelinePropertyKeyframeValues = {
+  duration: number
+  selectedShapeFillStops: FillKeyframe["stops"]
+  selectedShapeGradientType: FillKeyframe["gradientType"]
+  activeMaterialSettings: MaterialSettings
+  activeKeyLightPosition: LightPosition
+  activeRotationOffset: LightPosition
+  activeMoveOffset: LightPosition
+}
+
+/** What a new keyframe on each channel holds: the value shown at the playhead. */
+const createChannelKeyframes = (
+  document: KeyframeChannels,
+  channelId: KeyframeChannelId,
+  time: number,
+  values: TimelinePropertyKeyframeValues
+): Partial<KeyframeChannels> => {
+  const vector = (
+    field: KeyframeChannelField & keyof KeyframeChannels,
+    idPrefix: string,
+    value: LightPosition
+  ) => ({
+    [field]: upsertVectorKeyframeAtTime({
+      keyframes: document[field] as KeyframeChannels["moveKeyframes"],
+      idPrefix,
+      value,
+      time,
+      duration: values.duration,
+      createIfMissing: true,
+    }),
+  })
+  switch (channelId) {
+    case "fill":
+      return {
+        fillKeyframes: addKeyframeAtTime({
+          keyframes: document.fillKeyframes,
+          time,
+          create: (easing) => ({
+            id: createEditorId("fill"),
+            time,
+            stops: values.selectedShapeFillStops,
+            gradientType: values.selectedShapeGradientType,
+            easing,
+          }),
+        }),
+      }
+    case "material":
+      return {
+        materialKeyframes: addKeyframeAtTime({
+          keyframes: document.materialKeyframes,
+          time,
+          create: (easing) => ({
+            id: createEditorId("material"),
+            time,
+            value: values.activeMaterialSettings,
+            easing,
+          }),
+        }),
+      }
+    case "lightPosition":
+      return vector(
+        "keyLightPositionKeyframes",
+        "light-position",
+        values.activeKeyLightPosition
       )
-      setters.setMaterialKeyframes((prev) =>
-        duplicateKeyframeToTime(prev, atStyleTime, time, "material")
-      )
-      break
-    case "light-position":
-      setters.setKeyLightPositionKeyframes((prev) =>
-        duplicateKeyframeToTime(prev, byId, time, "light")
-      )
-      break
     case "rotation":
-      setters.setRotationAxisKeyframes((prev) =>
-        duplicateKeyframeToTime(prev, byId, time, "rotation")
+      return vector(
+        "rotationAxisKeyframes",
+        "rotation",
+        values.activeRotationOffset
       )
-      break
     case "move":
-      setters.setMoveKeyframes((prev) =>
-        duplicateKeyframeToTime(prev, byId, time, "move")
-      )
-      break
+      return vector("moveKeyframes", "move", values.activeMoveOffset)
+    // Quality follows Depth, and inner scale has no row of its own.
+    case "quality":
+    case "innerScale":
+      return {}
   }
 }
 
-export const setPropertyRowKeyframeEasing = (
+export const addPropertyRowKeyframe = (
+  document: KeyframeChannels,
   rowId: string,
-  keyframeId: string | null,
-  easing: EasingType,
-  setters: TimelinePropertyKeyframeSetters
-) => {
-  switch (rowId) {
-    case "style":
-      setStyleKeyframeEasing(setters, keyframeId, easing)
-      break
-    case "fill":
-      setKeyframeEasing(setters.setFillKeyframes, keyframeId, easing)
-      break
-    case "light-position":
-      setKeyframeEasing(
-        setters.setKeyLightPositionKeyframes,
-        keyframeId,
-        easing
-      )
-      break
-    case "rotation":
-      setKeyframeEasing(setters.setRotationAxisKeyframes, keyframeId, easing)
-      break
-    case "move":
-      setKeyframeEasing(setters.setMoveKeyframes, keyframeId, easing)
-      break
-    case "material":
-      setKeyframeEasing(setters.setMaterialKeyframes, keyframeId, easing)
-      break
-    case "quality":
-      setKeyframeEasing(setters.setQualityKeyframes, keyframeId, easing)
-      break
-  }
-}
+  time: number,
+  values: TimelinePropertyKeyframeValues
+): RowPatch =>
+  Object.assign(
+    {},
+    ...(ROW_CHANNELS[rowId] ?? []).map((channelId) =>
+      createChannelKeyframes(document, channelId, time, values)
+    )
+  )

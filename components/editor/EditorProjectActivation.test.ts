@@ -141,7 +141,7 @@ describe("persistProjectActivation", () => {
 
   it("persists the incoming project before the hook restores identity", () => {
     const source = readFileSync(
-      new URL("./useEditorSnapshotHistory.ts", import.meta.url),
+      new URL("./useEditorProjects.ts", import.meta.url),
       "utf8"
     )
     const persistAt = source.indexOf("persistProjectActivation({")

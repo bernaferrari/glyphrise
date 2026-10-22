@@ -43,7 +43,7 @@ export function TimelineLanesSurface({
             currentTime={viewport.currentTime}
             duration={viewport.duration}
             ticks={viewport.timelineTicks}
-            playheadX={viewport.playheadX}
+            playhead={viewport.playhead}
             onPointerDown={viewport.handleScrubStart}
             onKeyboardTimeChange={(time) => {
               shapeLane.onClearSelectedKeyframe()
@@ -157,7 +157,7 @@ export function TimelineLanesSurface({
             )}
           </div>
           <TimelinePlayheadLine
-            playheadX={viewport.playheadX}
+            playhead={viewport.playhead}
             onPointerDown={(event) => {
               viewport.laneRef.current?.focus({ preventScroll: true })
               viewport.handleScrubStart(event)

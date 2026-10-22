@@ -24,6 +24,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import type { PlaybackClock } from "./PlaybackClock"
+import { usePlaybackClockTime } from "./useEditorPlaybackState"
 
 export type ViewOptionsPopoverProps = {
   viewInertiaEnabled: boolean
@@ -219,7 +221,8 @@ function ViewportToggleRow({
 export type PlaybackControlsProps = {
   zenMode: boolean
   isPlaying: boolean
-  playbackProgress: number
+  clock: PlaybackClock
+  duration: number
   atTimelineStart: boolean
   atTimelineEnd: boolean
   hasPreviousKeyMoment: boolean
@@ -232,10 +235,53 @@ export type PlaybackControlsProps = {
   onExitZenMode: () => void
 }
 
+/** Zen mode's ring around Play: the one transport part that moves every frame. */
+function PlaybackProgressRing({
+  clock,
+  duration,
+}: {
+  clock: PlaybackClock
+  duration: number
+}) {
+  const time = usePlaybackClockTime(clock)
+  const progress = duration > 0 ? Math.min(1, Math.max(0, time / duration)) : 0
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 -rotate-90"
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+    >
+      <circle
+        cx="24"
+        cy="24"
+        r="22"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.15"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="24"
+        cy="24"
+        r="22"
+        fill="none"
+        stroke="currentColor"
+        strokeOpacity="0.75"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        pathLength="100"
+        strokeDasharray="100"
+        strokeDashoffset={100 - progress * 100}
+      />
+    </svg>
+  )
+}
+
 export function PlaybackControls({
   zenMode,
   isPlaying,
-  playbackProgress,
+  clock,
+  duration,
   atTimelineStart,
   atTimelineEnd,
   hasPreviousKeyMoment,
@@ -280,38 +326,7 @@ export function PlaybackControls({
       <div
         className={`relative grid place-items-center ${zenMode ? "size-12" : "size-11"}`}
       >
-        {zenMode && (
-          <svg
-            className="pointer-events-none absolute inset-0 -rotate-90"
-            viewBox="0 0 48 48"
-            aria-hidden="true"
-          >
-            <circle
-              cx="24"
-              cy="24"
-              r="22"
-              fill="none"
-              stroke="currentColor"
-              strokeOpacity="0.15"
-              strokeWidth="1.5"
-            />
-            <circle
-              cx="24"
-              cy="24"
-              r="22"
-              fill="none"
-              stroke="currentColor"
-              strokeOpacity="0.75"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              pathLength="100"
-              strokeDasharray="100"
-              strokeDashoffset={
-                100 - Math.min(1, Math.max(0, playbackProgress)) * 100
-              }
-            />
-          </svg>
-        )}
+        {zenMode && <PlaybackProgressRing clock={clock} duration={duration} />}
         <Button
           shape={zenMode ? "pill" : "rounded"}
           size="icon-lg"

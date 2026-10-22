@@ -1,5 +1,7 @@
 "use client"
 
+import type { PlaybackClock } from "../PlaybackClock"
+import { usePlaybackClockTime } from "../useEditorPlaybackState"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
@@ -31,6 +33,7 @@ import {
 export type TimelineToolbarProps = {
   compactMode?: boolean
   currentTime: number
+  clock?: PlaybackClock
   duration: number
   durationEditor: string | null
   durationInvalid: boolean
@@ -70,6 +73,7 @@ const iconButton =
 export function TimelineToolbar({
   compactMode = false,
   currentTime,
+  clock,
   duration,
   durationEditor,
   durationInvalid,
@@ -149,6 +153,7 @@ export function TimelineToolbar({
       <div className="ml-1.5 flex min-w-0 items-center font-mono text-xs tabular-nums max-md:ml-0.5">
         <PlayheadField
           currentTime={currentTime}
+          clock={clock}
           duration={duration}
           onSeek={onSeek}
         />
@@ -363,14 +368,17 @@ function OptionsMenu({
 }
 
 function PlayheadField({
-  currentTime,
+  currentTime: restingTime,
+  clock,
   duration,
   onSeek,
 }: {
   currentTime: number
+  clock?: PlaybackClock
   duration: number
   onSeek: (time: number) => void
 }) {
+  const currentTime = usePlaybackClockTime(clock, restingTime)
   const [draft, setDraft] = useState<string | null>(null)
   const commit = () => {
     if (draft === null) return

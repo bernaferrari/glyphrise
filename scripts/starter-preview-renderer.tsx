@@ -13,8 +13,8 @@ import {
   type EditorSnapshot,
 } from "../components/editor/EditorModel"
 import { materialDefaultSettings } from "../components/editor/FinishRegistry"
-import { STATIC_STUDIO_LIGHTING } from "../components/editor/useLightEditor"
-import { evaluateExportFrame } from "../components/editor/ExportFrameModel"
+import { STATIC_STUDIO_LIGHTING } from "../components/editor/LightEditActions"
+import { evaluateExportFrame } from "../components/editor/EditorFrameModel"
 import { createInitialTimelineTracks } from "../components/editor/PropertyRegistry"
 import {
   STARTERS,

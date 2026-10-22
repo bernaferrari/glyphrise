@@ -23,10 +23,6 @@ export const formatValueLabel = (track: TimelineTrack, value: number) => {
   return value.toFixed(2)
 }
 
-/** "10.00 → 15.00 → 10.00" — what adding this property will do. */
-export const describeStarterMotion = (track: TimelineTrack, peak: number) =>
-  `${formatValueLabel(track, track.defaultValue)} → ${formatValueLabel(track, peak)} → back`
-
 /** The easing of the segment that leaves a keyframe; none after the last. */
 export const outgoingEasing = (
   keyframes: ReadonlyArray<{ id: string; time: number; easing?: EasingType }>,

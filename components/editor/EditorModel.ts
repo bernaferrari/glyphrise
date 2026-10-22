@@ -30,8 +30,6 @@ export const isEditableShortcutTarget = (target: EventTarget | null) =>
     )
   )
 
-export const normalizeDegrees = (value: number) => ((value % 360) + 360) % 360
-
 export const createEditorId = (prefix: string) => {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -153,11 +151,6 @@ export type EditorSnapshot = {
   keyLightPositionKeyframes: LightPositionKeyframe[]
   tracks: TimelineTrack[]
 }
-
-export const FILL_MODES: Array<{ id: FillMode; label: string }> = [
-  { id: "solid", label: "Solid" },
-  { id: "gradient", label: "Gradient" },
-]
 
 export const EXTRUDE_DEFAULT = 10
 export const EXTRUDE_MAX = 60

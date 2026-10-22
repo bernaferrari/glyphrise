@@ -4,8 +4,11 @@ import {
   finishEnvironmentIntensity,
   finishLightMultiplier,
 } from "./MaterialPresets"
-import { clamp01Number } from "./SvgMaterials"
+import { finiteNumber } from "./SvgGeometry"
 import type { SvgCanvasProps } from "./SvgTypes"
+
+const clamp01Number = (value: unknown, fallback = 0) =>
+  Math.max(0, Math.min(1, finiteNumber(value, fallback)))
 
 /**
  * Khronos PBR Neutral keeps base colors faithful: lit faces show the fill as

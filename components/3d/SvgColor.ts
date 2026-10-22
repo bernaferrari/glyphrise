@@ -111,27 +111,6 @@ export const createIconGradientSampler = (
   }
 }
 
-export const paletteFromStops = (
-  stops: GradientStop[] | undefined,
-  fallbackA: string,
-  fallbackB: string
-) => {
-  const source = stops?.length
-    ? stops
-    : [
-        { color: fallbackA, position: 0 },
-        { color: fallbackB, position: 1 },
-      ]
-  return [...source]
-    .sort((a, b) => a.position - b.position)
-    .map(
-      (stop) =>
-        new THREE.Color(
-          stop.color.startsWith("#") ? stop.color : `#${stop.color}`
-        )
-    )
-}
-
 export const gradientStopsFromFill = (
   stops: GradientStop[] | undefined,
   fallbackA: string,

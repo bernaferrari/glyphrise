@@ -1,132 +1,72 @@
 "use client"
 
+import { useCallback } from "react"
+import { clampNumber, type EditorSnapshot } from "./EditorModel"
 import { isInspectorInputDragActive } from "./InspectorControlModel"
+import type { MotionRecipe } from "./MotionRecipes"
+import { createEditorSnapshotFromRecipe } from "./RecipeModel"
 import type { EditorBaseState } from "./useEditorBaseState"
-import { useEditorHistorySurface } from "./useEditorHistorySurface"
-import { useEditorRecipeSurface } from "./useEditorRecipeSurface"
+import { useEditorProjects } from "./useEditorProjects"
+import { useEditorShortcuts } from "./useEditorShortcuts"
 
+/** Undo/redo, project files and recipes: everything that swaps the document. */
 export function useEditorDocumentLifecycle(editor: EditorBaseState) {
-  const {
-    playback,
-    shapes,
-    geometry,
-    transform,
-    fill,
-    material,
-    light,
-    selection,
-    timelineTracks,
-  } = editor
+  const { store, document, playback, shapes, selection, transform } = editor
 
-  const applyRecipe = useEditorRecipeSurface({
-    duration: playback.duration,
-    setActiveRecipeId: shapes.setActiveRecipeId,
-    setMaterialPreset: material.setMaterialPreset,
-    applyRecipeFill: fill.applyRecipeFill,
-    setShapes: shapes.setShapes,
-    setMaterialBaseSettings: material.setMaterialBaseSettings,
-    setGeometryBaseSettings: geometry.setGeometryBaseSettings,
-    setTransformBaseSettings: transform.setTransformBaseSettings,
-    setRotationAxisKeyframes: transform.setRotationAxisKeyframes,
-    setMoveKeyframes: transform.setMoveKeyframes,
-    setQualityKeyframes: geometry.setQualityKeyframes,
-    setInnerScaleKeyframes: geometry.setInnerScaleKeyframes,
-    setLightBaseSettings: light.setLightBaseSettings,
-    setKeyLightPositionKeyframes: light.setKeyLightPositionKeyframes,
-    setTracks: timelineTracks.setTracks,
-    setSelectedMotionTrackId: selection.setSelectedMotionTrackId,
-    setCurrentTime: playback.setCurrentTime,
-    setIsPlaying: playback.setIsPlaying,
+  // Editor state outside the document that would be stale on another one.
+  const resetEditorForDocument = (next: EditorSnapshot) => {
+    playback.setIsPlaying(false)
+    playback.setCurrentTime((time) => clampNumber(time, 0, next.duration))
+    shapes.setSelectedShapeId((currentId) =>
+      currentId && next.shapes.some((shape) => shape.id === currentId)
+        ? currentId
+        : (next.shapes[0]?.id ?? null)
+    )
+    shapes.setOpenShapePicker(null)
+    transform.setPreviewRotationOffset(null)
+    transform.setIsScaleLocked(true)
+  }
+
+  const projects = useEditorProjects({
+    store,
+    document,
+    onRestore: resetEditorForDocument,
+    isInputDragActive: isInspectorInputDragActive,
   })
 
-  const historySurface = useEditorHistorySurface({
-    beforeHistoryChange: () =>
-      playback.canvas3DRef.current?.commitRotationEdit(),
-    activeRecipeId: shapes.activeRecipeId,
-    setActiveRecipeId: shapes.setActiveRecipeId,
-    shapes: shapes.shapes,
-    setShapes: shapes.setShapes,
-    setSelectedShapeId: shapes.setSelectedShapeId,
-    setOpenShapePicker: shapes.setOpenShapePicker,
-    duration: playback.duration,
-    setDuration: playback.setDuration,
-    setCurrentTime: playback.setCurrentTime,
-    materialPreset: material.materialPreset,
-    setMaterialPreset: material.setMaterialPreset,
-    materialSettings: material.baseMaterialSettings,
-    materialKeyframes: material.materialKeyframes,
-    setMaterialKeyframes: material.setMaterialKeyframes,
-    setMaterialBaseSettings: material.setMaterialBaseSettings,
-    extrusionDepth: geometry.extrusionDepth,
-    bevelEnabled: geometry.bevelEnabled,
-    bevelThickness: geometry.bevelThickness,
-    bevelSize: geometry.bevelSize,
-    bevelSegments: geometry.bevelSegments,
-    geometryQuality: geometry.geometryQuality,
-    qualityKeyframes: geometry.qualityKeyframes,
-    setQualityKeyframes: geometry.setQualityKeyframes,
-    layerSpacing: geometry.layerSpacing,
-    innerElementScale: geometry.innerElementScale,
-    setGeometryBaseSettings: geometry.setGeometryBaseSettings,
-    innerScaleKeyframes: geometry.innerScaleKeyframes,
-    setInnerScaleKeyframes: geometry.setInnerScaleKeyframes,
-    objectScale: transform.objectScale,
-    objectScaleAxes: transform.objectScaleAxes,
-    moveOffset: transform.moveOffset,
-    setTransformBaseSettings: transform.setTransformBaseSettings,
-    moveKeyframes: transform.moveKeyframes,
-    setMoveKeyframes: transform.setMoveKeyframes,
-    enableGradient: fill.enableGradient,
-    fillMode: fill.fillMode,
-    fillColor: fill.fillColor,
-    fillColorSecondary: fill.fillColorSecondary,
-    fillGradientType: fill.fillGradientType,
-    fillStops: fill.fillStops,
-    fillKeyframes: fill.fillKeyframes,
-    restoreFillState: fill.restoreFillState,
-    rotationOffset: transform.rotationOffset,
-    rotationAxisKeyframes: transform.rotationAxisKeyframes,
-    setRotationAxisKeyframes: transform.setRotationAxisKeyframes,
-    keyLightColor: light.keyLightColor,
-    keyLightIntensity: light.keyLightIntensity,
-    keyLightPosition: light.keyLightPosition,
-    keyLightSoftness: light.keyLightSoftness,
-    setLightBaseSettings: light.setLightBaseSettings,
-    keyLightPositionKeyframes: light.keyLightPositionKeyframes,
-    setKeyLightPositionKeyframes: light.setKeyLightPositionKeyframes,
-    tracks: timelineTracks.tracks,
-    setTracks: timelineTracks.setTracks,
-    setIsPlaying: playback.setIsPlaying,
-    isInputDragActive: isInspectorInputDragActive,
+  const { undo: undoHistory, redo: redoHistory } = projects
+  const { canvas3DRef } = playback
+  // A rotation drag in progress is part of the edit being undone.
+  const undo = useCallback(() => {
+    canvas3DRef.current?.commitRotationEdit()
+    undoHistory()
+  }, [canvas3DRef, undoHistory])
+  const redo = useCallback(() => {
+    canvas3DRef.current?.commitRotationEdit()
+    redoHistory()
+  }, [canvas3DRef, redoHistory])
+
+  useEditorShortcuts({
+    onUndo: undo,
+    onRedo: redo,
     onPlayPause: playback.togglePlayback,
   })
 
+  const applyRecipe = (recipe: MotionRecipe) => {
+    resetEditorForDocument(store.get())
+    playback.setCurrentTime(0)
+    selection.setSelectedMotionTrackId("rotation")
+    store.patch(createEditorSnapshotFromRecipe(store.get(), recipe))
+  }
+
   return {
     historyActions: {
-      undo: historySurface.undo,
-      redo: historySurface.redo,
-      canUndo: historySurface.canUndo,
-      canRedo: historySurface.canRedo,
+      undo,
+      redo,
+      canUndo: projects.canUndo,
+      canRedo: projects.canRedo,
     },
-    documentSnapshot: historySurface.snapshot,
-    projectFiles: {
-      newProject: historySurface.newProject,
-      openProjectFile: historySurface.openProjectFile,
-      saveProjectFile: historySurface.saveProjectFile,
-      projectStatus: historySurface.projectStatus,
-      projectStatusMessage: historySurface.projectStatusMessage,
-      project: historySurface.project,
-      renameProject: historySurface.renameProject,
-      createNewProject: historySurface.createNewProject,
-      finalizeProjectBaseline: historySurface.finalizeProjectBaseline,
-      newProjectDialogOpen: historySurface.newProjectDialogOpen,
-      setNewProjectDialogOpen: historySurface.setNewProjectDialogOpen,
-      projectActionError: historySurface.projectActionError,
-      recentProjects: historySurface.recentProjects,
-      openRecentProject: historySurface.openRecentProject,
-      duplicateRecentProject: historySurface.duplicateRecentProject,
-      deleteRecentProject: historySurface.deleteRecentProject,
-    },
-    recipeActions: { applyRecipe },
+    projectFiles: projects,
+    applyRecipe,
   }
 }

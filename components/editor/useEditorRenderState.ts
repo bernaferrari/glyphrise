@@ -1,101 +1,49 @@
 "use client"
 
-import type { Dispatch, SetStateAction } from "react"
-import type {
-  LightPosition,
-  ScalarKeyframe,
-  Vector3Keyframe,
-} from "./EditorModel"
-import type {
-  FillGradientType,
-  FillKeyframe,
-  FillStop,
-  ShapeStop,
-  TimelineTrack,
-} from "./TimelineModel"
-import type { FillMode } from "./EditorModel"
-import { useActiveTimelineValues } from "./useActiveTimelineValues"
+import { useCallback, useMemo, type Dispatch, type SetStateAction } from "react"
+import type { EditorDocumentStore } from "./EditorDocumentStore"
+import type { EditorSnapshot } from "./EditorModel"
+import { scalarTimelineTracks } from "./PropertyRegistry"
+import type { ShapeStop } from "./TimelineModel"
 import { useLayerEditor } from "./useLayerEditor"
-import { useMorphRenderState } from "./useMorphRenderState"
+import { prepareMorphRenderState } from "./useMorphRenderState"
 import { useShapeNavigation } from "./useShapeNavigation"
 
 type UseEditorRenderStateArgs = {
-  shapes: ShapeStop[]
-  setShapes: Dispatch<SetStateAction<ShapeStop[]>>
+  store: EditorDocumentStore
+  document: EditorSnapshot
   selectedShapeId: string | null
   setSelectedShapeId: Dispatch<SetStateAction<string | null>>
   setOpenShapePicker: Dispatch<SetStateAction<string | null>>
   addShapeAtPlayhead: () => void
-  currentTime: number
-  fillColor: string
-  fillColorSecondary: string
-  fillGradientType: FillGradientType
-  fillStops?: FillStop[]
-  fillKeyframes: FillKeyframe[]
-  fillMode: FillMode
-  enableGradient: boolean
-  extrusionTrack: TimelineTrack
-  scaleTrack: TimelineTrack
-  lightingTrack: TimelineTrack
-  extrusionDepth: number
-  rotationOffset: LightPosition
-  rotationAxisKeyframes: Vector3Keyframe[]
-  previewRotationOffset: LightPosition | null
-  objectScale: number
-  moveOffset: LightPosition
-  moveKeyframes: Vector3Keyframe[]
-  keyLightIntensity: number
-  geometryQuality: number
-  qualityKeyframes: ScalarKeyframe[]
-  innerElementScale: LightPosition
-  innerScaleKeyframes: Vector3Keyframe[]
   markCustom: () => void
 }
 
+/**
+ * What the editor derives from the document regardless of the playhead: clip
+ * order and prepared fills, the scalar tracks, and the selected icon's layers.
+ * Values at a given time come from `createEditorAtTime`.
+ */
 export function useEditorRenderState({
-  shapes,
-  setShapes,
+  store,
+  document,
   selectedShapeId,
   setSelectedShapeId,
   setOpenShapePicker,
   addShapeAtPlayhead,
-  currentTime,
-  fillColor,
-  fillColorSecondary,
-  fillGradientType,
-  fillStops,
-  fillKeyframes,
-  fillMode,
-  enableGradient,
-  extrusionTrack,
-  scaleTrack,
-  lightingTrack,
-  extrusionDepth,
-  rotationOffset,
-  rotationAxisKeyframes,
-  previewRotationOffset,
-  objectScale,
-  moveOffset,
-  moveKeyframes,
-  keyLightIntensity,
-  geometryQuality,
-  qualityKeyframes,
-  innerElementScale,
-  innerScaleKeyframes,
   markCustom,
 }: UseEditorRenderStateArgs) {
-  const morphState = useMorphRenderState({
-    shapes,
-    currentTime,
-    fillColor,
-    fillColorSecondary,
-    fillGradientType,
-    fillStops,
-    fillKeyframes,
-    fillMode,
-    enableGradient,
-  })
+  const { tracks, shapes, fillKeyframes } = document
+  const scalarTracks = useMemo(() => scalarTimelineTracks(tracks), [tracks])
+  const preparation = useMemo(
+    () => prepareMorphRenderState(shapes, fillKeyframes),
+    [fillKeyframes, shapes]
+  )
 
+  const setShapes = useCallback(
+    (action: SetStateAction<ShapeStop[]>) => store.set("shapes", action),
+    [store]
+  )
   const layerState = useLayerEditor({
     shapes,
     selectedShapeId,
@@ -104,7 +52,7 @@ export function useEditorRenderState({
   })
 
   const shapeNavigation = useShapeNavigation({
-    sortedShapes: morphState.sortedShapes,
+    sortedShapes: preparation.sortedShapes,
     selectedShapeId,
     setSelectedShapeId,
     setOpenShapePicker,
@@ -112,30 +60,14 @@ export function useEditorRenderState({
     addShapeAtPlayhead,
   })
 
-  const activeValues = useActiveTimelineValues({
-    currentTime,
-    extrusionTrack,
-    scaleTrack,
-    lightingTrack,
-    extrusionDepth,
-    rotationOffset,
-    rotationAxisKeyframes,
-    previewRotationOffset,
-    objectScale,
-    moveOffset,
-    moveKeyframes,
-    keyLightIntensity,
-    geometryQuality,
-    qualityKeyframes,
-    innerElementScale,
-    innerScaleKeyframes,
-  })
-
   return {
-    ...morphState,
+    scalarTracks,
+    preparation,
+    sortedShapes: preparation.sortedShapes,
     ...layerState,
     selectedShapeLayers: layerState.layers,
     shapeNavigation,
-    ...activeValues,
   }
 }
+
+export type EditorRenderState = ReturnType<typeof useEditorRenderState>

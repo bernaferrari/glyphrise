@@ -166,13 +166,13 @@ const shapeFillValue = ({
     preparedFillKeyframes
   )
 
-type MorphPreparation = {
+export type MorphPreparation = {
   sortedShapes: ShapeStop[]
   preparedFillKeyframes: PreparedFillKeyframes
   preparedShapeFillKeyframes: Map<string, PreparedFillKeyframes>
 }
 
-const prepareMorphRenderState = (
+export const prepareMorphRenderState = (
   shapes: ShapeStop[],
   fillKeyframes: FillKeyframe[]
 ): MorphPreparation => {

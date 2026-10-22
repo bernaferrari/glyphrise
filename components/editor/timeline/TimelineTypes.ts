@@ -8,6 +8,7 @@ import type {
 import type { MotionRecipe } from "../MotionRecipes"
 import type { AnimationPresetId } from "../AnimationPresetModel"
 import type { PlaybackControlsProps } from "../ViewportControls"
+import type { PlaybackClock } from "../PlaybackClock"
 
 export interface ShapeOption {
   id: string
@@ -29,6 +30,8 @@ export type TimelinePlaybackProps = {
   duration: number
   onDurationChange: (duration: number) => void
   currentTime: number
+  /** Moves the playhead during playback; `currentTime` is where it rests. */
+  clock?: PlaybackClock
   onTimeChange: (time: number) => void
   onScrubStart?: () => void
   renderPropertyValueEditor?: (rowId: string) => ReactNode

@@ -1,6 +1,6 @@
 import type { VideoContainer } from "../3d/SvgTypes"
 import type { ExportSettings } from "./ExportSettingsModel"
-import { videoFrameSchedule } from "./ExportFrameModel"
+import { videoFrameSchedule } from "./EditorFrameModel"
 
 export async function supportedVideoContainers(): Promise<VideoContainer[]> {
   if (typeof VideoEncoder === "undefined") return []

@@ -1,21 +1,24 @@
 "use client"
 
 import { RefObject, useLayoutEffect, useMemo, useState } from "react"
+import type { PlaybackClock } from "../PlaybackClock"
 import {
   createSecondGridTicks,
   createTimelineTicks,
   quantizeTimeToFrame,
-  xForFrac,
 } from "./TimelineGeometry"
+import type { TimelinePlayhead } from "./TimelineLaneOverlays"
 
 export function useTimelineViewportState({
   currentTime,
+  clock,
   duration,
   timelineZoom,
   frameSnapActive,
   timelineScrollRef,
 }: {
   currentTime: number
+  clock?: PlaybackClock
   duration: number
   timelineZoom: number
   frameSnapActive: boolean
@@ -52,9 +55,14 @@ export function useTimelineViewportState({
     [duration]
   )
 
+  const playhead = useMemo<TimelinePlayhead>(
+    () => ({ time: currentTime, duration, frameSnapActive, clock }),
+    [clock, currentTime, duration, frameSnapActive]
+  )
+
   return {
     visibleCurrentTime,
-    playheadX: xForFrac(visibleCurrentTime / duration),
+    playhead,
     timelineTicks,
     secondGridTicks,
   }

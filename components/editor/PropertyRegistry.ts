@@ -80,3 +80,10 @@ export const timelineTrackById = (
       }
     : undefined
 }
+
+/** Depth, scale and brightness: always present, with defaults if unsaved. */
+export const scalarTimelineTracks = (tracks: TimelineTrack[]) => ({
+  extrusionTrack: timelineTrackById(tracks, "extrusion")!,
+  scaleTrack: timelineTrackById(tracks, "scale")!,
+  lightingTrack: timelineTrackById(tracks, "lighting")!,
+})

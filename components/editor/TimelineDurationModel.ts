@@ -1,16 +1,10 @@
-import type { Dispatch, SetStateAction } from "react"
-import type {
-  MaterialKeyframe,
-  ScalarKeyframe,
-  Vector3Keyframe,
-} from "./EditorModel"
 import {
   MAX_TIMELINE_DURATION,
   MIN_TIMELINE_DURATION,
   clampNumber,
   quantizeTimeToFrame,
 } from "./EditorModel"
-import type { FillKeyframe, ShapeStop, TimelineTrack } from "./TimelineModel"
+import type { ShapeStop, TimelineTrack } from "./TimelineModel"
 
 export const clampTimelineDuration = (duration: number) =>
   Math.max(
@@ -67,41 +61,3 @@ export const scaleTimelineTrackTimes = (
     ...track,
     keyframes: scaleKeyframeTimes(track.keyframes, ratio, duration),
   }))
-
-export type TimelineDurationKeyframeSetters = {
-  setFillKeyframes: Dispatch<SetStateAction<FillKeyframe[]>>
-  setMaterialKeyframes: Dispatch<SetStateAction<MaterialKeyframe[]>>
-  setKeyLightPositionKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setRotationAxisKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setMoveKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-  setQualityKeyframes: Dispatch<SetStateAction<ScalarKeyframe[]>>
-  setInnerScaleKeyframes: Dispatch<SetStateAction<Vector3Keyframe[]>>
-}
-
-export const scaleTimelineKeyframeState = ({
-  ratio,
-  duration,
-  setters,
-}: {
-  ratio: number
-  duration: number
-  setters: TimelineDurationKeyframeSetters
-}) => {
-  setters.setFillKeyframes((prev) => scaleKeyframeTimes(prev, ratio, duration))
-  setters.setMaterialKeyframes((prev) =>
-    scaleKeyframeTimes(prev, ratio, duration)
-  )
-  setters.setKeyLightPositionKeyframes((prev) =>
-    scaleKeyframeTimes(prev, ratio, duration)
-  )
-  setters.setRotationAxisKeyframes((prev) =>
-    scaleKeyframeTimes(prev, ratio, duration)
-  )
-  setters.setMoveKeyframes((prev) => scaleKeyframeTimes(prev, ratio, duration))
-  setters.setQualityKeyframes((prev) =>
-    scaleKeyframeTimes(prev, ratio, duration)
-  )
-  setters.setInnerScaleKeyframes((prev) =>
-    scaleKeyframeTimes(prev, ratio, duration)
-  )
-}

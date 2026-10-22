@@ -4,12 +4,29 @@ import { createRoot } from "react-dom/client"
 import { expect, it, vi } from "vitest"
 import { useShapeSequenceEditor } from "./useShapeSequenceEditor"
 import { DEFAULT_WIPE_PAIR } from "./DefaultShapeIcons"
+import { createEditorDocumentStore } from "./EditorDocumentStore"
+import { createDefaultEditorSnapshot } from "./EditorProjectModel"
+import { useEditorDocument } from "./useEditorBaseState"
+
+const store = () => createEditorDocumentStore(createDefaultEditorSnapshot())
+
+function useHarnessEditor(documentStore: ReturnType<typeof store>) {
+  const document = useEditorDocument(documentStore)
+  return useShapeSequenceEditor({
+    store: documentStore,
+    shapes: document.shapes,
+    activeRecipeId: document.activeRecipeId,
+    duration: 5,
+    getCurrentTime: () => 2,
+  })
+}
 
 it("keeps the document untouched until an icon is chosen and cancels without an edit", () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
   let editor!: ReturnType<typeof useShapeSequenceEditor>
+  const documentStore = store()
   function Harness() {
-    editor = useShapeSequenceEditor({ currentTime: 2, duration: 5 })
+    editor = useHarnessEditor(documentStore)
     return null
   }
   const root = createRoot(document.createElement("div"))
@@ -48,8 +65,9 @@ it("keeps the document untouched until an icon is chosen and cancels without an 
 it("inserts a selected wipe pair without a placeholder clip", () => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true)
   let editor!: ReturnType<typeof useShapeSequenceEditor>
+  const documentStore = store()
   function Harness() {
-    editor = useShapeSequenceEditor({ currentTime: 2, duration: 5 })
+    editor = useHarnessEditor(documentStore)
     return null
   }
   const root = createRoot(document.createElement("div"))

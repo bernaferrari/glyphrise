@@ -1,4 +1,5 @@
 import type React from "react"
+import type { TimelinePlayhead } from "./TimelineLaneOverlays"
 import type { ShapeClipBounds, TransitionWindow } from "./TimelineLayoutModel"
 import type { TimelineMenuItem } from "./TimelineMenuModel"
 import type {
@@ -29,7 +30,7 @@ export type TimelineViewportProps = {
   currentTime: number
   duration: number
   timelineZoom: number
-  playheadX: string
+  playhead: TimelinePlayhead
   timelineTicks: TimelineTick[]
   secondGridTicks: number[]
   laneRef: React.RefObject<HTMLDivElement | null>

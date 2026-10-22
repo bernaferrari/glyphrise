@@ -1,1072 +1,415 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useLatestRef } from "@/lib/use-latest-ref"
-
+import { useCallback, useMemo } from "react"
+import { useLatestRef, useStableHandlers } from "@/lib/use-latest-ref"
+import type { SvgCanvasProps } from "../3d/SvgTypes"
+import { createAnimationPreset } from "./AnimationPresetModel"
+import type { AppLayoutViewProps } from "./AppLayoutView"
+import { createEditorAtTime } from "./EditorAtTime"
+import { buildEditorInspectorProps } from "./EditorInspectorProps"
+import { STATIC_STUDIO_LIGHTING } from "./LightEditActions"
+import { createDocumentFrameEvaluator } from "./EditorFrameModel"
+import { countDocumentKeyframes } from "./KeyframeChannelModel"
+import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
+import { scalarTimelineTracks } from "./PropertyRegistry"
+import { ALL_LAYERS_ID } from "./SvgLayerModel"
+import { clampTimelineDuration } from "./TimelineDurationModel"
+import { TIMELINE_FRAME_RATE } from "./timeline/TimelineGeometry"
+import type { CanvasSource } from "./ViewportStage"
+import { useCreationJourney } from "./useCreationJourney"
 import { useEditorBaseState } from "./useEditorBaseState"
 import { useEditorDocumentLifecycle } from "./useEditorDocumentLifecycle"
-import { useEditorTimelineSurface } from "./useEditorTimelineSurface"
-import { useTimelineStepShortcuts } from "./useEditorShortcuts"
-import { TIMELINE_FRAME_RATE } from "./timeline/TimelineGeometry"
-import { useEditorViewportSurface } from "./useEditorViewportSurface"
 import { useEditorExportSurface } from "./useEditorExportSurface"
-import { useEditorInspectorSurface } from "./useEditorInspectorSurface"
 import { useEditorRenderState } from "./useEditorRenderState"
-import { useEditorMotionSurface } from "./useEditorMotionSurface"
-import { MOTION_RECIPES, type MotionRecipe } from "./MotionRecipes"
-import { ALL_LAYERS_ID } from "./SvgLayerModel"
-import type { AppLayoutViewProps } from "./AppLayoutView"
-import { clampTimelineDuration } from "./TimelineDurationModel"
-import { createAnimationPreset } from "./AnimationPresetModel"
-import { evaluateExportFrame } from "./ExportFrameModel"
+import { useTimelineStepShortcuts } from "./useEditorShortcuts"
 import { useKeyframeNotice } from "./useKeyframeNotice"
-import { useCreationJourney } from "./useCreationJourney"
-import {
-  addKeyframeAtTime,
-  findKeyframeAtTime,
-  normalizedPlayheadTime,
-  removeKeyframesAtTime,
-  toggleScalarTrackKeyframeAtTime,
-} from "./EditorKeyframeModel"
-import { createEditorId } from "./EditorModel"
+import { useTimelineDockController } from "./useTimelineDockController"
+import { useViewportStageProps } from "./useViewportStageProps"
 
+/** Wires the editor's state to the layout's panels. */
 export function useAppLayoutController(): AppLayoutViewProps {
   const editor = useEditorBaseState()
   const {
-    documentSnapshot,
-    projectFiles: {
-      newProject,
-      openProjectFile,
-      saveProjectFile,
-      projectStatus,
-      projectStatusMessage,
-      project,
-      renameProject,
-      createNewProject,
-      newProjectDialogOpen,
-      setNewProjectDialogOpen,
-      projectActionError,
-      recentProjects,
-      openRecentProject,
-      duplicateRecentProject,
-      deleteRecentProject,
-    },
-    historyActions: { undo, redo, canUndo, canRedo },
-    recipeActions: { applyRecipe },
-  } = useEditorDocumentLifecycle(editor)
-
-  const {
-    theme: { themeMounted, isLightTheme, themeToggleLabel, setTheme },
-    playback: {
-      canvas3DRef,
-      duration,
-      setDuration,
-      currentTime,
-      setCurrentTime,
-      isPlaying,
-      loop,
-      setLoop,
-      isPreviewModelReady,
-      setIsPreviewModelReady,
-      isVideoExporting,
-      videoExportProgress,
-      exportTimelineVideo,
-      stopVideoExportRecording,
-      cancelVideoExport,
-      stopPlayback,
-      togglePlayback: handlePlayToggle,
-      resetPlayback: handleReset,
-      animatedSeekEnabled,
-      setAnimatedSeekEnabled,
-      cancelAnimatedSeek,
-      seekToTime,
-    },
-    shapes: {
-      shapes,
-      setShapes: setShapesRaw,
-      selectedShapeId,
-      setSelectedShapeId,
-      openShapePicker,
-      setShapeIcon: setShapeIconRaw,
-      setShapeWipePair: setShapeWipePairRaw,
-      setOpenShapePicker,
-      activeRecipeId,
-      setActiveRecipeId,
-      markCustom,
-      addShapeAtPlayhead,
-      removeShape,
-    },
-    geometry: {
-      wireframe,
-      extrusionDepth,
-      setExtrusionDepth,
-      bevelEnabled,
-      setBevelEnabled: setBevelEnabledRaw,
-      bevelThickness,
-      setBevelThickness: setBevelThicknessRaw,
-      bevelSize,
-      setBevelSize: setBevelSizeRaw,
-      bevelSegments,
-      setBevelSegments: setBevelSegmentsRaw,
-      geometryQuality,
-      setGeometryQuality,
-      qualityKeyframes,
-      setQualityKeyframes: setQualityKeyframesRaw,
-      layerSpacing,
-      innerElementScale,
-      innerScaleKeyframes,
-      setInnerScaleKeyframes: setInnerScaleKeyframesRaw,
-    },
-    transform: {
-      objectScale,
-      setObjectScale,
-      objectScaleAxes,
-      setObjectScaleAxes,
-      moveOffset,
-      setMoveOffset,
-      moveKeyframes,
-      setMoveKeyframes: setMoveKeyframesRaw,
-      rotationOffset,
-      setRotationOffset,
-      rotationAxisKeyframes,
-      setRotationAxisKeyframes: setRotationAxisKeyframesRaw,
-      previewRotationOffset,
-      setPreviewRotationOffset,
-      isScaleLocked,
-      setIsScaleLocked,
-    },
-    fill: {
-      enableGradient,
-      fillMode,
-      fillColor,
-      fillColorSecondary,
-      fillGradientType,
-      fillStops,
-      fillKeyframes,
-      setFillKeyframes: setFillKeyframesRaw,
-      setGradientEnabled,
-      updateFillColor: updateFillColorRaw,
-      updateGradientType: updateGradientTypeRaw,
-      updateFillStops: updateFillStopsRaw,
-    },
-    viewport: {
-      zoom,
-      setZoom,
-      viewInertiaEnabled,
-      setViewInertiaEnabled,
-      showCenterPoint,
-      showSelectionOutline,
-      setShowCenterPoint,
-      setShowSelectionOutline,
-      showTransformGizmo,
-      setShowTransformGizmo,
-      zenMode,
-      setZenMode,
-      isDragging,
-      setIsDragging,
-    },
-    material: {
-      materialPreset,
-      roughness,
-      metalness,
-      reflectance,
-      clearcoat,
-      clearcoatRoughness,
-      transmission,
-      thickness,
-      emissiveIntensity,
-      materialKeyframes,
-      setMaterialKeyframes: setMaterialKeyframesRaw,
-      isAdvancedMaterialOpen,
-      setIsAdvancedMaterialOpen,
-      activeMaterialSettings,
-      updateMaterialSetting: updateMaterialSettingRaw,
-      applyMaterialPreset: applyMaterialPresetRaw,
-    },
-    light: {
-      ambientColor,
-      ambientIntensity,
-      keyLightColor,
-      setKeyLightColor: setKeyLightColorRaw,
-      keyLightIntensity,
-      setKeyLightIntensity,
-      keyLightSoftness,
-      setKeyLightSoftness: setKeyLightSoftnessRaw,
-      activeKeyLightPosition,
-      lightPositionKeyframeAtPlayhead,
-      keyLightPositionKeyframes,
-      setKeyLightPositionKeyframes: setKeyLightPositionKeyframesRaw,
-      toggleLightPositionKeyframeAtPlayhead: toggleLightKeyframeRaw,
-      updateLightPositionXY,
-      rimLightColor,
-      rimLightIntensity,
-    },
-    selection: {
-      inspectorTab,
-      setInspectorTab,
-      inspectorRefs,
-      selectedMotionTrackId,
-      setSelectedMotionTrackId,
-      selectTimelineTrack,
-      selectTimelinePropertyRow,
-    },
-    timelineTracks: {
-      tracks,
-      setTracks: setTracksRaw,
-      extrusionTrack,
-      scaleTrack,
-      lightingTrack,
-    },
+    store,
+    document,
+    theme,
+    playback,
+    shapes,
+    advancedMaterial,
+    viewport,
+    selection,
+    transform,
   } = editor
+  const { historyActions, projectFiles, applyRecipe } =
+    useEditorDocumentLifecycle(editor)
+  const { project } = projectFiles
+  const {
+    canvas3DRef,
+    clock,
+    currentTime,
+    setCurrentTime,
+    isPlaying,
+    stopPlayback,
+    cancelAnimatedSeek,
+  } = playback
+  const { duration } = document
 
-  // Quality frames mirror Depth internally; count the visible keyframes once.
-  const keyframeCount =
-    tracks.reduce((count, track) => count + track.keyframes.length, 0) +
-    fillKeyframes.length +
-    materialKeyframes.length +
-    keyLightPositionKeyframes.length +
-    rotationAxisKeyframes.length +
-    moveKeyframes.length +
-    innerScaleKeyframes.length
+  const render = useEditorRenderState({
+    store,
+    document,
+    selectedShapeId: shapes.selectedShapeId,
+    setSelectedShapeId: shapes.setSelectedShapeId,
+    setOpenShapePicker: shapes.setOpenShapePicker,
+    addShapeAtPlayhead: shapes.addShapeAtPlayhead,
+    markCustom: shapes.markCustom,
+  })
+
+  // The editor at any moment. `rest` is where the playhead rests; the moving
+  // frame (clock) is used by the inspector during playback and by edits.
+  const editorAt = (time: number) =>
+    createEditorAtTime(
+      {
+        store,
+        document,
+        preparation: render.preparation,
+        scalarTracks: render.scalarTracks,
+        previewRotationOffset: transform.previewRotationOffset,
+        isPlaying,
+        setSelectedMotionTrackId: selection.setSelectedMotionTrackId,
+        setPreviewRotationOffset: transform.setPreviewRotationOffset,
+        setIsScaleLocked: transform.setIsScaleLocked,
+        canvas3DRef,
+      },
+      time
+    )
+  const rest = editorAt(currentTime)
+  /** Edits act on the frame on screen, which moves during playback. */
+  const motionNow = () => editorAt(clock.get()).motion
+
+  const keyframeCount = countDocumentKeyframes(document)
   const keyframeNotice = useKeyframeNotice({
     keyframeCount,
     projectId: project.id,
     currentTime,
-    restoring: projectStatus === "restoring",
+    restoring: projectFiles.projectStatus === "restoring",
   })
 
-  const [sessionStyleChanged, setSessionStyleChanged] = useState(false)
-  const [sessionMotionAdded, setSessionMotionAdded] = useState(false)
-
-  useEffect(() => {
-    setSessionStyleChanged(false)
-    setSessionMotionAdded(false)
-  }, [project.id])
-
-  const setShapeIcon: typeof setShapeIconRaw = (...args) => {
-    return setShapeIconRaw(...args)
-  }
-  const setShapeWipePair: typeof setShapeWipePairRaw = (...args) => {
-    return setShapeWipePairRaw(...args)
-  }
-  const updateFillColor: typeof updateFillColorRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return updateFillColorRaw(...args)
-  }
-  const updateGradientType: typeof updateGradientTypeRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return updateGradientTypeRaw(...args)
-  }
-  const updateFillStops: typeof updateFillStopsRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return updateFillStopsRaw(...args)
-  }
-  const applyMaterialPreset: typeof applyMaterialPresetRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return applyMaterialPresetRaw(...args)
-  }
-  const updateMaterialSetting: typeof updateMaterialSettingRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return updateMaterialSettingRaw(...args)
-  }
-  const handleDepthChange: typeof handleDepthChangeRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return handleDepthChangeRaw(...args)
-  }
-  const handleBrightnessChange: typeof handleBrightnessChangeRaw = (
-    ...args
-  ) => {
-    setSessionStyleChanged(true)
-    return handleBrightnessChangeRaw(...args)
-  }
-  const setBevelEnabled: typeof setBevelEnabledRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setBevelEnabledRaw(...args)
-  }
-  const setBevelThickness: typeof setBevelThicknessRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setBevelThicknessRaw(...args)
-  }
-  const setBevelSize: typeof setBevelSizeRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setBevelSizeRaw(...args)
-  }
-  const setBevelSegments: typeof setBevelSegmentsRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setBevelSegmentsRaw(...args)
-  }
-  const setKeyLightColor: typeof setKeyLightColorRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setKeyLightColorRaw(...args)
-  }
-  const setKeyLightSoftness: typeof setKeyLightSoftnessRaw = (...args) => {
-    setSessionStyleChanged(true)
-    return setKeyLightSoftnessRaw(...args)
-  }
-  // Track any keyframe mutation this session so the guide's motion step
-  // completes only on genuine user action.
-  const setFillKeyframes: typeof setFillKeyframesRaw = (...args) => {
-    setSessionMotionAdded(true)
-    return setFillKeyframesRaw(...args)
-  }
-  const setMaterialKeyframes: typeof setMaterialKeyframesRaw = (...args) => {
-    setSessionMotionAdded(true)
-    return setMaterialKeyframesRaw(...args)
-  }
-  const setKeyLightPositionKeyframes: typeof setKeyLightPositionKeyframesRaw = (
-    ...args
-  ) => {
-    setSessionMotionAdded(true)
-    return setKeyLightPositionKeyframesRaw(...args)
-  }
-  const setRotationAxisKeyframes: typeof setRotationAxisKeyframesRaw = (
-    ...args
-  ) => {
-    setSessionMotionAdded(true)
-    return setRotationAxisKeyframesRaw(...args)
-  }
-  const setMoveKeyframes: typeof setMoveKeyframesRaw = (...args) => {
-    setSessionMotionAdded(true)
-    return setMoveKeyframesRaw(...args)
-  }
-  const setQualityKeyframes: typeof setQualityKeyframesRaw = (...args) => {
-    setSessionMotionAdded(true)
-    return setQualityKeyframesRaw(...args)
-  }
-  const setInnerScaleKeyframes: typeof setInnerScaleKeyframesRaw = (
-    ...args
-  ) => {
-    setSessionMotionAdded(true)
-    return setInnerScaleKeyframesRaw(...args)
-  }
-  const setShapes: typeof setShapesRaw = (...args) => {
-    // Icon picker/upload flows mutate shapes via setShapes; mark the
-    // guide's icon step done on any shape mutation this session.
-    return setShapesRaw(...args)
-  }
-  const setTracks: typeof setTracksRaw = (...args) => {
-    setSessionMotionAdded(true)
-    return setTracksRaw(...args)
-  }
-  const toggleLightPositionKeyframeAtPlayhead = () => {
-    setSessionMotionAdded(true)
-    toggleLightKeyframeRaw()
-  }
-  const {
-    sortedShapes,
-    morph,
-    selectedShapeFill,
-    selectedShapeFillSecondary,
-    selectedShapeGradientType,
-    selectedShapeFillStops,
-    iconAContent,
-    iconBContent,
-    colorA,
-    renderColorASecondary,
-    renderColorAStops,
-    renderColorB,
-    renderColorBSecondary,
-    renderColorBStops,
-    activeTransitionProgress,
-    transitionType,
-    wipeDirection,
-    renderEnableGradient,
-    renderGradientType,
-    selectedShapeLayers,
-    selectedLayerId,
-    selectedLayerOverride,
-    hiddenLayerIds,
-    setSelectedLayerId,
-    updateSelectedLayerScale,
-    updateSelectedLayerDepth,
-    toggleSelectedLayerVisibility,
-    shapeNavigation,
-    activeExtrusionDepth,
-    activeRotationOffset,
-    activeObjectScale,
-    activeMoveOffset,
-    activeKeyLightIntensity,
-    activeGeometryQuality,
-    activeInnerScale,
-  } = useEditorRenderState({
-    shapes,
-    setShapes,
-    selectedShapeId,
-    setSelectedShapeId,
-    setOpenShapePicker,
-    addShapeAtPlayhead,
-    currentTime,
-    fillColor,
-    fillColorSecondary,
-    fillGradientType,
-    fillStops,
-    fillKeyframes,
-    fillMode,
-    enableGradient,
-    extrusionTrack,
-    scaleTrack,
-    lightingTrack,
-    extrusionDepth,
-    rotationOffset,
-    rotationAxisKeyframes,
-    previewRotationOffset,
-    objectScale,
-    moveOffset,
-    moveKeyframes,
-    keyLightIntensity,
-    geometryQuality,
-    qualityKeyframes,
-    innerElementScale,
-    innerScaleKeyframes,
-    markCustom,
-  })
-
-  const {
-    handleDepthChange: handleDepthChangeRaw,
-    handleRotationAxisChange,
-    handleScaleChange,
-    handleScaleAxisChange,
-    handleViewRotationCommit,
-    handleViewRotationSet,
-    handleBrightnessChange: handleBrightnessChangeRaw,
-    updateMoveAxis,
-    updateQuality,
-    resetView,
-  } = useEditorMotionSurface({
-    currentTime,
-    isPlaying,
-    duration,
-    tracks,
-    setTracks,
-    setSelectedMotionTrackId,
-    setActiveRecipeId,
-    setExtrusionDepth,
-    setRotationOffset,
-    activeRotationOffset,
-    rotationAxisKeyframes,
-    setRotationAxisKeyframes,
-    setPreviewRotationOffset,
-    setObjectScale,
-    activeObjectScale,
-    objectScaleAxes,
-    setObjectScaleAxes,
-    setIsScaleLocked,
-    activeMoveOffset,
-    moveKeyframes,
-    setMoveOffset,
-    setMoveKeyframes,
-    setKeyLightIntensity,
-    setGeometryQuality,
-    setQualityKeyframes,
-    geometryQuality,
-    canvas3DRef,
-  })
-
+  // Grabbing the icon stops it on the frame you see, so the drag edits
+  // Rotation there (keying it, when Rotation is animated) instead of fighting
+  // playback and keying wherever the playhead happens to be.
   const holdFrameForCanvasEdit = () => {
     cancelAnimatedSeek()
     if (isPlaying) stopPlayback()
   }
 
+  const canvasHandlers = useStableHandlers({
+    onZoomChange: viewport.setZoom,
+    onViewRotationCommit: ((delta) => {
+      holdFrameForCanvasEdit()
+      motionNow().handleViewRotationCommit(delta)
+    }) satisfies NonNullable<SvgCanvasProps["onViewRotationCommit"]>,
+    onViewRotationSet: ((target, options) => {
+      holdFrameForCanvasEdit()
+      motionNow().handleViewRotationSet(target, options)
+    }) satisfies NonNullable<SvgCanvasProps["onViewRotationSet"]>,
+    onObjectScaleChange: (scale: number) =>
+      motionNow().handleScaleChange(scale),
+    onObjectScaleAxisChange: ((axis, value) =>
+      motionNow().handleScaleAxisChange(axis, value)) satisfies NonNullable<
+      SvgCanvasProps["onObjectScaleAxisChange"]
+    >,
+    onMoveOffsetChange: ((axis, value) =>
+      motionNow().updateMoveAxis(axis, value)) satisfies NonNullable<
+      SvgCanvasProps["onMoveOffsetChange"]
+    >,
+    onRotationAxisChange: ((axis, value) =>
+      motionNow().handleRotationAxisChange(axis, value)) satisfies NonNullable<
+      SvgCanvasProps["onRotationAxisChange"]
+    >,
+    onSelectLayer: render.setSelectedLayerId,
+    onDeselectLayers: () => render.setSelectedLayerId(ALL_LAYERS_ID),
+    onModelReadyChange: playback.setIsPreviewModelReady,
+  })
+
   // Videos and frame sheets render the document as it was when they start.
   const frameEvaluatorRef = useLatestRef(() => {
     canvas3DRef.current?.commitRotationEdit()
-    const frozenDocument = structuredClone(documentSnapshot)
+    const evaluate = createDocumentFrameEvaluator(structuredClone(store.get()))
     const studio = { ...canvasProps }
-    return (time: number) => evaluateExportFrame(frozenDocument, time, studio)
+    return (time: number): SvgCanvasProps => ({
+      ...studio,
+      ...evaluate(time),
+      isPlaying: false,
+    })
   })
   const createFrameEvaluator = useCallback(
     () => frameEvaluatorRef.current(),
     [frameEvaluatorRef]
   )
 
-  const {
-    openExport,
-    uploadFileRef,
-    handleUploadInputChange,
-    handleDropSvg,
-    triggerShapeUpload,
-    svgImportError,
-    clearSvgImportError,
-    exportModalProps,
-  } = useEditorExportSurface({
-    selectedShapeId,
-    onShapeIconChange: setShapeIcon,
+  const exportSurface = useEditorExportSurface({
+    selectedShapeId: shapes.selectedShapeId,
+    onShapeIconChange: shapes.setShapeIcon,
     previewState: {
-      document: documentSnapshot,
+      document,
       currentTime,
-      wireframe,
-      ambientColor,
-      rimLightColor,
+      wireframe: false,
+      ambientColor: STATIC_STUDIO_LIGHTING.ambientColor,
+      rimLightColor: STATIC_STUDIO_LIGHTING.rimLightColor,
     },
+    lighting: STATIC_STUDIO_LIGHTING,
     canvasRef: canvas3DRef,
     createFrameEvaluator,
     exportTimelineVideo: (settings) => {
       cancelAnimatedSeek()
-      return exportTimelineVideo(settings, createFrameEvaluator())
+      return playback.exportTimelineVideo(settings, createFrameEvaluator())
     },
-    stopVideoExportRecording,
-    cancelVideoExport,
-    isVideoExporting,
-    videoExportProgress,
-    duration,
-    shapes,
-    tracks,
-    rotationOffset,
-    rotationAxisKeyframes,
-    objectScale,
-    objectScaleAxes,
-    moveOffset,
-    moveKeyframes,
-    keyLightPosition: activeKeyLightPosition,
-    keyLightPositionKeyframes,
-    fillKeyframes,
-    materialSettings: activeMaterialSettings,
-    materialKeyframes,
-    materialPreset,
-    colorA,
-    colorB: renderColorB,
-    roughness,
-    metalness,
-    reflectance,
-    clearcoat,
-    clearcoatRoughness,
-    transmission,
-    thickness,
-    emissiveIntensity,
-    extrusionDepth: activeExtrusionDepth,
-    bevelEnabled,
-    bevelThickness,
-    bevelSize,
-    bevelSegments,
-    layerSpacing,
-    ambientIntensity,
-    keyLightIntensity: activeKeyLightIntensity,
-    rimLightIntensity,
-    svgPathA: iconAContent,
-    svgPathB: iconBContent,
+    cancelVideoExport: playback.cancelVideoExport,
+    isVideoExporting: playback.isVideoExporting,
+    videoExportProgress: playback.videoExportProgress,
   })
 
-  const applyRecipeFromGuide = (recipe: MotionRecipe) => {
-    // Guide template buttons mutate style and motion at once; mark both
-    // session flags so the corresponding steps complete.
-    setSessionStyleChanged(true)
-    setSessionMotionAdded(true)
-    applyRecipe(recipe)
-  }
-
   const creationJourney = useCreationJourney({
+    store,
     projectId: project.id,
+    keyframeCount,
     isPlaying,
-    togglePlayback: handlePlayToggle,
-    hasStyle: sessionStyleChanged,
-    hasMotion: sessionMotionAdded && keyframeCount > 0,
+    togglePlayback: playback.togglePlayback,
     onExport: () => {
       cancelAnimatedSeek()
       stopPlayback()
-      openExport()
+      exportSurface.openExport()
     },
   })
 
-  const {
-    timelineProps,
-    previousKeyMoment,
-    nextKeyMoment,
-    atTimelineStart,
-    atTimelineEnd,
-    playbackProgress,
-    goToPreviousKeyMoment,
-    goToNextKeyMoment,
-    goToEnd,
-  } = useEditorTimelineSurface({
-    playback: {
-      currentTime,
-      setCurrentTime,
-      duration,
-      setDuration,
-      seekToTime,
-      cancelAnimatedSeek,
-      stopPlayback,
-      isPlaying,
-      isPreviewModelReady,
-      loop,
-      setLoop,
+  const timeline = useTimelineDockController({
+    store,
+    document,
+    playback,
+    selection,
+    shapes: {
+      ...shapes,
+      sortedShapes: render.sortedShapes,
+      triggerShapeUpload: exportSurface.triggerShapeUpload,
     },
-    tracksState: {
-      tracks,
-      setTracks,
-      selectedMotionTrackId,
-      selectTimelineTrack,
-      selectTimelinePropertyRow,
+    activeValuesAt: (time) => {
+      const at = editorAt(time)
+      return {
+        selectedShapeFillStops: at.selectedShapeFillStops,
+        selectedShapeGradientType: at.selectedShapeGradientType,
+        activeMaterialSettings: at.activeMaterialSettings,
+        activeKeyLightPosition: at.activeKeyLightPosition,
+        activeRotationOffset: at.activeRotationOffset,
+        activeMoveOffset: at.activeMoveOffset,
+      }
     },
-    shapeState: {
-      sortedShapes,
-      shapes,
-      setShapes,
-      selectedShapeId,
-      setSelectedShapeId,
-      openShapePicker,
-      setOpenShapePicker,
-    },
-    animatedProperties: {
-      fillKeyframes,
-      setFillKeyframes,
-      materialKeyframes,
-      setMaterialKeyframes,
-      keyLightPositionKeyframes,
-      setKeyLightPositionKeyframes,
-      rotationAxisKeyframes,
-      setRotationAxisKeyframes,
-      moveKeyframes,
-      setMoveKeyframes,
-      qualityKeyframes,
-      setQualityKeyframes,
-      innerScaleKeyframes,
-      setInnerScaleKeyframes,
-    },
-    activeValues: {
-      selectedShapeFillStops,
-      selectedShapeGradientType,
-      activeMaterialSettings,
-      activeKeyLightPosition,
-      activeRotationOffset,
-      activeMoveOffset,
-    },
-    shapeActions: {
-      setShapeIcon,
-      setShapeWipePair,
-      addShapeAtPlayhead,
-      removeShape,
-      triggerShapeUpload,
-    },
-    markCustom,
   })
+
+  const jumpTo = (time: number) => {
+    cancelAnimatedSeek()
+    stopPlayback()
+    setCurrentTime(time)
+  }
   useTimelineStepShortcuts({
-    onPreviousKeyframe: goToPreviousKeyMoment,
-    onNextKeyframe: goToNextKeyMoment,
-    onStepFrames: (frames) => {
-      cancelAnimatedSeek()
-      stopPlayback()
-      setCurrentTime((time) =>
+    onPreviousKeyframe: timeline.goToPreviousKeyMoment,
+    onNextKeyframe: timeline.goToNextKeyMoment,
+    onStepFrames: (frames) =>
+      jumpTo(
         Math.max(
           0,
           Math.min(
             duration,
-            (Math.round(time * TIMELINE_FRAME_RATE) + frames) /
+            (Math.round(clock.get() * TIMELINE_FRAME_RATE) + frames) /
               TIMELINE_FRAME_RATE
           )
         )
-      )
-    },
-    onGoToStart: () => {
-      cancelAnimatedSeek()
-      stopPlayback()
-      setCurrentTime(0)
-    },
-    onGoToEnd: () => {
-      cancelAnimatedSeek()
-      stopPlayback()
-      setCurrentTime(duration)
-    },
+      ),
+    onGoToStart: () => jumpTo(0),
+    onGoToEnd: () => jumpTo(duration),
   })
 
+  const selectedShape = document.shapes.find(
+    (shape) => shape.id === shapes.selectedShapeId
+  )
   const { canvasProps, viewOptionsProps, playbackProps } =
-    useEditorViewportSurface({
-      iconAContent,
-      iconBContent,
-      materialPreset,
-      colorA,
-      colorB: renderColorB,
-      colorASecondary: renderColorASecondary,
-      colorBSecondary: renderColorBSecondary,
-      colorAStops: renderColorAStops,
-      colorBStops: renderColorBStops,
-      enableGradient: renderEnableGradient,
-      gradientType: renderGradientType,
-      activeMaterialSettings,
-      wireframe,
-      extrusionDepth: activeExtrusionDepth,
-      bevelEnabled,
-      bevelThickness,
-      bevelSize,
-      bevelSegments,
-      geometryQuality: activeGeometryQuality,
-      layerSpacing,
-      innerElementScale: activeInnerScale,
-      transitionType,
-      wipeDirection,
-      transitionProgress: activeTransitionProgress,
-      rotationOffset: activeRotationOffset,
-      objectScale: activeObjectScale,
-      objectScaleAxes,
-      moveOffset: activeMoveOffset,
+    useViewportStageProps({
+      ...canvasHandlers,
       isPlaying,
-      ambientColor,
-      ambientIntensity,
-      keyLightColor,
-      keyLightIntensity: activeKeyLightIntensity,
-      keyLightPosition: activeKeyLightPosition,
-      keyLightSoftness,
-      rimLightColor,
-      rimLightIntensity,
-      zoom,
-      viewInertiaEnabled,
-      showCenterPoint,
-      showSelectionOutline,
-      showTransformGizmo,
-      selectedLayerId,
-      selectedIconColorRole: (() => {
-        const shape = shapes.find((item) => item.id === selectedShapeId)
-        if (!shape) return undefined
-        return morph.from.id === shape.id ? "a" : "b"
-      })(),
-      pathOverridesA: morph.from.pathOverrides,
-      pathOverridesB: morph.to.pathOverrides,
-      exportAnimation: {
-        duration,
-        tracks,
-        extrusionDepth: activeExtrusionDepth,
-        rotationOffset,
-        rotationAxisKeyframes,
-        objectScale,
-        objectScaleAxes,
-        moveOffset,
-        moveKeyframes,
-      },
-      playbackProgress,
-      atTimelineStart,
-      atTimelineEnd,
-      hasPreviousKeyMoment: previousKeyMoment !== undefined,
-      hasNextKeyMoment: nextKeyMoment !== undefined,
-      zenMode,
-      animatedSeekEnabled,
-      setZoom,
-      // Grabbing the icon stops it on the frame you see, so the drag edits
-      // Rotation there (keying it, when Rotation is animated) instead of
-      // fighting playback and keying wherever the playhead happens to be.
-      handleViewRotationCommit: (delta) => {
-        holdFrameForCanvasEdit()
-        handleViewRotationCommit(delta)
-      },
-      handleViewRotationSet: (target, options) => {
-        holdFrameForCanvasEdit()
-        handleViewRotationSet(target, options)
-      },
-      handleScaleChange,
-      handleScaleAxisChange,
-      updateMoveAxis,
-      onSelectLayer: setSelectedLayerId,
-      onDeselectLayers: () => setSelectedLayerId(ALL_LAYERS_ID),
-      handleRotationAxisChange,
-      setIsPreviewModelReady,
-      resetView,
-      setViewInertiaEnabled,
-      setShowCenterPoint,
-      setShowSelectionOutline,
-      setShowTransformGizmo,
-      setAnimatedSeekEnabled,
-      handleReset,
-      goToPreviousKeyMoment,
-      handlePlayToggle,
-      goToNextKeyMoment,
-      goToEnd,
-      setZenMode,
-      markCustom,
-    })
-
-  const { styleProps, geometryProps, transformProps, lightProps } =
-    useEditorInspectorSurface({
-      currentTime,
+      clock,
       duration,
-      setTracks,
-      setSelectedMotionTrackId,
-      setActiveRecipeId,
-      selectedShapeFillStops,
-      selectedShapeGradientType,
-      activeMaterialSettings,
-      scaleTrack,
-      activeObjectScale,
-      activeRotationOffset,
-      rotationAxisKeyframes,
-      setRotationAxisKeyframes,
-      activeMoveOffset,
-      moveKeyframes,
-      setMoveKeyframes,
-      keyLightPositionKeyframes,
-      lightPositionKeyframeAtPlayhead,
-      toggleLightPositionKeyframeAtPlayhead,
-      stopPlayback,
+      wireframe: false,
+      lighting: STATIC_STUDIO_LIGHTING,
+      zoom: viewport.zoom,
+      viewInertiaEnabled: viewport.viewInertiaEnabled,
+      showCenterPoint: viewport.showCenterPoint,
+      showSelectionOutline: viewport.showSelectionOutline,
+      showTransformGizmo: viewport.showTransformGizmo,
+      selectedLayerId: render.selectedLayerId,
+      selectedIconColorRole: selectedShape
+        ? rest.morph.from.id === selectedShape.id
+          ? "a"
+          : "b"
+        : undefined,
+      atTimelineStart: timeline.atTimelineStart,
+      atTimelineEnd: timeline.atTimelineEnd,
+      hasPreviousKeyMoment: timeline.previousKeyMoment !== undefined,
+      hasNextKeyMoment: timeline.nextKeyMoment !== undefined,
+      zenMode: viewport.zenMode,
+      animatedSeekEnabled: playback.animatedSeekEnabled,
+      onResetView: () => motionNow().resetView(),
+      onViewInertiaChange: viewport.setViewInertiaEnabled,
+      onShowCenterPointChange: viewport.setShowCenterPoint,
+      onShowSelectionOutlineChange: viewport.setShowSelectionOutline,
+      onShowTransformGizmoChange: viewport.setShowTransformGizmo,
+      onAnimatedSeekChange: playback.setAnimatedSeekEnabled,
+      onResetPlayback: playback.resetPlayback,
+      onPreviousKeyMoment: timeline.goToPreviousKeyMoment,
+      onPlayToggle: playback.togglePlayback,
+      onNextKeyMoment: timeline.goToNextKeyMoment,
+      onGoToEnd: timeline.goToEnd,
+      onExitZenMode: () => viewport.setZenMode(false),
+    })
+  const canvasSource = useMemo<CanvasSource>(
+    () => ({
+      document,
+      clock,
+      previewRotationOffset: transform.previewRotationOffset,
+    }),
+    [clock, document, transform.previewRotationOffset]
+  )
+
+  const inspectorAt = (time: number) =>
+    buildEditorInspectorProps({
+      store,
+      document,
+      at: time === currentTime ? rest : editorAt(time),
+      render,
       setCurrentTime,
-      fillRef: inspectorRefs.fill,
-      materialRef: inspectorRefs.material,
-      materialPreset,
-      materialKeyframeCount: materialKeyframes.length,
-      isAdvancedMaterialOpen,
-      selectedShapeFill,
-      selectedShapeFillSecondary,
-      fillMode,
-      onFillColorChange: updateFillColor,
-      onGradientToggle: setGradientEnabled,
-      onGradientTypeChange: updateGradientType,
-      onStopsChange: updateFillStops,
-      onMaterialPresetChange: applyMaterialPreset,
-      onAdvancedMaterialOpenChange: setIsAdvancedMaterialOpen,
-      onMaterialSettingChange: updateMaterialSetting,
-      extrusionRef: inspectorRefs.extrusion,
-      selectedMotionTrackId,
-      extrusionTrack,
-      activeExtrusionDepth,
-      extrusionDepth,
-      activeGeometryQuality,
-      bevelEnabled,
-      bevelThickness,
-      bevelSize,
-      bevelSegments,
-      onDepthChange: handleDepthChange,
-      onBevelEnabledChange: setBevelEnabled,
-      onBevelThicknessChange: setBevelThickness,
-      onBevelSizeChange: setBevelSize,
-      onBevelSegmentsChange: setBevelSegments,
-      onQualityChange: updateQuality,
-      onCustomEdit: markCustom,
-      scaleRef: inspectorRefs.scale,
-      rotationRef: inspectorRefs.rotation,
-      moveRef: inspectorRefs.move,
-      objectScale,
-      objectScaleAxes,
-      isScaleLocked,
-      rotationOffset: activeRotationOffset,
-      moveKeyframesLength: moveKeyframes.length,
-      selectedShapeLayers,
-      selectedLayerId,
-      selectedLayerOverride,
-      hiddenLayerIds,
-      shapeNavigation,
-      onScaleLockChange: setIsScaleLocked,
-      onScaleChange: handleScaleChange,
-      onScaleAxisChange: handleScaleAxisChange,
-      onRotationAxisChange: handleRotationAxisChange,
-      onMoveAxisChange: updateMoveAxis,
-      onSelectLayer: setSelectedLayerId,
-      onToggleLayerVisibility: toggleSelectedLayerVisibility,
-      onLayerScaleChange: updateSelectedLayerScale,
-      onLayerDepthChange: updateSelectedLayerDepth,
-      lightingRef: inspectorRefs.lighting,
-      lightingTrack,
-      activeKeyLightIntensity,
-      keyLightIntensity,
-      activeKeyLightPosition,
-      keyLightColor,
-      keyLightSoftness,
-      lightPositionIsKeyed: Boolean(lightPositionKeyframeAtPlayhead()),
-      onLightPositionChange: updateLightPositionXY,
-      onLightColorChange: setKeyLightColor,
-      onLightSoftnessChange: setKeyLightSoftness,
-      onToggleLightPositionKeyframe: toggleLightPositionKeyframeAtPlayhead,
-      onBrightnessChange: handleBrightnessChange,
+      stopPlayback,
+      canvas3DRef,
+      selection,
+      transform,
+      advancedMaterial,
+      togglePropertyKeyframe: timeline.togglePropertyKeyframe,
     })
 
-  const toggleInspectorPropertyKeyframe = (
-    rowId: string,
-    keyframes: Array<{ id: string; time: number }>
-  ) => {
-    stopPlayback()
-    timelineProps.onTogglePropertyKeyframe?.(
-      rowId,
-      findKeyframeAtTime(keyframes, currentTime)?.id
-    )
-  }
+  const applyAnimationPreset: AppLayoutViewProps["animationProps"]["onApply"] =
+    (id, seconds, intensity) => {
+      stopPlayback()
+      cancelAnimatedSeek()
+      const presetDuration = clampTimelineDuration(seconds)
+      timeline.timelineProps.onDurationChange(presetDuration)
+      const current = store.get()
+      const { scaleTrack } = scalarTimelineTracks(current.tracks)
+      const result = createAnimationPreset({
+        id,
+        duration: presetDuration,
+        intensity,
+        rotation:
+          current.rotationAxisKeyframes[0]?.value ?? current.rotationOffset,
+        scale: scaleTrack.keyframes[0]?.value ?? current.objectScale,
+        scaleTrack,
+      })
+      store.patch({
+        activeRecipeId: null,
+        ...(result.rotationKeyframes && {
+          rotationAxisKeyframes: result.rotationKeyframes,
+        }),
+        ...(result.scaleTrack && {
+          tracks: current.tracks.map((track) =>
+            track.id === "scale" ? result.scaleTrack! : track
+          ),
+        }),
+      })
+      setCurrentTime(0)
+      transform.setPreviewRotationOffset(null)
+    }
+
+  const {
+    projectStatus,
+    projectStatusMessage,
+    newProjectDialogOpen,
+    setNewProjectDialogOpen,
+    createNewProject,
+  } = projectFiles
 
   return {
-    onCreateStarter: (starterId, name, svgContent) => {
-      if (!createNewProject("blank", name, starterId, svgContent)) return false
-      return true
-    },
+    onCreateStarter: (starterId, name, svgContent) =>
+      createNewProject("blank", name, starterId, svgContent),
     animationProps: {
       duration,
       existingKeyframes: {
-        Rotation: rotationAxisKeyframes.length,
-        Scale: scaleTrack.keyframes.length,
+        Rotation: document.rotationAxisKeyframes.length,
+        Scale: render.scalarTracks.scaleTrack.keyframes.length,
       },
-      onApply: (id, seconds, intensity) => {
-        stopPlayback()
-        cancelAnimatedSeek()
-        const presetDuration = clampTimelineDuration(seconds)
-        const result = createAnimationPreset({
-          id,
-          duration: presetDuration,
-          intensity,
-          rotation: rotationAxisKeyframes[0]?.value ?? rotationOffset,
-          scale: scaleTrack.keyframes[0]?.value ?? objectScale,
-          scaleTrack,
-        })
-        timelineProps.onDurationChange(presetDuration)
-        if (result.rotationKeyframes)
-          setRotationAxisKeyframes(result.rotationKeyframes)
-        if (result.scaleTrack)
-          setTracks((previous) =>
-            previous.map((track) =>
-              track.id === "scale" ? result.scaleTrack! : track
-            )
-          )
-        setCurrentTime(0)
-        setPreviewRotationOffset(null)
-        markCustom()
-      },
+      onApply: applyAnimationPreset,
     },
     keyframeNotice,
     topBarProps: {
-      zenMode,
-      themeMounted,
-      isLightTheme,
-      themeToggleLabel,
-      onZenModeChange: setZenMode,
-      onThemeChange: setTheme,
-      onProjectNew: newProject,
-      onProjectOpen: openProjectFile,
-      onProjectSave: saveProjectFile,
+      zenMode: viewport.zenMode,
+      themeMounted: theme.themeMounted,
+      isLightTheme: theme.isLightTheme,
+      themeToggleLabel: theme.themeToggleLabel,
+      onZenModeChange: viewport.setZenMode,
+      onThemeChange: theme.setTheme,
+      onProjectNew: projectFiles.newProject,
+      onProjectOpen: projectFiles.openProjectFile,
+      onProjectSave: projectFiles.saveProjectFile,
       projectStatus,
       projectStatusMessage,
       projectName: project.name,
-      onProjectNameChange: renameProject,
-      onUndo: undo,
-      onRedo: redo,
-      canUndo,
-      canRedo,
+      onProjectNameChange: projectFiles.renameProject,
+      onUndo: historyActions.undo,
+      onRedo: historyActions.redo,
+      canUndo: historyActions.canUndo,
+      canRedo: historyActions.canRedo,
       onExportOpen: creationJourney.openExport,
     },
     viewportProps: {
-      zenMode,
-      isDragging,
-      onDragStateChange: setIsDragging,
-      onDropSvg: handleDropSvg,
-      svgImportError,
-      onSvgImportErrorDismiss: clearSvgImportError,
+      zenMode: viewport.zenMode,
+      isDragging: viewport.isDragging,
+      onDragStateChange: viewport.setIsDragging,
+      onDropSvg: exportSurface.handleDropSvg,
+      svgImportError: exportSurface.svgImportError,
+      onSvgImportErrorDismiss: exportSurface.clearSvgImportError,
       canvasProps,
+      canvasSource,
       viewOptionsProps,
       playbackProps,
       creationJourney,
     },
     inspectorProps: {
-      activeTab: inspectorTab,
-      onTabChange: setInspectorTab,
-      editScopeProps: {
-        currentTime,
-        properties: [
-          {
-            name: "Rotation",
-            times: rotationAxisKeyframes.map((k) => k.time),
-            onToggle: () => {
-              canvas3DRef.current?.commitRotationEdit()
-              toggleInspectorPropertyKeyframe("rotation", rotationAxisKeyframes)
-            },
-          },
-          {
-            name: "Position",
-            times: moveKeyframes.map((k) => k.time),
-            onToggle: () =>
-              toggleInspectorPropertyKeyframe("move", moveKeyframes),
-          },
-          {
-            name: "Fill",
-            times: fillKeyframes.map((k) => k.time),
-            onToggle: () =>
-              toggleInspectorPropertyKeyframe("fill", fillKeyframes),
-          },
-          {
-            name: "Finish",
-            times: materialKeyframes.map((k) => k.time),
-            onToggle: () =>
-              toggleInspectorPropertyKeyframe("material", materialKeyframes),
-          },
-          {
-            name: "Quality",
-            times: qualityKeyframes.map((k) => k.time),
-            onToggle: () => {
-              stopPlayback()
-              markCustom()
-              const time = normalizedPlayheadTime(currentTime, duration)
-              setQualityKeyframes((keyframes) =>
-                findKeyframeAtTime(keyframes, time)
-                  ? removeKeyframesAtTime(keyframes, time)
-                  : addKeyframeAtTime({
-                      keyframes,
-                      time,
-                      create: (easing) => ({
-                        id: createEditorId("quality"),
-                        time,
-                        value: activeGeometryQuality,
-                        easing,
-                      }),
-                    })
-              )
-            },
-          },
-          {
-            name: "Light direction",
-            times: keyLightPositionKeyframes.map((k) => k.time),
-            onToggle: () => {
-              stopPlayback()
-              toggleLightPositionKeyframeAtPlayhead()
-            },
-          },
-          ...tracks
-            .filter((t) => t.id !== "rotation" && t.id !== "transition")
-            .map((t) => ({
-              name: t.name,
-              times: t.keyframes.map((k) => k.time),
-              onToggle: () => {
-                stopPlayback()
-                markCustom()
-                const value =
-                  t.id === "scale"
-                    ? activeObjectScale
-                    : t.id === "extrusion"
-                      ? activeExtrusionDepth
-                      : activeKeyLightIntensity
-                setTracks((prev) =>
-                  toggleScalarTrackKeyframeAtTime({
-                    tracks: prev,
-                    trackId: t.id,
-                    value,
-                    time: currentTime,
-                    duration,
-                  })
-                )
-              },
-            })),
-        ],
-      },
-      zenMode,
-      styleProps,
-      geometryProps,
-      transformProps,
-      lightProps,
+      activeTab: selection.inspectorTab,
+      onTabChange: selection.setInspectorTab,
+      zenMode: viewport.zenMode,
+      ...inspectorAt(currentTime),
+      playhead: { clock, isPlaying, propsAt: inspectorAt },
     },
     timelineProps: {
-      zenMode,
+      zenMode: viewport.zenMode,
       timelineProps: {
-        ...timelineProps,
+        ...timeline.timelineProps,
         motionRecipes: MOTION_RECIPES,
-        activeRecipeId,
-        onApplyMotionRecipe: applyRecipeFromGuide,
+        activeRecipeId: document.activeRecipeId,
+        onApplyMotionRecipe: (recipe: MotionRecipe) => applyRecipe(recipe),
       },
     },
-    exportModalProps,
+    exportModalProps: exportSurface.exportModalProps,
     newProjectDialogProps: {
       open: newProjectDialogOpen,
       currentProjectId: project.id,
-      recentProjects,
+      recentProjects: projectFiles.recentProjects,
       onOpenChange: setNewProjectDialogOpen,
       onCreate: createNewProject,
-      actionError: projectActionError,
-      onOpenRecent: openRecentProject,
-      onDuplicateRecent: duplicateRecentProject,
-      onDeleteRecent: deleteRecentProject,
-      onDownloadCurrent: saveProjectFile,
-      onImportFile: openProjectFile,
+      actionError: projectFiles.projectActionError,
+      onOpenRecent: projectFiles.openRecentProject,
+      onDuplicateRecent: projectFiles.duplicateRecentProject,
+      onDeleteRecent: projectFiles.deleteRecentProject,
+      onDownloadCurrent: projectFiles.saveProjectFile,
+      onImportFile: projectFiles.openProjectFile,
     },
-    uploadFileRef,
+    uploadFileRef: exportSurface.uploadFileRef,
     canvas3DRef,
-    onUploadInputChange: handleUploadInputChange,
+    onUploadInputChange: exportSurface.handleUploadInputChange,
   }
 }

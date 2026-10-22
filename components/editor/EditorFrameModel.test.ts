@@ -1,5 +1,5 @@
 import { expect, it } from "vitest"
-import { videoFrameSchedule } from "./ExportFrameModel"
+import { videoFrameSchedule } from "./EditorFrameModel"
 import { validateEncodedVideo } from "./VideoEncoder"
 
 it.each([24, 30, 60])(

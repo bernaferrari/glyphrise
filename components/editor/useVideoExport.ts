@@ -8,7 +8,7 @@ import { encodeTimelineVideo } from "./VideoEncoder"
 export const useVideoExport = ({
   canvasRef,
   duration,
-  currentTime,
+  getCurrentTime,
   isPlaying,
   loop,
   setLoop,
@@ -17,7 +17,7 @@ export const useVideoExport = ({
 }: {
   canvasRef: RefObject<SvgCanvasRef | null>
   duration: number
-  currentTime: number
+  getCurrentTime: () => number
   isPlaying: boolean
   loop: boolean
   setLoop: (loop: boolean) => void
@@ -57,7 +57,7 @@ export const useVideoExport = ({
       const controller = new AbortController()
       activeRef.current = controller
       pendingRef.current = () => {}
-      const playback = { currentTime, isPlaying, loop }
+      const playback = { currentTime: getCurrentTime(), isPlaying, loop }
       let prepared = false
       flushSync(() => {
         setIsPlaying(false)
@@ -100,8 +100,8 @@ export const useVideoExport = ({
     },
     [
       canvasRef,
-      currentTime,
       duration,
+      getCurrentTime,
       isPlaying,
       loop,
       setCurrentTime,

@@ -8,9 +8,11 @@ import { validateAndSanitizeSvg } from "./SvgImportModel"
 import { isMaterialPresetId } from "../3d/MaterialPresets"
 import { isEasingType } from "./TimelineModel"
 
-export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v2"
-export const EDITOR_RECENT_PROJECTS_KEY = "glyphrise.editor.recent-projects.v2"
-export const EDITOR_PROJECT_KEY_PREFIX = "glyphrise.editor.project.v2."
+/** Unreleased format: bump and break rather than migrate until people rely on it. */
+export const EDITOR_DOCUMENT_VERSION = 1
+export const EDITOR_CURRENT_PROJECT_KEY = "glyphrise.editor.current-project.v1"
+export const EDITOR_RECENT_PROJECTS_KEY = "glyphrise.editor.recent-projects.v1"
+export const EDITOR_PROJECT_KEY_PREFIX = "glyphrise.editor.project.v1."
 export const MAX_PROJECT_FILE_BYTES = 5_000_000
 
 export type EditorProjectMetadata = {
@@ -21,7 +23,7 @@ export type EditorProjectMetadata = {
 }
 
 export type EditorDocumentFile = {
-  version: 2
+  version: typeof EDITOR_DOCUMENT_VERSION
   savedAt: string
   project: EditorProjectMetadata
   snapshot: EditorSnapshot
@@ -291,7 +293,8 @@ export const createProjectMetadata = (
 export const parseEditorDocument = (
   value: unknown
 ): ParsedEditorDocument | null => {
-  if (!isObjectRecord(value) || value.version !== 2) return null
+  if (!isObjectRecord(value) || value.version !== EDITOR_DOCUMENT_VERSION)
+    return null
   if (!isProjectMetadata(value.project)) return null
   return isPersistedEditorSnapshot(value.snapshot)
     ? {
@@ -437,17 +440,13 @@ export const readPersistedEditorDocument = (
   return null
 }
 
-export const readPersistedEditorSnapshot = (
-  store: EditorProjectStore = defaultProjectStore()
-) => readPersistedEditorDocument(store)?.snapshot ?? null
-
 export const createEditorDocumentFile = (
   snapshot: EditorSnapshot,
   project: EditorProjectMetadata
 ): EditorDocumentFile => {
   const savedAt = new Date().toISOString()
   return {
-    version: 2,
+    version: EDITOR_DOCUMENT_VERSION,
     savedAt,
     project: {
       ...project,
@@ -467,18 +466,6 @@ export const writePersistedEditorDocument = (
   writeEditorProjectIndex(documentFile.project, store)
   writeCurrentEditorProjectId(project.id, store)
   return documentFile.project
-}
-
-export const writePersistedEditorSnapshot = (
-  snapshot: EditorSnapshot,
-  store: EditorProjectStore = defaultProjectStore()
-) => {
-  const current = readPersistedEditorDocument(store)
-  return writePersistedEditorDocument(
-    snapshot,
-    current?.project ?? createProjectMetadata(),
-    store
-  )
 }
 
 const projectFilename = (project: EditorProjectMetadata, savedAt: string) => {

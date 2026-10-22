@@ -6,8 +6,6 @@ export const SAVED_PROJECT_ROW_ACTIONS = [
   "delete",
 ] as const
 
-export type SavedProjectRowAction = (typeof SAVED_PROJECT_ROW_ACTIONS)[number]
-
 export const filterSavedProjects = (
   projects: EditorProjectMetadata[],
   query: string

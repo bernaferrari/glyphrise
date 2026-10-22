@@ -280,7 +280,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   await page.getByLabel("New file name").fill("Disposable")
   await page.getByRole("button", { name: "Start blank", exact: true }).click()
   const deletedId = await page.evaluate(() =>
-    localStorage.getItem("glyphrise.editor.current-project.v2")
+    localStorage.getItem("glyphrise.editor.current-project.v1")
   )
   await page
     .getByRole("button", { name: "Open file menu", exact: true })
@@ -292,7 +292,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   await page.evaluate((deletedId) => {
     const remove = Storage.prototype.removeItem
     Storage.prototype.removeItem = function (key) {
-      if (key === `glyphrise.editor.project.v2.${deletedId}`)
+      if (key === `glyphrise.editor.project.v1.${deletedId}`)
         throw new Error("Injected cleanup failure")
       return remove.call(this, key)
     }
@@ -316,7 +316,7 @@ test("reports incomplete deletion and repairs it on reload without resurrecting 
   expect(
     await page.evaluate(
       (deletedId) =>
-        localStorage.getItem(`glyphrise.editor.project.v2.${deletedId}`),
+        localStorage.getItem(`glyphrise.editor.project.v1.${deletedId}`),
       deletedId
     )
   ).toBeNull()

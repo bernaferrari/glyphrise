@@ -1,60 +1,78 @@
 "use client"
 
+import { useState, useSyncExternalStore } from "react"
+import {
+  createEditorDocumentStore,
+  type EditorDocumentStore,
+} from "./EditorDocumentStore"
+import type { LightPosition, MotionTrackId } from "./EditorModel"
+import { createDefaultEditorSnapshot } from "./EditorProjectModel"
 import { useEditorPlaybackState } from "./useEditorPlaybackState"
-import { useEditorSelectionNavigation } from "./useEditorSelectionNavigation"
-import { useFillEditor } from "./useFillEditor"
-import { useGeometryEditor } from "./useGeometryEditor"
-import { useLightEditor } from "./useLightEditor"
-import { useMaterialEditor } from "./useMaterialEditor"
+import { useInspectorNavigation } from "./useInspectorNavigation"
 import { useShapeSequenceEditor } from "./useShapeSequenceEditor"
 import { useThemeControls } from "./useThemeControls"
-import { useTimelineTracks } from "./useTimelineTracks"
-import { useTransformEditor } from "./useTransformEditor"
 import { useViewportOptions } from "./useViewportOptions"
 
+export const useEditorDocument = (store: EditorDocumentStore) =>
+  useSyncExternalStore(store.subscribe, store.get, store.get)
+
+/**
+ * The editor's state: the document (one store) plus the session around it —
+ * playhead, selection, open panels and view options, none of which is saved.
+ */
 export function useEditorBaseState() {
+  const [store] = useState(() =>
+    createEditorDocumentStore(createDefaultEditorSnapshot())
+  )
+  const document = useEditorDocument(store)
   const theme = useThemeControls()
-  const playback = useEditorPlaybackState()
+  const playback = useEditorPlaybackState({
+    store,
+    duration: document.duration,
+  })
   const shapes = useShapeSequenceEditor({
-    currentTime: playback.currentTime,
-    duration: playback.duration,
+    store,
+    shapes: document.shapes,
+    activeRecipeId: document.activeRecipeId,
+    duration: document.duration,
+    getCurrentTime: playback.clock.get,
   })
-  const geometry = useGeometryEditor()
-  const transform = useTransformEditor()
-  const fill = useFillEditor({
-    currentTime: playback.currentTime,
-    duration: playback.duration,
-    onEdit: shapes.markCustom,
-  })
+  const [isAdvancedMaterialOpen, setIsAdvancedMaterialOpen] = useState(false)
   const viewport = useViewportOptions()
-  const material = useMaterialEditor({
-    currentTime: playback.currentTime,
-    duration: playback.duration,
-    onEdit: shapes.markCustom,
-  })
-  const light = useLightEditor({
-    currentTime: playback.currentTime,
-    duration: playback.duration,
-    onEdit: shapes.markCustom,
-  })
-  const selection = useEditorSelectionNavigation({
-    setAdvancedMaterialOpen: material.setIsAdvancedMaterialOpen,
+  const [selectedMotionTrackId, setSelectedMotionTrackId] =
+    useState<MotionTrackId>("rotation")
+  const navigation = useInspectorNavigation({
+    setAdvancedMaterialOpen: setIsAdvancedMaterialOpen,
+    setSelectedMotionTrackId,
     setSelectedShapeId: shapes.setSelectedShapeId,
   })
-  const timelineTracks = useTimelineTracks()
+  // A canvas drag previews rotation here; it reaches the document on release.
+  const [previewRotationOffset, setPreviewRotationOffset] =
+    useState<LightPosition | null>(null)
+  const [isScaleLocked, setIsScaleLocked] = useState(true)
 
   return {
+    store,
+    document,
     theme,
     playback,
     shapes,
-    geometry,
-    transform,
-    fill,
+    advancedMaterial: {
+      open: isAdvancedMaterialOpen,
+      setOpen: setIsAdvancedMaterialOpen,
+    },
     viewport,
-    material,
-    light,
-    selection,
-    timelineTracks,
+    selection: {
+      ...navigation,
+      selectedMotionTrackId,
+      setSelectedMotionTrackId,
+    },
+    transform: {
+      previewRotationOffset,
+      setPreviewRotationOffset,
+      isScaleLocked,
+      setIsScaleLocked,
+    },
   }
 }
 

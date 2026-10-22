@@ -7,12 +7,12 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react"
+import type { EditorDocumentStore } from "./EditorDocumentStore"
 import type { PresetIcon } from "./IconLibrary"
 import type { ShapeStop } from "./TimelineModel"
 import {
   addShapeStopAtTime,
   applyShapeWipePair,
-  createDefaultShapeSequence,
   removeShapeStopById,
   replaceShapeIcon,
 } from "./ShapeSequenceModel"
@@ -20,26 +20,26 @@ import {
 import {
   createAddIconPickerTarget,
   isAddIconPickerTarget,
-} from "./ShapePickerTarget"
+} from "./ShapeSequenceModel"
 
 type ShapeSequenceEditorOptions = {
-  currentTime: number
+  store: EditorDocumentStore
+  shapes: ShapeStop[]
+  activeRecipeId: string | null
   duration: number
+  /** Where the playhead is now, even mid-playback. */
+  getCurrentTime: () => number
 }
 
 export function useShapeSequenceEditor({
-  currentTime,
+  store,
+  shapes,
+  activeRecipeId,
   duration,
+  getCurrentTime,
 }: ShapeSequenceEditorOptions) {
-  const initialShapesRef = useRef<ShapeStop[] | null>(null)
-  if (!initialShapesRef.current) {
-    initialShapesRef.current = createDefaultShapeSequence()
-  }
-  const [shapes, setShapes] = useState<ShapeStop[]>(
-    () => initialShapesRef.current ?? []
-  )
   const [selectedShapeId, setSelectedShapeId] = useState<string | null>(
-    () => initialShapesRef.current?.[0]?.id ?? null
+    () => store.get().shapes[0]?.id ?? null
   )
   const [openShapePicker, setOpenShapePickerRaw] = useState<string | null>(null)
   const pickerIdRef = useRef<string | null>(null)
@@ -51,49 +51,57 @@ export function useShapeSequenceEditor({
       pickerIdRef.current = id
       setOpenShapePickerRaw(id)
     }, [])
-  const [activeRecipeId, setActiveRecipeId] = useState<string | null>(null)
 
-  const markCustom = useCallback(() => setActiveRecipeId(null), [])
+  const setShapes = useCallback(
+    (action: SetStateAction<ShapeStop[]>) => store.set("shapes", action),
+    [store]
+  )
+  const setActiveRecipeId = useCallback(
+    (action: SetStateAction<string | null>) =>
+      store.set("activeRecipeId", action),
+    [store]
+  )
+  const markCustom = useCallback(
+    () => store.set("activeRecipeId", null),
+    [store]
+  )
 
   const commitIconSelection = useCallback(
     (shapeId: string, icon: PresetIcon, disabled?: PresetIcon) => {
       const adding = isAddIconPickerTarget(shapeId)
       // A canceled asynchronous symbol/file import must not insert later.
       if (adding && pickerIdRef.current !== shapeId) return
-      const insertionTime = addTimeRef.current
-      setShapes((prev) => {
-        let next = prev
-        let selectedId = shapeId
-        if (adding) {
-          const result = addShapeStopAtTime({
-            shapes: prev,
-            time: insertionTime,
-            duration,
-            icon,
-          })
-          if (!result.addedShapeId) return prev
-          next = result.shapes
-          selectedId = result.addedShapeId
-        } else {
-          // The target may have been deleted while a symbol was loading.
-          if (!prev.some((shape) => shape.id === shapeId)) return prev
-          next = replaceShapeIcon(prev, shapeId, icon)
-        }
-        if (disabled)
-          next = applyShapeWipePair({
-            shapes: next,
-            shapeId: selectedId,
-            enabled: icon,
-            disabled,
-            duration,
-          })
-        markCustom()
-        setSelectedShapeId(selectedId)
-        return next
-      })
+      const previous = store.get().shapes
+      let next = previous
+      let selectedId = shapeId
+      if (adding) {
+        const result = addShapeStopAtTime({
+          shapes: previous,
+          time: addTimeRef.current,
+          duration,
+          icon,
+        })
+        if (!result.addedShapeId) return
+        next = result.shapes
+        selectedId = result.addedShapeId
+      } else {
+        // The target may have been deleted while a symbol was loading.
+        if (!previous.some((shape) => shape.id === shapeId)) return
+        next = replaceShapeIcon(previous, shapeId, icon)
+      }
+      if (disabled)
+        next = applyShapeWipePair({
+          shapes: next,
+          shapeId: selectedId,
+          enabled: icon,
+          disabled,
+          duration,
+        })
+      store.patch({ shapes: next, activeRecipeId: null })
+      setSelectedShapeId(selectedId)
       if (pickerIdRef.current === shapeId) setOpenShapePicker(null)
     },
-    [duration, markCustom, setOpenShapePicker]
+    [duration, setOpenShapePicker, store]
   )
   const setShapeIcon = useCallback(
     (shapeId: string, icon: PresetIcon) => commitIconSelection(shapeId, icon),
@@ -106,22 +114,23 @@ export function useShapeSequenceEditor({
   )
 
   const addShapeAtPlayhead = useCallback(() => {
-    addTimeRef.current = currentTime
+    addTimeRef.current = getCurrentTime()
     setOpenShapePicker(createAddIconPickerTarget())
-  }, [currentTime, setOpenShapePicker])
+  }, [getCurrentTime, setOpenShapePicker])
 
   const removeShape = useCallback(
     (shapeId: string) => {
-      setShapes((prev) => {
-        const result = removeShapeStopById(prev, shapeId, selectedShapeId)
-        if (!result.removed) return prev
-        markCustom()
-        setOpenShapePicker(null)
-        setSelectedShapeId(result.selectedShapeId)
-        return result.shapes
-      })
+      const result = removeShapeStopById(
+        store.get().shapes,
+        shapeId,
+        selectedShapeId
+      )
+      if (!result.removed) return
+      store.patch({ shapes: result.shapes, activeRecipeId: null })
+      setOpenShapePicker(null)
+      setSelectedShapeId(result.selectedShapeId)
     },
-    [markCustom, selectedShapeId]
+    [selectedShapeId, setOpenShapePicker, store]
   )
 
   return {

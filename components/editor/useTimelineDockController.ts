@@ -1,18 +1,21 @@
-import React, { useMemo } from "react"
+"use client"
+
+import { useMemo, type SetStateAction } from "react"
+import type { EditorDocumentStore } from "./EditorDocumentStore"
 import {
-  LightPosition,
-  MaterialKeyframe,
-  MaterialSettings,
-  ScalarKeyframe,
-  Vector3Keyframe,
+  type EditorSnapshot,
+  type MotionTrackId,
   clampNumber,
   quantizeTimeToFrame,
 } from "./EditorModel"
+import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
+import { PRESET_ICONS } from "./IconLibrary"
+import { mapDocumentKeyframes } from "./KeyframeChannelModel"
+import type { PlaybackClock } from "./PlaybackClock"
 import {
   createTimelineKeyMoments,
   getAdjacentTimelineKeyMoments,
 } from "./TimelineNavigationModel"
-import { clearTrackKeyframes } from "./TimelineDockKeyframeModel"
 import {
   addPropertyRowKeyframe,
   clearPropertyRowKeyframes,
@@ -20,384 +23,243 @@ import {
   movePropertyRowKeyframe,
   removePropertyRowKeyframe,
   setPropertyRowKeyframeEasing,
+  type TimelinePropertyKeyframeValues,
 } from "./TimelinePropertyKeyframeModel"
-import type { TimelinePropertyKeyframeSetters } from "./TimelinePropertyKeyframeModel"
 import { createTimelinePropertyRows } from "./TimelinePropertyRowsModel"
-import {
-  closeTimelineLoops,
-  openLoopIds,
-  type TimelineLoopState,
-} from "./TimelineLoopModel"
-import { KEYFRAME_TIME_EPSILON } from "./EditorKeyframeModel"
+import { closeTimelineLoops, openLoopIds } from "./TimelineLoopModel"
 import {
   clampTimelineDuration,
+  scaleKeyframeTimes,
   scaleShapeStopTimes,
-  scaleTimelineKeyframeState,
   scaleTimelineTime,
-  scaleTimelineTrackTimes,
 } from "./TimelineDurationModel"
-import type {
-  EasingType,
-  FillKeyframe,
-  ShapeStop,
-  TimelineTrack,
-} from "./TimelineModel"
+import type { EasingType, ShapeStop, TimelineTrack } from "./TimelineModel"
+import { TIMELINE_WIPE_DIRECTIONS } from "./timeline/TimelineWipeDirections"
+import type { ShapeOption, TimelineProps } from "./timeline/TimelineTypes"
 
+type TimelineDockControllerOptions = {
+  store: EditorDocumentStore
+  document: EditorSnapshot
+  playback: {
+    currentTime: number
+    clock: PlaybackClock
+    setCurrentTime: (time: number) => void
+    seekToTime: (time: number, options?: { animated?: boolean }) => void
+    cancelAnimatedSeek: () => void
+    stopPlayback: () => void
+    isPlaying: boolean
+    isPreviewModelReady: boolean
+    loop: boolean
+    setLoop: (loop: boolean) => void
+  }
+  selection: {
+    selectedMotionTrackId: MotionTrackId
+    selectTimelineTrack: (trackId: string) => void
+    selectTimelinePropertyRow: (rowId: string) => void
+  }
+  shapes: {
+    sortedShapes: ShapeStop[]
+    selectedShapeId: string | null
+    setSelectedShapeId: (id: string | null) => void
+    openShapePicker: string | null
+    setOpenShapePicker: (id: string | null) => void
+    setShapeIcon: (id: string, option: ShapeOption) => void
+    setShapeWipePair: (
+      id: string,
+      enabled: ShapeOption,
+      disabled: ShapeOption
+    ) => void
+    addShapeAtPlayhead: () => void
+    removeShape: (id: string) => void
+    triggerShapeUpload: (id: string) => void
+  }
+  /** Values new keyframes capture: what the inspector shows at the playhead. */
+  activeValuesAt: (
+    time: number
+  ) => Omit<TimelinePropertyKeyframeValues, "duration">
+}
+
+/** The timeline dock: every keyframe, clip and duration edit it can make. */
 export function useTimelineDockController({
-  currentTime,
-  seekToTime,
-  duration,
-  setDuration,
-  tracks,
-  setTracks,
-  sortedShapes,
-  setShapes,
-  fillKeyframes,
-  setFillKeyframes,
-  materialKeyframes,
-  setMaterialKeyframes,
-  keyLightPositionKeyframes,
-  setKeyLightPositionKeyframes,
-  rotationAxisKeyframes,
-  setRotationAxisKeyframes,
-  moveKeyframes,
-  setMoveKeyframes,
-  qualityKeyframes,
-  setQualityKeyframes,
-  innerScaleKeyframes,
-  setInnerScaleKeyframes,
-  selectedShapeFillStops,
-  selectedShapeGradientType,
-  activeMaterialSettings,
-  activeKeyLightPosition,
-  activeRotationOffset,
-  activeMoveOffset,
-  markCustom,
-}: {
-  currentTime: number
-  seekToTime: (time: number, options?: { animated?: boolean }) => void
-  duration: number
-  setDuration: React.Dispatch<React.SetStateAction<number>>
-  tracks: TimelineTrack[]
-  setTracks: React.Dispatch<React.SetStateAction<TimelineTrack[]>>
-  sortedShapes: ShapeStop[]
-  setShapes: React.Dispatch<React.SetStateAction<ShapeStop[]>>
-  fillKeyframes: FillKeyframe[]
-  setFillKeyframes: React.Dispatch<React.SetStateAction<FillKeyframe[]>>
-  materialKeyframes: MaterialKeyframe[]
-  setMaterialKeyframes: React.Dispatch<React.SetStateAction<MaterialKeyframe[]>>
-  keyLightPositionKeyframes: Vector3Keyframe[]
-  setKeyLightPositionKeyframes: React.Dispatch<
-    React.SetStateAction<Vector3Keyframe[]>
-  >
-  rotationAxisKeyframes: Vector3Keyframe[]
-  setRotationAxisKeyframes: React.Dispatch<
-    React.SetStateAction<Vector3Keyframe[]>
-  >
-  moveKeyframes: Vector3Keyframe[]
-  setMoveKeyframes: React.Dispatch<React.SetStateAction<Vector3Keyframe[]>>
-  qualityKeyframes: ScalarKeyframe[]
-  setQualityKeyframes: React.Dispatch<React.SetStateAction<ScalarKeyframe[]>>
-  innerScaleKeyframes: Vector3Keyframe[]
-  setInnerScaleKeyframes: React.Dispatch<
-    React.SetStateAction<Vector3Keyframe[]>
-  >
-  selectedShapeFillStops: FillKeyframe["stops"]
-  selectedShapeGradientType: FillKeyframe["gradientType"]
-  activeMaterialSettings: MaterialSettings
-  activeKeyLightPosition: LightPosition
-  activeRotationOffset: LightPosition
-  activeMoveOffset: LightPosition
-  markCustom: () => void
-}) {
-  const timelineKeyMoments = useMemo(
-    () =>
-      createTimelineKeyMoments({
-        duration,
-        shapes: sortedShapes,
-        fillKeyframes,
-        tracks,
-        rotationAxisKeyframes,
-        moveKeyframes,
-        keyLightPositionKeyframes,
-        materialKeyframes,
-      }),
-    [
-      duration,
-      sortedShapes,
-      fillKeyframes,
-      tracks,
-      rotationAxisKeyframes,
-      moveKeyframes,
-      keyLightPositionKeyframes,
-      materialKeyframes,
-    ]
-  )
+  store,
+  document,
+  playback,
+  selection,
+  shapes,
+  activeValuesAt,
+}: TimelineDockControllerOptions) {
+  const { duration, tracks } = document
+  const { currentTime, clock, seekToTime } = playback
 
-  const timelinePropertyRows = useMemo(
-    () =>
-      createTimelinePropertyRows({
-        fillKeyframes,
-        materialKeyframes,
-        keyLightPositionKeyframes,
-        rotationAxisKeyframes,
-        moveKeyframes,
-        duration,
-      }),
-    [
-      fillKeyframes,
-      materialKeyframes,
-      keyLightPositionKeyframes,
-      rotationAxisKeyframes,
-      moveKeyframes,
-      duration,
-    ]
-  )
+  /** A timeline edit, applied as one document change that leaves the recipe. */
+  const edit = (patch: (current: EditorSnapshot) => Partial<EditorSnapshot>) =>
+    store.patch({ ...patch(store.get()), activeRecipeId: null })
 
+  const keyMoments = useMemo(
+    () =>
+      createTimelineKeyMoments({ ...document, shapes: shapes.sortedShapes }),
+    [document, shapes.sortedShapes]
+  )
   const { previousKeyMoment, nextKeyMoment } = getAdjacentTimelineKeyMoments({
-    keyMoments: timelineKeyMoments,
+    keyMoments,
     currentTime,
   })
+  // During playback `currentTime` is where it started; jump from the frame shown.
+  const adjacentKeyMoments = () =>
+    getAdjacentTimelineKeyMoments({ keyMoments, currentTime: clock.get() })
 
-  const propertyKeyframeSetters = useMemo<TimelinePropertyKeyframeSetters>(
-    () => ({
-      setFillKeyframes,
-      setMaterialKeyframes,
-      setKeyLightPositionKeyframes,
-      setRotationAxisKeyframes,
-      setMoveKeyframes,
-      setQualityKeyframes,
-    }),
-    [
-      setFillKeyframes,
-      setMaterialKeyframes,
-      setKeyLightPositionKeyframes,
-      setRotationAxisKeyframes,
-      setMoveKeyframes,
-      setQualityKeyframes,
-    ]
+  const propertyRows = useMemo(
+    () => createTimelinePropertyRows(document),
+    [document]
   )
+  const openLoops = useMemo(() => openLoopIds(document), [document])
 
   const goToTime = (time: number) => {
     seekToTime(quantizeTimeToFrame(clampNumber(time, 0, duration)))
   }
+  const frameTime = (time: number) =>
+    quantizeTimeToFrame(clampNumber(time, 0, duration))
 
-  const handleDurationChange = (value: number) => {
+  const changeDuration = (value: number) => {
     const nextDuration = clampTimelineDuration(value)
     if (Math.abs(nextDuration - duration) < 0.001) return
-
     const ratio = nextDuration / duration
-    setDuration(nextDuration)
-    setShapes((prev) => scaleShapeStopTimes(prev, ratio, nextDuration))
-    setTracks((prev) => scaleTimelineTrackTimes(prev, ratio, nextDuration))
-    scaleTimelineKeyframeState({
-      ratio,
+    edit((current) => ({
       duration: nextDuration,
-      setters: {
-        setFillKeyframes,
-        setMaterialKeyframes,
-        setKeyLightPositionKeyframes,
-        setRotationAxisKeyframes,
-        setMoveKeyframes,
-        setQualityKeyframes,
-        setInnerScaleKeyframes,
-      },
-    })
-    seekToTime(
-      scaleTimelineTime({ time: currentTime, ratio, duration: nextDuration }),
-      { animated: false }
+      shapes: scaleShapeStopTimes(current.shapes, ratio, nextDuration),
+      ...mapDocumentKeyframes(current, (keyframes) =>
+        scaleKeyframeTimes(keyframes, ratio, nextDuration)
+      ),
+    }))
+    playback.cancelAnimatedSeek()
+    playback.stopPlayback()
+    playback.setCurrentTime(
+      scaleTimelineTime({ time: clock.get(), ratio, duration: nextDuration })
     )
-    markCustom()
   }
 
-  const loopState: TimelineLoopState = {
-    tracks,
-    fillKeyframes,
-    materialKeyframes,
-    keyLightPositionKeyframes,
-    rotationAxisKeyframes,
-    moveKeyframes,
-    qualityKeyframes,
-    innerScaleKeyframes,
-  }
-  const openLoops = useMemo(
-    () =>
-      openLoopIds({
-        tracks,
-        fillKeyframes,
-        materialKeyframes,
-        keyLightPositionKeyframes,
-        rotationAxisKeyframes,
-        moveKeyframes,
-        qualityKeyframes,
-        innerScaleKeyframes,
-      }),
-    [
-      tracks,
-      fillKeyframes,
-      materialKeyframes,
-      keyLightPositionKeyframes,
-      rotationAxisKeyframes,
-      moveKeyframes,
-      qualityKeyframes,
-      innerScaleKeyframes,
-    ]
-  )
-
-  /** Ends one row or track (or everything) where it starts; see TimelineLoopModel. */
-  const closeLoops = (id?: string) => {
-    const changes = closeTimelineLoops(loopState, duration, id)
-    if (Object.keys(changes).length === 0) return
-    if (changes.tracks) setTracks(changes.tracks)
-    if (changes.fillKeyframes) setFillKeyframes(changes.fillKeyframes)
-    if (changes.materialKeyframes)
-      setMaterialKeyframes(changes.materialKeyframes)
-    if (changes.keyLightPositionKeyframes)
-      setKeyLightPositionKeyframes(changes.keyLightPositionKeyframes)
-    if (changes.rotationAxisKeyframes)
-      setRotationAxisKeyframes(changes.rotationAxisKeyframes)
-    if (changes.moveKeyframes) setMoveKeyframes(changes.moveKeyframes)
-    if (changes.qualityKeyframes) setQualityKeyframes(changes.qualityKeyframes)
-    if (changes.innerScaleKeyframes)
-      setInnerScaleKeyframes(changes.innerScaleKeyframes)
-    markCustom()
-  }
-
-  const clearTimelineTrackRow = (trackId: string) => {
-    setTracks((prev) => clearTrackKeyframes(prev, trackId))
-    markCustom()
-  }
-
-  const clearTimelinePropertyRow = (rowId: string) => {
-    clearPropertyRowKeyframes(rowId, propertyKeyframeSetters)
-    markCustom()
-  }
-
-  const removeTimelinePropertyKeyframe = (
-    rowId: string,
-    keyframeId: string
-  ) => {
-    removePropertyRowKeyframe(rowId, keyframeId, propertyKeyframeSetters)
-    markCustom()
-  }
-
-  const addTimelinePropertyKeyframe = (rowId: string, time?: number) => {
-    const keyframeTime = quantizeTimeToFrame(
-      clampNumber(time ?? currentTime, 0, duration)
-    )
-    markCustom()
-    addPropertyRowKeyframe(
-      rowId,
-      keyframeTime,
-      {
+  // Without a time, key the frame on screen (it moves during playback).
+  const addPropertyKeyframe = (rowId: string, time?: number) => {
+    const at = time ?? clock.get()
+    edit((current) =>
+      addPropertyRowKeyframe(current, rowId, frameTime(at), {
+        ...activeValuesAt(at),
         duration,
-        selectedShapeFillStops,
-        selectedShapeGradientType,
-        activeMaterialSettings,
-        activeKeyLightPosition,
-        activeRotationOffset,
-        activeMoveOffset,
-      },
-      propertyKeyframeSetters
+      })
     )
   }
+  const removePropertyKeyframe = (rowId: string, keyframeId: string) =>
+    edit((current) => removePropertyRowKeyframe(current, rowId, keyframeId))
 
-  const toggleTimelinePropertyKeyframe = (
-    rowId: string,
-    keyframeId?: string | null
-  ) => {
-    if (keyframeId) {
-      removeTimelinePropertyKeyframe(rowId, keyframeId)
-      return
-    }
-    addTimelinePropertyKeyframe(rowId)
-  }
+  const togglePropertyKeyframe = (rowId: string, keyframeId?: string | null) =>
+    keyframeId
+      ? removePropertyKeyframe(rowId, keyframeId)
+      : addPropertyKeyframe(rowId)
 
-  const moveTimelinePropertyKeyframe = (
-    rowId: string,
-    keyframeId: string,
-    time: number
-  ) => {
-    const nextTime = quantizeTimeToFrame(clampNumber(time, 0, duration))
-    movePropertyRowKeyframe(
-      rowId,
-      keyframeId,
-      nextTime,
-      propertyKeyframeSetters
-    )
-    markCustom()
-  }
+  const setShapes = (action: SetStateAction<ShapeStop[]>) =>
+    edit((current) => ({
+      shapes: typeof action === "function" ? action(current.shapes) : action,
+    }))
 
-  const duplicateTimelinePropertyKeyframe = (
-    rowId: string,
-    keyframeId: string,
-    time: number
-  ) => {
-    duplicatePropertyRowKeyframe(
-      rowId,
-      keyframeId,
-      quantizeTimeToFrame(clampNumber(time, 0, duration)),
-      propertyKeyframeSetters
-    )
-    markCustom()
-  }
-
-  const setTimelinePropertyEasing = (
-    rowId: string,
-    keyframeId: string | null,
-    easing: EasingType
-  ) => {
-    setPropertyRowKeyframeEasing(
-      rowId,
-      keyframeId,
-      easing,
-      propertyKeyframeSetters
-    )
-    markCustom()
-  }
-
-  const setShapeBlend = (
-    shapeId: string,
-    patch: Partial<Pick<ShapeStop, "transitionType" | "wipeDirection">>
-  ) => {
-    markCustom()
-    setShapes((prev) =>
-      prev.map((shape) =>
-        shape.id === shapeId ? { ...shape, ...patch } : shape
-      )
-    )
+  const timelineProps: TimelineProps = {
+    duration,
+    onDurationChange: changeDuration,
+    currentTime,
+    clock,
+    onTimeChange: playback.setCurrentTime,
+    onScrubStart: () => {
+      playback.cancelAnimatedSeek()
+      playback.stopPlayback()
+    },
+    isPlaying: playback.isPlaying,
+    isPreviewLoading: !playback.isPreviewModelReady,
+    loop: playback.loop,
+    onLoopChange: playback.setLoop,
+    tracks,
+    onTracksChange: (nextTracks: TimelineTrack[]) =>
+      edit(() => ({ tracks: nextTracks })),
+    propertyRows,
+    onClearTrackKeyframes: (trackId) =>
+      edit((current) => ({
+        tracks: current.tracks.map((track) =>
+          track.id === trackId ? { ...track, keyframes: [] } : track
+        ),
+      })),
+    onClearPropertyRow: (rowId) =>
+      edit((current) => clearPropertyRowKeyframes(current, rowId)),
+    openLoops,
+    /** Ends one row or track (or everything) where it starts; see TimelineLoopModel. */
+    onCloseLoops: (id) => {
+      const changes = closeTimelineLoops(store.get(), duration, id)
+      if (Object.keys(changes).length > 0) edit(() => changes)
+    },
+    onTogglePropertyKeyframe: togglePropertyKeyframe,
+    onAddPropertyKeyframeAtTime: addPropertyKeyframe,
+    onRemovePropertyKeyframe: removePropertyKeyframe,
+    onMovePropertyKeyframe: (rowId, keyframeId, time) =>
+      edit((current) =>
+        movePropertyRowKeyframe(current, rowId, keyframeId, frameTime(time))
+      ),
+    onSetPropertyEasing: (rowId, keyframeId, easing: EasingType) =>
+      edit((current) =>
+        setPropertyRowKeyframeEasing(current, rowId, keyframeId, easing)
+      ),
+    onDuplicatePropertyKeyframe: (rowId, keyframeId, time) =>
+      edit((current) =>
+        duplicatePropertyRowKeyframe(
+          current,
+          rowId,
+          keyframeId,
+          frameTime(time)
+        )
+      ),
+    activeTrackId: selection.selectedMotionTrackId,
+    onActiveTrackChange: selection.selectTimelineTrack,
+    onActivePropertyRowChange: selection.selectTimelinePropertyRow,
+    shapes: document.shapes,
+    selectedShapeId: shapes.selectedShapeId,
+    onSelectShape: (id) => {
+      shapes.setSelectedShapeId(id)
+      const shape = document.shapes.find((candidate) => candidate.id === id)
+      if (shape) seekToTime(shape.time, { animated: false })
+    },
+    onShapesChange: setShapes,
+    onAddShape: shapes.addShapeAtPlayhead,
+    onRemoveShape: shapes.removeShape,
+    onShapeEasingChange: (id, easing) =>
+      setShapes((current) =>
+        current.map((shape) => (shape.id === id ? { ...shape, easing } : shape))
+      ),
+    shapeOptions: PRESET_ICONS,
+    onShapeIconChange: shapes.setShapeIcon,
+    onShapeWipePairChange: shapes.setShapeWipePair,
+    onUploadShape: shapes.triggerShapeUpload,
+    onShapeBlendChange: (shapeId, patch) =>
+      setShapes((current) =>
+        current.map((shape) =>
+          shape.id === shapeId ? { ...shape, ...patch } : shape
+        )
+      ),
+    openShapePicker: shapes.openShapePicker,
+    onOpenShapePicker: shapes.setOpenShapePicker,
+    wipeDirections: TIMELINE_WIPE_DIRECTIONS,
   }
 
   return {
-    timelinePropertyRows,
+    timelineProps,
+    togglePropertyKeyframe,
     previousKeyMoment,
     nextKeyMoment,
     atTimelineStart: currentTime <= KEYFRAME_TIME_EPSILON,
     atTimelineEnd: currentTime >= duration - KEYFRAME_TIME_EPSILON,
-    playbackProgress:
-      duration > 0 ? clampNumber(currentTime / duration, 0, 1) : 0,
     goToPreviousKeyMoment: () => {
-      if (previousKeyMoment !== undefined) goToTime(previousKeyMoment)
+      const { previousKeyMoment: previous } = adjacentKeyMoments()
+      if (previous !== undefined) goToTime(previous)
     },
     goToNextKeyMoment: () => {
-      if (nextKeyMoment !== undefined) goToTime(nextKeyMoment)
+      const { nextKeyMoment: next } = adjacentKeyMoments()
+      if (next !== undefined) goToTime(next)
     },
     goToEnd: () => goToTime(duration),
-    handleDurationChange,
-    handleTracksChange: (nextTracks: TimelineTrack[]) => {
-      setTracks(nextTracks)
-      markCustom()
-    },
-    clearTimelineTrackRow,
-    clearTimelinePropertyRow,
-    toggleTimelinePropertyKeyframe,
-    removeTimelinePropertyKeyframe,
-    addTimelinePropertyKeyframeAtTime: addTimelinePropertyKeyframe,
-    moveTimelinePropertyKeyframe,
-    setTimelinePropertyEasing,
-    duplicateTimelinePropertyKeyframe,
-    setShapeBlend,
-    openLoops,
-    closeLoops,
   }
 }

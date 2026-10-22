@@ -179,3 +179,8 @@ export const createBlankShapeSequence = () => [
     wipeDirection: { x: 0, y: 0 },
   },
 ]
+
+/** The icon picker opened to add a clip, rather than to replace one. */
+export const createAddIconPickerTarget = () => createEditorId("add-icon")
+export const isAddIconPickerTarget = (id: string | null) =>
+  Boolean(id?.startsWith("add-icon-"))

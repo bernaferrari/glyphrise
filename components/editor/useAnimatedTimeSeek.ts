@@ -2,38 +2,49 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { clampNumber, quantizeTimeToFrame } from "./EditorModel"
+import type { PlaybackClock } from "./PlaybackClock"
 
 const SEEK_DURATION_MS = 180
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 
+/**
+ * Glides the playhead to a new time. The glide only moves the playback clock
+ * (canvas and playhead); the editor's time commits once, on arrival.
+ */
 export function useAnimatedTimeSeek({
-  currentTime,
+  clock,
   duration,
   setCurrentTime,
   stopPlayback,
 }: {
-  currentTime: number
+  clock: PlaybackClock
   duration: number
-  setCurrentTime: (updater: number | ((time: number) => number)) => void
+  setCurrentTime: (time: number) => void
   stopPlayback: () => void
 }) {
   const [animatedSeekEnabled, setAnimatedSeekEnabled] = useState(true)
   const animationRef = useRef<number | null>(null)
-  const currentTimeRef = useRef(currentTime)
 
-  useEffect(() => {
-    currentTimeRef.current = currentTime
-  }, [currentTime])
-
-  const cancelAnimatedSeek = useCallback(() => {
-    if (animationRef.current === null) return
+  const stopGlide = useCallback(() => {
+    if (animationRef.current === null) return false
     cancelAnimationFrame(animationRef.current)
     animationRef.current = null
+    return true
   }, [])
 
-  useEffect(() => cancelAnimatedSeek, [cancelAnimatedSeek])
+  // Interrupted mid-glide, the editor stays where the playhead got to.
+  const cancelAnimatedSeek = useCallback(() => {
+    if (stopGlide()) setCurrentTime(clock.get())
+  }, [clock, setCurrentTime, stopGlide])
+
+  useEffect(
+    () => () => {
+      stopGlide()
+    },
+    [stopGlide]
+  )
 
   const updateAnimatedSeekEnabled = useCallback(
     (enabled: boolean) => {
@@ -46,16 +57,15 @@ export function useAnimatedTimeSeek({
   const seekToTime = useCallback(
     (time: number, options?: { animated?: boolean }) => {
       stopPlayback()
-      cancelAnimatedSeek()
+      stopGlide()
 
       const target = quantizeTimeToFrame(clampNumber(time, 0, duration))
-      const start = currentTimeRef.current
+      const start = clock.get()
       const shouldAnimate =
         (options?.animated ?? animatedSeekEnabled) &&
         Math.abs(target - start) > 0.001
 
       if (!shouldAnimate) {
-        currentTimeRef.current = target
         setCurrentTime(target)
         return
       }
@@ -64,15 +74,11 @@ export function useAnimatedTimeSeek({
       const tick = (now: number) => {
         const progress = clampNumber((now - startedAt) / SEEK_DURATION_MS, 0, 1)
         const eased = easeInOutCubic(progress)
-        const next = quantizeTimeToFrame(start + (target - start) * eased)
-        currentTimeRef.current = next
-        setCurrentTime(next)
-
         if (progress < 1) {
+          clock.set(quantizeTimeToFrame(start + (target - start) * eased))
           animationRef.current = requestAnimationFrame(tick)
         } else {
           animationRef.current = null
-          currentTimeRef.current = target
           setCurrentTime(target)
         }
       }
@@ -81,7 +87,8 @@ export function useAnimatedTimeSeek({
     },
     [
       animatedSeekEnabled,
-      cancelAnimatedSeek,
+      stopGlide,
+      clock,
       duration,
       setCurrentTime,
       stopPlayback,

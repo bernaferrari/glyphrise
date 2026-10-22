@@ -10,6 +10,10 @@ import {
   TIMELINE_FRAME_RATE,
 } from "./TimelineGeometry"
 import { TIMELINE_LAYER } from "./TimelineLayering"
+import {
+  type TimelinePlayhead,
+  useTimelinePlayheadX,
+} from "./TimelineLaneOverlays"
 
 type TimelineTick = {
   time: number
@@ -20,7 +24,7 @@ type TimelineRulerProps = {
   currentTime: number
   duration: number
   ticks: TimelineTick[]
-  playheadX: string
+  playhead: TimelinePlayhead
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onContextMenu: (event: React.MouseEvent<HTMLDivElement>) => void
   onKeyboardTimeChange: (time: number) => void
@@ -73,6 +77,34 @@ export const timelineTimeForKeyboardKey = ({
   return Number(Math.max(0, Math.min(duration, nextTime)).toFixed(3))
 }
 
+function RulerPlayhead({ playhead }: { playhead: TimelinePlayhead }) {
+  const playheadX = useTimelinePlayheadX(playhead)
+  return (
+    <div
+      className="pointer-events-none absolute top-0 bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-foreground"
+      style={
+        {
+          "--position-x": cssLength(playheadX),
+          "--stack-order": TIMELINE_LAYER.rulerPlayheadLine,
+        } as React.CSSProperties
+      }
+    >
+      <svg
+        viewBox="0 0 13 17"
+        aria-hidden="true"
+        className="absolute top-1 left-1/2 z-(--stack-order) h-4.25 w-3.25 -translate-x-1/2 fill-foreground drop-shadow-xs drop-shadow-black/35"
+        style={
+          {
+            "--stack-order": TIMELINE_LAYER.rulerPlayheadHandle,
+          } as React.CSSProperties
+        }
+      >
+        <path d="M2.5 0h8A2.5 2.5 0 0 1 13 2.5v8.3a2.5 2.5 0 0 1-.8 1.8L7.4 16.6a1.3 1.3 0 0 1-1.8 0L.8 12.6A2.5 2.5 0 0 1 0 10.8V2.5A2.5 2.5 0 0 1 2.5 0Z" />
+      </svg>
+    </div>
+  )
+}
+
 export const TimelineRuler = React.forwardRef<
   HTMLDivElement,
   TimelineRulerProps
@@ -82,7 +114,7 @@ export const TimelineRuler = React.forwardRef<
       currentTime,
       duration,
       ticks,
-      playheadX,
+      playhead,
       onPointerDown,
       onContextMenu,
       onKeyboardTimeChange,
@@ -165,28 +197,7 @@ export const TimelineRuler = React.forwardRef<
           )}
         </div>
       ))}
-      <div
-        className="pointer-events-none absolute top-0 bottom-0 left-(--position-x) z-(--stack-order) w-px -translate-x-1/2 bg-foreground"
-        style={
-          {
-            "--position-x": cssLength(playheadX),
-            "--stack-order": TIMELINE_LAYER.rulerPlayheadLine,
-          } as React.CSSProperties
-        }
-      >
-        <svg
-          viewBox="0 0 13 17"
-          aria-hidden="true"
-          className="absolute top-1 left-1/2 z-(--stack-order) h-4.25 w-3.25 -translate-x-1/2 fill-foreground drop-shadow-xs drop-shadow-black/35"
-          style={
-            {
-              "--stack-order": TIMELINE_LAYER.rulerPlayheadHandle,
-            } as React.CSSProperties
-          }
-        >
-          <path d="M2.5 0h8A2.5 2.5 0 0 1 13 2.5v8.3a2.5 2.5 0 0 1-.8 1.8L7.4 16.6a1.3 1.3 0 0 1-1.8 0L.8 12.6A2.5 2.5 0 0 1 0 10.8V2.5A2.5 2.5 0 0 1 2.5 0Z" />
-        </svg>
-      </div>
+      <RulerPlayhead playhead={playhead} />
     </div>
   )
 )
