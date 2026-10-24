@@ -28,10 +28,6 @@ export const metadata: Metadata = {
     title: "Glyphrise — 3D icon motion",
     description: "Turn SVG icons into polished 3D motion.",
   },
-  icons: {
-    shortcut: "/favicon.ico?v=2",
-    apple: [{ url: "/glyphrise-apple-touch-icon.png", sizes: "180x180" }],
-  },
 }
 
 export default function RootLayout({
